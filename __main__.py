@@ -1,402 +1,158 @@
-
-#!/usr/bin/env python3
-"""
-franken_lx200_bridge.py
-
-TCP LX200 server that "glues" two serial backends:
-- RA backend: Sky-Watcher Motor Controller protocol (Star Adventurer 2i) over UART
-- DEC backend: Arduino speaking (a subset of) LX200 over UART
-
-Main idea:
-- We read real axis state from backends (no guessing): RA uses :j / :a / :f from SkyWatcher MC,
-  DEC uses :GD (or your own extended :XDP / :XDE if you implement it).
-- We expose a single LX200 endpoint over TCP for INDI (via "LX200 Basic"/similar TCP connection).
-
-Protocol notes:
-- SkyWatcher Motor Controller command set:
-  commands start with ":" and end with CR (0x0D), response starts with "=" or "!" and ends with CR.
-  Multi-byte hex fields are LITTLE-ENDIAN by BYTES (doc example: 0x123456 -> "563412").
-  See Sky-Watcher "motor_controller_command_set.pdf".
-
-- LX200:
-  commands start with ":" and end with "#". Responses usually end with "#".
-
-This is not a full LX200 implementation; it implements the subset commonly used by INDI LX200 drivers:
-:GR :GD :Sr :Sd :MS :CM :Q :Mn/:Ms/:Me/:Mw and their stop variants, plus location/time setters.
-
-Run:
-  python3 franken_lx200_bridge.py \
-    --listen 127.0.0.1:10001 \
-    --ra-port /dev/ttyUSB0 --ra-baud 9600 --ra-channel 1 \
-    --dec-port /dev/ttyUSB1 --dec-baud 115200 \
-    --site-lat 43.2383 --site-lon 76.9450 --utc-offset +6
-
-If your INDI LX200 driver can't connect directly via TCP, use socat:
-  socat -d -d pty,raw,echo=0,link=/tmp/lx200tty tcp:127.0.0.1:10001
-Then point INDI LX200 driver to /tmp/lx200tty.
-"""
 from __future__ import annotations
 
 import argparse
 import asyncio
-import dataclasses
-import datetime as dt
 import logging
-import math
-import threading
-import time
-from typing import Optional, Tuple
 import os
+import sys
 
-import serial  # pyserial
-
-
-# -----------------------------
-# Helpers: formatting/parsing
-# -----------------------------
-
-def clamp(x: float, lo: float, hi: float) -> float:
-    return lo if x < lo else hi if x > hi else x
-
-def wrap_deg(deg: float) -> float:
-    deg = deg % 360.0
-    if deg < 0:
-        deg += 360.0
-    return deg
-
-def wrap_hours(h: float) -> float:
-    h = h % 24.0
-    if h < 0:
-        h += 24.0
-    return h
-
-def hms_to_hours(h: int, m: int, s: int) -> float:
-    return h + m/60.0 + s/3600.0
-
-def hours_to_hms(hours: float) -> Tuple[int,int,int]:
-    hours = wrap_hours(hours)
-    h = int(hours)
-    rem = (hours - h) * 60.0
-    m = int(rem)
-    s = int(round((rem - m) * 60.0))
-    if s == 60:
-        s = 0
-        m += 1
-    if m == 60:
-        m = 0
-        h = (h + 1) % 24
-    return h, m, s
-
-def deg_to_dms(deg: float) -> Tuple[int,int,int,int]:
-    # returns sign (+1/-1), D, M, S
-    sign = 1
-    if deg < 0:
-        sign = -1
-        deg = -deg
-    d = int(deg)
-    rem = (deg - d) * 60.0
-    m = int(rem)
-    s = int(round((rem - m) * 60.0))
-    if s == 60:
-        s = 0
-        m += 1
-    if m == 60:
-        m = 0
-        d += 1
-    return sign, d, m, s
-
-def parse_ra_hms(s: str) -> float:
-    # "HH:MM:SS"
-    parts = s.strip().split(":")
-    if len(parts) != 3:
-        raise ValueError(f"bad RA {s!r}")
-    h, m, sec = (int(p) for p in parts)
-    return wrap_hours(hms_to_hours(h, m, sec))
-
-def parse_dec_dms(s: str) -> float:
-    # "+DD*MM:SS" or "+DD*MM" variants; accept both
-    s = s.strip()
-    sign = 1
-    if s.startswith("-"):
-        sign = -1
-        s = s[1:]
-    elif s.startswith("+"):
-        s = s[1:]
-    s = s.replace("°", "*")
-    if "*" not in s:
-        raise ValueError(f"bad DEC {s!r}")
-    d_str, rest = s.split("*", 1)
-    d = int(d_str)
-    if ":" in rest:
-        m_str, sec_str = rest.split(":", 1)
-        m = int(m_str)
-        sec = int(sec_str)
-    else:
-        m = int(rest)
-        sec = 0
-    deg = sign * (d + m/60.0 + sec/3600.0)
-    return clamp(deg, -90.0, 90.0)
-
-def fmt_ra(hours: float) -> str:
-    h, m, s = hours_to_hms(hours)
-    return f"{h:02d}:{m:02d}:{s:02d}#"
-
-def fmt_dec(deg: float) -> str:
-    deg = clamp(deg, -90.0, 90.0)
-    sign, d, m, s = deg_to_dms(deg)
-    pm = "+" if sign >= 0 else "-"
-    return f"{pm}{d:02d}*{m:02d}:{s:02d}#"
-
-def parse_lx200_signed_deg(s: str) -> float:
-    # "+DDD*MM" (longitude) or "+DD*MM" (latitude)
-    s = s.strip()
-    sign = 1
-    if s.startswith("-"):
-        sign = -1
-        s = s[1:]
-    elif s.startswith("+"):
-        s = s[1:]
-    s = s.replace("°", "*")
-    d_str, m_str = s.split("*", 1)
-    d = int(d_str)
-    m = int(m_str)
-    return sign * (d + m/60.0)
-
-def fmt_lx200_lat(deg: float) -> str:
-    deg = clamp(deg, -90.0, 90.0)
-    sign, d, m, _ = deg_to_dms(deg)
-    pm = "+" if sign >= 0 else "-"
-    return f"{pm}{d:02d}*{m:02d}#"
-
-def fmt_lx200_lon(deg_east: float) -> str:
-    # LX200 uses "+DDD*MM" with WEST positive in some docs; INDI typically uses EAST positive internally.
-    # We expose longitude in the common LX200 format: sDDD*MM where sign indicates East(+)/West(-) by our convention.
-    # If your client expects the opposite, flip with --lon-sign.
-    deg_east = ((deg_east + 180.0) % 360.0) - 180.0  # wrap to [-180,180)
-    sign, d, m, _ = deg_to_dms(deg_east)
-    pm = "+" if sign >= 0 else "-"
-    return f"{pm}{d:03d}*{m:02d}#"
-
-def julian_date(t_utc: dt.datetime) -> float:
-    # t_utc must be timezone-aware or treated as UTC.
-    if t_utc.tzinfo is None:
-        t_utc = t_utc.replace(tzinfo=dt.timezone.utc)
-    t_utc = t_utc.astimezone(dt.timezone.utc)
-    y = t_utc.year
-    m = t_utc.month
-    d = t_utc.day
-    hour = t_utc.hour + t_utc.minute/60.0 + t_utc.second/3600.0 + t_utc.microsecond/3.6e9
-    if m <= 2:
-        y -= 1
-        m += 12
-    A = y // 100
-    B = 2 - A + (A // 4)
-    JD = int(365.25*(y + 4716)) + int(30.6001*(m + 1)) + d + B - 1524.5 + hour/24.0
-    return JD
-
-def gmst_deg(t_utc: dt.datetime) -> float:
-    # IAU 1982-ish approximation, good enough for mount control.
-    JD = julian_date(t_utc)
-    T = (JD - 2451545.0) / 36525.0
-    gmst = 280.46061837 + 360.98564736629*(JD - 2451545.0) + 0.000387933*(T*T) - (T*T*T)/38710000.0
-    return wrap_deg(gmst)
-
-def lst_hours(t_utc: dt.datetime, lon_deg_east: float) -> float:
-    return wrap_hours((gmst_deg(t_utc) + lon_deg_east) / 15.0)
+from serial_prims import SerialLineDevice
+from skywatcher import SkyWatcherMC
+from arduino_dec import LX200SerialClient
+from mount import FrankenMount, SiteTime
+from lx200_interface import LX200TCPServer
+from coords import parse_ra_hms, parse_dec_dms, fmt_ra, fmt_dec
 
 
-# -----------------------------
-# Serial primitives (thread-safe, blocking)
-# -----------------------------
+def setup_logging(level: str) -> None:
+    logging.basicConfig(
+        level=getattr(logging, level.upper(), logging.INFO),
+        format="%(asctime)s.%(msecs)03d %(levelname)s %(name)s: %(message)s",
+        datefmt="%H:%M:%S",
+    )
 
-class SerialLineDevice:
-    def __init__(self, port: str, baud: int, timeout_s: float, name: str):
-        self.log = logging.getLogger(name)
-        self.ser = serial.Serial(port=port, baudrate=baud, timeout=timeout_s)
-        self.lock = threading.Lock()
 
-    def close(self) -> None:
-        with self.lock:
+async def console_cli(mount: FrankenMount) -> None:
+    print("Test console started. Type 'help' for commands.")
+    while True:
+        try:
+            line = await asyncio.to_thread(input, "console> ")
+        except (EOFError, KeyboardInterrupt):
+            print("Exiting console.")
+            os._exit(0)
+        cmd = line.strip()
+        if not cmd:
+            continue
+        if cmd in ("help", "h"):
+            print("pos, stop, setra HH:MM:SS, setdec +DD*MM[:SS], goto, sidereal on|off, exit")
+            continue
+        if cmd == "pos":
+            ra, dec = mount.get_ra_dec()
+            print(f"RA={fmt_ra(ra)[:-1]} DEC={fmt_dec(dec)[:-1]}")
+            continue
+        if cmd == "stop":
+            await mount.abort()
+            print("Abort sent.")
+            continue
+        if cmd.startswith("setra "):
             try:
-                self.ser.close()
-            except Exception:
-                pass
-
-    def transact(self, payload: bytes, terminator: bytes) -> bytes:
-        """Write payload, then read until terminator (inclusive)."""
-        with self.lock:
-            self.log.debug("TX %r", payload)
-            self.ser.reset_input_buffer()
-            self.ser.write(payload)
-            self.ser.flush()
-
-            buf = bytearray()
-            deadline = time.time() + (self.ser.timeout or 1.0)
-            while True:
-                b = self.ser.read(1)
-                if b:
-                    buf += b
-                    if buf.endswith(terminator):
-                        self.log.debug("RX %r", bytes(buf))
-                        return bytes(buf)
-                else:
-                    if time.time() >= deadline:
-                        self.log.debug("RX TIMEOUT after %.3fs, got=%r", (self.ser.timeout or 0.0), bytes(buf))
-                        raise TimeoutError(f"serial timeout, got={bytes(buf)!r}")
-
-
-# -----------------------------
-# SkyWatcher Motor Controller (RA backend)
-# -----------------------------
-
-def encode_hex_le(value: int, nbytes: int) -> str:
-    if value < 0:
-        raise ValueError("encode_hex_le expects unsigned")
-    b = value.to_bytes(nbytes, byteorder="little", signed=False)
-    return b.hex().upper()
-
-def decode_hex_le(hexstr: str, signed: bool = False) -> int:
-    bs = bytes.fromhex(hexstr)
-    val = int.from_bytes(bs, byteorder="little", signed=False)
-    if signed:
-        bits = 8 * len(bs)
-        signbit = 1 << (bits - 1)
-        if val & signbit:
-            val = val - (1 << bits)
-    return val
-
-@dataclasses.dataclass
-class SkyWatcherAxisInfo:
-    cpr: int = 0          # counts per revolution
-    timer_freq: int = 0   # TMR_Freq (Hz) for T1 input clock
-    last_pos: int = 0     # signed 24-bit
-    last_status: int = 0  # 8/16-bit (we keep raw)
-    updated_monotonic: float = 0.0
-
-class SkyWatcherMC:
-    """
-    Implements a useful subset of Sky-Watcher motor controller protocol.
-
-    Key commands from SkyWatcher motor_controller_command_set.pdf:
-      :a<ch>    inquire counts per revolution (CPR)   -> B response (6 hex chars)
-      :b1       inquire timer interrupt freq          -> B response (6 hex chars)
-      :j<ch>    inquire position                      -> B response (6 hex chars)
-      :f<ch>    inquire status                        -> E response (variable, typically 2 or 4 hex chars)
-      :S<ch><pos24> set goto target (absolute)        -> A response
-      :G<ch><mode4nibbles> set motion mode            -> A response (must be stopped)
-      :I<ch><preset24> set step period (tracking)     -> A response
-      :J<ch>    start motion                          -> A response
-      :K<ch>    stop motion                           -> A response
-      :L<ch>    instant stop                          -> A response
-    """
-    def __init__(self, dev: SerialLineDevice):
-        self.dev = dev
-        self.log = logging.getLogger("ra.swmc")
-
-    def _cmd(self, header: str, channel: Optional[str], data_hex: str = "") -> str:
-        if channel is None:
-            wire = f":{header}{data_hex}\r".encode("ascii")
-        else:
-            wire = f":{header}{channel}{data_hex}\r".encode("ascii")
-
-        raw = self.dev.transact(wire, terminator=b"\r")
-        if not raw or len(raw) < 2:
-            raise RuntimeError(f"bad response: {raw!r}")
-        if raw[0:1] == b"!":
-            # "!<errcode>\r" where errcode is ASCII digit
-            err = raw[1:-1].decode("ascii", errors="replace")
-            raise RuntimeError(f"SWMC error: {err!r} for cmd {wire!r}")
-        if raw[0:1] != b"=":
-            raise RuntimeError(f"bad response start: {raw!r}")
-        return raw[1:-1].decode("ascii", errors="replace")  # strip '=' and '\r'
-
-    def inquire_cpr(self, ch: str) -> int:
-        hexdata = self._cmd("a", ch)
-        return decode_hex_le(hexdata, signed=False)
-
-    def inquire_timer_freq(self) -> int:
-        hexdata = self._cmd("b", None, data_hex="1")
-        return decode_hex_le(hexdata, signed=False)
-
-    def inquire_position(self, ch: str) -> int:
-        hexdata = self._cmd("j", ch)
-        return decode_hex_le(hexdata, signed=True)  # 24-bit signed
-
-    def inquire_status(self, ch: str) -> int:
-        hexdata = self._cmd("f", ch)
-        # E-format in PDF is "Byte1 Byte2 ...", but PDF text extraction is messy.
-        # We decode whatever length we get using little-endian by bytes.
-        # If mount returns 1 byte => 2 hex chars; 2 bytes => 4 hex chars.
-        if len(hexdata) not in (2, 4):
-            self.log.debug("status length unexpected: %r", hexdata)
-        return decode_hex_le(hexdata, signed=False)
-
-    def set_motion_mode(self, ch: str, *, tracking: bool, ccw: bool, fast: bool = False, medium: bool = False) -> None:
-        """
-        Build 4 nibbles (DB1..DB4), each is one hex digit.
-
-        From PDF (table row for 'G'):
-          DB1 bits:
-            B0: 0=Goto, 1=Tracking
-            B1: varies (fast/slow depending on mode); we use 0 unless fast=True
-            B2: 0=S/F, 1=Medium
-            B3: 1x Slow Goto (ignore)
-          DB2 bits:
-            B0: 0=CW, 1=CCW
-            B1: 0=North 1=South (not used for RA)
-            B2: 0=Normal Goto, 1=Coarse Goto (ignore)
-        """
-        db1 = 0
-        db1 |= (1 if tracking else 0) << 0
-        db1 |= (1 if fast else 0) << 1
-        db1 |= (1 if medium else 0) << 2
-        # db1 bit3 keep 0
-
-        db2 = 0
-        db2 |= (1 if ccw else 0) << 0
-
-        mode = f"{db1:X}{db2:X}00"
-        _ = self._cmd("G", ch, data_hex=mode)
-
-    def set_goto_target(self, ch: str, target_pos: int) -> None:
-        if target_pos < 0:
-            target_pos &= (1 << 24) - 1
-        hexdata = encode_hex_le(target_pos, 3)
-        _ = self._cmd("S", ch, data_hex=hexdata)
-
-    def set_step_period(self, ch: str, preset: int) -> None:
-        hexdata = encode_hex_le(preset, 3)
-        _ = self._cmd("I", ch, data_hex=hexdata)
-
-    def start_motion(self, ch: str) -> None:
-        _ = self._cmd("J", ch)
-
-    def stop_motion(self, ch: str) -> None:
-        _ = self._cmd("K", ch)
-
-    def instant_stop(self, ch: str) -> None:
-        _ = self._cmd("L", ch)
+                ra = parse_ra_hms(cmd[6:])
+                mount.set_target_ra(ra)
+                print(f"Target RA set to {fmt_ra(ra)[:-1]}")
+            except Exception as e:
+                print(f"Bad RA: {e}")
+            continue
+        if cmd.startswith("setdec "):
+            try:
+                dec = parse_dec_dms(cmd[7:])
+                mount.set_target_dec(dec)
+                print(f"Target DEC set to {fmt_dec(dec)[:-1]}")
+            except Exception as e:
+                print(f"Bad DEC: {e}")
+            continue
+        if cmd == "goto":
+            print("Starting GOTO...")
+            res = await mount.goto_target()
+            print(f"GOTO result: {res}")
+            continue
+        if cmd.startswith("sidereal "):
+            a = cmd.split()
+            if len(a) >= 2 and a[1] in ("on", "off"):
+                await mount.enable_tracking(a[1] == "on")
+                print(f"Sidereal tracking {'enabled' if a[1]=='on' else 'disabled'}.")
+            else:
+                print("Usage: sidereal on|off")
+            continue
+        if cmd in ("exit", "quit"):
+            print("Exiting process.")
+            os._exit(0)
+        print("Unknown command. Type 'help'.")
 
 
-# -----------------------------
-# DEC backend: LX200 client over serial
-# -----------------------------
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--listen", default="127.0.0.1:10001", help="host:port for LX200 TCP server")
+    ap.add_argument("--log-level", default="INFO")
 
-class LX200SerialClient:
-    def __init__(self, dev: SerialLineDevice):
-        self.dev = dev
-        self.log = logging.getLogger("dec.lx200")
+    ap.add_argument("--ra-port", required=True)
+    ap.add_argument("--ra-baud", type=int, default=9600)
+    ap.add_argument("--ra-timeout", type=float, default=0.5)
+    ap.add_argument("--ra-channel", default="1", choices=["1", "2"]) 
+    ap.add_argument("--ra-ccw", action="store_true")
+    ap.add_argument("--ra-sign", type=int, default=+1, choices=[-1, +1])
 
-    def cmd(self, cmd: str, expect_hash: bool = True) -> str:
-        if not cmd.startswith(":"):
-            cmd = ":" + cmd
-        if not cmd.endswith("#"):
-            cmd = cmd + "#"
-        raw = self.dev.transact(cmd.encode("ascii"), terminator=b"#" if expect_hash else b"\n")
-        # raw includes '#'
-        if not raw.endswith(b"#"):
-            raise RuntimeError(f"bad lx200 response {raw!r}")
-        return raw[:-1].decode("ascii", errors="replace")  # strip '#'
+    ap.add_argument("--dec-port", required=True)
+    ap.add_argument("--dec-baud", type=int, default=115200)
+    ap.add_argument("--dec-timeout", type=float, default=0.5)
+
+    ap.add_argument("--site-lat", type=float, default=0.0)
+    ap.add_argument("--site-lon", type=float, default=0.0)
+    ap.add_argument("--utc-offset", type=float, default=0.0)
+    ap.add_argument("--dec-accel", type=float, default=5.0)
+    ap.add_argument("--dec-vmax", type=float, default=4.0)
+    ap.add_argument("--test-mode", action="store_true", help="Run interactive test console for mount control")
+
+    args = ap.parse_args()
+    setup_logging(args.log_level)
+
+    host, port_s = args.listen.split(":")
+    port = int(port_s)
+
+    ra_dev = SerialLineDevice(args.ra_port, args.ra_baud, args.ra_timeout, name="serial.ra")
+    dec_dev = SerialLineDevice(args.dec_port, args.dec_baud, args.dec_timeout, name="serial.dec")
+
+    ra = SkyWatcherMC(ra_dev)
+    dec = LX200SerialClient(dec_dev)
+    site = SiteTime(lat_deg=args.site_lat, lon_deg_east=args.site_lon, utc_offset_hours=args.utc_offset)
+
+    mount = FrankenMount(
+        ra=ra,
+        ra_ch=args.ra_channel,
+        dec=dec,
+        site=site,
+        ra_ccw=args.ra_ccw,
+        ra_sign=args.ra_sign,
+        dec_accel_deg_s2=args.dec_accel,
+        dec_vmax_deg_s=args.dec_vmax,
+    )
+
+    server = LX200TCPServer(mount)
+
+    async def runner():
+        await mount.start()
+        if args.test_mode:
+            asyncio.create_task(console_cli(mount))
+        srv = await asyncio.start_server(server.handle_client, host, port)
+        addrs = ", ".join(str(sock.getsockname()) for sock in srv.sockets or [])
+        logging.getLogger("main").info("LX200 TCP listening on %s", addrs)
+        async with srv:
+            await srv.serve_forever()
+
+    try:
+        asyncio.run(runner())
+    finally:
+        try:
+            ra_dev.close()
+        except Exception:
+            pass
+        try:
+            dec_dev.close()
+        except Exception:
+            pass
+
+
+if __name__ == "__main__":
+    main()
 
     def get_dec(self) -> float:
         resp = self.cmd(":GD#")
