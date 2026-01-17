@@ -606,14 +606,20 @@ class FrankenMount:
     # --- outward LX200 behavior ---
 
     def get_ra_dec(self) -> Tuple[float, float]:
-        return self.state.ra_hours, self.state.dec_deg
+        ra, dec = self.state.ra_hours, self.state.dec_deg
+        self.log.debug("get_ra_dec -> RA=%.6f h, DEC=%.6f deg", ra, dec)
+        return ra, dec
 
     def set_target_ra(self, ra_hours: float) -> str:
         self.state.target_ra_hours = wrap_hours(ra_hours)
+        self.log.info("set_target_ra: target_ra_hours set to %s", fmt_ra(self.state.target_ra_hours))
+        self.log.debug("set_target_ra returning '1#'")
         return "1#"
 
     def set_target_dec(self, dec_deg: float) -> str:
         self.state.target_dec_deg = clamp(dec_deg, -90.0, 90.0)
+        self.log.info("set_target_dec: target_dec_deg set to %.6f", self.state.target_dec_deg)
+        self.log.debug("set_target_dec returning '1#'")
         return "1#"
 
     async def sync_to_target(self) -> str:
@@ -626,6 +632,12 @@ class FrankenMount:
         DEC is assumed to already match physically after you adjust/slew.
         """
         if self.state.target_ra_hours is None or self.state.target_dec_deg is None:
+            self.log.warning(
+                "SYNC requested but target RA or DEC is not set (RA=%r DEC=%r).",
+                self.state.target_ra_hours,
+                self.state.target_dec_deg,
+            )
+            self.log.warning("Please call LX200 commands :Sr <RA> and :Sd <DEC> (or console 'setra'/'setdec') before :CM (sync). Returning '0#'.")
             return "0#"
         t_utc = self.site.now_utc()
         lst = lst_hours(t_utc, self.site.lon_deg_east)
@@ -650,6 +662,7 @@ class FrankenMount:
             await asyncio.to_thread(self.dec.abort)
         except Exception as e:
             self.log.warning("DEC abort failed: %s", e)
+        self.log.debug("abort returning '1#'")
         return "1#"
 
     async def goto_target(self) -> str:
@@ -660,6 +673,12 @@ class FrankenMount:
         After slew, (re)enable RA tracking in a safe way.
         """
         if self.state.target_ra_hours is None or self.state.target_dec_deg is None:
+            self.log.warning(
+                "GOTO requested but target RA or DEC is not set (RA=%r DEC=%r).",
+                self.state.target_ra_hours,
+                self.state.target_dec_deg,
+            )
+            self.log.warning("Please call LX200 commands :Sr <RA> and :Sd <DEC> (or console 'setra'/'setdec') before :MS (goto). Returning '0#'.")
             return "0#"
         async with self._goto_lock:
             ra_t = self.state.target_ra_hours
@@ -671,6 +690,8 @@ class FrankenMount:
 
             self.log.info("GOTO: target RA=%s DEC=%.3f -> HA=%.6fh -> RA ticks target=%d",
                           fmt_ra(ra_t), dec_t, ha_target, ra_ticks_target)
+            self.log.debug("Computed internal state: ra_ha0_ticks=%d last_ra_ticks=%d ra_cpr=%d",
+                           self.state.ra_ha0_ticks, self.state.last_ra_ticks, self.state.ra_cpr)
 
             # DEC first: set and start
             try:
@@ -698,6 +719,7 @@ class FrankenMount:
             # monitor until RA close enough, then enable tracking
             await self._wait_slew_finish(ra_ticks_target, dec_t, timeout_s=180.0)
             await self.enable_tracking(True)
+            self.log.info("GOTO completed; returning '0#'")
             return "0#"  # LX200 expects "0" for success in many implementations
 
     async def _wait_slew_finish(self, ra_target_ticks: int, dec_target_deg: float, timeout_s: float) -> None:
@@ -747,12 +769,14 @@ class FrankenMount:
                 await asyncio.to_thread(self.ra.stop_motion, self.ra_ch)
         except Exception as e:
             self.log.warning("Tracking command failed: %s", e, exc_info=True)
+        self.log.debug("enable_tracking(%s) completed (preset=%d)", enabled, preset)
 
     async def move(self, axis: str, direction: str, start: bool, rate_deg_s: float) -> str:
         """
         axis: 'ra' or 'dec'
         direction: 'E','W','N','S'
         """
+        self.log.info("move requested: axis=%s direction=%s start=%s rate=%.6f", axis, direction, start, rate_deg_s)
         if axis == "dec":
             if direction == "N":
                 await asyncio.to_thread(self.dec.move_ns, True, start)
@@ -762,11 +786,13 @@ class FrankenMount:
                 await asyncio.to_thread(self.dec.move_we, True, start)
             elif direction == "W":
                 await asyncio.to_thread(self.dec.move_we, False, start)
+            self.log.debug("move (dec) returning '1#'")
             return "1#"
 
         # RA manual move via tracking mode with custom speed.
         # rate_deg_s is additional speed; we translate to step period. This ignores acceleration on RA (per your request).
         if self.axis.cpr <= 0 or self.axis.timer_freq <= 0:
+            self.log.warning("RA move requested but RA CPR or timer_freq not configured.")
             return "0#"
         # convert deg/s to counts/s then preset
         rate_deg_s = abs(rate_deg_s)
@@ -792,7 +818,9 @@ class FrankenMount:
                 await asyncio.to_thread(self.ra.stop_motion, self.ra_ch)
         except Exception as e:
             self.log.warning("RA manual move failed: %s", e, exc_info=True)
+            self.log.debug("move returning '0#' due to exception")
             return "0#"
+        self.log.debug("move returning '1#'")
         return "1#"
 
 
