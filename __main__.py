@@ -46,6 +46,7 @@ import math
 import threading
 import time
 from typing import Optional, Tuple
+import os
 
 import serial  # pyserial
 
@@ -999,6 +1000,75 @@ class LX200TCPServer:
 # main
 # -----------------------------
 
+async def console_cli(mount: FrankenMount) -> None:
+    """Simple interactive console for testing the mount.
+
+    Commands:
+      pos                - show current RA/DEC
+      stop               - abort all motion
+      setra HH:MM:SS     - set target RA
+      setdec +DD*MM:SS   - set target DEC
+      goto               - perform GOTO to last set targets
+      sidereal on|off    - enable/disable sidereal tracking
+      help               - show this help
+      exit               - quit process
+    """
+    print("Test console started. Type 'help' for commands.")
+    while True:
+        try:
+            line = await asyncio.to_thread(input, "console> ")
+        except (EOFError, KeyboardInterrupt):
+            print("Exiting console.")
+            os._exit(0)
+        cmd = line.strip()
+        if not cmd:
+            continue
+        if cmd in ("help", "h"):
+            print("pos, stop, setra HH:MM:SS, setdec +DD*MM[:SS], goto, sidereal on|off, exit")
+            continue
+        if cmd == "pos":
+            ra, dec = mount.get_ra_dec()
+            print(f"RA={fmt_ra(ra)[:-1]} DEC={fmt_dec(dec)[:-1]}")
+            continue
+        if cmd == "stop":
+            await mount.abort()
+            print("Abort sent.")
+            continue
+        if cmd.startswith("setra "):
+            try:
+                ra = parse_ra_hms(cmd[6:])
+                mount.set_target_ra(ra)
+                print(f"Target RA set to {fmt_ra(ra)[:-1]}")
+            except Exception as e:
+                print(f"Bad RA: {e}")
+            continue
+        if cmd.startswith("setdec "):
+            try:
+                dec = parse_dec_dms(cmd[7:])
+                mount.set_target_dec(dec)
+                print(f"Target DEC set to {fmt_dec(dec)[:-1]}")
+            except Exception as e:
+                print(f"Bad DEC: {e}")
+            continue
+        if cmd == "goto":
+            print("Starting GOTO...")
+            res = await mount.goto_target()
+            print(f"GOTO result: {res}")
+            continue
+        if cmd.startswith("sidereal "):
+            a = cmd.split()
+            if len(a) >= 2 and a[1] in ("on", "off"):
+                await mount.enable_tracking(a[1] == "on")
+                print(f"Sidereal tracking {'enabled' if a[1]=='on' else 'disabled'}.")
+            else:
+                print("Usage: sidereal on|off")
+            continue
+        if cmd in ("exit", "quit"):
+            print("Exiting process.")
+            os._exit(0)
+        print("Unknown command. Type 'help'.")
+
+
 def setup_logging(level: str) -> None:
     logging.basicConfig(
         level=getattr(logging, level.upper(), logging.INFO),
@@ -1027,6 +1097,7 @@ def main() -> None:
     ap.add_argument("--utc-offset", type=float, default=0.0, help="local time offset hours for :SL/:SC (e.g. +6)")
     ap.add_argument("--dec-accel", type=float, default=5.0, help="DEC accel deg/s^2 (sent via :XAC if supported)")
     ap.add_argument("--dec-vmax", type=float, default=4.0, help="DEC max rate deg/s (sent via :XVM if supported)")
+    ap.add_argument("--test-mode", action="store_true", help="Run interactive test console for mount control")
 
     args = ap.parse_args()
     setup_logging(args.log_level)
@@ -1056,6 +1127,9 @@ def main() -> None:
 
     async def runner():
         await mount.start()
+        if args.test_mode:
+            # spawn console CLI concurrently
+            asyncio.create_task(console_cli(mount))
         srv = await asyncio.start_server(server.handle_client, host, port)
         addrs = ", ".join(str(sock.getsockname()) for sock in srv.sockets or [])
         logging.getLogger("main").info("LX200 TCP listening on %s", addrs)
