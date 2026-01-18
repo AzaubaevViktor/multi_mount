@@ -86,7 +86,7 @@ def main() -> None:
     ap.add_argument("--log-level", default="INFO")
 
     ap.add_argument("--ra-port", required=True)
-    ap.add_argument("--ra-baud", type=int, default=9600)
+    ap.add_argument("--ra-baud", type=int, default=115200)
     ap.add_argument("--ra-timeout", type=float, default=0.5)
     ap.add_argument("--ra-channel", default="1", choices=["1", "2"]) 
     ap.add_argument("--ra-ccw", action="store_true")
