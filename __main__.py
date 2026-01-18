@@ -35,7 +35,7 @@ async def console_cli(mount: FrankenMount) -> None:
         if not cmd:
             continue
         if cmd in ("help", "h"):
-            print("pos, stop, setra HH:MM:SS, setdec +DD*MM[:SS], goto, sidereal on|off, exit")
+            print("pos, stop, setra HH:MM:SS, setdec +DD*MM[:SS], goto, sidereal|tracking on|off, exit")
             continue
         if cmd == "pos":
             ra, dec = mount.get_ra_dec()
@@ -66,13 +66,23 @@ async def console_cli(mount: FrankenMount) -> None:
             res = await mount.goto_target()
             print(f"GOTO result: {res}")
             continue
-        if cmd.startswith("sidereal "):
+        if cmd.startswith("sidereal ") or cmd.startswith("tracking "):
             a = cmd.split()
             if len(a) >= 2 and a[1] in ("on", "off"):
-                await mount.enable_tracking(a[1] == "on")
-                print(f"Sidereal tracking {'enabled' if a[1]=='on' else 'disabled'}.")
+                want = a[1] == "on"
+                await mount.get_ra_status()
+                cur = mount.is_tracking_enabled()
+                if cur is not None:
+                    if cur and want:
+                        print("Sidereal tracking already enabled.")
+                        continue
+                    if (not cur) and (not want):
+                        print("Sidereal tracking already disabled.")
+                        continue
+                await mount.enable_tracking(want)
+                print(f"Sidereal tracking {'enabled' if want else 'disabled'}.")
             else:
-                print("Usage: sidereal on|off")
+                print("Usage: sidereal|tracking on|off")
             continue
         if cmd in ("exit", "quit"):
             print("Exiting process.")
@@ -102,6 +112,8 @@ def main() -> None:
     ap.add_argument("--dec-accel", type=float, default=5.0)
     ap.add_argument("--dec-vmax", type=float, default=4.0)
     ap.add_argument("--test-mode", action="store_true", help="Run interactive test console for mount control")
+    ap.add_argument("--no-tcp", action="store_true", help="Disable LX200 TCP server (run without network server)")
+    ap.add_argument("--status-interval", type=float, default=5.0, help="Interval seconds for RA status polling (0 to disable)")
 
     args = ap.parse_args()
     setup_logging(args.log_level)
@@ -130,6 +142,7 @@ def main() -> None:
         ra_sign=args.ra_sign,
         dec_accel_deg_s2=args.dec_accel,
         dec_vmax_deg_s=args.dec_vmax,
+        status_interval=args.status_interval,
     )
 
     server = LX200TCPServer(mount)
@@ -143,11 +156,17 @@ def main() -> None:
             logging.getLogger("main").exception("Failed to enable sidereal tracking on startup")
         if args.test_mode:
             asyncio.create_task(console_cli(mount))
-        srv = await asyncio.start_server(server.handle_client, host, port)
-        addrs = ", ".join(str(sock.getsockname()) for sock in srv.sockets or [])
-        logging.getLogger("main").info("LX200 TCP listening on %s", addrs)
-        async with srv:
-            await srv.serve_forever()
+
+        if not args.no_tcp:
+            srv = await asyncio.start_server(server.handle_client, host, port)
+            addrs = ", ".join(str(sock.getsockname()) for sock in srv.sockets or [])
+            logging.getLogger("main").info("LX200 TCP listening on %s", addrs)
+            async with srv:
+                await srv.serve_forever()
+        else:
+            logging.getLogger("main").info("LX200 TCP server disabled by --no-tcp; running without network server.")
+            # keep running (poll loop + optional console)
+            await asyncio.Event().wait()
 
     try:
         asyncio.run(runner())

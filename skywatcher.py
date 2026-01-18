@@ -34,17 +34,20 @@ class SkyWatcherAxisInfo:
 
 
 class SkyWatcherMC:
-    def __init__(self, dev: SerialLineDevice):
+    def __init__(self, dev: SerialLineDevice, status_interval: float = 0.0):
         self.dev = dev
         self.log = logging.getLogger("ra.swmc")
+        self.status_interval = float(status_interval or 0.0)
+        self._status_task = None
 
     def _cmd(self, header: str, channel: Optional[str], data_hex: str = "") -> str:
         if channel is None:
             wire = f":{header}{data_hex}\r".encode("ascii")
         else:
             wire = f":{header}{channel}{data_hex}\r".encode("ascii")
-
+        self.log.debug("SWMC TX %r", wire)
         raw = self.dev.transact(wire, terminator=b"\r")
+        self.log.debug("SWMC RX %r", raw)
         if not raw or len(raw) < 2:
             raise RuntimeError(f"bad response: {raw!r}")
         if raw[0:1] == b"!":
@@ -53,6 +56,37 @@ class SkyWatcherMC:
         if raw[0:1] != b"=":
             raise RuntimeError(f"bad response start: {raw!r}")
         return raw[1:-1].decode("ascii", errors="replace")
+
+    async def start_status_loop(self, ch: str) -> None:
+        if self.status_interval <= 0:
+            return
+        if self._status_task is not None:
+            return
+        import asyncio
+
+        async def _loop():
+            self.log.info("SkyWatcher status loop started (ch=%s interval=%.3fs)", ch, self.status_interval)
+            try:
+                while True:
+                    try:
+                        st = await asyncio.to_thread(self.inquire_status, ch)
+                        self.log.debug("SkyWatcher status ch=%s -> %r", ch, st)
+                    except Exception:
+                        self.log.debug("SkyWatcher status inquiry failed", exc_info=True)
+                    await asyncio.sleep(self.status_interval)
+            except asyncio.CancelledError:
+                self.log.info("SkyWatcher status loop cancelled")
+
+        self._status_task = asyncio.create_task(_loop())
+
+    async def stop_status_loop(self) -> None:
+        if self._status_task:
+            self._status_task.cancel()
+            try:
+                await self._status_task
+            except Exception:
+                pass
+            self._status_task = None
 
     def inquire_cpr(self, ch: str) -> int:
         hexdata = self._cmd("a", ch)

@@ -46,13 +46,14 @@ class FrankenMount:
         *,
         ra: SkyWatcherMC,
         ra_ch: str,
-        dec: LX200SerialClient,
+        dec: Any,
         site: SiteTime,
         ra_ccw: bool,
         ra_sign: int,
         dec_accel_deg_s2: float,
         dec_vmax_deg_s: float,
         guide_rate_arcsec_s: float = 7.5,
+        status_interval: float = 5.0,
     ):
         self.log = logging.getLogger("mount")
         self.ra = ra
@@ -60,11 +61,14 @@ class FrankenMount:
         self.dec = dec
         self.site = site
         self.ra_ccw = ra_ccw
-        self.state = MountState(ra_sign=ra_sign)
+        self.ra_sign = ra_sign
         self.axis = SkyWatcherAxisInfo()
-        self._goto_lock = asyncio.Lock()
+        self.state = MountState()
         self._poll_task: Optional[asyncio.Task] = None
+        self._goto_lock = asyncio.Lock()
         self._tracking_task: Optional[asyncio.Task] = None
+        self.status_interval = float(status_interval or 0.0)
+        self._status_task: Optional[asyncio.Task] = None
 
         self.dec_accel = dec_accel_deg_s2
         self.dec_vmax = dec_vmax_deg_s
@@ -86,10 +90,14 @@ class FrankenMount:
     async def start(self) -> None:
         await self._init_backends()
         self._poll_task = asyncio.create_task(self._poll_loop(), name="poll_loop")
+        if self.status_interval and self.status_interval > 0:
+            self._status_task = asyncio.create_task(self._status_loop(), name="status_loop")
 
     async def close(self) -> None:
         if self._poll_task:
             self._poll_task.cancel()
+        if self._status_task:
+            self._status_task.cancel()
 
     async def _init_backends(self) -> None:
         self.log.info("Init backends: reading RA CPR and timer freq, configuring DEC")
@@ -145,6 +153,12 @@ class FrankenMount:
                 ra_h, dec_d = self._compute_radec_from_axes(ra_ticks, dec_deg, t_utc)
                 self.state.ra_hours = ra_h
                 self.state.dec_deg = dec_d
+                # update RA status if available
+                try:
+                    status = await asyncio.to_thread(self.ra.inquire_status, self.ra_ch)
+                    self.axis.last_status = status
+                except Exception:
+                    pass
                 await asyncio.sleep(0.2)
             except asyncio.CancelledError:
                 return
@@ -250,9 +264,25 @@ class FrankenMount:
             await asyncio.to_thread(self.ra.instant_stop, self.ra_ch)
             await asyncio.sleep(0.1)
             if enabled:
-                await asyncio.to_thread(self.ra.set_motion_mode, self.ra_ch, tracking=True, ccw=self.ra_ccw)
-                await asyncio.to_thread(self.ra.set_step_period, self.ra_ch, preset)
-                await asyncio.to_thread(self.ra.start_motion, self.ra_ch)
+                # try setting the preferred preset, fall back to smaller presets if device rejects
+                tried = set()
+                presets = [preset, max(1, preset // 10), max(1, preset // 100), 1]
+                ok = False
+                for p in presets:
+                    if p in tried:
+                        continue
+                    tried.add(p)
+                    try:
+                        await asyncio.to_thread(self.ra.set_step_period, self.ra_ch, p)
+                        await asyncio.to_thread(self.ra.set_motion_mode, self.ra_ch, tracking=True, ccw=self.ra_ccw)
+                        await asyncio.to_thread(self.ra.start_motion, self.ra_ch)
+                        ok = True
+                        self.log.info("Tracking ON using preset=%d", p)
+                        break
+                    except Exception as e:
+                        self.log.debug("Tracking attempt with preset=%d failed: %s", p, e)
+                if not ok:
+                    self.log.warning("All tracking preset attempts failed; device rejected tracking command(s)")
             else:
                 await asyncio.to_thread(self.ra.stop_motion, self.ra_ch)
         except Exception as e:
@@ -262,13 +292,21 @@ class FrankenMount:
         if axis == "dec":
             # prefer device-specific move methods, fallback to generic 'move'
             if direction == "N":
-                await asyncio.to_thread(self._sync_call_first, ["move_ns", "move"], True, start)
+                fn = getattr(self.dec, "move_ns", None) or getattr(self.dec, "move", None)
+                if fn:
+                    await asyncio.to_thread(fn, True, start)
             elif direction == "S":
-                await asyncio.to_thread(self._sync_call_first, ["move_ns", "move"], False, start)
+                fn = getattr(self.dec, "move_ns", None) or getattr(self.dec, "move", None)
+                if fn:
+                    await asyncio.to_thread(fn, False, start)
             elif direction == "E":
-                await asyncio.to_thread(self._sync_call_first, ["move_we", "move"], True, start)
+                fn = getattr(self.dec, "move_we", None) or getattr(self.dec, "move", None)
+                if fn:
+                    await asyncio.to_thread(fn, True, start)
             elif direction == "W":
-                await asyncio.to_thread(self._sync_call_first, ["move_we", "move"], False, start)
+                fn = getattr(self.dec, "move_we", None) or getattr(self.dec, "move", None)
+                if fn:
+                    await asyncio.to_thread(fn, False, start)
             return "1#"
         if self.axis.cpr <= 0 or self.axis.timer_freq <= 0:
             return "0#"
@@ -294,3 +332,36 @@ class FrankenMount:
             self.log.warning("RA manual move failed: %s", e, exc_info=True)
             return "0#"
         return "1#"
+
+    async def get_ra_status(self) -> Optional[int]:
+        """Query RA motor status (returns integer status or None)."""
+        try:
+            status = await asyncio.to_thread(self.ra.inquire_status, self.ra_ch)
+            self.axis.last_status = status
+            return status
+        except Exception:
+            return None
+
+    def is_tracking_enabled(self) -> Optional[bool]:
+        """Return tracked state if known (bit0==1), else None."""
+        s = self.axis.last_status
+        if s is None:
+            return None
+        return bool(s & 0x1)
+
+    async def _status_loop(self) -> None:
+        self.log.info("Status loop started (interval=%.3fs)", self.status_interval)
+        try:
+            while True:
+                try:
+                    status = await asyncio.to_thread(self.ra.inquire_status, self.ra_ch)
+                    self.axis.last_status = status
+                    self.log.debug("RA status update: %r", status)
+                except asyncio.CancelledError:
+                    raise
+                except Exception:
+                    self.log.debug("RA status poll failed", exc_info=True)
+                await asyncio.sleep(self.status_interval)
+        except asyncio.CancelledError:
+            self.log.info("Status loop cancelled")
+            return
