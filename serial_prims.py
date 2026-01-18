@@ -4,14 +4,26 @@ import threading
 import time
 from typing import Optional
 
-import serial
+try:
+    import serial
+except Exception as e:
+    serial = None
 
 
 class SerialLineDevice:
     def __init__(self, port: str, baud: int, timeout_s: float, name: str):
         self.log = logging.getLogger(name)
-        self.ser = serial.Serial(port=port, baudrate=baud, timeout=timeout_s)
         self.lock = threading.Lock()
+        if serial is None:
+            self.log.error("pyserial not available: install with 'pip install pyserial'")
+            raise ImportError("pyserial is required for SerialLineDevice")
+        try:
+            self.log.info("Opening serial port %s @ %d baud (timeout=%.3fs)", port, baud, timeout_s)
+            self.ser = serial.Serial(port=port, baudrate=baud, timeout=timeout_s)
+            self.log.info("Serial port %s opened", port)
+        except Exception:
+            self.log.exception("Failed to open serial port %s", port)
+            raise
 
     def close(self) -> None:
         with self.lock:

@@ -136,6 +136,11 @@ def main() -> None:
 
     async def runner():
         await mount.start()
+        # enable sidereal tracking on startup
+        try:
+            await mount.enable_tracking(True)
+        except Exception:
+            logging.getLogger("main").exception("Failed to enable sidereal tracking on startup")
         if args.test_mode:
             asyncio.create_task(console_cli(mount))
         srv = await asyncio.start_server(server.handle_client, host, port)
