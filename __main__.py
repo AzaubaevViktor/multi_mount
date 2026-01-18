@@ -9,6 +9,7 @@ import sys
 from serial_prims import SerialLineDevice
 from skywatcher import SkyWatcherMC
 from arduino_dec import LX200SerialClient
+from dummy_dec import DummyDEC
 from mount import FrankenMount, SiteTime
 from lx200_interface import LX200TCPServer
 from coords import parse_ra_hms, parse_dec_dms, fmt_ra, fmt_dec
@@ -91,7 +92,7 @@ def main() -> None:
     ap.add_argument("--ra-ccw", action="store_true")
     ap.add_argument("--ra-sign", type=int, default=+1, choices=[-1, +1])
 
-    ap.add_argument("--dec-port", required=True)
+    ap.add_argument("--dec-port", default=None, help="serial port for DEC Arduino (optional)")
     ap.add_argument("--dec-baud", type=int, default=115200)
     ap.add_argument("--dec-timeout", type=float, default=0.5)
 
@@ -109,10 +110,15 @@ def main() -> None:
     port = int(port_s)
 
     ra_dev = SerialLineDevice(args.ra_port, args.ra_baud, args.ra_timeout, name="serial.ra")
-    dec_dev = SerialLineDevice(args.dec_port, args.dec_baud, args.dec_timeout, name="serial.dec")
 
     ra = SkyWatcherMC(ra_dev)
-    dec = LX200SerialClient(dec_dev)
+
+    dec_dev = None
+    if args.dec_port:
+        dec_dev = SerialLineDevice(args.dec_port, args.dec_baud, args.dec_timeout, name="serial.dec")
+        dec = LX200SerialClient(dec_dev)
+    else:
+        dec = DummyDEC(site=None)
     site = SiteTime(lat_deg=args.site_lat, lon_deg_east=args.site_lon, utc_offset_hours=args.utc_offset)
 
     mount = FrankenMount(
@@ -146,7 +152,8 @@ def main() -> None:
         except Exception:
             pass
         try:
-            dec_dev.close()
+            if dec_dev is not None:
+                dec_dev.close()
         except Exception:
             pass
 

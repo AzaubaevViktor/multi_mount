@@ -4,11 +4,10 @@ import dataclasses
 import datetime as dt
 import logging
 import time
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Any
 
 from coords import lst_hours, fmt_ra, fmt_dec, clamp, wrap_hours
 from skywatcher import SkyWatcherMC, SkyWatcherAxisInfo
-from arduino_dec import LX200SerialClient
 
 
 @dataclasses.dataclass
@@ -71,6 +70,19 @@ class FrankenMount:
         self.dec_vmax = dec_vmax_deg_s
         self.guide_rate_arcsec_s = guide_rate_arcsec_s
 
+    def _sync_call(self, method: str, *args, **kwargs):
+        fn = getattr(self.dec, method, None)
+        if fn is None:
+            return None
+        return fn(*args, **kwargs)
+
+    def _sync_call_first(self, methods: list[str], *args, **kwargs):
+        for m in methods:
+            fn = getattr(self.dec, m, None)
+            if fn is not None:
+                return fn(*args, **kwargs)
+        return None
+
     async def start(self) -> None:
         await self._init_backends()
         self._poll_task = asyncio.create_task(self._poll_loop(), name="poll_loop")
@@ -87,8 +99,8 @@ class FrankenMount:
         self.axis.timer_freq = tf
         self.state.ra_cpr = cpr
         self.log.info("RA: CPR=%d, TMR_Freq=%d Hz", cpr, tf)
-        await asyncio.to_thread(self.dec.set_accel, self.dec_accel)
-        await asyncio.to_thread(self.dec.set_max_rate, self.dec_vmax)
+        await asyncio.to_thread(self._sync_call, "set_accel", self.dec_accel)
+        await asyncio.to_thread(self._sync_call, "set_max_rate", self.dec_vmax)
         ticks = await asyncio.to_thread(self.ra.inquire_position, self.ra_ch)
         self.state.last_ra_ticks = ticks
         now_utc = self.site.now_utc()
@@ -126,7 +138,9 @@ class FrankenMount:
                 self.axis.last_pos = ra_ticks
                 self.axis.updated_monotonic = time.monotonic()
                 self.state.last_ra_ticks = ra_ticks
-                dec_deg = await asyncio.to_thread(self.dec.get_dec)
+                dec_deg = await asyncio.to_thread(self._sync_call, "get_dec")
+                if dec_deg is None:
+                    dec_deg = 0.0
                 self.state.last_dec_deg = dec_deg
                 ra_h, dec_d = self._compute_radec_from_axes(ra_ticks, dec_deg, t_utc)
                 self.state.ra_hours = ra_h
@@ -168,7 +182,7 @@ class FrankenMount:
         except Exception as e:
             self.log.warning("RA abort failed: %s", e)
         try:
-            await asyncio.to_thread(self.dec.abort)
+            await asyncio.to_thread(self._sync_call_first, ["abort", "stop"]) 
         except Exception as e:
             self.log.warning("DEC abort failed: %s", e)
         return "1#"
@@ -186,12 +200,12 @@ class FrankenMount:
             self.log.info("GOTO: target RA=%s DEC=%.3f -> HA=%.6fh -> RA ticks target=%d",
                           fmt_ra(ra_t), dec_t, ha_target, ra_ticks_target)
             try:
-                await asyncio.to_thread(self.dec.set_target_dec, dec_t)
+                await asyncio.to_thread(self._sync_call, "set_target_dec", dec_t)
                 try:
-                    await asyncio.to_thread(self.dec.set_target_ra, ra_t)
+                    await asyncio.to_thread(self._sync_call_first, ["set_target_ra", "set_ra"], ra_t)
                 except Exception:
                     pass
-                await asyncio.to_thread(self.dec.goto)
+                await asyncio.to_thread(self._sync_call_first, ["goto", "goto_target"]) 
             except Exception as e:
                 self.log.warning("DEC goto failed: %s", e, exc_info=True)
             try:
@@ -246,14 +260,15 @@ class FrankenMount:
 
     async def move(self, axis: str, direction: str, start: bool, rate_deg_s: float) -> str:
         if axis == "dec":
+            # prefer device-specific move methods, fallback to generic 'move'
             if direction == "N":
-                await asyncio.to_thread(self.dec.move_ns, True, start)
+                await asyncio.to_thread(self._sync_call_first, ["move_ns", "move"], True, start)
             elif direction == "S":
-                await asyncio.to_thread(self.dec.move_ns, False, start)
+                await asyncio.to_thread(self._sync_call_first, ["move_ns", "move"], False, start)
             elif direction == "E":
-                await asyncio.to_thread(self.dec.move_we, True, start)
+                await asyncio.to_thread(self._sync_call_first, ["move_we", "move"], True, start)
             elif direction == "W":
-                await asyncio.to_thread(self.dec.move_we, False, start)
+                await asyncio.to_thread(self._sync_call_first, ["move_we", "move"], False, start)
             return "1#"
         if self.axis.cpr <= 0 or self.axis.timer_freq <= 0:
             return "0#"
