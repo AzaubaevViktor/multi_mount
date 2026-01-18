@@ -2,7 +2,7 @@ import os
 import time
 import pytest
 
-from skywatcher import SkyWatcherMC
+from lib.skywatcher import SkyWatcherMC
 from serial_prims import SerialLineDevice
 
 
