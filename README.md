@@ -18,6 +18,8 @@ FM Controls Current position
     - Read position
     - Slew to position
     - Correct sideral tracking
+        - Hardware tests: use `pytest -q` with `SKYWATCHER_PORT` env var set
+            - Example: `SKYWATCHER_PORT=/dev/tty.PL2303G-USBtoUART1 pytest tests/test_skywatcher_serial.py -q`
 - Arduino-based dec mount
     - Connect Arduino to motor
     - Control motor
