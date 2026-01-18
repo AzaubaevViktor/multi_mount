@@ -8,11 +8,11 @@ from serial_prims import SerialLineDevice
 
 @pytest.fixture(scope="module")
 def sw_device():
-    port = os.environ.get("SKYWATCHER_PORT")
+    port = os.environ.get("SKYWATCHER_PORT", '/dev/tty.PL2303G-USBtoUART2120')
     if not port:
         pytest.skip("SKYWATCHER_PORT not set; skipping hardware tests")
     # 9600 baud as used by the C++ driver
-    dev = SerialLineDevice(port=port, baud=9600, timeout_s=1.0, name="test-swmc")
+    dev = SerialLineDevice(port=port, baud=115200, timeout_s=1.0, name="test-swmc")
     yield dev
     try:
         dev.close()
