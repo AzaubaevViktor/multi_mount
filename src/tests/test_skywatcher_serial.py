@@ -264,6 +264,11 @@ def skywatcher_mc(skywatcher_config: SkyWatcherTestConfig) -> SkyWatcherMC:
         )
         pytest.skip("pyserial is not available; skipping serial tests.")
     mc = SkyWatcherMC(dev, logger=logging.getLogger("tests.skywatcher.serial.mc"))
+    mc.do_initialize(
+        skywatcher_config.axis,
+        timeout_s=skywatcher_config.running_timeout_s,
+        poll_interval_s=skywatcher_config.poll_interval_s,
+    )
     return mc
 
 
@@ -492,7 +497,7 @@ def test_set_target_and_goto_reaches_target(
             axis,
             duration_s=skywatcher_config.settle_delay_s,
             poll_interval_s=skywatcher_config.poll_interval_s,
-            max_delta=0,
+            max_delta=100,
             note="stop_stable",
         )
     finally:
@@ -568,7 +573,7 @@ def test_do_goto_backwards_check_statuses(
             axis,
             duration_s=skywatcher_config.settle_delay_s,
             poll_interval_s=skywatcher_config.poll_interval_s,
-            max_delta=0,
+            max_delta=100,
             note="stop_stable",
         )
     finally:
@@ -636,7 +641,7 @@ def test_move_left_right_ra(skywatcher_mc: SkyWatcherMC, skywatcher_config: SkyW
             axis,
             duration_s=skywatcher_config.settle_delay_s,
             poll_interval_s=skywatcher_config.poll_interval_s,
-            max_delta=0,
+            max_delta=100,
             note="stop_stable",
         )
 

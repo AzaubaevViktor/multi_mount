@@ -1,7 +1,8 @@
 from __future__ import annotations
 import dataclasses
 import logging
-from enum import IntEnum
+import time
+from enum import IntEnum, StrEnum
 from typing import Optional
 
 from serial_prims import SerialLineDevice
@@ -52,6 +53,20 @@ class SkyWatcherSlewMode(IntEnum):
 class SkyWatcherSpeedMode(IntEnum):
     LOWSPEED = 0
     HIGHSPEED = 1
+
+
+class SkyWatcherCommand(StrEnum):
+    INQUIRE_TIMER_FREQ = "b"
+    INQUIRE_CPR = "a"
+    INQUIRE_POSITION = "j"
+    INQUIRE_STATUS = "f"
+    SET_STEP_PERIOD = "I"
+    SET_GOTO_TARGET = "S"
+    SET_MOTION_MODE = "G"
+    START_MOTION = "J"
+    STOP_MOTION = "K"
+    INSTANT_STOP = "L"
+    INITIALIZE = "F"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -118,51 +133,82 @@ class SkyWatcherMC:
 
     def inquire_timer_freq(self, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> int:
         self.log.info("timer_freq axis=%s", axis)
-        data = self._transact("b", axis)
+        data = self._transact(SkyWatcherCommand.INQUIRE_TIMER_FREQ, axis)
         return self._revu24_to_int(data)
 
     def inquire_cpr(self, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> int:
         self.log.info("cpr axis=%s", axis)
-        data = self._transact("a", axis)
+        data = self._transact(SkyWatcherCommand.INQUIRE_CPR, axis)
         return self._revu24_to_int(data)
 
     def inquire_position(self, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> int:
         self.log.info("inquire position axis=%s", axis)
-        data = self._transact("j", axis)
+        data = self._transact(SkyWatcherCommand.INQUIRE_POSITION, axis)
         return self._revu24_to_int(data)
 
     def inquire_status(self, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> SkyWatcherStatus:
         self.log.info("inquire status axis=%s", axis)
-        data = self._transact("f", axis)
+        data = self._transact(SkyWatcherCommand.INQUIRE_STATUS, axis)
         return SkyWatcherStatus.from_bytes(data)
 
     def set_step_period(self, axis: SkyWatcherAxis, period: int) -> None:
         self.log.info("step_period axis=%s period=%s", axis, period)
         arg = self._int_to_revu24(period)
-        self._transact("I", axis, arg)
+        self._transact(SkyWatcherCommand.SET_STEP_PERIOD, axis, arg)
 
     def set_goto_target(self, axis: SkyWatcherAxis, target: int) -> None:
         self.log.info("goto_target axis=%s target=%s", axis, target)
         arg = self._int_to_revu24(target)
-        self._transact("S", axis, arg)
+        self._transact(SkyWatcherCommand.SET_GOTO_TARGET, axis, arg)
 
     def set_motion_mode(self, axis: SkyWatcherAxis, mode: SkyWatcherMotionMode) -> None:
         self.log.info("motion_mode axis=%s mode=%s", axis, mode)
-        self._transact("G", axis, mode.to_command())
+        self._transact(SkyWatcherCommand.SET_MOTION_MODE, axis, mode.to_command())
 
     def start_motion(self, axis: SkyWatcherAxis) -> None:
         self.log.info("start axis=%s", axis)
-        self._transact("J", axis)
+        self._transact(SkyWatcherCommand.START_MOTION, axis)
 
     def stop_motion(self, axis: SkyWatcherAxis) -> None:
         self.log.info("stop axis=%s", axis)
-        self._transact("K", axis)
+        self._transact(SkyWatcherCommand.STOP_MOTION, axis)
 
     def instant_stop(self, axis: SkyWatcherAxis) -> None:
         self.log.info("emergency_stop axis=%s", axis)
-        self._transact("L", axis)
+        self._transact(SkyWatcherCommand.INSTANT_STOP, axis)
 
-    def _transact(self, cmd: str, axis: SkyWatcherAxis, arg: Optional[str] = None) -> bytes:
+    def do_initialize(
+        self,
+        axis: SkyWatcherAxis,
+        *,
+        timeout_s: float,
+        poll_interval_s: float,
+    ) -> None:
+        self.log.info(
+            "initialize axis=%s timeout_s=%s poll_interval_s=%s",
+            axis,
+            timeout_s,
+            poll_interval_s,
+        )
+        status = self.inquire_status(axis)
+        if status.initialized:
+            return
+        self._transact(SkyWatcherCommand.INITIALIZE, axis)
+        start = time.monotonic()
+        while True:
+            status = self.inquire_status(axis)
+            if status.initialized:
+                return
+            if (time.monotonic() - start) >= timeout_s:
+                raise TimeoutError
+            time.sleep(poll_interval_s)
+
+    def _transact(
+        self,
+        cmd: SkyWatcherCommand,
+        axis: SkyWatcherAxis,
+        arg: Optional[str] = None,
+    ) -> bytes:
         # self.log.info("command cmd=%s axis=%s arg=%r", cmd, axis, arg)
         axis_char = self._normalize_axis(axis)
         if arg is None:
