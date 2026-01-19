@@ -113,6 +113,7 @@ def _wait_for_status(
             status.speed_mode.name,
             note,
         )
+        _log_position(axis, mc.inquire_position(axis), note)
         if predicate(status):
             return status
         elapsed = time.monotonic() - start
@@ -146,12 +147,7 @@ def _wait_for_position_change(
     )
     while True:
         pos = mc.inquire_position(axis)
-        LOGGER.info(
-            "POSITION %s pos=%s note=%s",
-            axis.name,
-            pos,
-            note,
-        )
+        _log_position(axis, pos, note)
         if _tick_delta(pos, start_pos) >= min_delta:
             return pos
         elapsed = time.monotonic() - start
@@ -178,24 +174,14 @@ def _assert_position_stable(
 ) -> int:
     start = time.monotonic()
     start_pos = mc.inquire_position(axis)
-    LOGGER.info(
-        "CHECK POSITION %s pos=%s note=%s",
-        axis.name,
-        start_pos,
-        note,
-    )
+    _log_position(axis, start_pos, note)
     while True:
         elapsed = time.monotonic() - start
         if elapsed >= duration_s:
             return start_pos
         time.sleep(poll_interval_s)
         pos = mc.inquire_position(axis)
-        LOGGER.info(
-            "CHECK POSITION %s pos=%s note=%s",
-            axis.name,
-            pos,
-            note,
-        )
+        _log_position(axis, pos, note)
         if (delta := _tick_delta(pos, start_pos)) > max_delta:
             pytest.fail(note)
         else:
@@ -206,6 +192,15 @@ def _assert_position_stable(
                 max_delta,
                 note,
             )
+
+
+def _log_position(axis: SkyWatcherAxis, pos: int, note: str) -> None:
+    LOGGER.info(
+        "CHECK POSITION %s pos=%s note=%s",
+        axis.name,
+        pos,
+        note,
+    )
 
 
 def _safe_stop(mc: SkyWatcherMC, axis: SkyWatcherAxis) -> None:
@@ -305,11 +300,7 @@ def test_check_position(skywatcher_mc: SkyWatcherMC, skywatcher_config: SkyWatch
     axis = skywatcher_config.axis
     LOGGER.info("STEP read_position axis=%s", axis.name)
     pos = skywatcher_mc.inquire_position(axis)
-    LOGGER.info(
-        "POSITION %s pos=%s note=read_position",
-        axis.name,
-        pos,
-    )
+    _log_position(axis, pos, "read_position")
     assert 0 <= pos <= 0xFFFFFF
 
 
@@ -319,11 +310,7 @@ def test_enable_target_mode_and_update_pos(
 ) -> None:
     axis = skywatcher_config.axis
     start_pos = skywatcher_mc.inquire_position(axis)
-    LOGGER.info(
-        "POSITION %s pos=%s note=check_position",
-        axis.name,
-        start_pos,
-    )
+    _log_position(axis, start_pos, "check_position")
     cpr = skywatcher_mc.inquire_cpr(axis)
     delta = _compute_goto_delta(cpr)
     target = _mask_ticks(start_pos + delta)
@@ -345,6 +332,7 @@ def test_enable_target_mode_and_update_pos(
         skywatcher_mc.set_step_period(axis, GOTO_LOW_PERIOD)
         skywatcher_mc.set_target_breaks(axis, min(GOTO_BREAK_MAX, delta))
         skywatcher_mc.set_goto_target_increment(axis, delta)
+        skywatcher_mc.set_motion_mode(axis, mode)
         skywatcher_mc.start_motion(axis)
         _wait_for_status(
             skywatcher_mc,
@@ -386,11 +374,7 @@ def test_enable_target_mode_and_update_pos(
 def test_do_goto_check_happens(skywatcher_mc: SkyWatcherMC, skywatcher_config: SkyWatcherTestConfig) -> None:
     axis = skywatcher_config.axis
     start_pos = skywatcher_mc.inquire_position(axis)
-    LOGGER.info(
-        "POSITION %s pos=%s note=check_position",
-        axis.name,
-        start_pos,
-    )
+    _log_position(axis, start_pos, "check_position")
     cpr = skywatcher_mc.inquire_cpr(axis)
     delta = _compute_goto_delta(cpr)
     target = _mask_ticks(start_pos + delta)
@@ -412,6 +396,7 @@ def test_do_goto_check_happens(skywatcher_mc: SkyWatcherMC, skywatcher_config: S
         skywatcher_mc.set_step_period(axis, GOTO_LOW_PERIOD)
         skywatcher_mc.set_target_breaks(axis, min(GOTO_BREAK_MAX, delta))
         skywatcher_mc.set_goto_target_increment(axis, delta)
+        skywatcher_mc.set_motion_mode(axis, mode)
         skywatcher_mc.start_motion(axis)
         _wait_for_status(
             skywatcher_mc,
@@ -440,11 +425,7 @@ def test_set_target_and_goto_reaches_target(
 ) -> None:
     axis = skywatcher_config.axis
     start_pos = skywatcher_mc.inquire_position(axis)
-    LOGGER.info(
-        "POSITION %s pos=%s note=goto_start",
-        axis.name,
-        start_pos,
-    )
+    _log_position(axis, start_pos, "goto_start")
     cpr = skywatcher_mc.inquire_cpr(axis)
     delta = _compute_goto_delta(cpr)
     target = _mask_ticks(start_pos + delta)
@@ -466,6 +447,7 @@ def test_set_target_and_goto_reaches_target(
         skywatcher_mc.set_step_period(axis, GOTO_LOW_PERIOD)
         skywatcher_mc.set_target_breaks(axis, min(GOTO_BREAK_MAX, delta))
         skywatcher_mc.set_goto_target_increment(axis, delta)
+        skywatcher_mc.set_motion_mode(axis, mode)
         skywatcher_mc.start_motion(axis)
         _wait_for_status(
             skywatcher_mc,
@@ -493,11 +475,7 @@ def test_set_target_and_goto_reaches_target(
             note="wait_stopped",
         )
         end_pos = skywatcher_mc.inquire_position(axis)
-        LOGGER.info(
-            "POSITION %s pos=%s note=goto_end",
-            axis.name,
-            end_pos,
-        )
+        _log_position(axis, end_pos, "goto_end")
         tolerance = max(1, delta // 10)
         assert _tick_delta(end_pos, target) <= tolerance
         _assert_position_stable(
@@ -518,11 +496,7 @@ def test_do_goto_backwards_check_statuses(
 ) -> None:
     axis = skywatcher_config.axis
     start_pos = skywatcher_mc.inquire_position(axis)
-    LOGGER.info(
-        "POSITION %s pos=%s note=check_position",
-        axis.name,
-        start_pos,
-    )
+    _log_position(axis, start_pos, "check_position")
     cpr = skywatcher_mc.inquire_cpr(axis)
     delta = _compute_goto_delta(cpr)
     target = _mask_ticks(start_pos - delta)
@@ -544,6 +518,7 @@ def test_do_goto_backwards_check_statuses(
         skywatcher_mc.set_step_period(axis, GOTO_LOW_PERIOD)
         skywatcher_mc.set_target_breaks(axis, min(GOTO_BREAK_MAX, delta))
         skywatcher_mc.set_goto_target_increment(axis, delta)
+        skywatcher_mc.set_motion_mode(axis, mode)
         skywatcher_mc.start_motion(axis)
         _wait_for_status(
             skywatcher_mc,
