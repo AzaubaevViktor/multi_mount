@@ -62,6 +62,8 @@ class SkyWatcherCommand(StrEnum):
     INQUIRE_STATUS = "f"
     SET_STEP_PERIOD = "I"
     SET_GOTO_TARGET = "S"
+    SET_GOTO_TARGET_INCREMENT = "H"
+    SET_BREAK_POINT_INCREMENT = "M"
     SET_MOTION_MODE = "G"
     START_MOTION = "J"
     STOP_MOTION = "K"
@@ -80,7 +82,7 @@ class SkyWatcherStatus:
 
     @classmethod
     def from_bytes(cls, data: bytes) -> "SkyWatcherStatus":
-        LOGGER.info("status_data data=%r", data)
+        # LOGGER.info("status_data data=%r", data)
         b1 = data[0] if len(data) > 0 else 0
         b2 = data[1] if len(data) > 1 else 0
         b3 = data[2] if len(data) > 2 else 0
@@ -137,6 +139,9 @@ class SkyWatcherMC:
         return self._revu24_to_int(data)
 
     def inquire_cpr(self, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> int:
+        """
+        Inquire counts per revolution (CPR) for the given axis.
+        """
         self.log.info("cpr axis=%s", axis)
         data = self._transact(SkyWatcherCommand.INQUIRE_CPR, axis)
         return self._revu24_to_int(data)
@@ -147,7 +152,7 @@ class SkyWatcherMC:
         return self._revu24_to_int(data)
 
     def inquire_status(self, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> SkyWatcherStatus:
-        self.log.info("inquire status axis=%s", axis)
+        # self.log.info("inquire status axis=%s", axis)
         data = self._transact(SkyWatcherCommand.INQUIRE_STATUS, axis)
         return SkyWatcherStatus.from_bytes(data)
 
@@ -160,6 +165,16 @@ class SkyWatcherMC:
         self.log.info("goto_target axis=%s target=%s", axis, target)
         arg = self._int_to_revu24(target)
         self._transact(SkyWatcherCommand.SET_GOTO_TARGET, axis, arg)
+
+    def set_goto_target_increment(self, axis: SkyWatcherAxis, increment: int) -> None:
+        self.log.info("goto_target_increment axis=%s increment=%s", axis, increment)
+        arg = self._int_to_revu24(increment)
+        self._transact(SkyWatcherCommand.SET_GOTO_TARGET_INCREMENT, axis, arg)
+
+    def set_target_breaks(self, axis: SkyWatcherAxis, increment: int) -> None:
+        self.log.info("target_breaks axis=%s increment=%s", axis, increment)
+        arg = self._int_to_revu24(increment)
+        self._transact(SkyWatcherCommand.SET_BREAK_POINT_INCREMENT, axis, arg)
 
     def set_motion_mode(self, axis: SkyWatcherAxis, mode: SkyWatcherMotionMode) -> None:
         self.log.info("motion_mode axis=%s mode=%s", axis, mode)

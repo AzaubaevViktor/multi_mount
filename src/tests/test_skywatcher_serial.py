@@ -9,6 +9,8 @@ from typing import Callable, Optional
 import pytest
 
 LOGGER = logging.getLogger("tests.skywatcher.serial")
+GOTO_LOW_PERIOD = 18
+GOTO_BREAK_MAX = 200
 
 from coords import clamp
 from serial_prims import SerialLineDevice
@@ -101,7 +103,7 @@ def _wait_for_status(
     while True:
         status = mc.inquire_status(axis)
         LOGGER.info(
-            "STATUS %s raw=%s running=%s initialized=%s mode=%s dir=%s speed=%s note=%s",
+            "WAIT FOR STATUS %s raw=%s running=%s initialized=%s mode=%s dir=%s speed=%s note=%s",
             axis.name,
             status.raw,
             status.running,
@@ -115,8 +117,8 @@ def _wait_for_status(
             return status
         elapsed = time.monotonic() - start
         if elapsed >= timeout_s:
-            LOGGER.info(
-                "WAIT %s elapsed_s=%s timeout_s=%s",
+            LOGGER.warning(
+                "WAIT FAILED %s elapsed_s=%s timeout_s=%s",
                 note,
                 elapsed,
                 timeout_s,
@@ -340,7 +342,9 @@ def test_enable_target_mode_and_update_pos(
             speed_mode=SkyWatcherSpeedMode.LOWSPEED,
         )
         skywatcher_mc.set_motion_mode(axis, mode)
-        skywatcher_mc.set_goto_target(axis, target)
+        skywatcher_mc.set_step_period(axis, GOTO_LOW_PERIOD)
+        skywatcher_mc.set_target_breaks(axis, min(GOTO_BREAK_MAX, delta))
+        skywatcher_mc.set_goto_target_increment(axis, delta)
         skywatcher_mc.start_motion(axis)
         _wait_for_status(
             skywatcher_mc,
@@ -405,7 +409,9 @@ def test_do_goto_check_happens(skywatcher_mc: SkyWatcherMC, skywatcher_config: S
             speed_mode=SkyWatcherSpeedMode.LOWSPEED,
         )
         skywatcher_mc.set_motion_mode(axis, mode)
-        skywatcher_mc.set_goto_target(axis, target)
+        skywatcher_mc.set_step_period(axis, GOTO_LOW_PERIOD)
+        skywatcher_mc.set_target_breaks(axis, min(GOTO_BREAK_MAX, delta))
+        skywatcher_mc.set_goto_target_increment(axis, delta)
         skywatcher_mc.start_motion(axis)
         _wait_for_status(
             skywatcher_mc,
@@ -457,7 +463,9 @@ def test_set_target_and_goto_reaches_target(
             speed_mode=SkyWatcherSpeedMode.LOWSPEED,
         )
         skywatcher_mc.set_motion_mode(axis, mode)
-        skywatcher_mc.set_goto_target(axis, target)
+        skywatcher_mc.set_step_period(axis, GOTO_LOW_PERIOD)
+        skywatcher_mc.set_target_breaks(axis, min(GOTO_BREAK_MAX, delta))
+        skywatcher_mc.set_goto_target_increment(axis, delta)
         skywatcher_mc.start_motion(axis)
         _wait_for_status(
             skywatcher_mc,
@@ -533,7 +541,9 @@ def test_do_goto_backwards_check_statuses(
             speed_mode=SkyWatcherSpeedMode.LOWSPEED,
         )
         skywatcher_mc.set_motion_mode(axis, mode)
-        skywatcher_mc.set_goto_target(axis, target)
+        skywatcher_mc.set_step_period(axis, GOTO_LOW_PERIOD)
+        skywatcher_mc.set_target_breaks(axis, min(GOTO_BREAK_MAX, delta))
+        skywatcher_mc.set_goto_target_increment(axis, delta)
         skywatcher_mc.start_motion(axis)
         _wait_for_status(
             skywatcher_mc,
