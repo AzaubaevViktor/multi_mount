@@ -21,14 +21,14 @@ def sw_device():
         pass
 
 
-def test_connection_and_basic_queries(sw_device):
+def test_connection_and_basic_queries(sw_device: SkyWatcherMC):
     mc = sw_device
     # inquire timer freq (basic command) and ensure integer returned
     tf = mc.inquire_timer_freq()
     assert isinstance(tf, int)
 
 
-def test_check_position_and_status(sw_device):
+def test_check_position_and_status(sw_device: SkyWatcherMC):
     mc = sw_device
     pos = mc.inquire_position("1")
     assert isinstance(pos, int)
@@ -36,7 +36,7 @@ def test_check_position_and_status(sw_device):
     assert isinstance(st, int)
 
 
-def test_enable_target_mode_and_update_pos(sw_device):
+def test_enable_target_mode_and_update_pos(sw_device: SkyWatcherMC):
     mc = sw_device
     start = mc.inquire_position("1")
     # set a modest positive target (absolute target)
@@ -57,7 +57,7 @@ def test_enable_target_mode_and_update_pos(sw_device):
     assert moved, "mount did not move after goto target/start"
 
 
-def test_do_goto_and_check_stop(sw_device):
+def test_do_goto_and_check_stop(sw_device: SkyWatcherMC):
     mc = sw_device
     start = mc.inquire_position("1")
     # small goto: target 300 steps ahead
@@ -79,7 +79,7 @@ def test_do_goto_and_check_stop(sw_device):
     assert final != start
 
 
-def test_do_goto_backwards(sw_device):
+def test_do_goto_backwards(sw_device: SkyWatcherMC):
     mc = sw_device
     start = mc.inquire_position("1")
     target = start - 250
@@ -92,7 +92,7 @@ def test_do_goto_backwards(sw_device):
     assert cur != start
 
 
-def test_move_left_and_right_ra(sw_device):
+def test_move_left_and_right_ra(sw_device: SkyWatcherMC):
     mc = sw_device
     start = mc.inquire_position("1")
     # move right (ccw=False)
@@ -111,7 +111,7 @@ def test_move_left_and_right_ra(sw_device):
     assert right_pos != start or left_pos != right_pos
 
 
-def test_enable_modes_and_check(sw_device):
+def test_enable_modes_and_check(sw_device: SkyWatcherMC):
     mc = sw_device
     # enable tracking mode and check no exception
     mc.set_motion_mode("1", tracking=True, ccw=False, fast=False)
