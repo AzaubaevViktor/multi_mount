@@ -1,5 +1,6 @@
 import os
 import time
+import logging
 import pytest
 
 from lib.skywatcher import SkyWatcherMC
@@ -29,19 +30,26 @@ def test_connection_and_basic_queries(sw_device: SkyWatcherMC):
 
 
 def test_check_position_and_status(sw_device: SkyWatcherMC):
+    logger = logging.getLogger("tests.test_check_position_and_status")
     mc = sw_device
     pos = mc.inquire_position("1")
+    logger.info("inquire_position(ch=1) -> %r", pos)
     assert isinstance(pos, int)
     st = mc.inquire_status("1")
+    logger.info("inquire_status(ch=1) -> %r", st)
     assert isinstance(st, int)
 
 
 def test_enable_target_mode_and_update_pos(sw_device: SkyWatcherMC):
+    logger = logging.getLogger("tests.test_enable_target_mode_and_update_pos")
     mc = sw_device
     start = mc.inquire_position("1")
+    logger.info("start position (ch=1): %r", start)
     # set a modest positive target (absolute target)
     target_inc = 200
-    mc.set_goto_target("1", start + target_inc)
+    target = start + target_inc
+    logger.info("setting goto target (ch=1) -> %r", target)
+    mc.set_goto_target("1", target)
     mc.start_motion("1")
     # wait until position changes or timeout
     deadline = time.time() + 10
@@ -49,11 +57,14 @@ def test_enable_target_mode_and_update_pos(sw_device: SkyWatcherMC):
     last = start
     while time.time() < deadline:
         cur = mc.inquire_position("1")
+        logger.debug("poll position -> %r (last=%r)", cur, last)
         if cur != last:
             moved = True
+            logger.info("position changed from %r to %r", last, cur)
             break
         time.sleep(0.2)
     mc.stop_motion("1")
+    logger.info("movement finished; moved=%r", moved)
     assert moved, "mount did not move after goto target/start"
 
 
