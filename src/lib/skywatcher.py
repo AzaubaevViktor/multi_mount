@@ -64,6 +64,7 @@ class SkyWatcherCommand(StrEnum):
     SET_GOTO_TARGET = "S"
     SET_GOTO_TARGET_INCREMENT = "H"
     SET_BREAK_POINT_INCREMENT = "M"
+    SET_AXIS_POSITION = "E"
     SET_MOTION_MODE = "G"
     START_MOTION = "J"
     STOP_MOTION = "K"
@@ -175,6 +176,11 @@ class SkyWatcherMC:
         self.log.info("target_breaks axis=%s increment=%s", axis, increment)
         arg = self._int_to_revu24(increment)
         self._transact(SkyWatcherCommand.SET_BREAK_POINT_INCREMENT, axis, arg)
+
+    def set_axis_position(self, axis: SkyWatcherAxis, position: int) -> None:
+        self.log.info("set_axis_position axis=%s position=%s", axis, position)
+        arg = self._int_to_revu24(position)
+        self._transact(SkyWatcherCommand.SET_AXIS_POSITION, axis, arg)
 
     def set_motion_mode(self, axis: SkyWatcherAxis, mode: SkyWatcherMotionMode) -> None:
         self.log.info("motion_mode axis=%s mode=%s", axis, mode)

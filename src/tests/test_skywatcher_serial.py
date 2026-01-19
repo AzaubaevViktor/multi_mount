@@ -12,6 +12,7 @@ LOGGER = logging.getLogger("tests.skywatcher.serial")
 GOTO_LOW_PERIOD = 18
 GOTO_BREAK_MAX = 200
 HIGH_SPEED_PERIOD = 1
+SIDEREAL_RATE_DEG_S = 360.0 / 86164.0905
 
 from coords import clamp
 from serial_prims import SerialLineDevice
@@ -689,3 +690,87 @@ def test_enable_modes_and_check_it(skywatcher_mc: SkyWatcherMC, skywatcher_confi
             assert status.speed_mode == mode.speed_mode
         finally:
             _safe_stop(skywatcher_mc, axis)
+
+
+def test_set_ra_position(skywatcher_mc: SkyWatcherMC, skywatcher_config: SkyWatcherTestConfig) -> None:
+    axis = SkyWatcherAxis.RA
+    skywatcher_mc.instant_stop(axis)
+    time.sleep(skywatcher_config.settle_delay_s)
+    start_pos = skywatcher_mc.inquire_position(axis)
+    new_position = _mask_ticks(start_pos + 10000)
+    _log_position(axis, start_pos, "set_ra_start")
+    skywatcher_mc.set_axis_position(axis, new_position)
+    end_pos = skywatcher_mc.inquire_position(axis)
+    _log_position(axis, end_pos, "set_ra_end")
+    assert _tick_delta(end_pos, new_position) <= 100
+    _assert_position_stable(
+        skywatcher_mc,
+        axis,
+        duration_s=skywatcher_config.settle_delay_s,
+        poll_interval_s=skywatcher_config.poll_interval_s,
+        max_delta=100,
+        note="set_ra_stable",
+    )
+
+
+def test_sidereal_tracking_enable_disable(
+    skywatcher_mc: SkyWatcherMC,
+    skywatcher_config: SkyWatcherTestConfig,
+) -> None:
+    axis = skywatcher_config.axis
+    cpr = skywatcher_mc.inquire_cpr(axis)
+    timer_freq = skywatcher_mc.inquire_timer_freq(axis)
+    step_period = _compute_step_period(cpr, timer_freq, SIDEREAL_RATE_DEG_S)
+    LOGGER.info(
+        "STEP tracking_enable axis=%s step_period=%s",
+        axis.name,
+        step_period,
+    )
+    try:
+        skywatcher_mc.instant_stop(axis)
+        time.sleep(skywatcher_config.settle_delay_s)
+        mode = SkyWatcherMotionMode(
+            slew_mode=SkyWatcherSlewMode.SLEW,
+            direction=SkyWatcherDirection.FORWARD,
+            speed_mode=SkyWatcherSpeedMode.LOWSPEED,
+        )
+        skywatcher_mc.set_motion_mode(axis, mode)
+        skywatcher_mc.set_step_period(axis, step_period)
+        skywatcher_mc.start_motion(axis)
+        _wait_for_status(
+            skywatcher_mc,
+            axis,
+            lambda s: s.running,
+            timeout_s=skywatcher_config.running_timeout_s,
+            poll_interval_s=skywatcher_config.poll_interval_s,
+            note="tracking_running",
+        )
+        _wait_for_position_change(
+            skywatcher_mc,
+            axis,
+            skywatcher_mc.inquire_position(axis),
+            min_delta=1,
+            timeout_s=skywatcher_config.running_timeout_s,
+            poll_interval_s=skywatcher_config.poll_interval_s,
+            note="tracking_move",
+        )
+        LOGGER.info("STEP tracking_disable axis=%s", axis.name)
+        _safe_stop(skywatcher_mc, axis)
+        _wait_for_status(
+            skywatcher_mc,
+            axis,
+            lambda s: not s.running,
+            timeout_s=skywatcher_config.running_timeout_s,
+            poll_interval_s=skywatcher_config.poll_interval_s,
+            note="tracking_stopped",
+        )
+        _assert_position_stable(
+            skywatcher_mc,
+            axis,
+            duration_s=skywatcher_config.settle_delay_s,
+            poll_interval_s=skywatcher_config.poll_interval_s,
+            max_delta=100,
+            note="tracking_stop_stable",
+        )
+    finally:
+        _safe_stop(skywatcher_mc, axis)
