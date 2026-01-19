@@ -8,6 +8,8 @@ from typing import Callable, Optional
 
 import pytest
 
+LOGGER = logging.getLogger("tests.skywatcher.serial")
+
 from coords import clamp
 from serial_prims import SerialLineDevice
 from skywatcher import (
@@ -95,10 +97,10 @@ def _wait_for_status(
     note: str,
 ) -> SkyWatcherStatus:
     start = time.monotonic()
-    logging.getLogger("tests.skywatcher.serial").info("WAIT %s timeout_s=%s", note, timeout_s)
+    LOGGER.info("WAIT %s timeout_s=%s", note, timeout_s)
     while True:
         status = mc.inquire_status(axis)
-        logging.getLogger("tests.skywatcher.serial").info(
+        LOGGER.info(
             "STATUS %s raw=%s running=%s initialized=%s mode=%s dir=%s speed=%s note=%s",
             axis.name,
             status.raw,
@@ -113,7 +115,7 @@ def _wait_for_status(
             return status
         elapsed = time.monotonic() - start
         if elapsed >= timeout_s:
-            logging.getLogger("tests.skywatcher.serial").info(
+            LOGGER.info(
                 "WAIT %s elapsed_s=%s timeout_s=%s",
                 note,
                 elapsed,
@@ -134,7 +136,7 @@ def _wait_for_position_change(
     note: str,
 ) -> int:
     start = time.monotonic()
-    logging.getLogger("tests.skywatcher.serial").info(
+    LOGGER.info(
         "WAIT %s timeout_s=%s start_pos=%s",
         note,
         timeout_s,
@@ -142,7 +144,7 @@ def _wait_for_position_change(
     )
     while True:
         pos = mc.inquire_position(axis)
-        logging.getLogger("tests.skywatcher.serial").info(
+        LOGGER.info(
             "POSITION %s pos=%s note=%s",
             axis.name,
             pos,
@@ -152,7 +154,7 @@ def _wait_for_position_change(
             return pos
         elapsed = time.monotonic() - start
         if elapsed >= timeout_s:
-            logging.getLogger("tests.skywatcher.serial").info(
+            LOGGER.info(
                 "WAIT %s elapsed_s=%s timeout_s=%s pos=%s",
                 note,
                 elapsed,
@@ -164,22 +166,22 @@ def _wait_for_position_change(
 
 
 def _safe_stop(mc: SkyWatcherMC, axis: SkyWatcherAxis) -> None:
-    logging.getLogger("tests.skywatcher.serial").info("STEP stop_motion axis=%s", axis.name)
+    LOGGER.info("STEP stop_motion axis=%s", axis.name)
     try:
         mc.stop_motion(axis)
     except Exception:
-        logging.getLogger("tests.skywatcher.serial").exception("ACTION stop_motion_failed")
+        LOGGER.exception("ACTION stop_motion_failed")
     try:
         mc.instant_stop(axis)
     except Exception:
-        logging.getLogger("tests.skywatcher.serial").exception("ACTION instant_stop_failed")
+        LOGGER.exception("ACTION instant_stop_failed")
 
 
 @pytest.fixture(scope="session")
 def skywatcher_config() -> SkyWatcherTestConfig:
-    port = os.environ.get("SKYWATCHER_PORT")
+    port = os.environ.get("SKYWATCHER_PORT", "/dev/tty.PL2303G-USBtoUART2120")
     if not port:
-        logging.getLogger("tests.skywatcher.serial").info(
+        LOGGER.info(
             "SKIP SKYWATCHER_PORT is not set; skipping serial tests."
         )
         pytest.skip("SKYWATCHER_PORT is not set; skipping serial tests.")
@@ -203,7 +205,7 @@ def skywatcher_config() -> SkyWatcherTestConfig:
 
 @pytest.fixture(scope="session")
 def skywatcher_mc(skywatcher_config: SkyWatcherTestConfig) -> SkyWatcherMC:
-    logging.getLogger("tests.skywatcher.serial").info(
+    LOGGER.info(
         "STEP connect axis=%s port=%s",
         skywatcher_config.axis.name,
         skywatcher_config.port,
@@ -216,7 +218,7 @@ def skywatcher_mc(skywatcher_config: SkyWatcherTestConfig) -> SkyWatcherMC:
             name="tests.skywatcher.serial.device",
         )
     except ImportError:
-        logging.getLogger("tests.skywatcher.serial").info(
+        LOGGER.info(
             "SKIP pyserial is not available; skipping serial tests."
         )
         pytest.skip("pyserial is not available; skipping serial tests.")
@@ -226,17 +228,17 @@ def skywatcher_mc(skywatcher_config: SkyWatcherTestConfig) -> SkyWatcherMC:
 
 def test_connect_and_status(skywatcher_mc: SkyWatcherMC, skywatcher_config: SkyWatcherTestConfig) -> None:
     axis = skywatcher_config.axis
-    logging.getLogger("tests.skywatcher.serial").info("STEP read_status axis=%s", axis.name)
+    LOGGER.info("STEP read_status axis=%s", axis.name)
     cpr = skywatcher_mc.inquire_cpr(axis)
     timer_freq = skywatcher_mc.inquire_timer_freq(axis)
     status = skywatcher_mc.inquire_status(axis)
-    logging.getLogger("tests.skywatcher.serial").info(
+    LOGGER.info(
         "ACTION axis=%s cpr=%s timer_freq=%s",
         axis.name,
         cpr,
         timer_freq,
     )
-    logging.getLogger("tests.skywatcher.serial").info(
+    LOGGER.info(
         "STATUS %s raw=%s running=%s initialized=%s mode=%s dir=%s speed=%s note=read_status",
         axis.name,
         status.raw,
@@ -253,9 +255,9 @@ def test_connect_and_status(skywatcher_mc: SkyWatcherMC, skywatcher_config: SkyW
 
 def test_check_position(skywatcher_mc: SkyWatcherMC, skywatcher_config: SkyWatcherTestConfig) -> None:
     axis = skywatcher_config.axis
-    logging.getLogger("tests.skywatcher.serial").info("STEP read_position axis=%s", axis.name)
+    LOGGER.info("STEP read_position axis=%s", axis.name)
     pos = skywatcher_mc.inquire_position(axis)
-    logging.getLogger("tests.skywatcher.serial").info(
+    LOGGER.info(
         "POSITION %s pos=%s note=read_position",
         axis.name,
         pos,
@@ -269,7 +271,7 @@ def test_enable_target_mode_and_update_pos(
 ) -> None:
     axis = skywatcher_config.axis
     start_pos = skywatcher_mc.inquire_position(axis)
-    logging.getLogger("tests.skywatcher.serial").info(
+    LOGGER.info(
         "POSITION %s pos=%s note=check_position",
         axis.name,
         start_pos,
@@ -277,7 +279,7 @@ def test_enable_target_mode_and_update_pos(
     cpr = skywatcher_mc.inquire_cpr(axis)
     delta = _compute_goto_delta(cpr)
     target = _mask_ticks(start_pos + delta)
-    logging.getLogger("tests.skywatcher.serial").info(
+    LOGGER.info(
         "STEP set_goto_mode axis=%s target=%s delta=%s",
         axis.name,
         target,
@@ -326,7 +328,7 @@ def test_enable_target_mode_and_update_pos(
 def test_do_goto_check_happens(skywatcher_mc: SkyWatcherMC, skywatcher_config: SkyWatcherTestConfig) -> None:
     axis = skywatcher_config.axis
     start_pos = skywatcher_mc.inquire_position(axis)
-    logging.getLogger("tests.skywatcher.serial").info(
+    LOGGER.info(
         "POSITION %s pos=%s note=check_position",
         axis.name,
         start_pos,
@@ -334,7 +336,7 @@ def test_do_goto_check_happens(skywatcher_mc: SkyWatcherMC, skywatcher_config: S
     cpr = skywatcher_mc.inquire_cpr(axis)
     delta = _compute_goto_delta(cpr)
     target = _mask_ticks(start_pos + delta)
-    logging.getLogger("tests.skywatcher.serial").info(
+    LOGGER.info(
         "STEP start_goto axis=%s target=%s delta=%s",
         axis.name,
         target,
@@ -378,7 +380,7 @@ def test_do_goto_backwards_check_statuses(
 ) -> None:
     axis = skywatcher_config.axis
     start_pos = skywatcher_mc.inquire_position(axis)
-    logging.getLogger("tests.skywatcher.serial").info(
+    LOGGER.info(
         "POSITION %s pos=%s note=check_position",
         axis.name,
         start_pos,
@@ -386,7 +388,7 @@ def test_do_goto_backwards_check_statuses(
     cpr = skywatcher_mc.inquire_cpr(axis)
     delta = _compute_goto_delta(cpr)
     target = _mask_ticks(start_pos - delta)
-    logging.getLogger("tests.skywatcher.serial").info(
+    LOGGER.info(
         "STEP start_goto axis=%s target=%s delta=%s",
         axis.name,
         target,
@@ -444,7 +446,7 @@ def test_move_left_right_ra(skywatcher_mc: SkyWatcherMC, skywatcher_config: SkyW
     axis = skywatcher_config.axis
     cpr = skywatcher_mc.inquire_cpr(axis)
     timer_freq = skywatcher_mc.inquire_timer_freq(axis)
-    logging.getLogger("tests.skywatcher.serial").info(
+    LOGGER.info(
         "ACTION axis=%s cpr=%s timer_freq=%s",
         axis.name,
         cpr,
@@ -452,7 +454,7 @@ def test_move_left_right_ra(skywatcher_mc: SkyWatcherMC, skywatcher_config: SkyW
     )
     step_period = _compute_step_period(cpr, timer_freq, skywatcher_config.manual_rate_deg_s)
     for direction in (SkyWatcherDirection.FORWARD, SkyWatcherDirection.BACKWARD):
-        logging.getLogger("tests.skywatcher.serial").info(
+        LOGGER.info(
             "STEP start_slew axis=%s direction=%s",
             axis.name,
             direction.name,
@@ -509,7 +511,7 @@ def test_enable_modes_and_check_it(skywatcher_mc: SkyWatcherMC, skywatcher_confi
         ),
     ]
     for mode in cases:
-        logging.getLogger("tests.skywatcher.serial").info(
+        LOGGER.info(
             "STEP mode_check axis=%s mode=%s direction=%s speed=%s",
             axis.name,
             mode.slew_mode.name,
@@ -521,7 +523,7 @@ def test_enable_modes_and_check_it(skywatcher_mc: SkyWatcherMC, skywatcher_confi
             time.sleep(skywatcher_config.settle_delay_s)
             skywatcher_mc.set_motion_mode(axis, mode)
             status = skywatcher_mc.inquire_status(axis)
-            logging.getLogger("tests.skywatcher.serial").info(
+            LOGGER.info(
                 "STATUS %s raw=%s running=%s initialized=%s mode=%s dir=%s speed=%s note=mode_check",
                 axis.name,
                 status.raw,
