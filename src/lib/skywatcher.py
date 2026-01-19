@@ -1,27 +1,10 @@
 from __future__ import annotations
 import dataclasses
 import logging
+from enum import IntEnum
 from typing import Optional
 
 from serial_prims import SerialLineDevice
-
-
-def encode_hex_le(value: int, nbytes: int) -> str:
-    if value < 0:
-        raise ValueError("encode_hex_le expects unsigned")
-    b = value.to_bytes(nbytes, byteorder="little", signed=False)
-    return b.hex().upper()
-
-
-def decode_hex_le(hexstr: str, signed: bool = False) -> int:
-    bs = bytes.fromhex(hexstr)
-    val = int.from_bytes(bs, byteorder="little", signed=False)
-    if signed:
-        bits = 8 * len(bs)
-        signbit = 1 << (bits - 1)
-        if val & signbit:
-            val = val - (1 << bits)
-    return val
 
 
 @dataclasses.dataclass
@@ -29,108 +12,192 @@ class SkyWatcherAxisInfo:
     cpr: int = 0
     timer_freq: int = 0
     last_pos: int = 0
-    last_status: int = 0
     updated_monotonic: float = 0.0
+    last_status: Optional["SkyWatcherStatus"] = None
+
+
+class SkyWatcherAxis(IntEnum):
+    RA = 0
+    DEC = 1
+
+    @classmethod
+    def from_channel(cls, value: int | str) -> "SkyWatcherAxis":
+        if isinstance(value, str):
+            value = value.strip()
+        if value in (1, "1"):
+            return cls.RA
+        if value in (2, "2"):
+            return cls.DEC
+        raise ValueError(f"invalid axis channel {value!r}, expected 1 or 2")
+
+    def to_bytes(self) -> bytes:
+        if self.value not in (0, 1):
+            raise ValueError(f"invalid axis {self.value!r}, expected 0 or 1")
+        return str(self.value + 1).encode("ascii")
+
+class SkyWatcherDirection(IntEnum):
+    BACKWARD = 0
+    FORWARD = 1
+
+
+class SkyWatcherSlewMode(IntEnum):
+    SLEW = 0
+    GOTO = 1
+
+
+class SkyWatcherSpeedMode(IntEnum):
+    LOWSPEED = 0
+    HIGHSPEED = 1
+
+
+@dataclasses.dataclass(frozen=True)
+class SkyWatcherStatus:
+    raw: int
+    running: bool
+    initialized: bool
+    slew_mode: SkyWatcherSlewMode
+    direction: SkyWatcherDirection
+    speed_mode: SkyWatcherSpeedMode
+
+    @classmethod
+    def from_bytes(cls, data: bytes) -> "SkyWatcherStatus":
+        b1 = data[0] if len(data) > 0 else 0
+        b2 = data[1] if len(data) > 1 else 0
+        b3 = data[2] if len(data) > 2 else 0
+        raw = b2 | (b1 << 8) | (b3 << 16)
+        running = bool(b2 & 0x01)
+        initialized = bool(b3 & 0x01)
+        slew_mode = SkyWatcherSlewMode.SLEW if (b1 & 0x01) else SkyWatcherSlewMode.GOTO
+        direction = SkyWatcherDirection.BACKWARD if (b1 & 0x02) else SkyWatcherDirection.FORWARD
+        speed_mode = SkyWatcherSpeedMode.HIGHSPEED if (b1 & 0x04) else SkyWatcherSpeedMode.LOWSPEED
+        return cls(
+            raw=raw,
+            running=running,
+            initialized=initialized,
+            slew_mode=slew_mode,
+            direction=direction,
+            speed_mode=speed_mode,
+        )
+
+
+@dataclasses.dataclass(frozen=True)
+class SkyWatcherMotionMode:
+    slew_mode: SkyWatcherSlewMode
+    direction: SkyWatcherDirection
+    speed_mode: SkyWatcherSpeedMode
+
+    def to_command(self) -> str:
+        if self.slew_mode == SkyWatcherSlewMode.SLEW and self.speed_mode == SkyWatcherSpeedMode.LOWSPEED:
+            mode = "1"
+        elif self.slew_mode == SkyWatcherSlewMode.SLEW and self.speed_mode == SkyWatcherSpeedMode.HIGHSPEED:
+            mode = "3"
+        elif self.slew_mode == SkyWatcherSlewMode.GOTO and self.speed_mode == SkyWatcherSpeedMode.LOWSPEED:
+            mode = "2"
+        else:
+            mode = "0"
+        direction = "1" if self.direction == SkyWatcherDirection.BACKWARD else "0"
+        return f"{mode}{direction}"
 
 
 class SkyWatcherMC:
-    def __init__(self, dev: SerialLineDevice, status_interval: float = 0.0):
+    """SkyWatcher motor controller protocol wrapper."""
+
+    _LEADING = b":"
+    _TRAILING = b"\r"
+
+    def __init__(self, dev: SerialLineDevice, logger: Optional[logging.Logger] = None) -> None:
         self.dev = dev
-        self.log = logging.getLogger("ra.swmc")
-        self.status_interval = float(status_interval or 0.0)
-        self._status_task = None
+        self.log = logger or logging.getLogger("skywatcher.mc")
 
-    def _cmd(self, header: str, channel: Optional[str], data_hex: str = "") -> str:
-        if channel is None:
-            wire = f":{header}{data_hex}\r".encode("ascii")
+    def inquire_timer_freq(self, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> int:
+        data = self._transact("b", axis)
+        return self._revu24_to_int(data)
+
+    def inquire_cpr(self, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> int:
+        data = self._transact("a", axis)
+        return self._revu24_to_int(data)
+
+    def inquire_position(self, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> int:
+        data = self._transact("j", axis)
+        return self._revu24_to_int(data)
+
+    def inquire_status(self, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> SkyWatcherStatus:
+        data = self._transact("f", axis)
+        return SkyWatcherStatus.from_bytes(data)
+
+    def set_step_period(self, axis: SkyWatcherAxis, period: int) -> None:
+        arg = self._int_to_revu24(period)
+        self._transact("I", axis, arg)
+
+    def set_goto_target(self, axis: SkyWatcherAxis, target: int) -> None:
+        arg = self._int_to_revu24(target)
+        self._transact("S", axis, arg)
+
+    def set_motion_mode(self, axis: SkyWatcherAxis, mode: SkyWatcherMotionMode) -> None:
+        self._transact("G", axis, mode.to_command())
+
+    def start_motion(self, axis: SkyWatcherAxis) -> None:
+        self._transact("J", axis)
+
+    def stop_motion(self, axis: SkyWatcherAxis) -> None:
+        self._transact("K", axis)
+
+    def instant_stop(self, axis: SkyWatcherAxis) -> None:
+        self._transact("L", axis)
+
+    def _transact(self, cmd: str, axis: SkyWatcherAxis, arg: Optional[str] = None) -> bytes:
+        axis_char = self._normalize_axis(axis)
+        if arg is None:
+            payload = self._LEADING + cmd.encode("ascii") + axis_char + self._TRAILING
         else:
-            wire = f":{header}{channel}{data_hex}\r".encode("ascii")
-        self.log.debug("SWMC TX %r", wire)
-        raw = self.dev.transact(wire, terminator=b"\r")
-        self.log.debug("SWMC RX %r", raw)
-        if not raw or len(raw) < 2:
-            raise RuntimeError(f"bad response: {raw!r}")
-        if raw[0:1] == b"!":
-            err = raw[1:-1].decode("ascii", errors="replace")
-            raise RuntimeError(f"SWMC error: {err!r} for cmd {wire!r}")
-        if raw[0:1] != b"=":
-            raise RuntimeError(f"bad response start: {raw!r}")
-        return raw[1:-1].decode("ascii", errors="replace")
+            payload = self._LEADING + cmd.encode("ascii") + axis_char + arg.encode("ascii") + self._TRAILING
+        resp = self.dev.transact(payload, terminator=self._TRAILING)
+        if not resp:
+            raise RuntimeError(f"empty response for cmd={cmd} axis={axis}")
+        if resp.endswith(self._TRAILING):
+            resp = resp[:-1]
+        if not resp:
+            raise RuntimeError(f"empty response for cmd={cmd} axis={axis}")
+        if resp[:1] == b"!":
+            raise RuntimeError(f"skywatcher command error: {resp!r}")
+        if resp[:1] != b"=":
+            raise RuntimeError(f"invalid response: {resp!r}")
+        return resp[1:]
 
-    async def start_status_loop(self, ch: str) -> None:
-        if self.status_interval <= 0:
-            return
-        if self._status_task is not None:
-            return
-        import asyncio
+    def _normalize_axis(self, axis: SkyWatcherAxis) -> bytes:
+        if not isinstance(axis, SkyWatcherAxis):
+            raise TypeError(f"axis must be SkyWatcherAxis, got {type(axis)!r}")
+        return axis.to_bytes()
 
-        async def _loop():
-            self.log.info("SkyWatcher status loop started (ch=%s interval=%.3fs)", ch, self.status_interval)
-            try:
-                while True:
-                    try:
-                        st = await asyncio.to_thread(self.inquire_status, ch)
-                        self.log.debug("SkyWatcher status ch=%s -> %r", ch, st)
-                    except Exception:
-                        self.log.debug("SkyWatcher status inquiry failed", exc_info=True)
-                    await asyncio.sleep(self.status_interval)
-            except asyncio.CancelledError:
-                self.log.info("SkyWatcher status loop cancelled")
+    def _revu24_to_int(self, data: bytes) -> int:
+        if len(data) < 6:
+            raise ValueError(f"revu24 data too short: {data!r}")
+        def hex_val(b: int) -> int:
+            if 48 <= b <= 57:
+                return b - 48
+            if 65 <= b <= 70:
+                return b - 55
+            if 97 <= b <= 102:
+                return b - 87
+            raise ValueError(f"invalid hex digit: {b!r}")
+        res = hex_val(data[4])
+        res = (res << 4) | hex_val(data[5])
+        res = (res << 4) | hex_val(data[2])
+        res = (res << 4) | hex_val(data[3])
+        res = (res << 4) | hex_val(data[0])
+        res = (res << 4) | hex_val(data[1])
+        return res
 
-        self._status_task = asyncio.create_task(_loop())
-
-    async def stop_status_loop(self) -> None:
-        if self._status_task:
-            self._status_task.cancel()
-            try:
-                await self._status_task
-            except Exception:
-                pass
-            self._status_task = None
-
-    def inquire_cpr(self, ch: str) -> int:
-        hexdata = self._cmd("a", ch)
-        return decode_hex_le(hexdata, signed=False)
-
-    def inquire_timer_freq(self) -> int:
-        hexdata = self._cmd("b", None, data_hex="1")
-        return decode_hex_le(hexdata, signed=False)
-
-    def inquire_position(self, ch: str) -> int:
-        hexdata = self._cmd("j", ch)
-        return decode_hex_le(hexdata, signed=True)
-
-    def inquire_status(self, ch: str) -> int:
-        hexdata = self._cmd("f", ch)
-        if len(hexdata) not in (2, 4):
-            self.log.debug("status length unexpected: %r", hexdata)
-        return decode_hex_le(hexdata, signed=False)
-
-    def set_motion_mode(self, ch: str, *, tracking: bool, ccw: bool, fast: bool = False, medium: bool = False) -> None:
-        db1 = 0
-        db1 |= (1 if tracking else 0) << 0
-        db1 |= (1 if fast else 0) << 1
-        db1 |= (1 if medium else 0) << 2
-        db2 = 0
-        db2 |= (1 if ccw else 0) << 0
-        mode = f"{db1:X}{db2:X}00"
-        _ = self._cmd("G", ch, data_hex=mode)
-
-    def set_goto_target(self, ch: str, target_pos: int) -> None:
-        if target_pos < 0:
-            target_pos &= (1 << 24) - 1
-        hexdata = encode_hex_le(target_pos, 3)
-        _ = self._cmd("S", ch, data_hex=hexdata)
-
-    def set_step_period(self, ch: str, preset: int) -> None:
-        hexdata = encode_hex_le(preset, 3)
-        _ = self._cmd("I", ch, data_hex=hexdata)
-
-    def start_motion(self, ch: str) -> None:
-        _ = self._cmd("J", ch)
-
-    def stop_motion(self, ch: str) -> None:
-        _ = self._cmd("K", ch)
-
-    def instant_stop(self, ch: str) -> None:
-        _ = self._cmd("L", ch)
+    def _int_to_revu24(self, value: int) -> str:
+        n = int(value) & 0xFFFFFF
+        hexa = "0123456789ABCDEF"
+        return "".join(
+            [
+                hexa[(n & 0xF0) >> 4],
+                hexa[(n & 0x0F)],
+                hexa[(n & 0xF000) >> 12],
+                hexa[(n & 0x0F00) >> 8],
+                hexa[(n & 0xF00000) >> 20],
+                hexa[(n & 0x0F0000) >> 16],
+            ]
+        )

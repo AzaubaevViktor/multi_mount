@@ -7,7 +7,16 @@ import time
 from typing import Optional, Tuple, Any
 
 from coords import lst_hours, fmt_ra, fmt_dec, clamp, wrap_hours
-from skywatcher import SkyWatcherMC, SkyWatcherAxisInfo
+from skywatcher import (
+    SkyWatcherAxis,
+    SkyWatcherAxisInfo,
+    SkyWatcherDirection,
+    SkyWatcherMC,
+    SkyWatcherMotionMode,
+    SkyWatcherSlewMode,
+    SkyWatcherSpeedMode,
+    SkyWatcherStatus,
+)
 
 
 @dataclasses.dataclass
@@ -57,7 +66,10 @@ class FrankenMount:
     ):
         self.log = logging.getLogger("mount")
         self.ra = ra
-        self.ra_ch = ra_ch
+        if isinstance(ra_ch, SkyWatcherAxis):
+            self.ra_ch = ra_ch
+        else:
+            self.ra_ch = SkyWatcherAxis.from_channel(ra_ch)
         self.dec = dec
         self.site = site
         self.ra_ccw = ra_ccw
@@ -102,7 +114,7 @@ class FrankenMount:
     async def _init_backends(self) -> None:
         self.log.info("Init backends: reading RA CPR and timer freq, configuring DEC")
         cpr = await asyncio.to_thread(self.ra.inquire_cpr, self.ra_ch)
-        tf = await asyncio.to_thread(self.ra.inquire_timer_freq)
+        tf = await asyncio.to_thread(self.ra.inquire_timer_freq, self.ra_ch)
         self.axis.cpr = cpr
         self.axis.timer_freq = tf
         self.state.ra_cpr = cpr
@@ -225,7 +237,15 @@ class FrankenMount:
             try:
                 await asyncio.to_thread(self.ra.instant_stop, self.ra_ch)
                 await asyncio.sleep(0.1)
-                await asyncio.to_thread(self.ra.set_motion_mode, self.ra_ch, tracking=False, ccw=self.ra_ccw)
+                await asyncio.to_thread(
+                    self.ra.set_motion_mode,
+                    self.ra_ch,
+                    SkyWatcherMotionMode(
+                        slew_mode=SkyWatcherSlewMode.GOTO,
+                        direction=SkyWatcherDirection.BACKWARD if self.ra_ccw else SkyWatcherDirection.FORWARD,
+                        speed_mode=SkyWatcherSpeedMode.LOWSPEED,
+                    ),
+                )
                 await asyncio.to_thread(self.ra.set_goto_target, self.ra_ch, ra_ticks_target)
                 await asyncio.to_thread(self.ra.start_motion, self.ra_ch)
             except Exception as e:
@@ -274,7 +294,15 @@ class FrankenMount:
                     tried.add(p)
                     try:
                         await asyncio.to_thread(self.ra.set_step_period, self.ra_ch, p)
-                        await asyncio.to_thread(self.ra.set_motion_mode, self.ra_ch, tracking=True, ccw=self.ra_ccw)
+                        await asyncio.to_thread(
+                            self.ra.set_motion_mode,
+                            self.ra_ch,
+                            SkyWatcherMotionMode(
+                                slew_mode=SkyWatcherSlewMode.SLEW,
+                                direction=SkyWatcherDirection.BACKWARD if self.ra_ccw else SkyWatcherDirection.FORWARD,
+                                speed_mode=SkyWatcherSpeedMode.LOWSPEED,
+                            ),
+                        )
                         await asyncio.to_thread(self.ra.start_motion, self.ra_ch)
                         ok = True
                         self.log.info("Tracking ON using preset=%d", p)
@@ -321,9 +349,17 @@ class FrankenMount:
             ccw = not self.ra_ccw
         try:
             if start:
-                await asyncio.to_thread(self.ra.instant_stop, self.ra_ch)
+            await asyncio.to_thread(self.ra.instant_stop, self.ra_ch)
                 await asyncio.sleep(0.05)
-                await asyncio.to_thread(self.ra.set_motion_mode, self.ra_ch, tracking=True, ccw=ccw)
+                await asyncio.to_thread(
+                    self.ra.set_motion_mode,
+                    self.ra_ch,
+                    SkyWatcherMotionMode(
+                        slew_mode=SkyWatcherSlewMode.SLEW,
+                        direction=SkyWatcherDirection.BACKWARD if ccw else SkyWatcherDirection.FORWARD,
+                        speed_mode=SkyWatcherSpeedMode.LOWSPEED,
+                    ),
+                )
                 await asyncio.to_thread(self.ra.set_step_period, self.ra_ch, preset)
                 await asyncio.to_thread(self.ra.start_motion, self.ra_ch)
             else:
@@ -333,8 +369,8 @@ class FrankenMount:
             return "0#"
         return "1#"
 
-    async def get_ra_status(self) -> Optional[int]:
-        """Query RA motor status (returns integer status or None)."""
+    async def get_ra_status(self) -> Optional[SkyWatcherStatus]:
+        """Query RA motor status (returns status object or None)."""
         try:
             status = await asyncio.to_thread(self.ra.inquire_status, self.ra_ch)
             self.axis.last_status = status
@@ -347,7 +383,7 @@ class FrankenMount:
         s = self.axis.last_status
         if s is None:
             return None
-        return bool(s & 0x1)
+        return s.running
 
     async def _status_loop(self) -> None:
         self.log.info("Status loop started (interval=%.3fs)", self.status_interval)
