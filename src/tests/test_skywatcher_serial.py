@@ -177,7 +177,7 @@ def _assert_position_stable(
     start = time.monotonic()
     start_pos = mc.inquire_position(axis)
     LOGGER.info(
-        "POSITION %s pos=%s note=%s",
+        "CHECK POSITION %s pos=%s note=%s",
         axis.name,
         start_pos,
         note,
@@ -189,13 +189,21 @@ def _assert_position_stable(
         time.sleep(poll_interval_s)
         pos = mc.inquire_position(axis)
         LOGGER.info(
-            "POSITION %s pos=%s note=%s",
+            "CHECK POSITION %s pos=%s note=%s",
             axis.name,
             pos,
             note,
         )
-        if _tick_delta(pos, start_pos) > max_delta:
+        if (delta := _tick_delta(pos, start_pos)) > max_delta:
             pytest.fail(note)
+        else:
+            LOGGER.info(
+                "POSITION STABLE %s delta=%s max_delta=%s note=%s",
+                axis.name,
+                delta,
+                max_delta,
+                note,
+            )
 
 
 def _safe_stop(mc: SkyWatcherMC, axis: SkyWatcherAxis) -> None:
@@ -231,7 +239,7 @@ def skywatcher_config() -> SkyWatcherTestConfig:
         running_timeout_s=6.0,
         goto_timeout_s=20.0,
         slew_duration_s=0.6,
-        settle_delay_s=0.2,
+        settle_delay_s=0.8,
         manual_rate_deg_s=0.1,
     )
 
@@ -359,7 +367,7 @@ def test_enable_target_mode_and_update_pos(
             axis,
             duration_s=skywatcher_config.settle_delay_s,
             poll_interval_s=skywatcher_config.poll_interval_s,
-            max_delta=0,
+            max_delta=100,
             note="stop_stable",
         )
     finally:

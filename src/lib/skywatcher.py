@@ -24,7 +24,7 @@ class SkyWatcherAxis(IntEnum):
 
     @classmethod
     def from_channel(cls, value: int | str) -> "SkyWatcherAxis":
-        LOGGER.info("axis_channel value=%r", value)
+        # LOGGER.info("axis_channel value=%r", value)
         if isinstance(value, str):
             value = value.strip()
         if value in (1, "1"):
@@ -34,7 +34,7 @@ class SkyWatcherAxis(IntEnum):
         raise ValueError(f"invalid axis channel {value!r}, expected 1 or 2")
 
     def to_bytes(self) -> bytes:
-        LOGGER.info("axis_bytes axis=%s", self)
+        # LOGGER.info("axis_bytes axis=%s", self)
         if self.value not in (0, 1):
             raise ValueError(f"invalid axis {self.value!r}, expected 0 or 1")
         return str(self.value + 1).encode("ascii")
@@ -127,12 +127,12 @@ class SkyWatcherMC:
         return self._revu24_to_int(data)
 
     def inquire_position(self, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> int:
-        self.log.info("position axis=%s", axis)
+        self.log.info("inquire position axis=%s", axis)
         data = self._transact("j", axis)
         return self._revu24_to_int(data)
 
     def inquire_status(self, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> SkyWatcherStatus:
-        self.log.info("status axis=%s", axis)
+        self.log.info("inquire status axis=%s", axis)
         data = self._transact("f", axis)
         return SkyWatcherStatus.from_bytes(data)
 
@@ -163,7 +163,7 @@ class SkyWatcherMC:
         self._transact("L", axis)
 
     def _transact(self, cmd: str, axis: SkyWatcherAxis, arg: Optional[str] = None) -> bytes:
-        self.log.info("command cmd=%s axis=%s arg=%r", cmd, axis, arg)
+        # self.log.info("command cmd=%s axis=%s arg=%r", cmd, axis, arg)
         axis_char = self._normalize_axis(axis)
         if arg is None:
             payload = self._LEADING + cmd.encode("ascii") + axis_char + self._TRAILING
@@ -199,17 +199,17 @@ class SkyWatcherMC:
         return resp[1:]
 
     def _normalize_axis(self, axis: SkyWatcherAxis) -> bytes:
-        self.log.info("axis_normalize axis=%s", axis)
+        # self.log.info("axis_normalize axis=%s", axis)
         if not isinstance(axis, SkyWatcherAxis):
             raise TypeError(f"axis must be SkyWatcherAxis, got {type(axis)!r}")
         return axis.to_bytes()
 
     def _revu24_to_int(self, data: bytes) -> int:
-        self.log.info("revu24_data data=%r", data)
+        # self.log.info("revu24_data data=%r", data)
         if len(data) < 6:
             raise ValueError(f"revu24 data too short: {data!r}")
         def hex_val(b: int) -> int:
-            self.log.info("hex_digit b=%s", b)
+            # self.log.info("hex_digit b=%s", b)
             if 48 <= b <= 57:
                 return b - 48
             if 65 <= b <= 70:
