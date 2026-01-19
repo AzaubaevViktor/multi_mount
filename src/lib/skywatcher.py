@@ -6,6 +6,8 @@ from typing import Optional
 
 from serial_prims import SerialLineDevice
 
+LOGGER = logging.getLogger("skywatcher")
+
 
 @dataclasses.dataclass
 class SkyWatcherAxisInfo:
@@ -22,6 +24,7 @@ class SkyWatcherAxis(IntEnum):
 
     @classmethod
     def from_channel(cls, value: int | str) -> "SkyWatcherAxis":
+        LOGGER.info("axis_channel value=%r", value)
         if isinstance(value, str):
             value = value.strip()
         if value in (1, "1"):
@@ -31,6 +34,7 @@ class SkyWatcherAxis(IntEnum):
         raise ValueError(f"invalid axis channel {value!r}, expected 1 or 2")
 
     def to_bytes(self) -> bytes:
+        LOGGER.info("axis_bytes axis=%s", self)
         if self.value not in (0, 1):
             raise ValueError(f"invalid axis {self.value!r}, expected 0 or 1")
         return str(self.value + 1).encode("ascii")
@@ -61,6 +65,7 @@ class SkyWatcherStatus:
 
     @classmethod
     def from_bytes(cls, data: bytes) -> "SkyWatcherStatus":
+        LOGGER.info("status_data data=%r", data)
         b1 = data[0] if len(data) > 0 else 0
         b2 = data[1] if len(data) > 1 else 0
         b3 = data[2] if len(data) > 2 else 0
@@ -87,6 +92,7 @@ class SkyWatcherMotionMode:
     speed_mode: SkyWatcherSpeedMode
 
     def to_command(self) -> str:
+        LOGGER.info("motion_mode mode=%s", self)
         if self.slew_mode == SkyWatcherSlewMode.SLEW and self.speed_mode == SkyWatcherSpeedMode.LOWSPEED:
             mode = "1"
         elif self.slew_mode == SkyWatcherSlewMode.SLEW and self.speed_mode == SkyWatcherSpeedMode.HIGHSPEED:
@@ -106,52 +112,80 @@ class SkyWatcherMC:
     _TRAILING = b"\r"
 
     def __init__(self, dev: SerialLineDevice, logger: Optional[logging.Logger] = None) -> None:
+        LOGGER.info("init dev=%r logger=%r", dev, logger)
         self.dev = dev
         self.log = logger or logging.getLogger("skywatcher.mc")
 
     def inquire_timer_freq(self, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> int:
+        self.log.info("timer_freq axis=%s", axis)
         data = self._transact("b", axis)
         return self._revu24_to_int(data)
 
     def inquire_cpr(self, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> int:
+        self.log.info("cpr axis=%s", axis)
         data = self._transact("a", axis)
         return self._revu24_to_int(data)
 
     def inquire_position(self, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> int:
+        self.log.info("position axis=%s", axis)
         data = self._transact("j", axis)
         return self._revu24_to_int(data)
 
     def inquire_status(self, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> SkyWatcherStatus:
+        self.log.info("status axis=%s", axis)
         data = self._transact("f", axis)
         return SkyWatcherStatus.from_bytes(data)
 
     def set_step_period(self, axis: SkyWatcherAxis, period: int) -> None:
+        self.log.info("step_period axis=%s period=%s", axis, period)
         arg = self._int_to_revu24(period)
         self._transact("I", axis, arg)
 
     def set_goto_target(self, axis: SkyWatcherAxis, target: int) -> None:
+        self.log.info("goto_target axis=%s target=%s", axis, target)
         arg = self._int_to_revu24(target)
         self._transact("S", axis, arg)
 
     def set_motion_mode(self, axis: SkyWatcherAxis, mode: SkyWatcherMotionMode) -> None:
+        self.log.info("motion_mode axis=%s mode=%s", axis, mode)
         self._transact("G", axis, mode.to_command())
 
     def start_motion(self, axis: SkyWatcherAxis) -> None:
+        self.log.info("start axis=%s", axis)
         self._transact("J", axis)
 
     def stop_motion(self, axis: SkyWatcherAxis) -> None:
+        self.log.info("stop axis=%s", axis)
         self._transact("K", axis)
 
     def instant_stop(self, axis: SkyWatcherAxis) -> None:
+        self.log.info("emergency_stop axis=%s", axis)
         self._transact("L", axis)
 
     def _transact(self, cmd: str, axis: SkyWatcherAxis, arg: Optional[str] = None) -> bytes:
+        self.log.info("command cmd=%s axis=%s arg=%r", cmd, axis, arg)
         axis_char = self._normalize_axis(axis)
         if arg is None:
             payload = self._LEADING + cmd.encode("ascii") + axis_char + self._TRAILING
         else:
             payload = self._LEADING + cmd.encode("ascii") + axis_char + arg.encode("ascii") + self._TRAILING
+        self.log.debug(
+            "tx cmd=%s axis=%s arg=%r raw=%r hex=%s",
+            cmd,
+            axis,
+            arg,
+            payload,
+            payload.hex(),
+        )
         resp = self.dev.transact(payload, terminator=self._TRAILING)
+        self.log.debug(
+            "rx cmd=%s axis=%s arg=%r raw=%r hex=%s",
+            cmd,
+            axis,
+            arg,
+            resp,
+            resp.hex(),
+        )
         if not resp:
             raise RuntimeError(f"empty response for cmd={cmd} axis={axis}")
         if resp.endswith(self._TRAILING):
@@ -165,14 +199,17 @@ class SkyWatcherMC:
         return resp[1:]
 
     def _normalize_axis(self, axis: SkyWatcherAxis) -> bytes:
+        self.log.info("axis_normalize axis=%s", axis)
         if not isinstance(axis, SkyWatcherAxis):
             raise TypeError(f"axis must be SkyWatcherAxis, got {type(axis)!r}")
         return axis.to_bytes()
 
     def _revu24_to_int(self, data: bytes) -> int:
+        self.log.info("revu24_data data=%r", data)
         if len(data) < 6:
             raise ValueError(f"revu24 data too short: {data!r}")
         def hex_val(b: int) -> int:
+            self.log.info("hex_digit b=%s", b)
             if 48 <= b <= 57:
                 return b - 48
             if 65 <= b <= 70:
@@ -189,6 +226,7 @@ class SkyWatcherMC:
         return res
 
     def _int_to_revu24(self, value: int) -> str:
+        self.log.info("revu24_encode value=%s", value)
         n = int(value) & 0xFFFFFF
         hexa = "0123456789ABCDEF"
         return "".join(
