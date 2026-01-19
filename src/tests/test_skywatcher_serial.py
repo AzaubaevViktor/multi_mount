@@ -11,6 +11,7 @@ import pytest
 LOGGER = logging.getLogger("tests.skywatcher.serial")
 GOTO_LOW_PERIOD = 18
 GOTO_BREAK_MAX = 200
+HIGH_SPEED_PERIOD = 1
 
 from coords import clamp
 from serial_prims import SerialLineDevice
@@ -662,6 +663,17 @@ def test_enable_modes_and_check_it(skywatcher_mc: SkyWatcherMC, skywatcher_confi
             skywatcher_mc.instant_stop(axis)
             time.sleep(skywatcher_config.settle_delay_s)
             skywatcher_mc.set_motion_mode(axis, mode)
+            if mode.speed_mode == SkyWatcherSpeedMode.HIGHSPEED:
+                skywatcher_mc.set_step_period(axis, HIGH_SPEED_PERIOD)
+                skywatcher_mc.start_motion(axis)
+                _wait_for_status(
+                    skywatcher_mc,
+                    axis,
+                    lambda s: s.running,
+                    timeout_s=skywatcher_config.running_timeout_s,
+                    poll_interval_s=skywatcher_config.poll_interval_s,
+                    note="wait_running",
+                )
             status = skywatcher_mc.inquire_status(axis)
             LOGGER.info(
                 "STATUS %s raw=%s running=%s initialized=%s mode=%s dir=%s speed=%s note=mode_check",
