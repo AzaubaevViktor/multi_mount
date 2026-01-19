@@ -165,6 +165,39 @@ def _wait_for_position_change(
         time.sleep(poll_interval_s)
 
 
+def _assert_position_stable(
+    mc: SkyWatcherMC,
+    axis: SkyWatcherAxis,
+    *,
+    duration_s: float,
+    poll_interval_s: float,
+    max_delta: int,
+    note: str,
+) -> int:
+    start = time.monotonic()
+    start_pos = mc.inquire_position(axis)
+    LOGGER.info(
+        "POSITION %s pos=%s note=%s",
+        axis.name,
+        start_pos,
+        note,
+    )
+    while True:
+        elapsed = time.monotonic() - start
+        if elapsed >= duration_s:
+            return start_pos
+        time.sleep(poll_interval_s)
+        pos = mc.inquire_position(axis)
+        LOGGER.info(
+            "POSITION %s pos=%s note=%s",
+            axis.name,
+            pos,
+            note,
+        )
+        if _tick_delta(pos, start_pos) > max_delta:
+            pytest.fail(note)
+
+
 def _safe_stop(mc: SkyWatcherMC, axis: SkyWatcherAxis) -> None:
     LOGGER.info("STEP stop_motion axis=%s", axis.name)
     try:
@@ -321,6 +354,14 @@ def test_enable_target_mode_and_update_pos(
             poll_interval_s=skywatcher_config.poll_interval_s,
             note="wait_stopped",
         )
+        _assert_position_stable(
+            skywatcher_mc,
+            axis,
+            duration_s=skywatcher_config.settle_delay_s,
+            poll_interval_s=skywatcher_config.poll_interval_s,
+            max_delta=0,
+            note="stop_stable",
+        )
     finally:
         _safe_stop(skywatcher_mc, axis)
 
@@ -369,6 +410,82 @@ def test_do_goto_check_happens(skywatcher_mc: SkyWatcherMC, skywatcher_config: S
             timeout_s=skywatcher_config.running_timeout_s,
             poll_interval_s=skywatcher_config.poll_interval_s,
             note="check_position",
+        )
+    finally:
+        _safe_stop(skywatcher_mc, axis)
+
+
+def test_set_target_and_goto_reaches_target(
+    skywatcher_mc: SkyWatcherMC,
+    skywatcher_config: SkyWatcherTestConfig,
+) -> None:
+    axis = skywatcher_config.axis
+    start_pos = skywatcher_mc.inquire_position(axis)
+    LOGGER.info(
+        "POSITION %s pos=%s note=goto_start",
+        axis.name,
+        start_pos,
+    )
+    cpr = skywatcher_mc.inquire_cpr(axis)
+    delta = _compute_goto_delta(cpr)
+    target = _mask_ticks(start_pos + delta)
+    LOGGER.info(
+        "STEP goto_target axis=%s target=%s delta=%s",
+        axis.name,
+        target,
+        delta,
+    )
+    try:
+        skywatcher_mc.instant_stop(axis)
+        time.sleep(skywatcher_config.settle_delay_s)
+        mode = SkyWatcherMotionMode(
+            slew_mode=SkyWatcherSlewMode.GOTO,
+            direction=SkyWatcherDirection.FORWARD,
+            speed_mode=SkyWatcherSpeedMode.LOWSPEED,
+        )
+        skywatcher_mc.set_motion_mode(axis, mode)
+        skywatcher_mc.set_goto_target(axis, target)
+        skywatcher_mc.start_motion(axis)
+        _wait_for_status(
+            skywatcher_mc,
+            axis,
+            lambda s: s.running,
+            timeout_s=skywatcher_config.running_timeout_s,
+            poll_interval_s=skywatcher_config.poll_interval_s,
+            note="wait_running",
+        )
+        _wait_for_position_change(
+            skywatcher_mc,
+            axis,
+            start_pos,
+            min_delta=1,
+            timeout_s=skywatcher_config.running_timeout_s,
+            poll_interval_s=skywatcher_config.poll_interval_s,
+            note="move_check",
+        )
+        _wait_for_status(
+            skywatcher_mc,
+            axis,
+            lambda s: not s.running,
+            timeout_s=skywatcher_config.goto_timeout_s,
+            poll_interval_s=skywatcher_config.poll_interval_s,
+            note="wait_stopped",
+        )
+        end_pos = skywatcher_mc.inquire_position(axis)
+        LOGGER.info(
+            "POSITION %s pos=%s note=goto_end",
+            axis.name,
+            end_pos,
+        )
+        tolerance = max(1, delta // 10)
+        assert _tick_delta(end_pos, target) <= tolerance
+        _assert_position_stable(
+            skywatcher_mc,
+            axis,
+            duration_s=skywatcher_config.settle_delay_s,
+            poll_interval_s=skywatcher_config.poll_interval_s,
+            max_delta=0,
+            note="stop_stable",
         )
     finally:
         _safe_stop(skywatcher_mc, axis)
@@ -438,6 +555,14 @@ def test_do_goto_backwards_check_statuses(
             poll_interval_s=skywatcher_config.poll_interval_s,
             note="wait_stopped",
         )
+        _assert_position_stable(
+            skywatcher_mc,
+            axis,
+            duration_s=skywatcher_config.settle_delay_s,
+            poll_interval_s=skywatcher_config.poll_interval_s,
+            max_delta=0,
+            note="stop_stable",
+        )
     finally:
         _safe_stop(skywatcher_mc, axis)
 
@@ -478,6 +603,15 @@ def test_move_left_right_ra(skywatcher_mc: SkyWatcherMC, skywatcher_config: SkyW
                 poll_interval_s=skywatcher_config.poll_interval_s,
                 note="wait_running",
             )
+            _wait_for_position_change(
+                skywatcher_mc,
+                axis,
+                skywatcher_mc.inquire_position(axis),
+                min_delta=1,
+                timeout_s=skywatcher_config.running_timeout_s,
+                poll_interval_s=skywatcher_config.poll_interval_s,
+                note="move_check",
+            )
             time.sleep(skywatcher_config.slew_duration_s)
         finally:
             _safe_stop(skywatcher_mc, axis)
@@ -488,6 +622,14 @@ def test_move_left_right_ra(skywatcher_mc: SkyWatcherMC, skywatcher_config: SkyW
             timeout_s=skywatcher_config.running_timeout_s,
             poll_interval_s=skywatcher_config.poll_interval_s,
             note="wait_stopped",
+        )
+        _assert_position_stable(
+            skywatcher_mc,
+            axis,
+            duration_s=skywatcher_config.settle_delay_s,
+            poll_interval_s=skywatcher_config.poll_interval_s,
+            max_delta=0,
+            note="stop_stable",
         )
 
 
