@@ -5,3 +5,7 @@ __pycache__
 .DS_Store
 .env
 skywatcher.cpp
+skywatcher.h
+.pytest_cache
+
+.pio
