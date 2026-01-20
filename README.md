@@ -13,16 +13,15 @@ FM Controls Current position
 - INDI
     - Connect with LX200
 - SkyWatcher
-    - Connect with mount
-    - Move
-    - Read position
-    - Slew to position
-    - Correct sideral tracking
-        - Hardware tests: use `pytest -q` with `SKYWATCHER_PORT` env var set
-            - Example: `SKYWATCHER_PORT=/dev/tty.PL2303G-USBtoUART1 pytest tests/test_skywatcher_serial.py -q`
+    - ✅ Connect with mount
+    - ✅ Move
+    - ✅ Read position
+    - ✅ Slew to position
+    - ✅ Sideral tracking
+    - Correction sideral tracking
 - Arduino-based dec mount
-    - Connect Arduino to motor
-    - Control motor
+    - ✅ Connect Arduino to motor
+    - ✅ Control motor
     - Control with LX200
 - Combine
     - Send RA to SkyWatcher
