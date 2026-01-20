@@ -24,6 +24,7 @@ FM Controls Current position
     - ✅ Control motor
     - Control with LX200
 - Combine
+    - Tests for LX200 protocol
     - Send RA to SkyWatcher
-    - Send DEC to arduino
+    - Send DEC to Arduino
     
