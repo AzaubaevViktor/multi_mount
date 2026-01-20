@@ -14,8 +14,7 @@
     sgthrs <0..255>
 
   Wiring (typical 1-wire UART):
-    Nano D11 (TX) --[~1k]--> PDN_UART
-    Nano D10 (RX) ----------> PDN_UART
+    
     GND common, VM+motor power as usual.
 
   STEP/DIR/EN to your driver module pins.
