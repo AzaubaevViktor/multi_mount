@@ -14,9 +14,9 @@ GOTO_BREAK_MAX = 200
 HIGH_SPEED_PERIOD = 1
 SIDEREAL_RATE_DEG_S = 360.0 / 86164.0905
 
-from coords import clamp
-from serial_prims import SerialLineDevice
-from skywatcher import (
+from lib.coords import clamp
+from lib.serial_prims import SerialLineDevice
+from lib.skywatcher import (
     SkyWatcherAxis,
     SkyWatcherDirection,
     SkyWatcherMC,

@@ -9,7 +9,7 @@ FM --DEC--> LX200Adapter --LX200--> Arduino --> TMC2209 --> Motor --> Mount dec
 FM Controls Current position
 
 ## TODO
-- Remove AI-generated slop
+- ✅ Remove AI-generated slop
 - INDI
     - Connect with LX200
 - SkyWatcher
