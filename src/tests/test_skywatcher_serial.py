@@ -13,11 +13,14 @@ GOTO_LOW_PERIOD = 18
 GOTO_BREAK_MAX = 200
 HIGH_SPEED_PERIOD = 1
 SIDEREAL_RATE_DEG_S = 360.0 / 86164.0905
+TRACKING_MIN_TICK_DELTA = 1
+TRACKING_STOP_MAX_TICK_DELTA = 100
 
 from lib.coords import clamp
 from lib.serial_prims import SerialLineDevice
 from lib.skywatcher import (
     SkyWatcherAxis,
+    SkyWatcherConstants,
     SkyWatcherDirection,
     SkyWatcherMC,
     SkyWatcherMotionMode,
@@ -771,6 +774,79 @@ def test_sidereal_tracking_enable_disable(
             poll_interval_s=skywatcher_config.poll_interval_s,
             max_delta=100,
             note="tracking_stop_stable",
+        )
+    finally:
+        _safe_stop(skywatcher_mc, axis)
+
+
+def test_set_ra_rate_does_not_start_motion(
+    skywatcher_mc: SkyWatcherMC,
+    skywatcher_config: SkyWatcherTestConfig,
+) -> None:
+    axis = skywatcher_config.axis
+    rate = SkyWatcherConstants.SIDEREAL_RATE_MULT
+    try:
+        skywatcher_mc.instant_stop(axis)
+        time.sleep(skywatcher_config.settle_delay_s)
+        skywatcher_mc.SetRARate(rate, axis=axis)
+        status = _wait_for_status(
+            skywatcher_mc,
+            axis,
+            lambda s: not s.running,
+            timeout_s=skywatcher_config.running_timeout_s,
+            poll_interval_s=skywatcher_config.poll_interval_s,
+            note="ra_rate_no_start",
+        )
+        assert status.slew_mode == SkyWatcherSlewMode.SLEW
+        assert status.speed_mode == SkyWatcherSpeedMode.LOWSPEED
+        assert status.direction == SkyWatcherDirection.FORWARD
+    finally:
+        _safe_stop(skywatcher_mc, axis)
+
+
+def test_start_ra_tracking_start_stop(
+    skywatcher_mc: SkyWatcherMC,
+    skywatcher_config: SkyWatcherTestConfig,
+) -> None:
+    axis = skywatcher_config.axis
+    trackspeed = SkyWatcherConstants.SIDEREAL_SPEED_ARCSEC_S
+    try:
+        skywatcher_mc.instant_stop(axis)
+        time.sleep(skywatcher_config.settle_delay_s)
+        skywatcher_mc.StartRATracking(trackspeed, axis=axis)
+        _wait_for_status(
+            skywatcher_mc,
+            axis,
+            lambda s: s.running,
+            timeout_s=skywatcher_config.running_timeout_s,
+            poll_interval_s=skywatcher_config.poll_interval_s,
+            note="ra_tracking_running",
+        )
+        _wait_for_position_change(
+            skywatcher_mc,
+            axis,
+            skywatcher_mc.inquire_position(axis),
+            min_delta=TRACKING_MIN_TICK_DELTA,
+            timeout_s=skywatcher_config.running_timeout_s,
+            poll_interval_s=skywatcher_config.poll_interval_s,
+            note="ra_tracking_move",
+        )
+        skywatcher_mc.StartRATracking(SkyWatcherConstants.ZERO_RATE, axis=axis)
+        _wait_for_status(
+            skywatcher_mc,
+            axis,
+            lambda s: not s.running,
+            timeout_s=skywatcher_config.running_timeout_s,
+            poll_interval_s=skywatcher_config.poll_interval_s,
+            note="ra_tracking_stopped",
+        )
+        _assert_position_stable(
+            skywatcher_mc,
+            axis,
+            duration_s=skywatcher_config.settle_delay_s,
+            poll_interval_s=skywatcher_config.poll_interval_s,
+            max_delta=TRACKING_STOP_MAX_TICK_DELTA,
+            note="ra_tracking_stop_stable",
         )
     finally:
         _safe_stop(skywatcher_mc, axis)

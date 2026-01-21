@@ -5,6 +5,7 @@ import time
 from enum import IntEnum, StrEnum
 from typing import Optional
 
+from coords import clamp
 from serial_prims import SerialLineDevice
 
 LOGGER = logging.getLogger("skywatcher")
@@ -60,6 +61,7 @@ class SkyWatcherCommand(StrEnum):
     INQUIRE_CPR = "a"
     INQUIRE_POSITION = "j"
     INQUIRE_STATUS = "f"
+    INQUIRE_HIGHSPEED_RATIO = "g"
     SET_STEP_PERIOD = "I"
     SET_GOTO_TARGET = "S"
     SET_GOTO_TARGET_INCREMENT = "H"
@@ -70,6 +72,29 @@ class SkyWatcherCommand(StrEnum):
     STOP_MOTION = "K"
     INSTANT_STOP = "L"
     INITIALIZE = "F"
+
+
+class SkyWatcherConstants:
+    ZERO_RATE = 0.0
+    MIN_RATE = 0.05
+    MAX_RATE = 800.0
+    LOWSPEED_RATE = 128.0
+    SIDEREAL_DAY_S = 86164.0905
+    DEGREES_PER_REV = 360.0
+    ARCSEC_PER_DEG = 3600.0
+    SIDEREAL_RATE_DEG_S = DEGREES_PER_REV / SIDEREAL_DAY_S
+    SIDEREAL_SPEED_ARCSEC_S = (DEGREES_PER_REV * ARCSEC_PER_DEG) / SIDEREAL_DAY_S
+    SIDEREAL_RATE_MULT = 1.0
+    MIN_STEP_PERIOD = 1
+    MAX_STEP_PERIOD = (1 << 24) - 1
+
+
+class SkyWatcherRateError(Exception):
+    pass
+
+
+class SkyWatcherTrackingError(Exception):
+    pass
 
 
 @dataclasses.dataclass(frozen=True)
@@ -157,6 +182,11 @@ class SkyWatcherMC:
         data = self._transact(SkyWatcherCommand.INQUIRE_STATUS, axis)
         return SkyWatcherStatus.from_bytes(data)
 
+    def inquire_highspeed_ratio(self, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> int:
+        self.log.info("highspeed_ratio axis=%s", axis)
+        data = self._transact(SkyWatcherCommand.INQUIRE_HIGHSPEED_RATIO, axis)
+        return self._revu24_to_int(data)
+
     def set_step_period(self, axis: SkyWatcherAxis, period: int) -> None:
         self.log.info("step_period axis=%s period=%s", axis, period)
         arg = self._int_to_revu24(period)
@@ -197,6 +227,56 @@ class SkyWatcherMC:
     def instant_stop(self, axis: SkyWatcherAxis) -> None:
         self.log.info("emergency_stop axis=%s", axis)
         self._transact(SkyWatcherCommand.INSTANT_STOP, axis)
+
+    def set_ra_rate(self, rate: float, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> None:
+        abs_rate = abs(rate)
+        if abs_rate < SkyWatcherConstants.MIN_RATE or abs_rate > SkyWatcherConstants.MAX_RATE:
+            raise SkyWatcherRateError(
+                "Speed rate out of limits: %.2fx Sidereal (min=%.2f, max=%.2f)"
+                % (abs_rate, SkyWatcherConstants.MIN_RATE, SkyWatcherConstants.MAX_RATE)
+            )
+        if abs_rate == SkyWatcherConstants.ZERO_RATE:
+            raise SkyWatcherRateError("Speed rate must be non-zero.")
+        use_highspeed = abs_rate > SkyWatcherConstants.LOWSPEED_RATE
+        if use_highspeed:
+            ratio = self.inquire_highspeed_ratio(axis)
+            if ratio <= SkyWatcherConstants.ZERO_RATE:
+                raise SkyWatcherRateError("Invalid highspeed ratio: %s" % ratio)
+            abs_rate = abs_rate / ratio
+        rate_deg_s = abs_rate * SkyWatcherConstants.SIDEREAL_RATE_DEG_S
+        period = self._compute_step_period(axis, rate_deg_s)
+        status = self.inquire_status(axis)
+        direction = SkyWatcherDirection.FORWARD if rate >= SkyWatcherConstants.ZERO_RATE else SkyWatcherDirection.BACKWARD
+        speed_mode = SkyWatcherSpeedMode.HIGHSPEED if use_highspeed else SkyWatcherSpeedMode.LOWSPEED
+        mode = SkyWatcherMotionMode(
+            slew_mode=SkyWatcherSlewMode.SLEW,
+            direction=direction,
+            speed_mode=speed_mode,
+        )
+        if status.running:
+            if status.speed_mode != speed_mode:
+                raise SkyWatcherRateError("Can not change rate while motor is running (speed mode differs).")
+            if status.direction != direction:
+                raise SkyWatcherRateError("Can not change rate while motor is running (direction differs).")
+        self.set_motion_mode(axis, mode)
+        self.set_step_period(axis, period)
+
+    def start_ra_tracking(self, trackspeed_arcsec_s: float, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> None:
+        if trackspeed_arcsec_s == SkyWatcherConstants.ZERO_RATE:
+            self.stop_motion(axis)
+            return
+        rate = trackspeed_arcsec_s / SkyWatcherConstants.SIDEREAL_SPEED_ARCSEC_S
+        try:
+            self.set_ra_rate(rate, axis=axis)
+        except SkyWatcherRateError as exc:
+            raise SkyWatcherTrackingError(str(exc)) from exc
+        self.start_motion(axis)
+
+    def SetRARate(self, rate: float, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> None:
+        self.set_ra_rate(rate, axis=axis)
+
+    def StartRATracking(self, trackspeed_arcsec_s: float, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> None:
+        self.start_ra_tracking(trackspeed_arcsec_s, axis=axis)
 
     def do_initialize(
         self,
@@ -270,6 +350,19 @@ class SkyWatcherMC:
         if not isinstance(axis, SkyWatcherAxis):
             raise TypeError(f"axis must be SkyWatcherAxis, got {type(axis)!r}")
         return axis.to_bytes()
+
+    def _compute_step_period(self, axis: SkyWatcherAxis, rate_deg_s: float) -> int:
+        if rate_deg_s <= SkyWatcherConstants.ZERO_RATE:
+            raise SkyWatcherRateError("Rate must be positive.")
+        cpr = self.inquire_cpr(axis)
+        timer_freq = self.inquire_timer_freq(axis)
+        if cpr <= SkyWatcherConstants.ZERO_RATE or timer_freq <= SkyWatcherConstants.ZERO_RATE:
+            raise SkyWatcherRateError("Invalid CPR or timer frequency for rate calculation.")
+        counts_per_s = rate_deg_s * cpr / SkyWatcherConstants.DEGREES_PER_REV
+        if counts_per_s <= SkyWatcherConstants.ZERO_RATE:
+            raise SkyWatcherRateError("Invalid counts-per-second computed for rate.")
+        preset = int(round(timer_freq / counts_per_s))
+        return int(clamp(preset, SkyWatcherConstants.MIN_STEP_PERIOD, SkyWatcherConstants.MAX_STEP_PERIOD))
 
     def _revu24_to_int(self, data: bytes) -> int:
         # self.log.info("revu24_data data=%r", data)
