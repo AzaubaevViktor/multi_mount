@@ -16,8 +16,8 @@
             GET_DATA = "gtdt"
         ```
     - but you can use strings inplace in:
-        - logs
-        - text for exceptions
+        - logs (use default notation `("str %s %d", var, var2)`)
+        - text for exceptions (use f-strings)
 - For each error create Exception classes structures
 - For entities which can converts into some formats, use dataclasses
 - Each class must verify consistency, or be designed so consistency is ensured by default
