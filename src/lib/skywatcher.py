@@ -97,6 +97,108 @@ class SkyWatcherTrackingError(Exception):
     pass
 
 
+class SkyWatcherRevu24Error(Exception):
+    pass
+
+
+class SkyWatcherRevu24Constants:
+    HEX_LENGTH = 6
+    HEX_BASE = 16
+    NIBBLE_BITS = 4
+    MIN_VALUE = 0
+    MAX_VALUE = (1 << 24) - 1
+    DECIMAL_OFFSET = 10
+    ENCODING = "ascii"
+    ENCODE_ORDER = (4, 5, 2, 3, 0, 1)
+    ASCII_0 = ord("0")
+    ASCII_9 = ord("9")
+    ASCII_A = ord("A")
+    ASCII_F = ord("F")
+    ASCII_a = ord("a")
+    ASCII_f = ord("f")
+
+
+@dataclasses.dataclass
+class SkyWatcherRevu24:
+    _raw: Optional[bytes] = None
+    _value: Optional[int] = None
+
+    def __post_init__(self) -> None:
+        if self._raw is None and self._value is None:
+            raise SkyWatcherRevu24Error("revu24 requires raw data or value.")
+        if self._raw is not None and self._value is not None:
+            raise SkyWatcherRevu24Error("revu24 raw data and value are mutually exclusive.")
+        if self._raw is not None:
+            if len(self._raw) < SkyWatcherRevu24Constants.HEX_LENGTH:
+                raise SkyWatcherRevu24Error(f"revu24 data too short: {self._raw!r}")
+            self._raw = self._raw[: SkyWatcherRevu24Constants.HEX_LENGTH]
+        if self._value is not None:
+            if self._value < SkyWatcherRevu24Constants.MIN_VALUE or self._value > SkyWatcherRevu24Constants.MAX_VALUE:
+                raise SkyWatcherRevu24Error(f"revu24 value out of range: {self._value!r}")
+
+    @classmethod
+    def from_bytes(cls, data: bytes) -> "SkyWatcherRevu24":
+        return cls(_raw=data)
+
+    @classmethod
+    def from_int(cls, value: int) -> "SkyWatcherRevu24":
+        return cls(_value=int(value))
+
+    @property
+    def raw(self) -> bytes:
+        if self._raw is None:
+            self._raw = self._encode_value(self._value)
+        return self._raw
+
+    @property
+    def value(self) -> int:
+        if self._value is None:
+            self._value = self._decode_raw(self._raw)
+        return self._value
+
+    def to_ascii(self) -> str:
+        return self.raw.decode(SkyWatcherRevu24Constants.ENCODING)
+
+    @staticmethod
+    def _decode_raw(data: Optional[bytes]) -> int:
+        if data is None:
+            raise SkyWatcherRevu24Error("revu24 raw data is required for decode.")
+        if len(data) < SkyWatcherRevu24Constants.HEX_LENGTH:
+            raise SkyWatcherRevu24Error(f"revu24 data too short: {data!r}")
+        res = 0
+        for idx in SkyWatcherRevu24Constants.ENCODE_ORDER:
+            res = (res << SkyWatcherRevu24Constants.NIBBLE_BITS) | SkyWatcherRevu24._hex_val(data[idx])
+        return res
+
+    @staticmethod
+    def _encode_value(value: Optional[int]) -> bytes:
+        if value is None:
+            raise SkyWatcherRevu24Error("revu24 value is required for encode.")
+        if value < SkyWatcherRevu24Constants.MIN_VALUE or value > SkyWatcherRevu24Constants.MAX_VALUE:
+            raise SkyWatcherRevu24Error(f"revu24 value out of range: {value!r}")
+        hex_value = f"{value:0{SkyWatcherRevu24Constants.HEX_LENGTH}X}"
+        ordered = [hex_value[idx] for idx in SkyWatcherRevu24Constants.ENCODE_ORDER]
+        return "".join(ordered).encode(SkyWatcherRevu24Constants.ENCODING)
+
+    @staticmethod
+    def _hex_val(b: int) -> int:
+        if SkyWatcherRevu24Constants.ASCII_0 <= b <= SkyWatcherRevu24Constants.ASCII_9:
+            return b - SkyWatcherRevu24Constants.ASCII_0
+        if SkyWatcherRevu24Constants.ASCII_A <= b <= SkyWatcherRevu24Constants.ASCII_F:
+            return (
+                b
+                - SkyWatcherRevu24Constants.ASCII_A
+                + (SkyWatcherRevu24Constants.HEX_BASE - SkyWatcherRevu24Constants.DECIMAL_OFFSET)
+            )
+        if SkyWatcherRevu24Constants.ASCII_a <= b <= SkyWatcherRevu24Constants.ASCII_f:
+            return (
+                b
+                - SkyWatcherRevu24Constants.ASCII_a
+                + (SkyWatcherRevu24Constants.HEX_BASE - SkyWatcherRevu24Constants.DECIMAL_OFFSET)
+            )
+        raise SkyWatcherRevu24Error(f"invalid hex digit: {b!r}")
+
+
 @dataclasses.dataclass(frozen=True)
 class SkyWatcherStatus:
     raw: int
@@ -162,7 +264,7 @@ class SkyWatcherMC:
     def inquire_timer_freq(self, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> int:
         self.log.info("timer_freq axis=%s", axis)
         data = self._transact(SkyWatcherCommand.INQUIRE_TIMER_FREQ, axis)
-        return self._revu24_to_int(data)
+        return SkyWatcherRevu24.from_bytes(data).value
 
     def inquire_cpr(self, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> int:
         """
@@ -170,12 +272,12 @@ class SkyWatcherMC:
         """
         self.log.info("cpr axis=%s", axis)
         data = self._transact(SkyWatcherCommand.INQUIRE_CPR, axis)
-        return self._revu24_to_int(data)
+        return SkyWatcherRevu24.from_bytes(data).value
 
     def inquire_position(self, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> int:
         self.log.info("inquire position axis=%s", axis)
         data = self._transact(SkyWatcherCommand.INQUIRE_POSITION, axis)
-        return self._revu24_to_int(data)
+        return SkyWatcherRevu24.from_bytes(data).value
 
     def inquire_status(self, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> SkyWatcherStatus:
         # self.log.info("inquire status axis=%s", axis)
@@ -185,31 +287,31 @@ class SkyWatcherMC:
     def inquire_highspeed_ratio(self, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> int:
         self.log.info("highspeed_ratio axis=%s", axis)
         data = self._transact(SkyWatcherCommand.INQUIRE_HIGHSPEED_RATIO, axis)
-        return self._revu24_to_int(data)
+        return SkyWatcherRevu24.from_bytes(data).value
 
     def set_step_period(self, axis: SkyWatcherAxis, period: int) -> None:
         self.log.info("step_period axis=%s period=%s", axis, period)
-        arg = self._int_to_revu24(period)
+        arg = SkyWatcherRevu24.from_int(period).to_ascii()
         self._transact(SkyWatcherCommand.SET_STEP_PERIOD, axis, arg)
 
     def set_goto_target(self, axis: SkyWatcherAxis, target: int) -> None:
         self.log.info("goto_target axis=%s target=%s", axis, target)
-        arg = self._int_to_revu24(target)
+        arg = SkyWatcherRevu24.from_int(target).to_ascii()
         self._transact(SkyWatcherCommand.SET_GOTO_TARGET, axis, arg)
 
     def set_goto_target_increment(self, axis: SkyWatcherAxis, increment: int) -> None:
         self.log.info("goto_target_increment axis=%s increment=%s", axis, increment)
-        arg = self._int_to_revu24(increment)
+        arg = SkyWatcherRevu24.from_int(increment).to_ascii()
         self._transact(SkyWatcherCommand.SET_GOTO_TARGET_INCREMENT, axis, arg)
 
     def set_target_breaks(self, axis: SkyWatcherAxis, increment: int) -> None:
         self.log.info("target_breaks axis=%s increment=%s", axis, increment)
-        arg = self._int_to_revu24(increment)
+        arg = SkyWatcherRevu24.from_int(increment).to_ascii()
         self._transact(SkyWatcherCommand.SET_BREAK_POINT_INCREMENT, axis, arg)
 
     def set_axis_position(self, axis: SkyWatcherAxis, position: int) -> None:
         self.log.info("set_axis_position axis=%s position=%s", axis, position)
-        arg = self._int_to_revu24(position)
+        arg = SkyWatcherRevu24.from_int(position).to_ascii()
         self._transact(SkyWatcherCommand.SET_AXIS_POSITION, axis, arg)
 
     def set_motion_mode(self, axis: SkyWatcherAxis, mode: SkyWatcherMotionMode) -> None:
@@ -363,39 +465,3 @@ class SkyWatcherMC:
             raise SkyWatcherRateError("Invalid counts-per-second computed for rate.")
         preset = int(round(timer_freq / counts_per_s))
         return int(clamp(preset, SkyWatcherConstants.MIN_STEP_PERIOD, SkyWatcherConstants.MAX_STEP_PERIOD))
-
-    def _revu24_to_int(self, data: bytes) -> int:
-        # self.log.info("revu24_data data=%r", data)
-        if len(data) < 6:
-            raise ValueError(f"revu24 data too short: {data!r}")
-        def hex_val(b: int) -> int:
-            # self.log.info("hex_digit b=%s", b)
-            if 48 <= b <= 57:
-                return b - 48
-            if 65 <= b <= 70:
-                return b - 55
-            if 97 <= b <= 102:
-                return b - 87
-            raise ValueError(f"invalid hex digit: {b!r}")
-        res = hex_val(data[4])
-        res = (res << 4) | hex_val(data[5])
-        res = (res << 4) | hex_val(data[2])
-        res = (res << 4) | hex_val(data[3])
-        res = (res << 4) | hex_val(data[0])
-        res = (res << 4) | hex_val(data[1])
-        return res
-
-    def _int_to_revu24(self, value: int) -> str:
-        self.log.info("revu24_encode value=%s", value)
-        n = int(value) & 0xFFFFFF
-        hexa = "0123456789ABCDEF"
-        return "".join(
-            [
-                hexa[(n & 0xF0) >> 4],
-                hexa[(n & 0x0F)],
-                hexa[(n & 0xF000) >> 12],
-                hexa[(n & 0x0F00) >> 8],
-                hexa[(n & 0xF00000) >> 20],
-                hexa[(n & 0x0F0000) >> 16],
-            ]
-        )
