@@ -6,8 +6,6 @@ import logging
 from enum import StrEnum
 from typing import Optional, Tuple
 
-from coords import deg_to_dms, fmt_dec, fmt_ra, parse_dec_dms, parse_ra_hms
-
 LOGGER = logging.getLogger("lx200")
 
 
@@ -62,6 +60,9 @@ class LX200Constants:
     MAX_UTC_OFFSET = 24.0
     MIN_PER_DEG = 60
     MINUTES_PER_HOUR = 60
+    SECONDS_PER_MINUTE = 60
+    SECONDS_PER_HOUR = 3600
+    DEGREE_SIGN = "\u00b0"
     RESPONSE_OK = "1"
     RESPONSE_ERR = "0"
     RESPONSE_EMPTY = ""
@@ -148,12 +149,62 @@ class LX200Ra:
         if self.hours < LX200Constants.MIN_HOUR or self.hours >= LX200Constants.HOURS_PER_DAY:
             raise LX200ValueError(f"RA out of range: {self.hours!r}")
 
+    @staticmethod
+    def _wrap_hours(hours: float) -> float:
+        hours = hours % LX200Constants.HOURS_PER_DAY
+        if hours < LX200Constants.MIN_HOUR:
+            hours += LX200Constants.HOURS_PER_DAY
+        return hours
+
+    @staticmethod
+    def _hms_to_hours(hour: int, minute: int, second: int) -> float:
+        return (
+            hour
+            + minute / LX200Constants.MINUTES_PER_HOUR
+            + second / LX200Constants.SECONDS_PER_HOUR
+        )
+
+    @classmethod
+    def _hours_to_hms(cls, hours: float) -> Tuple[int, int, int]:
+        hours = cls._wrap_hours(hours)
+        hour = int(hours)
+        remainder = (hours - hour) * LX200Constants.MINUTES_PER_HOUR
+        minute = int(remainder)
+        second = int(round((remainder - minute) * LX200Constants.SECONDS_PER_MINUTE))
+        if second == LX200Constants.SECONDS_PER_MINUTE:
+            second = LX200Constants.DEFAULT_SECOND
+            minute += LX200Constants.SIGN_POS_INT
+        if minute == LX200Constants.MINUTES_PER_HOUR:
+            minute = LX200Constants.MIN_MINUTE
+            hour = (hour + LX200Constants.SIGN_POS_INT) % LX200Constants.HOURS_PER_DAY
+        return hour, minute, second
+
+    @classmethod
+    def _parse_ra_hms(cls, value: str) -> float:
+        parts = value.strip().split(LX200Constants.TIME_SEP)
+        if len(parts) != LX200Constants.TIME_PARTS:
+            raise LX200ValueError(f"bad RA {value!r}")
+        hour, minute, second = (int(p) for p in parts)
+        return cls._wrap_hours(cls._hms_to_hours(hour, minute, second))
+
+    @classmethod
+    def _format_ra(cls, hours: float) -> str:
+        hour, minute, second = cls._hours_to_hms(hours)
+        return (
+            f"{hour:0{LX200Constants.TIME_FIELD_WIDTH}d}"
+            f"{LX200Constants.TIME_SEP}"
+            f"{minute:0{LX200Constants.TIME_FIELD_WIDTH}d}"
+            f"{LX200Constants.TIME_SEP}"
+            f"{second:0{LX200Constants.TIME_FIELD_WIDTH}d}"
+            f"{LX200Constants.TERMINATOR}"
+        )
+
     @classmethod
     def from_string(cls, value: str) -> "LX200Ra":
-        return cls(parse_ra_hms(value))
+        return cls(cls._parse_ra_hms(value))
 
     def to_string(self) -> str:
-        return fmt_ra(self.hours)
+        return self._format_ra(self.hours)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -164,12 +215,76 @@ class LX200Dec:
         if self.degrees < LX200Constants.MIN_LAT_DEG or self.degrees > LX200Constants.MAX_LAT_DEG:
             raise LX200ValueError(f"DEC out of range: {self.degrees!r}")
 
+    @staticmethod
+    def _clamp(value: float, minimum: float, maximum: float) -> float:
+        return minimum if value < minimum else maximum if value > maximum else value
+
+    @staticmethod
+    def _deg_to_dms(deg: float) -> Tuple[int, int, int, int]:
+        sign = LX200Constants.SIGN_POS_INT
+        if deg < LX200Constants.MIN_SECOND:
+            sign = LX200Constants.SIGN_NEG_INT
+            deg = -deg
+        degrees = int(deg)
+        remainder = (deg - degrees) * LX200Constants.MIN_PER_DEG
+        minutes = int(remainder)
+        seconds = int(round((remainder - minutes) * LX200Constants.SECONDS_PER_MINUTE))
+        if seconds == LX200Constants.SECONDS_PER_MINUTE:
+            seconds = LX200Constants.MIN_SECOND
+            minutes += LX200Constants.SIGN_POS_INT
+        if minutes == LX200Constants.MIN_PER_DEG:
+            minutes = LX200Constants.MIN_MINUTE
+            degrees += LX200Constants.SIGN_POS_INT
+        return sign, degrees, minutes, seconds
+
+    @classmethod
+    def _parse_dec_dms(cls, value: str) -> float:
+        value = value.strip()
+        sign = LX200Constants.SIGN_POS_INT
+        if value.startswith(LX200Constants.SIGN_NEG):
+            sign = LX200Constants.SIGN_NEG_INT
+            value = value[1:]
+        elif value.startswith(LX200Constants.SIGN_POS):
+            value = value[1:]
+        value = value.replace(LX200Constants.DEGREE_SIGN, LX200Constants.DEG_MIN_SEP)
+        if LX200Constants.DEG_MIN_SEP not in value:
+            raise LX200ValueError(f"bad DEC {value!r}")
+        deg_str, rest = value.split(LX200Constants.DEG_MIN_SEP, 1)
+        degrees = int(deg_str)
+        if LX200Constants.TIME_SEP in rest:
+            min_str, sec_str = rest.split(LX200Constants.TIME_SEP, 1)
+            minutes = int(min_str)
+            seconds = int(sec_str)
+        else:
+            minutes = int(rest)
+            seconds = LX200Constants.DEFAULT_SECOND
+        deg_value = sign * (
+            degrees
+            + minutes / LX200Constants.MIN_PER_DEG
+            + seconds / LX200Constants.SECONDS_PER_HOUR
+        )
+        return cls._clamp(deg_value, LX200Constants.MIN_LAT_DEG, LX200Constants.MAX_LAT_DEG)
+
+    @classmethod
+    def _format_dec(cls, degrees: float) -> str:
+        degrees = cls._clamp(degrees, LX200Constants.MIN_LAT_DEG, LX200Constants.MAX_LAT_DEG)
+        sign, deg_value, minutes, seconds = cls._deg_to_dms(degrees)
+        sign_char = LX200Constants.SIGN_POS if sign >= LX200Constants.SIGN_POS_INT else LX200Constants.SIGN_NEG
+        return (
+            f"{sign_char}{deg_value:0{LX200Constants.LAT_DEG_WIDTH}d}"
+            f"{LX200Constants.DEG_MIN_SEP}"
+            f"{minutes:0{LX200Constants.MIN_FIELD_WIDTH}d}"
+            f"{LX200Constants.TIME_SEP}"
+            f"{seconds:0{LX200Constants.TIME_FIELD_WIDTH}d}"
+            f"{LX200Constants.TERMINATOR}"
+        )
+
     @classmethod
     def from_string(cls, value: str) -> "LX200Dec":
-        return cls(parse_dec_dms(value))
+        return cls(cls._parse_dec_dms(value))
 
     def to_string(self) -> str:
-        return fmt_dec(self.degrees)
+        return self._format_dec(self.degrees)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -324,8 +439,12 @@ class LX200Site:
         return cls(latitude_deg=lat_deg, longitude_west_deg=lon_west_deg)
 
     def latitude_to_string(self) -> str:
-        sign, deg, minutes, _ = deg_to_dms(abs(self.latitude_deg))
-        sign_char = LX200Constants.SIGN_POS if self.latitude_deg >= 0 else LX200Constants.SIGN_NEG
+        sign, deg, minutes, _ = self._deg_to_dms(self.latitude_deg)
+        sign_char = (
+            LX200Constants.SIGN_POS
+            if sign == LX200Constants.SIGN_POS_INT
+            else LX200Constants.SIGN_NEG
+        )
         return (
             f"{sign_char}{deg:0{LX200Constants.LAT_DEG_WIDTH}d}"
             f"{LX200Constants.DEG_MIN_SEP}{minutes:0{LX200Constants.MIN_FIELD_WIDTH}d}"
@@ -333,13 +452,35 @@ class LX200Site:
         )
 
     def longitude_to_string(self) -> str:
-        sign, deg, minutes, _ = deg_to_dms(abs(self.longitude_west_deg))
-        sign_char = LX200Constants.SIGN_POS if self.longitude_west_deg >= 0 else LX200Constants.SIGN_NEG
+        sign, deg, minutes, _ = self._deg_to_dms(self.latitude_deg)
+        sign_char = (
+            LX200Constants.SIGN_POS
+            if sign == LX200Constants.SIGN_POS_INT
+            else LX200Constants.SIGN_NEG
+        )
         return (
             f"{sign_char}{deg:0{LX200Constants.LON_DEG_WIDTH}d}"
             f"{LX200Constants.DEG_MIN_SEP}{minutes:0{LX200Constants.MIN_FIELD_WIDTH}d}"
             f"{LX200Constants.TERMINATOR}"
         )
+
+    @staticmethod
+    def _deg_to_dms(deg: float) -> Tuple[int, int, int, int]:
+        sign = LX200Constants.SIGN_POS_INT
+        if deg < LX200Constants.MIN_SECOND:
+            sign = LX200Constants.SIGN_NEG_INT
+            deg = -deg
+        degrees = int(deg)
+        remainder = (deg - degrees) * LX200Constants.MIN_PER_DEG
+        minutes = int(remainder)
+        seconds = int(round((remainder - minutes) * LX200Constants.SECONDS_PER_MINUTE))
+        if seconds == LX200Constants.SECONDS_PER_MINUTE:
+            seconds = LX200Constants.MIN_SECOND
+            minutes += LX200Constants.SIGN_POS_INT
+        if minutes == LX200Constants.MIN_PER_DEG:
+            minutes = LX200Constants.MIN_MINUTE
+            degrees += LX200Constants.SIGN_POS_INT
+        return sign, degrees, minutes, seconds
 
     @staticmethod
     def format_latitude(latitude_deg: float) -> str:

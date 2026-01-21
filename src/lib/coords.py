@@ -58,50 +58,6 @@ def deg_to_dms(deg: float) -> Tuple[int, int, int, int]:
     return sign, d, m, s
 
 
-def parse_ra_hms(s: str) -> float:
-    parts = s.strip().split(":")
-    if len(parts) != 3:
-        raise ValueError(f"bad RA {s!r}")
-    h, m, sec = (int(p) for p in parts)
-    return wrap_hours(hms_to_hours(h, m, sec))
-
-
-def parse_dec_dms(s: str) -> float:
-    s = s.strip()
-    sign = 1
-    if s.startswith("-"):
-        sign = -1
-        s = s[1:]
-    elif s.startswith("+"):
-        s = s[1:]
-    s = s.replace("°", "*")
-    if "*" not in s:
-        raise ValueError(f"bad DEC {s!r}")
-    d_str, rest = s.split("*", 1)
-    d = int(d_str)
-    if ":" in rest:
-        m_str, sec_str = rest.split(":", 1)
-        m = int(m_str)
-        sec = int(sec_str)
-    else:
-        m = int(rest)
-        sec = 0
-    deg = sign * (d + m / 60.0 + sec / 3600.0)
-    return clamp(deg, -90.0, 90.0)
-
-
-def fmt_ra(hours: float) -> str:
-    h, m, s = hours_to_hms(hours)
-    return f"{h:02d}:{m:02d}:{s:02d}#"
-
-
-def fmt_dec(deg: float) -> str:
-    deg = clamp(deg, -90.0, 90.0)
-    sign, d, m, s = deg_to_dms(deg)
-    pm = "+" if sign >= 0 else "-"
-    return f"{pm}{d:02d}*{m:02d}:{s:02d}#"
-
-
 def parse_lx200_signed_deg(s: str) -> float:
     s = s.strip()
     sign = 1
