@@ -788,7 +788,7 @@ def test_set_ra_rate_does_not_start_motion(
     try:
         skywatcher_mc.instant_stop(axis)
         time.sleep(skywatcher_config.settle_delay_s)
-        skywatcher_mc.SetRARate(rate, axis=axis)
+        skywatcher_mc.set_ra_rate(rate, axis=axis)
         status = _wait_for_status(
             skywatcher_mc,
             axis,
@@ -813,7 +813,7 @@ def test_start_ra_tracking_start_stop(
     try:
         skywatcher_mc.instant_stop(axis)
         time.sleep(skywatcher_config.settle_delay_s)
-        skywatcher_mc.StartRATracking(trackspeed, axis=axis)
+        skywatcher_mc.start_ra_tracking(trackspeed, axis=axis)
         _wait_for_status(
             skywatcher_mc,
             axis,
@@ -831,7 +831,7 @@ def test_start_ra_tracking_start_stop(
             poll_interval_s=skywatcher_config.poll_interval_s,
             note="ra_tracking_move",
         )
-        skywatcher_mc.StartRATracking(SkyWatcherConstants.ZERO_RATE, axis=axis)
+        skywatcher_mc.start_ra_tracking(SkyWatcherConstants.ZERO_RATE, axis=axis)
         _wait_for_status(
             skywatcher_mc,
             axis,

@@ -374,12 +374,6 @@ class SkyWatcherMC:
             raise SkyWatcherTrackingError(str(exc)) from exc
         self.start_motion(axis)
 
-    def SetRARate(self, rate: float, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> None:
-        self.set_ra_rate(rate, axis=axis)
-
-    def StartRATracking(self, trackspeed_arcsec_s: float, axis: SkyWatcherAxis = SkyWatcherAxis.RA) -> None:
-        self.start_ra_tracking(trackspeed_arcsec_s, axis=axis)
-
     def do_initialize(
         self,
         axis: SkyWatcherAxis,
