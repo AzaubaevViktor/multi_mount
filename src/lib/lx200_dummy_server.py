@@ -269,7 +269,6 @@ class LX200DummyTcpServer:
             buf = bytearray()
             while True:
                 data = conn.recv(LX200DummyConstants.BUFFER_SIZE)
-                print(data)
                 if not data:
                     return
                 idx = data.find(LX200DummyConstants.ALIGNMENT_QUERY_BYTE)
@@ -338,5 +337,5 @@ def run_dummy_server(
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
     run_dummy_server()

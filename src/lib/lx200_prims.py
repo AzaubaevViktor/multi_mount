@@ -17,15 +17,19 @@ class LX200Constants:
     TIME_SEP = ":"
     DATE_SEP = "/"
     DEG_MIN_SEP = "*"
+    UTC_OFFSET_SEP = ":"
     SIGN_POS = "+"
     SIGN_NEG = "-"
     SIGN_POS_INT = 1
     SIGN_NEG_INT = -1
     CMD_LEN = 2
     STOP_CMD_LEN = 1
+    SINGLE_CMD_LEN = 1
     MOVE_DIR_LEN = 1
     TIME_PARTS = 3
+    TIME_PARTS_SHORT = 2
     DATE_PARTS = 3
+    UTC_OFFSET_PARTS = 2
     UTC_OFFSET_EPS = 1e-6
     HOURS_PER_DAY = 24
     CENTURY = 100
@@ -36,6 +40,7 @@ class LX200Constants:
     LON_DEG_WIDTH = 3
     MIN_FIELD_WIDTH = 2
     UTC_OFFSET_DECIMALS = 1
+    DEFAULT_SECOND = 0
     MIN_HOUR = 0
     MAX_HOUR = 23
     MIN_MINUTE = 0
@@ -56,10 +61,14 @@ class LX200Constants:
     MIN_UTC_OFFSET = -24.0
     MAX_UTC_OFFSET = 24.0
     MIN_PER_DEG = 60
+    MINUTES_PER_HOUR = 60
     RESPONSE_OK = "1"
     RESPONSE_ERR = "0"
     RESPONSE_EMPTY = ""
     SYNC_OK = "OK"
+    DEFAULT_SITE_NAME = "LX200"
+    DEFAULT_TRACKING_RATE = "0"
+    DEFAULT_DISTANCE = "0"
 
 
 class LX200Error(Exception):
@@ -101,9 +110,14 @@ class LX200Command(StrEnum):
     SET_LONGITUDE = "Sg"
     GET_LOCAL_TIME = "GL"
     GET_DATE = "GC"
+    GET_DATE_ALT = "Gc"
     GET_UTC_OFFSET = "GG"
+    GET_TRACKING_RATE = "GT"
+    GET_SITE_NAME = "GM"
     GET_LONGITUDE = "Gg"
     GET_LATITUDE = "Gt"
+    SET_OBJECT_SIZE = "So"
+    GET_DISTANCE = "D"
 
 
 class LX200MoveDirection(StrEnum):
@@ -175,9 +189,13 @@ class LX200Time:
     @classmethod
     def from_string(cls, value: str) -> "LX200Time":
         parts = value.split(LX200Constants.TIME_SEP)
-        if len(parts) != LX200Constants.TIME_PARTS:
+        if len(parts) == LX200Constants.TIME_PARTS_SHORT:
+            hour, minute = (int(p) for p in parts)
+            second = LX200Constants.DEFAULT_SECOND
+        elif len(parts) == LX200Constants.TIME_PARTS:
+            hour, minute, second = (int(p) for p in parts)
+        else:
             raise LX200ValueError(f"invalid time: {value!r}")
-        hour, minute, second = (int(p) for p in parts)
         return cls(hour=hour, minute=minute, second=second)
 
     def to_string(self) -> str:
@@ -235,10 +253,24 @@ class LX200UtcOffset:
 
     @classmethod
     def from_string(cls, value: str) -> "LX200UtcOffset":
-        try:
-            hours = float(value)
-        except ValueError as exc:
-            raise LX200ValueError(f"invalid UTC offset: {value!r}") from exc
+        value = value.strip()
+        if LX200Constants.UTC_OFFSET_SEP in value:
+            sign = LX200Constants.SIGN_POS_INT
+            if value.startswith(LX200Constants.SIGN_NEG):
+                sign = LX200Constants.SIGN_NEG_INT
+                value = value[1:]
+            elif value.startswith(LX200Constants.SIGN_POS):
+                value = value[1:]
+            parts = value.split(LX200Constants.UTC_OFFSET_SEP)
+            if len(parts) != LX200Constants.UTC_OFFSET_PARTS:
+                raise LX200ValueError(f"invalid UTC offset: {value!r}")
+            hours_part, minutes_part = (int(p) for p in parts)
+            hours = sign * (hours_part + minutes_part / LX200Constants.MINUTES_PER_HOUR)
+        else:
+            try:
+                hours = float(value)
+            except ValueError as exc:
+                raise LX200ValueError(f"invalid UTC offset: {value!r}") from exc
         return cls(hours=hours)
 
     def to_string(self) -> str:
@@ -352,9 +384,14 @@ class LX200ServerBase:
             LX200Command.SET_LONGITUDE: self._handle_set_longitude,
             LX200Command.GET_LOCAL_TIME: self._handle_get_local_time,
             LX200Command.GET_DATE: self._handle_get_date,
+            LX200Command.GET_DATE_ALT: self._handle_get_date,
             LX200Command.GET_UTC_OFFSET: self._handle_get_utc_offset,
+            LX200Command.GET_TRACKING_RATE: self._handle_get_tracking_rate,
+            LX200Command.GET_SITE_NAME: self._handle_get_site_name,
             LX200Command.GET_LONGITUDE: self._handle_get_longitude,
             LX200Command.GET_LATITUDE: self._handle_get_latitude,
+            LX200Command.SET_OBJECT_SIZE: self._handle_set_object_size,
+            LX200Command.GET_DISTANCE: self._handle_get_distance,
         }
 
     def handle_command(self, raw: str) -> str:
@@ -377,6 +414,12 @@ class LX200ServerBase:
             if arg is not None and len(arg) != LX200Constants.MOVE_DIR_LEN:
                 raise LX200ParseError(f"invalid stop arg: {raw!r}")
             return LX200CommandRequest(command=LX200Command.STOP, arg=arg)
+        if len(body) == LX200Constants.SINGLE_CMD_LEN:
+            try:
+                cmd = LX200Command(body)
+            except ValueError as exc:
+                raise LX200UnsupportedCommandError(f"unknown command: {body!r}") from exc
+            return LX200CommandRequest(command=cmd, arg=None)
         if len(body) < LX200Constants.CMD_LEN:
             raise LX200ParseError(f"short command: {raw!r}")
         cmd_text = body[: LX200Constants.CMD_LEN]
@@ -516,6 +559,14 @@ class LX200ServerBase:
         self._require_no_arg(LX200Command.GET_UTC_OFFSET, arg)
         return self.get_utc_offset().to_string()
 
+    def _handle_get_tracking_rate(self, arg: Optional[str]) -> str:
+        self._require_no_arg(LX200Command.GET_TRACKING_RATE, arg)
+        return f"{LX200Constants.DEFAULT_TRACKING_RATE}{LX200Constants.TERMINATOR}"
+
+    def _handle_get_site_name(self, arg: Optional[str]) -> str:
+        self._require_no_arg(LX200Command.GET_SITE_NAME, arg)
+        return f"{LX200Constants.DEFAULT_SITE_NAME}{LX200Constants.TERMINATOR}"
+
     def _handle_get_longitude(self, arg: Optional[str]) -> str:
         self._require_no_arg(LX200Command.GET_LONGITUDE, arg)
         return LX200Site.format_longitude(self.get_longitude())
@@ -523,6 +574,15 @@ class LX200ServerBase:
     def _handle_get_latitude(self, arg: Optional[str]) -> str:
         self._require_no_arg(LX200Command.GET_LATITUDE, arg)
         return LX200Site.format_latitude(self.get_latitude())
+
+    def _handle_set_object_size(self, arg: Optional[str]) -> str:
+        if arg is None:
+            raise LX200ParseError("missing object size argument")
+        return LX200Constants.RESPONSE_OK
+
+    def _handle_get_distance(self, arg: Optional[str]) -> str:
+        self._require_no_arg(LX200Command.GET_DISTANCE, arg)
+        return f"{LX200Constants.DEFAULT_DISTANCE}{LX200Constants.TERMINATOR}"
 
     def _parse_direction(self, arg: str) -> LX200MoveDirection:
         value = arg.lower()
