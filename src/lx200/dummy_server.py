@@ -350,8 +350,8 @@ class LX200DummyTcpServer:
             self.log.debug("tx empty")
             return
         self.log.debug("tx response=%r", response)
-        self.log.debug("")
         conn.sendall(response.encode(LX200DummyConstants.ENCODING))
+        self.log.debug("")
 
     def handler_alignment_query(self) -> str:
         if isinstance(self.handler, LX200DummyServer):

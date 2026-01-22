@@ -45,7 +45,7 @@ class LX200Server:
 
     def handle_command(self, raw: str) -> str:
         request = parse_request(raw)
-        self.log.debug("lx200 rx command=%s arg=%r", request.command.name, request.arg)
+        self.log.info("call %s: %s(%r)", request.command.value, request.command.name, request.arg)
         spec = self._specs.get(request.command)
         if spec is None:
             raise LX200UnsupportedCommandError(f"unsupported command {request.command!r}")
@@ -54,4 +54,6 @@ class LX200Server:
         except LX200ParseError:
             raise
         result = spec.handler(*args)
-        return spec.format(result)
+        formatted = spec.format(result)
+        self.log.info("%s (%r) -> %r (%r)", request.command.name, request.arg, result, formatted)
+        return formatted
