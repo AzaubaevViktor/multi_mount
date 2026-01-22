@@ -9,18 +9,18 @@ import time
 from enum import StrEnum
 from typing import Optional
 
-from lib.coords import clamp, wrap_hours
+from lx200.coords import clamp, wrap_hours
 from lib.logging_setup import setup_logging
 
-from .models import LX200Dec, LX200Date, LX200Ra, LX200Time, LX200UtcOffset
-from .plugins import (
+from lx200.models import LX200Dec, LX200Date, LX200Ra, LX200Time, LX200UtcOffset
+from lx200.plugins import (
     LX200ObjectPlugin,
     LX200PointingPlugin,
     LX200SitePlugin,
     LX200TimePlugin,
     LX200TrackingPlugin,
 )
-from .protocol import (
+from lx200.protocol import (
     LX200Constants,
     LX200GotoResult,
     LX200MoveDirection,
@@ -30,7 +30,7 @@ from .protocol import (
     LX200UnsupportedCommandError,
     LX200ValueError,
 )
-from .server import LX200CommandHandler, LX200Server
+from lx200.server import LX200CommandHandler, LX200Server
 LOGGER = logging.getLogger("lx200.dummy")
 
 

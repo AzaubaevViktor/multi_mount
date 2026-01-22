@@ -16,7 +16,7 @@ SIDEREAL_RATE_DEG_S = 360.0 / 86164.0905
 TRACKING_MIN_TICK_DELTA = 1
 TRACKING_STOP_MAX_TICK_DELTA = 100
 
-from lib.coords import clamp
+from lx200.coords import clamp
 from lib.serial_prims import SerialLineDevice
 from lib.skywatcher import (
     SkyWatcherAxis,
