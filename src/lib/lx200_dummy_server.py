@@ -10,21 +10,26 @@ from enum import StrEnum
 from typing import Optional
 
 from coords import clamp, wrap_hours
-from lx200_prims import (
+from lx200_models import LX200Dec, LX200Date, LX200Ra, LX200Time, LX200UtcOffset
+from lx200_plugins import (
+    LX200ObjectPlugin,
+    LX200PointingPlugin,
+    LX200SitePlugin,
+    LX200TimePlugin,
+    LX200TrackingPlugin,
+)
+from lx200_protocol import (
     LX200Constants,
-    LX200Dec,
-    LX200Date,
     LX200GotoResult,
     LX200MoveDirection,
     LX200ParseError,
-    LX200Ra,
-    LX200ServerBase,
     LX200SlewRate,
-    LX200Time,
-    LX200UtcOffset,
+    LX200SyncResult,
+    LX200UnsupportedCommandError,
     LX200ValueError,
 )
-
+from lx200_server import LX200CommandHandler, LX200Server
+from logging_setup import setup_logging
 LOGGER = logging.getLogger("lx200.dummy")
 
 
@@ -50,8 +55,9 @@ class LX200DummyConstants:
     DEFAULT_LAT = 0.0
     DEFAULT_LON = 0.0
     DEFAULT_UTC_OFFSET = 0.0
-    DEFAULT_LOCAL_TIME = dt.time(0, 0, 0)
-    DEFAULT_LOCAL_DATE = dt.date(2020, 1, 1)
+    DEFAULT_LOCAL_DATETIME = dt.datetime.now()
+    DEFAULT_LOCAL_TIME = DEFAULT_LOCAL_DATETIME.time()
+    DEFAULT_LOCAL_DATE = DEFAULT_LOCAL_DATETIME.date()
     UPDATE_INTERVAL_S = 1.0
     SECONDS_PER_MINUTE = 60
     MINUTES_PER_HOUR = 60
@@ -117,11 +123,23 @@ class LX200DummyState:
             self.local_date = self.local_date + dt.timedelta(days=days)
 
 
-class LX200DummyServer(LX200ServerBase):
+class LX200DummyServer:
     def __init__(self, state: Optional[LX200DummyState] = None, logger: Optional[logging.Logger] = None) -> None:
-        super().__init__(logger=logger)
         self.state = state or LX200DummyState()
         self.lock = threading.Lock()
+        self.server = LX200Server(
+            [
+                LX200PointingPlugin(self),
+                LX200TimePlugin(self),
+                LX200SitePlugin(self),
+                LX200TrackingPlugin(self),
+                LX200ObjectPlugin(self),
+            ],
+            logger=logger,
+        )
+
+    def handle_command(self, raw: str) -> str:
+        return self.server.handle_command(raw)
 
     def _update_time(self) -> None:
         with self.lock:
@@ -157,7 +175,7 @@ class LX200DummyServer(LX200ServerBase):
             )
         return LX200GotoResult.OK
 
-    def sync_to_target(self) -> str:
+    def sync_to_target(self) -> LX200SyncResult:
         with self.lock:
             self.state.current_ra = wrap_hours(self.state.target_ra)
             self.state.current_dec = clamp(
@@ -165,7 +183,7 @@ class LX200DummyServer(LX200ServerBase):
                 LX200DummyConstants.MIN_DEC,
                 LX200DummyConstants.MAX_DEC,
             )
-        return f"{LX200Constants.SYNC_OK}{LX200Constants.TERMINATOR}"
+        return LX200SyncResult.OK
 
     def stop_all(self) -> None:
         with self.lock:
@@ -184,12 +202,12 @@ class LX200DummyServer(LX200ServerBase):
         with self.lock:
             self.state.slew_rate = rate
 
-    def set_local_time(self, value) -> bool:
+    def set_local_time(self, value: LX200Time) -> bool:
         with self.lock:
             self.state.local_time = dt.time(value.hour, value.minute, value.second)
         return True
 
-    def set_date(self, value) -> bool:
+    def set_date(self, value: LX200Date) -> bool:
         with self.lock:
             self.state.local_date = dt.date(value.year, value.month, value.day)
         return True
@@ -213,17 +231,17 @@ class LX200DummyServer(LX200ServerBase):
             )
         return True
 
-    def get_local_time(self):
+    def get_local_time(self) -> LX200Time:
         self._update_time()
         with self.lock:
             return LX200Time(hour=self.state.local_time.hour, minute=self.state.local_time.minute, second=self.state.local_time.second)
 
-    def get_date(self):
+    def get_date(self) -> LX200Date:
         self._update_time()
         with self.lock:
             return LX200Date(month=self.state.local_date.month, day=self.state.local_date.day, year=self.state.local_date.year)
 
-    def get_utc_offset(self):
+    def get_utc_offset(self) -> LX200UtcOffset:
         with self.lock:
             return LX200UtcOffset(self.state.utc_offset)
 
@@ -235,11 +253,23 @@ class LX200DummyServer(LX200ServerBase):
         with self.lock:
             return self.state.longitude_west_deg
 
+    def get_site_name(self) -> str:
+        return LX200Constants.DEFAULT_SITE_NAME
+
+    def get_tracking_rate(self) -> str:
+        return LX200Constants.DEFAULT_TRACKING_RATE
+
+    def set_object_size(self, value: str) -> bool:
+        return True
+
+    def get_distance(self) -> str:
+        return LX200Constants.DEFAULT_DISTANCE
+
 
 class LX200DummyTcpServer:
     def __init__(
         self,
-        handler: LX200ServerBase,
+        handler: LX200CommandHandler,
         *,
         host: str = LX200DummyConstants.HOST,
         port: int = LX200DummyConstants.PORT,
@@ -257,10 +287,10 @@ class LX200DummyTcpServer:
             srv.bind((self.host, self.port))
             srv.listen(LX200DummyConstants.BACKLOG)
             self._socket = srv
-            self.log.info("LX200 dummy server listening on %s:%s", self.host, self.port)
+            self.log.info("Dummy server listening on %s:%s", self.host, self.port)
             while True:
                 conn, addr = srv.accept()
-                self.log.info("LX200 client connected: %s", addr)
+                self.log.info("Client connected: %s", addr)
                 thread = threading.Thread(target=self._handle_client, args=(conn,), daemon=True)
                 thread.start()
 
@@ -277,8 +307,8 @@ class LX200DummyTcpServer:
                         if idx:
                             buf.extend(data[:idx])
                         response = self.handler_alignment_query()
-                        self.log.debug("lx200 rx raw=%r cmd=<ACK>", LX200DummyConstants.ALIGNMENT_QUERY_BYTE)
-                        self.log.debug("lx200 tx response=%r", response)
+                        self.log.debug("rx raw=%r cmd=<ACK>", LX200DummyConstants.ALIGNMENT_QUERY_BYTE)
+                        self.log.debug("tx response=%r", response)
                         conn.sendall(response.encode(LX200DummyConstants.ENCODING))
                         data = data[idx + 1 :]
                         idx = data.find(LX200DummyConstants.ALIGNMENT_QUERY_BYTE)
@@ -298,8 +328,8 @@ class LX200DummyTcpServer:
         try:
             if LX200DummyConstants.ALIGNMENT_QUERY_BYTE in raw:
                 response = self.handler_alignment_query()
-                self.log.debug("lx200 rx raw=%r cmd=<ACK>", raw)
-                self.log.debug("lx200 tx response=%r", response)
+                self.log.debug("rx raw=%r cmd=<ACK>", raw)
+                self.log.debug("tx response=%r", response)
                 conn.sendall(response.encode(LX200DummyConstants.ENCODING))
                 return
             text = raw.decode(LX200DummyConstants.ENCODING, errors=LX200DummyConstants.DECODE_ERRORS)
@@ -307,18 +337,19 @@ class LX200DummyTcpServer:
                 return
             start = text.index(LX200Constants.PREFIX)
             command = text[start:]
-            self.log.debug("lx200 rx raw=%r cmd=%r", raw, command)
+            self.log.debug("rx raw=%r cmd=%r", raw, command)
             response = self.handler.handle_command(command)
-        except (LX200ParseError, LX200ValueError) as exc:
-            self.log.debug("LX200 parse error: %s", exc)
+        except (LX200ParseError, LX200UnsupportedCommandError, LX200ValueError) as exc:
+            self.log.debug("Parse error: %s", exc)
             response = LX200DummyConstants.RESPONSE_ERROR
         except Exception:
-            self.log.exception("LX200 handler error")
+            self.log.exception("Handler error")
             response = LX200DummyConstants.RESPONSE_ERROR
         if response == LX200DummyConstants.EMPTY_RESPONSE:
-            self.log.debug("lx200 tx empty")
+            self.log.debug("tx empty")
             return
-        self.log.debug("lx200 tx response=%r", response)
+        self.log.debug("tx response=%r", response)
+        self.log.debug("")
         conn.sendall(response.encode(LX200DummyConstants.ENCODING))
 
     def handler_alignment_query(self) -> str:
@@ -337,5 +368,5 @@ def run_dummy_server(
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
+    setup_logging()
     run_dummy_server()
