@@ -1,18 +1,44 @@
 from __future__ import annotations
 
-from typing import Any, Protocol
+from typing import Any, Optional, Protocol, Tuple
 
-from lx200_parsers import (
-    format_latitude,
-    format_longitude,
-    format_ok,
-    format_site_name,
-    parse_latitude_arg,
-    parse_longitude_arg,
-    parse_no_arg,
-)
-from lx200_protocol import LX200Command
-from lx200_server import CommandSpec
+from ..models import LX200Site
+from ..protocol import LX200Command, LX200Constants, LX200ParseError
+from ..server import CommandSpec
+
+
+def parse_no_arg(arg: Optional[str]) -> Tuple[()]:
+    if arg:
+        raise LX200ParseError(f"unexpected arg: {arg!r}")
+    return ()
+
+
+def parse_latitude_arg(arg: Optional[str]) -> Tuple[float]:
+    if arg is None:
+        raise LX200ParseError("missing latitude argument")
+    return (LX200Site.latitude_from_string(arg),)
+
+
+def parse_longitude_arg(arg: Optional[str]) -> Tuple[float]:
+    if arg is None:
+        raise LX200ParseError("missing longitude argument")
+    return (LX200Site.longitude_from_string(arg),)
+
+
+def format_ok(accepted: bool) -> str:
+    return LX200Constants.RESPONSE_OK if accepted else LX200Constants.RESPONSE_ERR
+
+
+def format_latitude(value: float) -> str:
+    return LX200Site.format_latitude(value)
+
+
+def format_longitude(value: float) -> str:
+    return LX200Site.format_longitude(value)
+
+
+def format_site_name(value: str) -> str:
+    return f"{value}{LX200Constants.TERMINATOR}"
 
 
 class LX200SiteBackend(Protocol):

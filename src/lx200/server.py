@@ -4,7 +4,7 @@ import dataclasses
 import logging
 from typing import Any, Callable, Generic, Optional, Protocol, TypeVar
 
-from lx200_protocol import (
+from .protocol import (
     LX200Command,
     LX200ParseError,
     LX200UnsupportedCommandError,

@@ -4,7 +4,7 @@ import dataclasses
 import datetime as dt
 from typing import Tuple
 
-from lx200_protocol import LX200Constants, LX200ValueError
+from .protocol import LX200Constants, LX200ValueError
 
 
 @dataclasses.dataclass(frozen=True)

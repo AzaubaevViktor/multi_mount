@@ -1,27 +1,69 @@
 from __future__ import annotations
 
-from typing import Any, Optional, Protocol
+from typing import Any, Optional, Protocol, Tuple
 
-from lx200_models import LX200Dec, LX200Ra
-from lx200_parsers import (
-    format_dec,
-    format_empty,
-    format_goto,
-    format_ok,
-    format_ra,
-    format_sync,
-    parse_dec_arg,
-    parse_no_arg,
-    parse_ra_arg,
-    parse_stop_arg,
-)
-from lx200_protocol import (
+from ..models import LX200Dec, LX200Ra
+from ..protocol import (
     LX200Command,
+    LX200Constants,
     LX200GotoResult,
     LX200MoveDirection,
+    LX200ParseError,
     LX200SyncResult,
 )
-from lx200_server import CommandSpec
+from ..server import CommandSpec
+
+
+def parse_no_arg(arg: Optional[str]) -> Tuple[()]:
+    if arg:
+        raise LX200ParseError(f"unexpected arg: {arg!r}")
+    return ()
+
+
+def parse_ra_arg(arg: Optional[str]) -> Tuple[LX200Ra]:
+    if arg is None:
+        raise LX200ParseError("missing RA argument")
+    return (LX200Ra.from_string(arg),)
+
+
+def parse_dec_arg(arg: Optional[str]) -> Tuple[LX200Dec]:
+    if arg is None:
+        raise LX200ParseError("missing DEC argument")
+    return (LX200Dec.from_string(arg),)
+
+
+def parse_stop_arg(arg: Optional[str]) -> Tuple[Optional[LX200MoveDirection]]:
+    if arg is None:
+        return (None,)
+    value = arg.lower()
+    try:
+        return (LX200MoveDirection(value),)
+    except ValueError as exc:
+        raise LX200ParseError(f"invalid direction: {arg!r}") from exc
+
+
+def format_ok(accepted: bool) -> str:
+    return LX200Constants.RESPONSE_OK if accepted else LX200Constants.RESPONSE_ERR
+
+
+def format_empty(_: Optional[object]) -> str:
+    return LX200Constants.RESPONSE_EMPTY
+
+
+def format_ra(value: LX200Ra) -> str:
+    return value.to_string()
+
+
+def format_dec(value: LX200Dec) -> str:
+    return value.to_string()
+
+
+def format_goto(value: LX200GotoResult) -> str:
+    return value.value
+
+
+def format_sync(value: LX200SyncResult) -> str:
+    return f"{value.value}{LX200Constants.TERMINATOR}"
 
 
 class LX200PointingBackend(Protocol):

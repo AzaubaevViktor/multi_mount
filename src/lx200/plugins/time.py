@@ -1,20 +1,50 @@
 from __future__ import annotations
 
-from typing import Any, Protocol
+from typing import Any, Optional, Protocol, Tuple
 
-from lx200_models import LX200Date, LX200Time, LX200UtcOffset
-from lx200_parsers import (
-    format_date,
-    format_ok,
-    format_time,
-    format_utc_offset,
-    parse_date_arg,
-    parse_no_arg,
-    parse_time_arg,
-    parse_utc_offset_arg,
-)
-from lx200_protocol import LX200Command
-from lx200_server import CommandSpec
+from ..models import LX200Date, LX200Time, LX200UtcOffset
+from ..protocol import LX200Command, LX200Constants, LX200ParseError
+from ..server import CommandSpec
+
+
+def parse_no_arg(arg: Optional[str]) -> Tuple[()]:
+    if arg:
+        raise LX200ParseError(f"unexpected arg: {arg!r}")
+    return ()
+
+
+def parse_time_arg(arg: Optional[str]) -> Tuple[LX200Time]:
+    if arg is None:
+        raise LX200ParseError("missing local time argument")
+    return (LX200Time.from_string(arg),)
+
+
+def parse_date_arg(arg: Optional[str]) -> Tuple[LX200Date]:
+    if arg is None:
+        raise LX200ParseError("missing date argument")
+    return (LX200Date.from_string(arg),)
+
+
+def parse_utc_offset_arg(arg: Optional[str]) -> Tuple[LX200UtcOffset]:
+    if arg is None:
+        raise LX200ParseError("missing UTC offset argument")
+    return (LX200UtcOffset.from_string(arg),)
+
+
+def format_ok(accepted: bool) -> str:
+    return LX200Constants.RESPONSE_OK if accepted else LX200Constants.RESPONSE_ERR
+
+
+def format_time(value: LX200Time) -> str:
+    return value.to_string()
+
+
+def format_date(value: LX200Date) -> str:
+    return value.to_string()
+
+
+def format_utc_offset(value: LX200UtcOffset) -> str:
+    return value.to_string()
 
 
 class LX200TimeBackend(Protocol):

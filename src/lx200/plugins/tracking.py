@@ -1,10 +1,23 @@
 from __future__ import annotations
 
-from typing import Any, Protocol
+from typing import Any, Optional, Protocol, Tuple
 
-from lx200_parsers import format_empty, format_tracking_rate, parse_no_arg
-from lx200_protocol import LX200Command, LX200SlewRate
-from lx200_server import CommandSpec
+from ..protocol import LX200Command, LX200Constants, LX200ParseError, LX200SlewRate
+from ..server import CommandSpec
+
+
+def parse_no_arg(arg: Optional[str]) -> Tuple[()]:
+    if arg:
+        raise LX200ParseError(f"unexpected arg: {arg!r}")
+    return ()
+
+
+def format_empty(_: Optional[object]) -> str:
+    return LX200Constants.RESPONSE_EMPTY
+
+
+def format_tracking_rate(value: str) -> str:
+    return f"{value}{LX200Constants.TERMINATOR}"
 
 
 class LX200TrackingBackend(Protocol):
