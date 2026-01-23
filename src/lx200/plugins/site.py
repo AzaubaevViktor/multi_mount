@@ -6,7 +6,7 @@ from ..models import LX200Site
 from ..protocol import LX200Command, LX200Constants, LX200ParseError
 from ..server import CommandSpec
 
-
+# TODO: Create base module with helpers
 def parse_no_arg(arg: Optional[str]) -> Tuple[()]:
     if arg:
         raise LX200ParseError(f"unexpected arg: {arg!r}")
