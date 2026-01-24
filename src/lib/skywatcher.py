@@ -6,7 +6,7 @@ from enum import IntEnum, StrEnum
 from typing import Optional
 
 from lx200.coords import clamp
-from serial_prims import SerialLineDevice
+from .serial_prims import SerialLineDevice
 
 LOGGER = logging.getLogger("skywatcher")
 

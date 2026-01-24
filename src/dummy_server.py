@@ -426,8 +426,8 @@ def _resolve_skywatcher_serial(args: argparse.Namespace) -> SkyWatcherSerialConf
     else:
         baud_raw = os.environ.get(LX200SkyWatcherConstants.ENV_BAUD)
         baud = int(baud_raw) if baud_raw else LX200SkyWatcherConstants.DEFAULT_BAUD
-    if args.skywatcher_timeout_s is not None:
-        timeout_s = args.skywatcher_timeout_s
+    if args.skywatcher_timeout is not None:
+        timeout_s = args.skywatcher_timeout
     else:
         timeout_raw = os.environ.get(LX200SkyWatcherConstants.ENV_TIMEOUT_S)
         timeout_s = float(timeout_raw) if timeout_raw else LX200SkyWatcherConstants.DEFAULT_TIMEOUT_S
