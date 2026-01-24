@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import argparse
 import dataclasses
 import datetime as dt
 import logging
+import os
 import socket
 import threading
 import time
@@ -11,6 +13,15 @@ from typing import Optional
 
 from lx200.coords import clamp, wrap_hours
 from lib.logging_setup import setup_logging
+from skywatcher_lx200 import (
+    SkyWatcherMount,
+    SkyWatcherObjectBackend,
+    SkyWatcherPointingBackend,
+    SkyWatcherSerialConfig,
+    SkyWatcherSiteBackend,
+    SkyWatcherTimeBackend,
+    SkyWatcherTrackingBackend,
+)
 
 from lx200.models import LX200Dec, LX200Date, LX200Ra, LX200Time, LX200UtcOffset
 from lx200.plugins import (
@@ -31,6 +42,7 @@ from lx200.protocol import (
     LX200ValueError,
 )
 from lx200.server import LX200CommandHandler, LX200Server
+
 LOGGER = logging.getLogger("lx200.dummy")
 
 
@@ -68,6 +80,25 @@ class LX200DummyConstants:
     SOCKET_TRUE = 1
 
 
+class LX200SkyWatcherConstants:
+    ENV_PORT = "SKYWATCHER_PORT"
+    ENV_BAUD = "SKYWATCHER_BAUD"
+    ENV_TIMEOUT_S = "SKYWATCHER_TIMEOUT_S"
+    DEFAULT_BAUD = 115200
+    DEFAULT_TIMEOUT_S = 0.5
+
+
+class LX200DummyCliConstants:
+    BACKEND_DUMMY = "dummy"
+    BACKEND_SKYWATCHER = "skywatcher"
+    ARG_BACKEND = "--backend"
+    ARG_HOST = "--host"
+    ARG_PORT = "--port"
+    ARG_SKYWATCHER_PORT = "--skywatcher-port"
+    ARG_SKYWATCHER_BAUD = "--skywatcher-baud"
+    ARG_SKYWATCHER_TIMEOUT_S = "--skywatcher-timeout"
+
+
 class LX200DummyServerError(Exception):
     pass
 
@@ -76,6 +107,11 @@ class LX200AlignmentMode(StrEnum):
     ALT_AZ = "A"
     LAND = "L"
     POLAR = "P"
+
+
+class LX200BackendType(StrEnum):
+    DUMMY = LX200DummyCliConstants.BACKEND_DUMMY
+    SKYWATCHER = LX200DummyCliConstants.BACKEND_SKYWATCHER
 
 
 @dataclasses.dataclass
@@ -360,14 +396,90 @@ class LX200DummyTcpServer:
         return LX200AlignmentMode.POLAR.value
 
 
+def _build_skywatcher_handler(serial_config: SkyWatcherSerialConfig) -> LX200CommandHandler:
+    mount = SkyWatcherMount.from_serial(serial_config)
+    plugins = [
+        LX200PointingPlugin(SkyWatcherPointingBackend(mount)),
+        LX200TimePlugin(SkyWatcherTimeBackend()),
+        LX200SitePlugin(SkyWatcherSiteBackend()),
+        LX200TrackingPlugin(SkyWatcherTrackingBackend(mount)),
+        LX200ObjectPlugin(SkyWatcherObjectBackend()),
+    ]
+    return LX200Server(plugins)
+
+
+def _parse_backend(value: str) -> LX200BackendType:
+    try:
+        return LX200BackendType(value)
+    except ValueError as exc:
+        raise LX200DummyServerError(f"unsupported backend: {value!r}") from exc
+
+
+def _resolve_skywatcher_serial(args: argparse.Namespace) -> SkyWatcherSerialConfig:
+    port = args.skywatcher_port or os.environ.get(LX200SkyWatcherConstants.ENV_PORT, "")
+    if not port:
+        raise LX200DummyServerError(
+            f"skywatcher port is required; use {LX200DummyCliConstants.ARG_SKYWATCHER_PORT} or {LX200SkyWatcherConstants.ENV_PORT}"
+        )
+    if args.skywatcher_baud is not None:
+        baud = args.skywatcher_baud
+    else:
+        baud_raw = os.environ.get(LX200SkyWatcherConstants.ENV_BAUD)
+        baud = int(baud_raw) if baud_raw else LX200SkyWatcherConstants.DEFAULT_BAUD
+    if args.skywatcher_timeout_s is not None:
+        timeout_s = args.skywatcher_timeout_s
+    else:
+        timeout_raw = os.environ.get(LX200SkyWatcherConstants.ENV_TIMEOUT_S)
+        timeout_s = float(timeout_raw) if timeout_raw else LX200SkyWatcherConstants.DEFAULT_TIMEOUT_S
+    return SkyWatcherSerialConfig(port=port, baud=baud, timeout_s=timeout_s)
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        LX200DummyCliConstants.ARG_BACKEND,
+        default=LX200BackendType.DUMMY.value,
+        choices=[backend.value for backend in LX200BackendType],
+    )
+    parser.add_argument(LX200DummyCliConstants.ARG_HOST, default=LX200DummyConstants.HOST)
+    parser.add_argument(LX200DummyCliConstants.ARG_PORT, default=LX200DummyConstants.PORT, type=int)
+    parser.add_argument(LX200DummyCliConstants.ARG_SKYWATCHER_PORT, default=None)
+    parser.add_argument(LX200DummyCliConstants.ARG_SKYWATCHER_BAUD, default=None, type=int)
+    parser.add_argument(LX200DummyCliConstants.ARG_SKYWATCHER_TIMEOUT_S, default=None, type=float)
+    return parser.parse_args()
+
+
 def run_dummy_server(
     host: str = LX200DummyConstants.HOST,
     port: int = LX200DummyConstants.PORT,
+    *,
+    backend: LX200BackendType = LX200BackendType.DUMMY,
+    skywatcher_serial: Optional[SkyWatcherSerialConfig] = None,
 ) -> None:
-    server = LX200DummyTcpServer(LX200DummyServer(), host=host, port=port)
+    if backend == LX200BackendType.DUMMY:
+        handler: LX200CommandHandler = LX200DummyServer()
+    else:
+        if skywatcher_serial is None:
+            raise LX200DummyServerError("skywatcher serial config is required")
+        handler = _build_skywatcher_handler(skywatcher_serial)
+    server = LX200DummyTcpServer(handler, host=host, port=port)
     server.serve_forever()
 
 
-if __name__ == "__main__":
+def main() -> None:
     setup_logging()
-    run_dummy_server()
+    args = _parse_args()
+    backend = _parse_backend(args.backend)
+    skywatcher_serial = None
+    if backend == LX200BackendType.SKYWATCHER:
+        skywatcher_serial = _resolve_skywatcher_serial(args)
+    run_dummy_server(
+        host=args.host,
+        port=args.port,
+        backend=backend,
+        skywatcher_serial=skywatcher_serial,
+    )
+
+
+if __name__ == "__main__":
+    main()
