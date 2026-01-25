@@ -5,6 +5,7 @@ import datetime as _dt
 from zoneinfo import ZoneInfo
 from dataclasses import dataclass
 from typing import List, Tuple, Union
+import random
 
 AngleLike = Union[float, int, str]
 
@@ -26,6 +27,8 @@ class Constants:
         "  Syncing to RA (10h 44m 00s) DEC ( 33° 04' 42\")\n"
     )
     DIRECTION_ARROW_LEN = 0.6
+    DIRECTION_ARC_RADIUS = 0.55
+    DIRECTION_ARC_SWEEP_DEG = 55.0
     DIRECTION_LABEL_SCALE = 1.1
     DIRECTION_EPS_DEG = 1e-6
     DIRECTION_ALT_RAISE_LABEL = "ALT: raise"
@@ -244,6 +247,189 @@ def polar_error_arcmin(axis_vec: Tuple[float, float, float]) -> float:
     return math.degrees(err_rad) * 60.0
 
 
+# --- Geometry / uncertainty estimation ---
+
+def _angular_sep_deg(u: Tuple[float, float, float], v: Tuple[float, float, float]) -> float:
+    """Great-circle angular separation between unit vectors, in degrees."""
+    cuv = max(-1.0, min(1.0, dot(unit(u), unit(v))))
+    return math.degrees(math.acos(cuv))
+
+
+def _points_separations_deg(p1: 'EqPoint', p2: 'EqPoint', p3: 'EqPoint') -> Tuple[float, float, float]:
+    v1 = radec_to_unitvec(p1.ra_hours, p1.dec_deg)
+    v2 = radec_to_unitvec(p2.ra_hours, p2.dec_deg)
+    v3 = radec_to_unitvec(p3.ra_hours, p3.dec_deg)
+    return (
+        _angular_sep_deg(v1, v2),
+        _angular_sep_deg(v2, v3),
+        _angular_sep_deg(v1, v3),
+    )
+
+
+def _perturb_point(p: 'EqPoint', sigma_arcsec: float) -> 'EqPoint':
+    """Add small Gaussian noise to RA/Dec.
+
+    sigma_arcsec is interpreted as 1-sigma on-sky angular error.
+    RA noise is scaled by 1/cos(dec) to keep on-sky distance ~sigma.
+    """
+    sigma_deg = sigma_arcsec / 3600.0
+    dec = float(p.dec_deg)
+    # Dec perturbation in degrees
+    d_dec = random.gauss(0.0, sigma_deg)
+    # RA perturbation in degrees of angle (not hours); scale by cos(dec)
+    c = math.cos(math.radians(dec))
+    if abs(c) < 1e-6:
+        c = 1e-6
+    d_ra_deg = random.gauss(0.0, sigma_deg / c)
+    ra_h = float(p.ra_hours)
+    ra_deg = ra_h * 15.0
+    ra_deg_p = (ra_deg + d_ra_deg) % 360.0
+    ra_h_p = ra_deg_p / 15.0
+    dec_p = max(-90.0, min(90.0, dec + d_dec))
+    return EqPoint(ra_hours=ra_h_p, dec_deg=dec_p)
+
+
+def estimate_delta_uncertainty(
+    *,
+    p1: 'EqPoint',
+    p2: 'EqPoint',
+    p3: 'EqPoint',
+    lat_deg: float,
+    lon_deg: float,
+    dt_utc: _dt.datetime,
+    sigma_arcsec: float,
+    n_mc: int,
+) -> Tuple[float, float, float]:
+    """Monte-Carlo estimate of 1-sigma uncertainty for ΔAlt, ΔAz, and Total (all in arcmin).
+
+    Uses the current geometry (separations between points) implicitly.
+    """
+    # Compute nominal axis and nominal deltas
+    axis0 = axis_from_three_points(p1, p2, p3)
+    ra0, dec0 = vec_to_radec_hours_deg(axis0)
+    alt0, az0 = _eq_to_altaz(ra0, dec0, lat_deg, lon_deg, dt_utc)
+    d_alt0 = lat_deg - alt0
+    d_az0 = _short_angle_deg(0.0, az0)
+    v_actual0 = _enu_unit_from_altaz(alt0, az0)
+    v_ideal0 = _enu_unit_from_altaz(lat_deg, 0.0)
+    total0 = _angle_deg_between(v_actual0, v_ideal0)
+
+    # Samples
+    d_alt_samples = []
+    d_az_samples = []
+    total_samples = []
+
+    for _ in range(max(1, int(n_mc))):
+        pp1 = _perturb_point(p1, sigma_arcsec)
+        pp2 = _perturb_point(p2, sigma_arcsec)
+        pp3 = _perturb_point(p3, sigma_arcsec)
+
+        try:
+            ax = axis_from_three_points(pp1, pp2, pp3)
+        except Exception:
+            # Degenerate perturbed geometry; skip
+            continue
+
+        ra, dec = vec_to_radec_hours_deg(ax)
+        alt, az = _eq_to_altaz(ra, dec, lat_deg, lon_deg, dt_utc)
+        d_alt = lat_deg - alt
+        d_az = _short_angle_deg(0.0, az)
+        v_actual = _enu_unit_from_altaz(alt, az)
+        v_ideal = _enu_unit_from_altaz(lat_deg, 0.0)
+        total = _angle_deg_between(v_actual, v_ideal)
+
+        # Store residuals around nominal (degrees)
+        d_alt_samples.append((d_alt - d_alt0) * 60.0)
+        d_az_samples.append((d_az - d_az0) * 60.0)
+        total_samples.append((total - total0) * 60.0)
+
+    def _std_arcmin(xs: List[float]) -> float:
+        if len(xs) < 2:
+            return float('nan')
+        m = sum(xs) / len(xs)
+        v = sum((x - m) ** 2 for x in xs) / (len(xs) - 1)
+        return math.sqrt(v)
+
+    return (
+        _std_arcmin(d_alt_samples),
+        _std_arcmin(d_az_samples),
+        _std_arcmin(total_samples),
+    )
+
+
+# --- New percentile-based MC uncertainty estimation ---
+def _percentile(xs: List[float], q: float) -> float:
+    """Return q-quantile for q in [0,1] using linear interpolation."""
+    if not xs:
+        return float("nan")
+    xs_sorted = sorted(xs)
+    if q <= 0.0:
+        return xs_sorted[0]
+    if q >= 1.0:
+        return xs_sorted[-1]
+    pos = q * (len(xs_sorted) - 1)
+    lo = int(math.floor(pos))
+    hi = int(math.ceil(pos))
+    if lo == hi:
+        return xs_sorted[lo]
+    frac = pos - lo
+    return xs_sorted[lo] * (1 - frac) + xs_sorted[hi] * frac
+
+
+def estimate_delta_pm_deg(
+    *,
+    p1: EqPoint,
+    p2: EqPoint,
+    p3: EqPoint,
+    lat_deg: float,
+    lon_deg: float,
+    dt_utc: _dt.datetime,
+    sigma_arcsec: float,
+    n_mc: int,
+    ci: float,
+) -> Tuple[float, float, float]:
+    """Half-width (±) in degrees for (ΔAlt, ΔAz, Total) using MC percentile interval.
+
+    Example: ci=0.68 -> half-width of [16%,84%] interval; ci=0.95 -> [2.5%,97.5%].
+    """
+    d_alt_vals: List[float] = []
+    d_az_vals: List[float] = []
+    total_vals: List[float] = []
+
+    for _ in range(max(1, int(n_mc))):
+        pp1 = _perturb_point(p1, sigma_arcsec)
+        pp2 = _perturb_point(p2, sigma_arcsec)
+        pp3 = _perturb_point(p3, sigma_arcsec)
+        try:
+            ax = axis_from_three_points(pp1, pp2, pp3)
+        except Exception:
+            continue
+
+        ra, dec = vec_to_radec_hours_deg(ax)
+        alt, az = _eq_to_altaz(ra, dec, lat_deg, lon_deg, dt_utc)
+
+        d_alt_vals.append(lat_deg - alt)
+        d_az_vals.append(_short_angle_deg(0.0, az))
+
+        v_actual = _enu_unit_from_altaz(alt, az)
+        v_ideal = _enu_unit_from_altaz(lat_deg, 0.0)
+        total_vals.append(_angle_deg_between(v_actual, v_ideal))
+
+    lo = (1.0 - ci) / 2.0
+    hi = 1.0 - lo
+
+    def _pm(xs: List[float]) -> float:
+        p_lo = _percentile(xs, lo)
+        p_hi = _percentile(xs, hi)
+        return 0.5 * (p_hi - p_lo)
+
+    return (
+        _pm(d_alt_vals),
+        _pm(d_az_vals),
+        _pm(total_vals),
+    )
+
+
 # --- Helper functions for Alt/Az and adjustment suggestion ---
 def _clamp(x: float, lo: float, hi: float) -> float:
     return max(lo, min(hi, x))
@@ -326,6 +512,58 @@ def _angle_deg_between(a: Tuple[float, float, float], b: Tuple[float, float, flo
     c = max(-1.0, min(1.0, dot(au, bu)))
     return math.degrees(math.acos(c))
 
+# --- Curved arrow helpers for adjustment suggestion ---
+def _plot_arc_arrow_enu_az(ax, *, sweep_deg: float, radius: float, color: str) -> Tuple[float, float, float]:
+    """Draw a curved arrow in the E-N plane (U=0) indicating azimuth adjustment.
+
+    Az is defined east-of-north. Positive sweep means rotate toward East.
+    Returns the tip position (x,y,z) for labeling.
+    """
+    steps = 60
+    a0 = 0.0
+    a1 = math.radians(sweep_deg)
+    angles = [a0 + (a1 - a0) * i / (steps - 1) for i in range(steps)]
+    xs = [radius * math.sin(a) for a in angles]  # E
+    ys = [radius * math.cos(a) for a in angles]  # N
+    zs = [0.0 for _ in angles]
+    ax.plot(xs, ys, zs, linewidth=2.5, color=color)
+
+    # Arrow head: tangent direction at the end of the arc
+    a = angles[-1]
+    x, y, z = xs[-1], ys[-1], 0.0
+    tx, ty, tz = math.cos(a), -math.sin(a), 0.0
+    tnorm = math.hypot(tx, ty)
+    if tnorm > 0:
+        tx, ty = tx / tnorm, ty / tnorm
+    ax.quiver(x, y, z, tx, ty, tz, length=0.15, normalize=True, color=color)
+    return (x, y, z)
+
+
+def _plot_arc_arrow_enu_alt(ax, *, sweep_deg: float, radius: float, color: str) -> Tuple[float, float, float]:
+    """Draw a curved arrow in the N-U plane (E=0) indicating altitude adjustment.
+
+    Positive sweep means rotate from North toward Up.
+    Returns the tip position (x,y,z) for labeling.
+    """
+    steps = 60
+    a0 = 0.0
+    a1 = math.radians(sweep_deg)
+    angles = [a0 + (a1 - a0) * i / (steps - 1) for i in range(steps)]
+    xs = [0.0 for _ in angles]
+    ys = [radius * math.cos(a) for a in angles]  # N
+    zs = [radius * math.sin(a) for a in angles]  # U
+    ax.plot(xs, ys, zs, linewidth=2.5, color=color)
+
+    # Arrow head: tangent direction at the end of the arc
+    a = angles[-1]
+    x, y, z = 0.0, ys[-1], zs[-1]
+    tx, ty, tz = 0.0, -math.sin(a), math.cos(a)
+    tnorm = math.hypot(ty, tz)
+    if tnorm > 0:
+        ty, tz = ty / tnorm, tz / tnorm
+    ax.quiver(x, y, z, tx, ty, tz, length=0.15, normalize=True, color=color)
+    return (x, y, z)
+
 def save_3d_schematic(
     *,
     axis_vec_eq: Tuple[float, float, float],
@@ -334,6 +572,8 @@ def save_3d_schematic(
     dt_utc: _dt.datetime,
     out_path: str,
     show: bool = False,
+    pm68: Tuple[float, float, float] | None = None,
+    pm95: Tuple[float, float, float] | None = None,
 ) -> str:
     """Save a 3D schematic PNG.
 
@@ -394,7 +634,9 @@ def save_3d_schematic(
     # Angle annotations
     # Put ΔAlt text in the N-U plane (E=0): that's the rotation plane for altitude adjustment.
     # Put ΔAz text in the E-N plane (U=0): that's the rotation plane for azimuth adjustment.
-    total_txt = f"Total = {total_err:.3f}° ({total_err*60:.1f}′)"
+    pm_total = pm95[2] if pm95 is not None else (pm68[2] if pm68 is not None else None)
+    pm_total_txt = f" ±{pm_total:.3f}°" if pm_total is not None else ""
+    total_txt = f"Total = {total_err:.3f}° ({total_err*60:.1f}′){pm_total_txt}"
     ax.text(0.02, 0.02, 0.02, total_txt, fontsize=10)
 
     # ΔAz label position: along horizontal projection of the actual axis (E-N plane)
@@ -405,7 +647,9 @@ def save_3d_schematic(
         az_pos = (0.0, 0.45, 0.0)
     else:
         az_pos = (0.45 * proj_h[0] / ph_n, 0.45 * proj_h[1] / ph_n, 0.0)
-    az_txt = f"ΔAz = {d_az:+.3f}° ({d_az*60:+.1f}′)"
+    pm_az = pm95[1] if pm95 is not None else (pm68[1] if pm68 is not None else None)
+    pm_az_txt = f" ±{pm_az:.3f}°" if pm_az is not None else ""
+    az_txt = f"ΔAz = {d_az:+.3f}° ({d_az*60:+.1f}′){pm_az_txt}"
     ax.text(az_pos[0], az_pos[1], az_pos[2], az_txt, fontsize=10, color=Constants.DIRECTION_AZ_COLOR)
 
     # ΔAlt label position: along projection of the actual axis into the N-U plane (E=0)
@@ -416,67 +660,52 @@ def save_3d_schematic(
         alt_pos = (0.0, 0.0, 0.55)
     else:
         alt_pos = (0.0, 0.55 * proj_v[1] / pv_n, 0.55 * proj_v[2] / pv_n)
-    alt_txt = f"ΔAlt = {d_alt:+.3f}° ({d_alt*60:+.1f}′)"
+    pm_alt = pm95[0] if pm95 is not None else (pm68[0] if pm68 is not None else None)
+    pm_alt_txt = f" ±{pm_alt:.3f}°" if pm_alt is not None else ""
+    alt_txt = f"ΔAlt = {d_alt:+.3f}° ({d_alt*60:+.1f}′){pm_alt_txt}"
     ax.text(alt_pos[0], alt_pos[1], alt_pos[2], alt_txt, fontsize=10, color=Constants.DIRECTION_ALT_COLOR)
 
-    # Suggested adjustment directions (ALT up/down, AZ east/west)
+    # Suggested adjustment directions as curved arrows (more intuitive than axis-aligned vectors)
+    radius = Constants.DIRECTION_ARC_RADIUS
+    sweep = Constants.DIRECTION_ARC_SWEEP_DEG
+
     if abs(d_alt) > Constants.DIRECTION_EPS_DEG:
-        alt_vec = (
-            Constants.ZERO,
-            Constants.ZERO,
-            Constants.ONE if d_alt > 0 else Constants.NEG_ONE,
-        )
         alt_label = (
             Constants.DIRECTION_ALT_RAISE_LABEL
             if d_alt > 0
             else Constants.DIRECTION_ALT_LOWER_LABEL
         )
-        ax.quiver(
-            Constants.ZERO,
-            Constants.ZERO,
-            Constants.ZERO,
-            alt_vec[0],
-            alt_vec[1],
-            alt_vec[2],
-            length=Constants.DIRECTION_ARROW_LEN,
-            normalize=True,
+        tip = _plot_arc_arrow_enu_alt(
+            ax,
+            sweep_deg=(sweep if d_alt > 0 else -sweep),
+            radius=radius,
             color=Constants.DIRECTION_ALT_COLOR,
         )
         ax.text(
-            alt_vec[0] * Constants.DIRECTION_ARROW_LEN * Constants.DIRECTION_LABEL_SCALE,
-            alt_vec[1] * Constants.DIRECTION_ARROW_LEN * Constants.DIRECTION_LABEL_SCALE,
-            alt_vec[2] * Constants.DIRECTION_ARROW_LEN * Constants.DIRECTION_LABEL_SCALE,
+            tip[0] * Constants.DIRECTION_LABEL_SCALE,
+            tip[1] * Constants.DIRECTION_LABEL_SCALE,
+            tip[2] * Constants.DIRECTION_LABEL_SCALE,
             alt_label,
             fontsize=10,
             color=Constants.DIRECTION_ALT_COLOR,
         )
 
     if abs(d_az) > Constants.DIRECTION_EPS_DEG:
-        az_vec = (
-            Constants.ONE if d_az > 0 else Constants.NEG_ONE,
-            Constants.ZERO,
-            Constants.ZERO,
-        )
         az_label = (
             Constants.DIRECTION_AZ_EAST_LABEL
             if d_az > 0
             else Constants.DIRECTION_AZ_WEST_LABEL
         )
-        ax.quiver(
-            Constants.ZERO,
-            Constants.ZERO,
-            Constants.ZERO,
-            az_vec[0],
-            az_vec[1],
-            az_vec[2],
-            length=Constants.DIRECTION_ARROW_LEN,
-            normalize=True,
+        tip = _plot_arc_arrow_enu_az(
+            ax,
+            sweep_deg=(sweep if d_az > 0 else -sweep),
+            radius=radius,
             color=Constants.DIRECTION_AZ_COLOR,
         )
         ax.text(
-            az_vec[0] * Constants.DIRECTION_ARROW_LEN * Constants.DIRECTION_LABEL_SCALE,
-            az_vec[1] * Constants.DIRECTION_ARROW_LEN * Constants.DIRECTION_LABEL_SCALE,
-            az_vec[2] * Constants.DIRECTION_ARROW_LEN * Constants.DIRECTION_LABEL_SCALE,
+            tip[0] * Constants.DIRECTION_LABEL_SCALE,
+            tip[1] * Constants.DIRECTION_LABEL_SCALE,
+            tip[2] * Constants.DIRECTION_LABEL_SCALE,
             az_label,
             fontsize=10,
             color=Constants.DIRECTION_AZ_COLOR,
@@ -503,7 +732,14 @@ def save_3d_schematic(
     plt.close(fig)
     return out_path
 
-def suggest_adjustments(axis_vec: Tuple[float, float, float], lat_deg: float, lon_deg: float, dt_utc: _dt.datetime) -> str:
+def suggest_adjustments(
+    axis_vec: Tuple[float, float, float],
+    lat_deg: float,
+    lon_deg: float,
+    dt_utc: _dt.datetime,
+    pm68: Tuple[float, float, float] | None = None,
+    pm95: Tuple[float, float, float] | None = None,
+) -> str:
     """Return human-readable suggestions for altitude/azimuth knobs.
 
     Notes:
@@ -519,14 +755,29 @@ def suggest_adjustments(axis_vec: Tuple[float, float, float], lat_deg: float, lo
     d_alt = alt_ideal - alt_axis  # + => need raise
     d_az = _short_angle_deg(az_ideal, az_axis)  # + => rotate east, - => rotate west
 
+    pm_alt = pm95[0] if pm95 is not None else (pm68[0] if pm68 is not None else None)
+    pm_az = pm95[1] if pm95 is not None else (pm68[1] if pm68 is not None else None)
+    pm_total = pm95[2] if pm95 is not None else (pm68[2] if pm68 is not None else None)
+
+    pm_alt_txt = f" ±{pm_alt:.4f}°" if pm_alt is not None else ""
+    pm_az_txt = f" ±{pm_az:.4f}°" if pm_az is not None else ""
+
     lines = []
     lines.append(f"Axis in local frame at {dt_utc.isoformat()} (UTC):")
-    lines.append(f"  Alt(axis) = {alt_axis:.3f}° ; ideal Alt = {alt_ideal:.3f}° -> ΔAlt = {d_alt:+.3f}°")
-    lines.append(f"  Az(axis)  = {az_axis:.3f}° (E of N) ; ideal Az = {az_ideal:.3f}° -> ΔAz  = {d_az:+.3f}°")
+    lines.append(
+        f"  Alt(axis) = {alt_axis:.3f}° ; ideal Alt = {alt_ideal:.3f}° -> ΔAlt = {d_alt:+.3f}°{pm_alt_txt}"
+    )
+    lines.append(
+        f"  Az(axis)  = {az_axis:.3f}° (E of N) ; ideal Az = {az_ideal:.3f}° -> ΔAz  = {d_az:+.3f}°{pm_az_txt}"
+    )
+    if pm_total is not None:
+        lines.append(f"  Total error ±{pm_total:.4f}° (from MC, {'95%' if pm95 is not None else '68%'})")
 
     # Convert to arcmin for knob feel
     d_alt_arcmin = d_alt * 60.0
     d_az_arcmin = d_az * 60.0
+
+    lines.append("")
 
     if abs(d_alt_arcmin) < 1.0 and abs(d_az_arcmin) < 1.0:
         lines.append("Suggestion: already within ~1 arcmin in both axes.")
@@ -542,6 +793,7 @@ def suggest_adjustments(axis_vec: Tuple[float, float, float], lat_deg: float, lo
     elif d_az_arcmin < 0:
         lines.append(f"Suggestion (AZ): move the polar axis WEST by about {abs(d_az_arcmin):.1f} arcmin.")
 
+    lines.append("")
     lines.append("Note: direction (E/W, raise/lower) assumes azimuth is measured east-of-true-north and your knobs move the mount head accordingly.")
     return "\n".join(lines)
 
@@ -575,12 +827,32 @@ if __name__ == "__main__":
         help=Constants.PLOT_SHOW_HELP,
     )
     parser.add_argument(
+        "--sigma-arcsec",
+        type=float,
+        default=10.0,
+        help="Assumed 1-sigma plate-solve pointing noise per frame (arcsec). Used to estimate ΔAlt/ΔAz uncertainty.",
+    )
+    parser.add_argument(
+        "--mc",
+        type=int,
+        default=2000,
+        help="Monte-Carlo samples for uncertainty estimation (default: 2000).",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Random seed for Monte-Carlo (optional).",
+    )
+    parser.add_argument(
         "--plot-out",
         type=str,
         default="polar_alignment_{now}.png",
         help="Output PNG path for --plot (default: polar_alignment_{now}.png)",
     )
     args = parser.parse_args()
+    if args.seed is not None:
+        random.seed(args.seed)
 
     # Read 3 points from stdin. Accept either full "Syncing to RA (...) DEC (...)" lines
     # or simple "RA Dec" lines; blank lines are ignored.
@@ -599,6 +871,13 @@ if __name__ == "__main__":
 
     t1, t2, t3 = pts
 
+    sep12, sep23, sep13 = _points_separations_deg(t1, t2, t3)
+    min_sep = min(sep12, sep23)
+    print(f"Point separations (deg): sep12={sep12:.3f}, sep23={sep23:.3f}, sep13={sep13:.3f}")
+    if min_sep < 5.0:
+        print("WARNING: separations are small (<5°). ΔAlt/ΔAz estimates will be noisy; use larger RA shifts (e.g., 15–30°).")
+    print()
+
     axis = axis_from_three_points(t1, t2, t3)
     ra_ax_h, dec_ax_deg = vec_to_radec_hours_deg(axis)
     err_arcmin = polar_error_arcmin(axis)
@@ -607,6 +886,7 @@ if __name__ == "__main__":
     print(f"  RA  = {ra_ax_h:.6f} h")
     print(f"  Dec = {dec_ax_deg:.6f} deg")
     print(f"Polar misalignment magnitude ≈ {err_arcmin:.2f} arcmin")
+    print()
 
     # For actionable knob directions, we need a time+location to express the axis in local Alt/Az.
     tz = ZoneInfo(args.tz)
@@ -622,8 +902,42 @@ if __name__ == "__main__":
             dt_local = dt_local.astimezone(tz)
 
     dt_utc = dt_local.astimezone(_dt.timezone.utc)
+    pm68_dalt, pm68_daz, pm68_total = estimate_delta_pm_deg(
+        p1=t1,
+        p2=t2,
+        p3=t3,
+        lat_deg=args.lat,
+        lon_deg=args.lon,
+        dt_utc=dt_utc,
+        sigma_arcsec=args.sigma_arcsec,
+        n_mc=args.mc,
+        ci=0.68,
+    )
+    pm95_dalt, pm95_daz, pm95_total = estimate_delta_pm_deg(
+        p1=t1,
+        p2=t2,
+        p3=t3,
+        lat_deg=args.lat,
+        lon_deg=args.lon,
+        dt_utc=dt_utc,
+        sigma_arcsec=args.sigma_arcsec,
+        n_mc=args.mc,
+        ci=0.95,
+    )
+    print(
+        f"Estimated ± (deg) from MC with σ_frame={args.sigma_arcsec:.1f}\" and N={args.mc}:\n "
+        f"  68%: ΔAlt ±{pm68_dalt:.4f}°, ΔAz ±{pm68_daz:.4f}°, Total ±{pm68_total:.4f}°\n"
+        f"  95%: ΔAlt ±{pm95_dalt:.4f}°, ΔAz ±{pm95_daz:.4f}°, Total ±{pm95_total:.4f}°"
+    )
     print()
-    print(suggest_adjustments(axis, lat_deg=args.lat, lon_deg=args.lon, dt_utc=dt_utc))
+    print(suggest_adjustments(
+        axis,
+        lat_deg=args.lat,
+        lon_deg=args.lon,
+        dt_utc=dt_utc,
+        pm68=(pm68_dalt, pm68_daz, pm68_total),
+        pm95=(pm95_dalt, pm95_daz, pm95_total),
+    ))
 
     if args.plot:
         out = save_3d_schematic(
@@ -632,6 +946,8 @@ if __name__ == "__main__":
             lon_deg=args.lon,
             dt_utc=dt_utc,
             out_path=args.plot_out.format(now=_dt.datetime.now().strftime("%Y%m%d_%H%M%S")),
+            pm68=(pm68_dalt, pm68_daz, pm68_total),
+            pm95=(pm95_dalt, pm95_daz, pm95_total),
             show=args.plot_show,
         )
         print()
