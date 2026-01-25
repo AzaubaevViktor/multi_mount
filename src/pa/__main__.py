@@ -13,6 +13,9 @@ class Constants:
     POINT_INDEX_START = 1
     POINT_INDEX_END_OFFSET = 1
     COORD_PRINT_DECIMALS = 6
+    ZERO = 0.0
+    ONE = 1.0
+    NEG_ONE = -1.0
     INPUT_PROMPT_TEMPLATE = "Line {index}/{total}: "
     PARSED_LINE_TEMPLATE = "Parsed line {index}: RA={ra} h, Dec={dec} deg"
     PARSE_ERROR_TEMPLATE = "Parse error: {error}"
@@ -22,6 +25,16 @@ class Constants:
         "  Syncing to RA (10h 33m 12s) DEC ( 33° 05' 01\")\n"
         "  Syncing to RA (10h 44m 00s) DEC ( 33° 04' 42\")\n"
     )
+    DIRECTION_ARROW_LEN = 0.6
+    DIRECTION_LABEL_SCALE = 1.1
+    DIRECTION_EPS_DEG = 1e-6
+    DIRECTION_ALT_RAISE_LABEL = "ALT: raise"
+    DIRECTION_ALT_LOWER_LABEL = "ALT: lower"
+    DIRECTION_AZ_EAST_LABEL = "AZ: east"
+    DIRECTION_AZ_WEST_LABEL = "AZ: west"
+    DIRECTION_ALT_COLOR = "tab:green"
+    DIRECTION_AZ_COLOR = "tab:orange"
+    PLOT_SHOW_HELP = "Show interactive 3D window in addition to saving PNG."
 
 class InputLineParseError(Exception):
     pass
@@ -320,6 +333,7 @@ def save_3d_schematic(
     lon_deg: float,
     dt_utc: _dt.datetime,
     out_path: str,
+    show: bool = False,
 ) -> str:
     """Save a 3D schematic PNG.
 
@@ -377,13 +391,96 @@ def save_3d_schematic(
         linewidth=4,
     )
 
-    # Angle annotations at origin
-    txt = (
-        f"ΔAlt = {d_alt:+.3f}° ({d_alt*60:+.1f}′)\n"
-        f"ΔAz  = {d_az:+.3f}° ({d_az*60:+.1f}′)\n"
-        f"Total = {total_err:.3f}° ({total_err*60:.1f}′)"
-    )
-    ax.text(0.02, 0.02, 0.02, txt, fontsize=10)
+    # Angle annotations
+    # Put ΔAlt text in the N-U plane (E=0): that's the rotation plane for altitude adjustment.
+    # Put ΔAz text in the E-N plane (U=0): that's the rotation plane for azimuth adjustment.
+    total_txt = f"Total = {total_err:.3f}° ({total_err*60:.1f}′)"
+    ax.text(0.02, 0.02, 0.02, total_txt, fontsize=10)
+
+    # ΔAz label position: along horizontal projection of the actual axis (E-N plane)
+    proj_h = (v_actual[0], v_actual[1], 0.0)
+    ph_n = math.hypot(proj_h[0], proj_h[1])
+    if ph_n < 1e-9:
+        # fallback: point to North
+        az_pos = (0.0, 0.45, 0.0)
+    else:
+        az_pos = (0.45 * proj_h[0] / ph_n, 0.45 * proj_h[1] / ph_n, 0.0)
+    az_txt = f"ΔAz = {d_az:+.3f}° ({d_az*60:+.1f}′)"
+    ax.text(az_pos[0], az_pos[1], az_pos[2], az_txt, fontsize=10, color=Constants.DIRECTION_AZ_COLOR)
+
+    # ΔAlt label position: along projection of the actual axis into the N-U plane (E=0)
+    proj_v = (0.0, v_actual[1], v_actual[2])
+    pv_n = math.hypot(proj_v[1], proj_v[2])
+    if pv_n < 1e-9:
+        # fallback: point Up
+        alt_pos = (0.0, 0.0, 0.55)
+    else:
+        alt_pos = (0.0, 0.55 * proj_v[1] / pv_n, 0.55 * proj_v[2] / pv_n)
+    alt_txt = f"ΔAlt = {d_alt:+.3f}° ({d_alt*60:+.1f}′)"
+    ax.text(alt_pos[0], alt_pos[1], alt_pos[2], alt_txt, fontsize=10, color=Constants.DIRECTION_ALT_COLOR)
+
+    # Suggested adjustment directions (ALT up/down, AZ east/west)
+    if abs(d_alt) > Constants.DIRECTION_EPS_DEG:
+        alt_vec = (
+            Constants.ZERO,
+            Constants.ZERO,
+            Constants.ONE if d_alt > 0 else Constants.NEG_ONE,
+        )
+        alt_label = (
+            Constants.DIRECTION_ALT_RAISE_LABEL
+            if d_alt > 0
+            else Constants.DIRECTION_ALT_LOWER_LABEL
+        )
+        ax.quiver(
+            Constants.ZERO,
+            Constants.ZERO,
+            Constants.ZERO,
+            alt_vec[0],
+            alt_vec[1],
+            alt_vec[2],
+            length=Constants.DIRECTION_ARROW_LEN,
+            normalize=True,
+            color=Constants.DIRECTION_ALT_COLOR,
+        )
+        ax.text(
+            alt_vec[0] * Constants.DIRECTION_ARROW_LEN * Constants.DIRECTION_LABEL_SCALE,
+            alt_vec[1] * Constants.DIRECTION_ARROW_LEN * Constants.DIRECTION_LABEL_SCALE,
+            alt_vec[2] * Constants.DIRECTION_ARROW_LEN * Constants.DIRECTION_LABEL_SCALE,
+            alt_label,
+            fontsize=10,
+            color=Constants.DIRECTION_ALT_COLOR,
+        )
+
+    if abs(d_az) > Constants.DIRECTION_EPS_DEG:
+        az_vec = (
+            Constants.ONE if d_az > 0 else Constants.NEG_ONE,
+            Constants.ZERO,
+            Constants.ZERO,
+        )
+        az_label = (
+            Constants.DIRECTION_AZ_EAST_LABEL
+            if d_az > 0
+            else Constants.DIRECTION_AZ_WEST_LABEL
+        )
+        ax.quiver(
+            Constants.ZERO,
+            Constants.ZERO,
+            Constants.ZERO,
+            az_vec[0],
+            az_vec[1],
+            az_vec[2],
+            length=Constants.DIRECTION_ARROW_LEN,
+            normalize=True,
+            color=Constants.DIRECTION_AZ_COLOR,
+        )
+        ax.text(
+            az_vec[0] * Constants.DIRECTION_ARROW_LEN * Constants.DIRECTION_LABEL_SCALE,
+            az_vec[1] * Constants.DIRECTION_ARROW_LEN * Constants.DIRECTION_LABEL_SCALE,
+            az_vec[2] * Constants.DIRECTION_ARROW_LEN * Constants.DIRECTION_LABEL_SCALE,
+            az_label,
+            fontsize=10,
+            color=Constants.DIRECTION_AZ_COLOR,
+        )
 
     # Formatting: equal-ish scale and view
     ax.set_xlabel("East")
@@ -401,6 +498,8 @@ def save_3d_schematic(
 
     fig.tight_layout()
     fig.savefig(out_path, dpi=160)
+    if show:
+        plt.show()
     plt.close(fig)
     return out_path
 
@@ -470,6 +569,12 @@ if __name__ == "__main__":
         help="Save a 3D schematic (ENU axes + ideal vs actual polar axis) to a PNG file.",
     )
     parser.add_argument(
+        "--plot-show",
+        action="store_true",
+        default=True,
+        help=Constants.PLOT_SHOW_HELP,
+    )
+    parser.add_argument(
         "--plot-out",
         type=str,
         default="polar_alignment_{now}.png",
@@ -527,6 +632,7 @@ if __name__ == "__main__":
             lon_deg=args.lon,
             dt_utc=dt_utc,
             out_path=args.plot_out.format(now=_dt.datetime.now().strftime("%Y%m%d_%H%M%S")),
+            show=args.plot_show,
         )
         print()
         print(f"Saved 3D schematic to: {out}")
