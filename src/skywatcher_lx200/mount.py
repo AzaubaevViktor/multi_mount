@@ -77,19 +77,21 @@ class SkyWatcherMount:
 
     def initialize(self) -> None:
         self._log.info("initializing skywatcher axes")
-        try:
-            self._mc.do_initialize(
-                self._config.axis_mapping.ra_axis,
-                timeout_s=self._config.init_config.timeout_s,
-                poll_interval_s=self._config.init_config.poll_interval_s,
-            )
-            self._mc.do_initialize(
-                self._config.axis_mapping.dec_axis,
-                timeout_s=self._config.init_config.timeout_s,
-                poll_interval_s=self._config.init_config.poll_interval_s,
-            )
-        except TimeoutError as exc:
-            raise SkyWatcherInitializationError("skywatcher init timeout") from exc
+        timed_out_axes: list[SkyWatcherAxis] = []
+        for axis in (self._config.axis_mapping.ra_axis, self._config.axis_mapping.dec_axis):
+            try:
+                self._mc.do_initialize(
+                    axis,
+                    timeout_s=self._config.init_config.timeout_s,
+                    poll_interval_s=self._config.init_config.poll_interval_s,
+                )
+            except TimeoutError:
+                timed_out_axes.append(axis)
+        if len(timed_out_axes) >= SkyWatcherBackendConstants.TWO_INT:
+            raise SkyWatcherInitializationError("skywatcher init timeout for all axes")
+        if timed_out_axes:
+            timed_out = ",".join(axis.name for axis in timed_out_axes)
+            self._log.warning("skywatcher init timeout for axes=%s; continuing", timed_out)
         self._initialized = True
         self._refresh_axis_states(reset_zero=True)
 

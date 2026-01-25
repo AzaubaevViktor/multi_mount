@@ -406,7 +406,7 @@ class SkyWatcherMC:
         axis: SkyWatcherAxis,
         arg: Optional[str] = None,
     ) -> bytes:
-        # self.log.info("command cmd=%s axis=%s arg=%r", cmd, axis, arg)
+        self.log.info("command cmd=%s axis=%s arg=%r", cmd, axis, arg)
         axis_char = self._normalize_axis(axis)
         if arg is None:
             payload = self._LEADING + cmd.encode("ascii") + axis_char + self._TRAILING
