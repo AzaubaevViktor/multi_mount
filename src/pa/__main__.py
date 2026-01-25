@@ -120,6 +120,14 @@ def _format_point(point: EqPoint) -> Tuple[str, str]:
     dec_str = format(point.dec_deg, fmt)
     return ra_str, dec_str
 
+def _default_points() -> List[EqPoint]:
+    """Built-in example points for quick testing."""
+    return [
+        EqPoint(ra_hours=parse_ra_hours("09:59:22"), dec_deg=parse_dec_deg("61:02:17")),
+        EqPoint(ra_hours=parse_ra_hours("10:24:50"), dec_deg=parse_dec_deg("61:23:41")),
+        EqPoint(ra_hours=parse_ra_hours("10:49:00"), dec_deg=parse_dec_deg("61:41:29")),
+    ]
+
 def _read_points_interactive() -> List[EqPoint]:
     pts: List[EqPoint] = []
     end_index = Constants.POINTS_REQUIRED + Constants.POINT_INDEX_END_OFFSET
@@ -283,6 +291,119 @@ def _short_angle_deg(target: float, current: float) -> float:
         d -= 360.0
     return d
 
+
+# --- 3D Schematic Plotting Helpers ---
+def _enu_unit_from_altaz(alt_deg: float, az_deg: float) -> Tuple[float, float, float]:
+    """Unit vector in ENU from Alt/Az.
+
+    Az is degrees east of north.
+    Returns (E, N, U).
+    """
+    alt = math.radians(alt_deg)
+    az = math.radians(az_deg)
+    ch = math.cos(alt)
+    e = ch * math.sin(az)
+    n = ch * math.cos(az)
+    u = math.sin(alt)
+    return (e, n, u)
+
+def _angle_deg_between(a: Tuple[float, float, float], b: Tuple[float, float, float]) -> float:
+    au = unit(a)
+    bu = unit(b)
+    c = max(-1.0, min(1.0, dot(au, bu)))
+    return math.degrees(math.acos(c))
+
+def save_3d_schematic(
+    *,
+    axis_vec_eq: Tuple[float, float, float],
+    lat_deg: float,
+    lon_deg: float,
+    dt_utc: _dt.datetime,
+    out_path: str,
+) -> str:
+    """Save a 3D schematic PNG.
+
+    - Thin dashed line: ideal polar axis (Az=0, Alt=lat)
+    - Thick solid line: measured mount polar axis
+    - Shows ENU axes and angle annotations: ΔAlt, ΔAz, total error.
+    """
+    try:
+        import matplotlib.pyplot as plt
+        from mpl_toolkits.mplot3d import Axes3D 
+    except Exception as exc:
+        raise RuntimeError("matplotlib is required for --plot") from exc
+
+    ra_h, dec_d = vec_to_radec_hours_deg(axis_vec_eq)
+    alt_axis, az_axis = _eq_to_altaz(ra_h, dec_d, lat_deg, lon_deg, dt_utc)
+
+    alt_ideal = lat_deg
+    az_ideal = 0.0
+
+    d_alt = alt_ideal - alt_axis
+    d_az = _short_angle_deg(az_ideal, az_axis)
+
+    v_actual = _enu_unit_from_altaz(alt_axis, az_axis)
+    v_ideal = _enu_unit_from_altaz(alt_ideal, az_ideal)
+
+    total_err = _angle_deg_between(v_actual, v_ideal)
+
+    # Build figure
+    fig = plt.figure(figsize=(8, 6))
+    ax = fig.add_subplot(111, projection="3d")
+
+    # ENU axes
+    axis_len = 1.0
+    ax.plot([0, axis_len], [0, 0], [0, 0], linewidth=1)  # E
+    ax.plot([0, 0], [0, axis_len], [0, 0], linewidth=1)  # N
+    ax.plot([0, 0], [0, 0], [0, axis_len], linewidth=1)  # U
+    ax.text(axis_len, 0, 0, "E", fontsize=10)
+    ax.text(0, axis_len, 0, "N", fontsize=10)
+    ax.text(0, 0, axis_len, "U", fontsize=10)
+
+    # Ideal (thin dashed)
+    ax.plot(
+        [0, v_ideal[0]],
+        [0, v_ideal[1]],
+        [0, v_ideal[2]],
+        linestyle="--",
+        linewidth=1,
+    )
+
+    # Actual (thick)
+    ax.plot(
+        [0, v_actual[0]],
+        [0, v_actual[1]],
+        [0, v_actual[2]],
+        linewidth=4,
+    )
+
+    # Angle annotations at origin
+    txt = (
+        f"ΔAlt = {d_alt:+.3f}° ({d_alt*60:+.1f}′)\n"
+        f"ΔAz  = {d_az:+.3f}° ({d_az*60:+.1f}′)\n"
+        f"Total = {total_err:.3f}° ({total_err*60:.1f}′)"
+    )
+    ax.text(0.02, 0.02, 0.02, txt, fontsize=10)
+
+    # Formatting: equal-ish scale and view
+    ax.set_xlabel("East")
+    ax.set_ylabel("North")
+    ax.set_zlabel("Up")
+    ax.set_xlim(-1.05, 1.05)
+    ax.set_ylim(-1.05, 1.05)
+    ax.set_zlim(-0.05, 1.05)
+    ax.view_init(elev=20, azim=-55)
+
+    # Title with time/location
+    ax.set_title(
+        f"Polar axis (local ENU) | lat={lat_deg:.4f} lon={lon_deg:.4f} | {dt_utc.isoformat()} UTC"
+    )
+
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=160)
+    plt.close(fig)
+    return out_path
+
 def suggest_adjustments(axis_vec: Tuple[float, float, float], lat_deg: float, lon_deg: float, dt_utc: _dt.datetime) -> str:
     """Return human-readable suggestions for altitude/azimuth knobs.
 
@@ -336,6 +457,24 @@ if __name__ == "__main__":
         default=None,
         help="Local time of the measurement, ISO-like (e.g. 2026-01-25T22:10:00). If omitted, uses now().",
     )
+    parser.add_argument(
+        "--use-default-points",
+        action="store_true",
+        default=True,
+        help="Use built-in default test points instead of reading points from stdin.",
+    )
+    parser.add_argument(
+        "--plot",
+        action="store_true",
+        default=True,
+        help="Save a 3D schematic (ENU axes + ideal vs actual polar axis) to a PNG file.",
+    )
+    parser.add_argument(
+        "--plot-out",
+        type=str,
+        default="polar_alignment_{now}.png",
+        help="Output PNG path for --plot (default: polar_alignment_{now}.png)",
+    )
     args = parser.parse_args()
 
     # Read 3 points from stdin. Accept either full "Syncing to RA (...) DEC (...)" lines
@@ -343,10 +482,13 @@ if __name__ == "__main__":
     import sys
 
     try:
-        if sys.stdin.isatty():
+        if args.use_default_points:
+            pts = _default_points()
+        elif sys.stdin.isatty():
             pts = _read_points_interactive()
         else:
             pts = _read_points_stdin()
+    
     except (InputCountError, InputLineParseError) as exc:
         raise SystemExit(str(exc)) from exc
 
@@ -377,3 +519,14 @@ if __name__ == "__main__":
     dt_utc = dt_local.astimezone(_dt.timezone.utc)
     print()
     print(suggest_adjustments(axis, lat_deg=args.lat, lon_deg=args.lon, dt_utc=dt_utc))
+
+    if args.plot:
+        out = save_3d_schematic(
+            axis_vec_eq=axis,
+            lat_deg=args.lat,
+            lon_deg=args.lon,
+            dt_utc=dt_utc,
+            out_path=args.plot_out.format(now=_dt.datetime.now().strftime("%Y%m%d_%H%M%S")),
+        )
+        print()
+        print(f"Saved 3D schematic to: {out}")
