@@ -58,6 +58,23 @@ struct Runner {
   int lastSps = 500;
 } run;
 
+// ---------- Step position counter ----------
+static const long STEP_POSITIVE = 1;
+static const long STEP_NEGATIVE = -1;
+
+static long stepPosition = 0;
+
+static inline void setPosition(long value) {
+  stepPosition = value;
+}
+
+static inline long getPosition() {
+  return stepPosition;
+}
+
+static const char* const COMMAND_POS = "pos";
+static const char* const COMMAND_SET_POS = "setpos";
+
 static inline void setEnable(bool on) {
   run.enabled = on;
   digitalWrite(EN_PIN, (EN_ACTIVE_LOW ? !on : on) ? HIGH : LOW);
@@ -77,6 +94,7 @@ static inline void setSpeedSps(int sps_abs) {
 }
 
 static void serviceStepper() {
+  // TODO: prompt change digital write to faster direct pin set
   const uint32_t now = micros();
 
   if (run.stepHigh) {
@@ -99,6 +117,8 @@ static void serviceStepper() {
     run.stepHighUntilUs = now + run.pulseWidthUs;
     run.nextStepUs = now + run.stepIntervalUs;
 
+    stepPosition += run.dir ? STEP_NEGATIVE : STEP_POSITIVE;
+
     if (!run.continuous && run.remaining > 0) {
       run.remaining--;
     }
@@ -106,81 +126,76 @@ static void serviceStepper() {
 }
 
 // ---------- Printing helpers ----------
-class DumpFormatConstants {
- public:
-  static constexpr uint8_t HEX_WIDTH = 8;
-  static constexpr uint8_t HEX_PREFIX_LEN = 2;
-  static constexpr uint8_t HEX_BUF_LEN = HEX_PREFIX_LEN + HEX_WIDTH + 1;
-};
+static const uint8_t HEX_WIDTH = 8;
+static const uint8_t HEX_PREFIX_LEN = 2;
+static const uint8_t HEX_BUF_LEN = HEX_PREFIX_LEN + HEX_WIDTH + 1;
 
-namespace DumpKeys {
-static const __FlashStringHelper* const SUBSYS_TMC = F("tmc");
-static const __FlashStringHelper* const SUBSYS_IOIN = F("ioin");
-static const __FlashStringHelper* const SUBSYS_STATUS = F("status");
+static const char* const DUMP_SUBSYS_TMC = "tmc";
+static const char* const DUMP_SUBSYS_IOIN = "ioin";
+static const char* const DUMP_SUBSYS_STATUS = "status";
 
-static const __FlashStringHelper* const KEY_IFCNT = F("ifcnt");
-static const __FlashStringHelper* const KEY_GCONF = F("gconf");
-static const __FlashStringHelper* const KEY_GSTAT = F("gstat");
-static const __FlashStringHelper* const KEY_IHOLD_IRUN = F("ihold_irun");
-static const __FlashStringHelper* const KEY_TPOWERDOWN = F("tpowerdown");
-static const __FlashStringHelper* const KEY_TPWMTHRS = F("tpwmthrs");
-static const __FlashStringHelper* const KEY_TCOOLTHRS = F("tcoolthrs");
-static const __FlashStringHelper* const KEY_SGTHRS = F("sgthrs");
-static const __FlashStringHelper* const KEY_CHOPCONF = F("chopconf");
-static const __FlashStringHelper* const KEY_PWMCONF = F("pwmconf");
-static const __FlashStringHelper* const KEY_VACTUAL = F("vactual");
-static const __FlashStringHelper* const KEY_TSTEP = F("tstep");
-static const __FlashStringHelper* const KEY_MSCNT = F("mscnt");
-static const __FlashStringHelper* const KEY_MSCURACT = F("mscuract");
-static const __FlashStringHelper* const KEY_DRV_STATUS = F("drv_status");
-static const __FlashStringHelper* const KEY_SG_RESULT = F("sg_result");
+static const char* const DUMP_KEY_IFCNT = "ifcnt";
+static const char* const DUMP_KEY_GCONF = "gconf";
+static const char* const DUMP_KEY_GSTAT = "gstat";
+static const char* const DUMP_KEY_IHOLD_IRUN = "ihold_irun";
+static const char* const DUMP_KEY_TPOWERDOWN = "tpowerdown";
+static const char* const DUMP_KEY_TPWMTHRS = "tpwmthrs";
+static const char* const DUMP_KEY_TCOOLTHRS = "tcoolthrs";
+static const char* const DUMP_KEY_SGTHRS = "sgthrs";
+static const char* const DUMP_KEY_CHOPCONF = "chopconf";
+static const char* const DUMP_KEY_PWMCONF = "pwmconf";
+static const char* const DUMP_KEY_VACTUAL = "vactual";
+static const char* const DUMP_KEY_TSTEP = "tstep";
+static const char* const DUMP_KEY_MSCNT = "mscnt";
+static const char* const DUMP_KEY_MSCURACT = "mscuract";
+static const char* const DUMP_KEY_DRV_STATUS = "drv_status";
+static const char* const DUMP_KEY_SG_RESULT = "sg_result";
 
-static const __FlashStringHelper* const KEY_RAW = F("raw");
-static const __FlashStringHelper* const KEY_VERSION = F("version");
-static const __FlashStringHelper* const KEY_ENN = F("enn");
-static const __FlashStringHelper* const KEY_MS1 = F("ms1");
-static const __FlashStringHelper* const KEY_MS2 = F("ms2");
-static const __FlashStringHelper* const KEY_DIAG = F("diag");
-static const __FlashStringHelper* const KEY_PDN_UART = F("pdn_uart");
-static const __FlashStringHelper* const KEY_STEP = F("step");
-static const __FlashStringHelper* const KEY_DIR = F("dir");
-static const __FlashStringHelper* const KEY_SPREAD_EN = F("spread_en");
+static const char* const DUMP_KEY_RAW = "raw";
+static const char* const DUMP_KEY_VERSION = "version";
+static const char* const DUMP_KEY_ENN = "enn";
+static const char* const DUMP_KEY_MS1 = "ms1";
+static const char* const DUMP_KEY_MS2 = "ms2";
+static const char* const DUMP_KEY_DIAG = "diag";
+static const char* const DUMP_KEY_PDN_UART = "pdn_uart";
+static const char* const DUMP_KEY_STEP = "step";
+static const char* const DUMP_KEY_DIR = "dir";
+static const char* const DUMP_KEY_SPREAD_EN = "spread_en";
 
-static const __FlashStringHelper* const KEY_OT = F("ot");
-static const __FlashStringHelper* const KEY_OTPW = F("otpw");
-static const __FlashStringHelper* const KEY_S2GA = F("s2ga");
-static const __FlashStringHelper* const KEY_S2GB = F("s2gb");
-static const __FlashStringHelper* const KEY_OLA = F("ola");
-static const __FlashStringHelper* const KEY_OLB = F("olb");
-static const __FlashStringHelper* const KEY_T120 = F("t120");
-static const __FlashStringHelper* const KEY_T143 = F("t143");
-static const __FlashStringHelper* const KEY_T150 = F("t150");
-static const __FlashStringHelper* const KEY_T157 = F("t157");
-static const __FlashStringHelper* const KEY_STST = F("stst");
-static const __FlashStringHelper* const KEY_STEALTH = F("stealth");
-static const __FlashStringHelper* const KEY_CS_ACTUAL = F("cs_actual");
-}  // namespace DumpKeys
+static const char* const DUMP_KEY_OT = "ot";
+static const char* const DUMP_KEY_OTPW = "otpw";
+static const char* const DUMP_KEY_S2GA = "s2ga";
+static const char* const DUMP_KEY_S2GB = "s2gb";
+static const char* const DUMP_KEY_OLA = "ola";
+static const char* const DUMP_KEY_OLB = "olb";
+static const char* const DUMP_KEY_T120 = "t120";
+static const char* const DUMP_KEY_T143 = "t143";
+static const char* const DUMP_KEY_T150 = "t150";
+static const char* const DUMP_KEY_T157 = "t157";
+static const char* const DUMP_KEY_STST = "stst";
+static const char* const DUMP_KEY_STEALTH = "stealth";
+static const char* const DUMP_KEY_CS_ACTUAL = "cs_actual";
 
-static void printKeyPrefix(const __FlashStringHelper* subsystem, const __FlashStringHelper* key) {
+static void printKeyPrefix(const char* subsystem, const char* key) {
   Serial.print(subsystem);
   Serial.print('.');
   Serial.print(key);
   Serial.print(F(" = "));
 }
 
-static void printKeyValueU32(const __FlashStringHelper* subsystem, const __FlashStringHelper* key, uint32_t v) {
+static void printKeyValueU32(const char* subsystem, const char* key, uint32_t v) {
   printKeyPrefix(subsystem, key);
   Serial.println(v);
 }
 
-static void printKeyValueBool(const __FlashStringHelper* subsystem, const __FlashStringHelper* key, bool v) {
+static void printKeyValueBool(const char* subsystem, const char* key, bool v) {
   printKeyPrefix(subsystem, key);
   Serial.println(v ? 1 : 0);
 }
 
-static void printKeyHex32(const __FlashStringHelper* subsystem, const __FlashStringHelper* key, uint32_t v) {
-  char buf[DumpFormatConstants::HEX_BUF_LEN];
-  snprintf(buf, sizeof(buf), "0x%0*lX", DumpFormatConstants::HEX_WIDTH, (unsigned long)v);
+static void printKeyHex32(const char* subsystem, const char* key, uint32_t v) {
+  char buf[HEX_BUF_LEN];
+  snprintf(buf, sizeof(buf), "0x%0*lX", HEX_WIDTH, (unsigned long)v);
   printKeyPrefix(subsystem, key);
   Serial.println(buf);
 }
@@ -189,14 +204,14 @@ static void dumpInfo() {
   // ---------- Связь / идентификация ----------
   // IFCNT: счётчик успешных UART-пакетов, которые принял драйвер.
   // Растёт при каждом корректном обмене по UART. Если не растёт — проблемы с линией UART/адресом/скоростью.
-  printKeyValueU32(DumpKeys::SUBSYS_TMC, DumpKeys::KEY_IFCNT, driver.IFCNT());
+  printKeyValueU32(DUMP_SUBSYS_TMC, DUMP_KEY_IFCNT, driver.IFCNT());
 
   // IOIN: входной регистр состояния ног/страпов и версионных битов.
   // Полезен, чтобы понять: что реально видит драйвер на своих входах (STEP/DIR/EN), включён ли PDN_UART и т.п.
-  printKeyHex32(DumpKeys::SUBSYS_IOIN, DumpKeys::KEY_RAW, driver.IOIN());
+  printKeyHex32(DUMP_SUBSYS_IOIN, DUMP_KEY_RAW, driver.IOIN());
 
   // IOIN.version: версия/идентификатор кристалла (по документации Trinamic).
-  printKeyHex32(DumpKeys::SUBSYS_IOIN, DumpKeys::KEY_VERSION, driver.version());
+  printKeyHex32(DUMP_SUBSYS_IOIN, DUMP_KEY_VERSION, driver.version());
 
   // Ниже — отдельные биты из IOIN, прочитанные хелперами библиотеки:
   // enn      : состояние входа ENN (enable, активный LOW на большинстве модулей)
@@ -205,69 +220,69 @@ static void dumpInfo() {
   // pdn_uart : состояние PDN_UART (пин, совмещающий power-down и UART)
   // step/dir : логические уровни на входах STEP и DIR, которые видит драйвер
   // spread_en: состояние входа SPREAD (выбор spreadCycle/stealthChop, зависит от конфигурации)
-  printKeyValueBool(DumpKeys::SUBSYS_IOIN, DumpKeys::KEY_ENN, driver.enn());
-  printKeyValueBool(DumpKeys::SUBSYS_IOIN, DumpKeys::KEY_MS1, driver.ms1());
-  printKeyValueBool(DumpKeys::SUBSYS_IOIN, DumpKeys::KEY_MS2, driver.ms2());
-  printKeyValueBool(DumpKeys::SUBSYS_IOIN, DumpKeys::KEY_DIAG, driver.diag());
-  printKeyValueBool(DumpKeys::SUBSYS_IOIN, DumpKeys::KEY_PDN_UART, driver.pdn_uart());
-  printKeyValueBool(DumpKeys::SUBSYS_IOIN, DumpKeys::KEY_STEP, driver.step());
-  printKeyValueBool(DumpKeys::SUBSYS_IOIN, DumpKeys::KEY_DIR, driver.dir());
-  printKeyValueBool(DumpKeys::SUBSYS_IOIN, DumpKeys::KEY_SPREAD_EN, driver.spread_en());
+  printKeyValueBool(DUMP_SUBSYS_IOIN, DUMP_KEY_ENN, driver.enn());
+  printKeyValueBool(DUMP_SUBSYS_IOIN, DUMP_KEY_MS1, driver.ms1());
+  printKeyValueBool(DUMP_SUBSYS_IOIN, DUMP_KEY_MS2, driver.ms2());
+  printKeyValueBool(DUMP_SUBSYS_IOIN, DUMP_KEY_DIAG, driver.diag());
+  printKeyValueBool(DUMP_SUBSYS_IOIN, DUMP_KEY_PDN_UART, driver.pdn_uart());
+  printKeyValueBool(DUMP_SUBSYS_IOIN, DUMP_KEY_STEP, driver.step());
+  printKeyValueBool(DUMP_SUBSYS_IOIN, DUMP_KEY_DIR, driver.dir());
+  printKeyValueBool(DUMP_SUBSYS_IOIN, DUMP_KEY_SPREAD_EN, driver.spread_en());
 
   // ---------- Ключевые конфиги ----------
   // GCONF: общий конфиг драйвера (режимы UART, инверсии, выбор stealth/spread и пр.).
-  printKeyHex32(DumpKeys::SUBSYS_TMC, DumpKeys::KEY_GCONF, driver.GCONF());
+  printKeyHex32(DUMP_SUBSYS_TMC, DUMP_KEY_GCONF, driver.GCONF());
 
   // GSTAT: латч-статусы/события (например reset, driver error). Обычно чистится записью 1 в соответствующие биты.
-  printKeyHex32(DumpKeys::SUBSYS_TMC, DumpKeys::KEY_GSTAT, driver.GSTAT());
+  printKeyHex32(DUMP_SUBSYS_TMC, DUMP_KEY_GSTAT, driver.GSTAT());
 
   // IHOLD_IRUN: ток удержания (IHOLD), ток движения (IRUN) и время плавного перехода (IHOLDDELAY).
   // Влияет на момент/нагрев/шум.
-  printKeyHex32(DumpKeys::SUBSYS_TMC, DumpKeys::KEY_IHOLD_IRUN, driver.IHOLD_IRUN());
+  printKeyHex32(DUMP_SUBSYS_TMC, DUMP_KEY_IHOLD_IRUN, driver.IHOLD_IRUN());
 
   // TPOWERDOWN: задержка (в тактах) до перехода на IHOLD после остановки (энергосбережение/нагрев).
-  printKeyValueU32(DumpKeys::SUBSYS_TMC, DumpKeys::KEY_TPOWERDOWN, driver.TPOWERDOWN());
+  printKeyValueU32(DUMP_SUBSYS_TMC, DUMP_KEY_TPOWERDOWN, driver.TPOWERDOWN());
 
   // TPWMTHRS: порог скорости, ниже которого активен stealthChop (PWM) (если он включён).
   // Выше порога обычно переключаются на spreadCycle (в зависимости от настроек).
-  printKeyHex32(DumpKeys::SUBSYS_TMC, DumpKeys::KEY_TPWMTHRS, driver.TPWMTHRS());
+  printKeyHex32(DUMP_SUBSYS_TMC, DUMP_KEY_TPWMTHRS, driver.TPWMTHRS());
 
   // TCOOLTHRS: порог для функций coolStep/StallGuard (условно: с какой скорости начинаем оценивать нагрузку).
-  printKeyHex32(DumpKeys::SUBSYS_TMC, DumpKeys::KEY_TCOOLTHRS, driver.TCOOLTHRS());
+  printKeyHex32(DUMP_SUBSYS_TMC, DUMP_KEY_TCOOLTHRS, driver.TCOOLTHRS());
 
   // SGTHRS: чувствительность StallGuard (0..255). Чем больше — тем чувствительнее/раньше срабатывает (в общем случае).
   // Точное поведение зависит от механики/тока/скорости.
-  printKeyValueU32(DumpKeys::SUBSYS_TMC, DumpKeys::KEY_SGTHRS, driver.SGTHRS());
+  printKeyValueU32(DUMP_SUBSYS_TMC, DUMP_KEY_SGTHRS, driver.SGTHRS());
 
   // CHOPCONF: конфиг чопера (toff, blank time, hysteresis, microstep interp и пр.).
   // Критично для стабильности, шума и качества шага.
-  printKeyHex32(DumpKeys::SUBSYS_TMC, DumpKeys::KEY_CHOPCONF, driver.CHOPCONF());
+  printKeyHex32(DUMP_SUBSYS_TMC, DUMP_KEY_CHOPCONF, driver.CHOPCONF());
 
   // PWMCONF: параметры PWM для stealthChop (амплитуда, градиент, авто-режимы и т.п.).
-  printKeyHex32(DumpKeys::SUBSYS_TMC, DumpKeys::KEY_PWMCONF, driver.PWMCONF());
+  printKeyHex32(DUMP_SUBSYS_TMC, DUMP_KEY_PWMCONF, driver.PWMCONF());
 
   // ---------- Текущее движение / статус ----------
   // VACTUAL: текущая скорость в "внутренних единицах" драйвера (актуально при управлении через внутренний motion controller).
   // В нашем проекте шаги генерируются внешним STEP, поэтому обычно будет 0.
-  printKeyHex32(DumpKeys::SUBSYS_TMC, DumpKeys::KEY_VACTUAL, driver.VACTUAL());
+  printKeyHex32(DUMP_SUBSYS_TMC, DUMP_KEY_VACTUAL, driver.VACTUAL());
 
   // TSTEP: измеренный период между микрошагами (приблизительная оценка скорости). Может быть 0/макс при стоянии.
-  printKeyValueU32(DumpKeys::SUBSYS_TMC, DumpKeys::KEY_TSTEP, driver.TSTEP());
+  printKeyValueU32(DUMP_SUBSYS_TMC, DUMP_KEY_TSTEP, driver.TSTEP());
 
   // MSCNT: счётчик позиции внутри микрошагового синуса (0..1023 для 256 микрошагов).
   // Полезно для диагностики, что микрошаги реально бегут.
-  printKeyValueU32(DumpKeys::SUBSYS_TMC, DumpKeys::KEY_MSCNT, driver.MSCNT());
+  printKeyValueU32(DUMP_SUBSYS_TMC, DUMP_KEY_MSCNT, driver.MSCNT());
 
   // MSCURACT: фактические токи фаз (A/B) в текущем микрошаге (в кодировке драйвера).
-  printKeyHex32(DumpKeys::SUBSYS_TMC, DumpKeys::KEY_MSCURACT, driver.MSCURACT());
+  printKeyHex32(DUMP_SUBSYS_TMC, DUMP_KEY_MSCURACT, driver.MSCURACT());
 
   // DRV_STATUS: большой регистр статуса (ошибки, перегрев, stallguard, режимы, токи и пр.).
   // По нему библиотека и выдаёт флаги ниже.
-  printKeyHex32(DumpKeys::SUBSYS_TMC, DumpKeys::KEY_DRV_STATUS, driver.DRV_STATUS());
+  printKeyHex32(DUMP_SUBSYS_TMC, DUMP_KEY_DRV_STATUS, driver.DRV_STATUS());
 
   // SG_RESULT: значение StallGuard (оценка нагрузки/скольжения). Обычно выше = легче крутится.
   // Имеет смысл только в диапазоне скоростей, где StallGuard активен.
-  printKeyValueU32(DumpKeys::SUBSYS_TMC, DumpKeys::KEY_SG_RESULT, driver.SG_RESULT());
+  printKeyValueU32(DUMP_SUBSYS_TMC, DUMP_KEY_SG_RESULT, driver.SG_RESULT());
 
   // ---------- Декодированные флаги безопасности/диагностики (из DRV_STATUS) ----------
   // ot      : overtemperature shutdown — перегрев, драйвер отключил выход.
@@ -278,25 +293,26 @@ static void dumpInfo() {
   // stst    : standstill — драйвер считает, что стоит (для некоторых режимов/регистров).
   // stealth : фактический режим stealthChop активен сейчас.
   // cs_actual: фактическое значение тока (current scale) в данный момент.
-  printKeyValueBool(DumpKeys::SUBSYS_STATUS, DumpKeys::KEY_OT, driver.ot());
-  printKeyValueBool(DumpKeys::SUBSYS_STATUS, DumpKeys::KEY_OTPW, driver.otpw());
-  printKeyValueBool(DumpKeys::SUBSYS_STATUS, DumpKeys::KEY_S2GA, driver.s2ga());
-  printKeyValueBool(DumpKeys::SUBSYS_STATUS, DumpKeys::KEY_S2GB, driver.s2gb());
-  printKeyValueBool(DumpKeys::SUBSYS_STATUS, DumpKeys::KEY_OLA, driver.ola());
-  printKeyValueBool(DumpKeys::SUBSYS_STATUS, DumpKeys::KEY_OLB, driver.olb());
-  printKeyValueBool(DumpKeys::SUBSYS_STATUS, DumpKeys::KEY_T120, driver.t120());
-  printKeyValueBool(DumpKeys::SUBSYS_STATUS, DumpKeys::KEY_T143, driver.t143());
-  printKeyValueBool(DumpKeys::SUBSYS_STATUS, DumpKeys::KEY_T150, driver.t150());
-  printKeyValueBool(DumpKeys::SUBSYS_STATUS, DumpKeys::KEY_T157, driver.t157());
-  printKeyValueBool(DumpKeys::SUBSYS_STATUS, DumpKeys::KEY_STST, driver.stst());
-  printKeyValueBool(DumpKeys::SUBSYS_STATUS, DumpKeys::KEY_STEALTH, driver.stealth());
-  printKeyValueU32(DumpKeys::SUBSYS_STATUS, DumpKeys::KEY_CS_ACTUAL, driver.cs_actual());
+  printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_OT, driver.ot());
+  printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_OTPW, driver.otpw());
+  printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_S2GA, driver.s2ga());
+  printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_S2GB, driver.s2gb());
+  printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_OLA, driver.ola());
+  printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_OLB, driver.olb());
+  printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_T120, driver.t120());
+  printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_T143, driver.t143());
+  printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_T150, driver.t150());
+  printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_T157, driver.t157());
+  printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_STST, driver.stst());
+  printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_STEALTH, driver.stealth());
+  printKeyValueU32(DUMP_SUBSYS_STATUS, DUMP_KEY_CS_ACTUAL, driver.cs_actual());
 }
 
 static void printHelp() {
   Serial.println(F(
     "help | info | enable 0|1 | dir 0|1 | run <sps> | move <steps> <sps> | stop\n"
     "current <mA> | microsteps <n> | stealth 0|1 | sgthrs <0..255>\n"
+    "pos | setpos <value>\n"
   ));
 }
 
@@ -313,6 +329,19 @@ static void handleLine(char *s) {
 
   if (!strcmp(cmd, "help")) { printHelp(); return; }
   if (!strcmp(cmd, "info") || !strcmp(cmd, "dump")) { dumpInfo(); return; }
+  if (!strcmp(cmd, COMMAND_POS)) {
+    Serial.print(F("pos="));
+    Serial.println(getPosition());
+    return;
+  }
+  if (!strcmp(cmd, COMMAND_SET_POS)) {
+    char *a = strtok(nullptr, " \t");
+    if (!a) { Serial.println(F("setpos needs <value>")); return; }
+    setPosition(atol(a));
+    Serial.print(F("pos="));
+    Serial.println(getPosition());
+    return;
+  }
 
   if (!strcmp(cmd, "enable")) {
     char *a = strtok(nullptr, " \t");
