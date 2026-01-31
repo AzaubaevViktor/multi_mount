@@ -54,7 +54,7 @@ class TMC2209ProtocolConstants:
     DEFAULT_BAUD = 115200
     DEFAULT_TIMEOUT_S = 0.5
     DEFAULT_IDLE_TIMEOUT_S = .5
-    DEFAULT_DEVICE_NAME = "lx200.tmc2209.serial"
+    DEFAULT_DEVICE_NAME = "tmc2209"
     BOOL_TRUE = 1
     BOOL_FALSE = 0
     MIN_SPS = 1
@@ -85,11 +85,11 @@ class TMC2209ArduinoConfig:
     def __post_init__(self) -> None:
         if not self.port:
             raise TMC2209ConfigError("serial port is required")
-        if self.baud <= TMC2209ProtocolConstants.BOOL_FALSE:
+        if self.baud <= 0:
             raise TMC2209ConfigError("baud must be positive")
-        if self.timeout_s <= TMC2209ProtocolConstants.BOOL_FALSE:
+        if self.timeout_s <= 0:
             raise TMC2209ConfigError("timeout must be positive")
-        if self.idle_timeout_s <= TMC2209ProtocolConstants.BOOL_FALSE:
+        if self.idle_timeout_s <= 0:
             raise TMC2209ConfigError("idle timeout must be positive")
         if not self.device_name:
             raise TMC2209ConfigError("device name is required")
