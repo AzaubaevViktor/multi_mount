@@ -1,4 +1,5 @@
 # Development rules
+- First, try to use in-file like code style
 - No magic strings or numbers in logic code;
     - For numeric constants use class with classvalues
         ```python
@@ -15,14 +16,18 @@
             RESER = "rst"
             GET_DATA = "gtdt"
         ```
-    - but you can use strings inplace in:
+    - but you can use strings or numbers inplace in:
         - logs (use default notation `("str %s %d", var, var2)`)
         - text for exceptions (use f-strings)
+        - simple cases (like 0, 1 or 1.0, but not if its external interface or)
 - For each error create Exception classes structures
 - For entities which can converts into some formats, use dataclasses
 - Each class must verify consistency, or be designed so consistency is ensured by default
     - check logic, dont check types
 - If you see multiple functions / methods / piece of code add `# TODO: prompt` for future fixing
+
+- Don't import all methods from module files in `__init__.py`, just import `from lib.module import methods`
+
 - Remember about architecture, you can create and edit ARCHITECHTURE.md in every place if you want to save important piece of big picture
 - Use writed methods instead writing new
 - Organize it
