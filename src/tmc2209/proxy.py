@@ -27,8 +27,7 @@ class TMC2209TimeoutError(TMC2209Error):
 class TMC2209ResponseError(TMC2209Error):
     pass
 
-
-class TMC2209Command(StrEnum):
+class Command(StrEnum):
     HELP = "help"
     INFO = "info"
     ENABLE = "enable"
@@ -44,7 +43,7 @@ class TMC2209Command(StrEnum):
     SET_POS = "setpos"
 
 
-class TMC2209ProtocolConstants:
+class ProtocolConstants:
     ENCODING = "ascii"
     DECODE_ERRORS = "replace"
     LINE_TERMINATOR = b"\r"
@@ -57,11 +56,13 @@ class TMC2209ProtocolConstants:
     DEFAULT_DEVICE_NAME = "tmc2209"
     BOOL_TRUE = 1
     BOOL_FALSE = 0
+    ZERO = 0
+    FIRST_LINE_INDEX = 0
     MIN_SPS = 1
     MAX_SPS = 40000
     MIN_CURRENT_MA = 50
     MAX_CURRENT_MA = 2000
-    MICROSTEPS_ALLOWED = (1, 2, 4, 8, 16, 32, 64, 128, 256)
+    MICROSTEPS_ALLOWED = frozenset((1, 2, 4, 8, 16, 32, 64, 128, 256))
     SGTHRS_MIN = 0
     SGTHRS_MAX = 255
     INFO_SEPARATOR = " = "
@@ -77,10 +78,10 @@ class TMC2209ProtocolConstants:
 @dataclasses.dataclass
 class TMC2209ArduinoConfig:
     port: str
-    baud: int = TMC2209ProtocolConstants.DEFAULT_BAUD
-    timeout_s: float = TMC2209ProtocolConstants.DEFAULT_TIMEOUT_S
-    idle_timeout_s: float = TMC2209ProtocolConstants.DEFAULT_IDLE_TIMEOUT_S
-    device_name: str = TMC2209ProtocolConstants.DEFAULT_DEVICE_NAME
+    baud: int = ProtocolConstants.DEFAULT_BAUD
+    timeout_s: float = ProtocolConstants.DEFAULT_TIMEOUT_S
+    idle_timeout_s: float = ProtocolConstants.DEFAULT_IDLE_TIMEOUT_S
+    device_name: str = ProtocolConstants.DEFAULT_DEVICE_NAME
 
     def __post_init__(self) -> None:
         if not self.port:
@@ -106,9 +107,9 @@ class TMC2209KeyValue:
 
     @classmethod
     def from_line(cls, line: str) -> "TMC2209KeyValue":
-        if TMC2209ProtocolConstants.INFO_SEPARATOR not in line:
+        if ProtocolConstants.INFO_SEPARATOR not in line:
             raise TMC2209ProtocolError(f"invalid info line: {line!r}")
-        key, value = line.split(TMC2209ProtocolConstants.INFO_SEPARATOR, 1)
+        key, value = line.split(ProtocolConstants.INFO_SEPARATOR, 1)
         key = key.strip()
         value = value.strip()
         if not key:
@@ -130,7 +131,7 @@ class TMC2209ArduinoProxy:
             raise TMC2209ConfigError("config is required")
         self._device = device
         self._config = config
-        self._log = logger or logging.getLogger(TMC2209ProtocolConstants.DEFAULT_DEVICE_NAME)
+        self._log = logger or logging.getLogger(ProtocolConstants.DEFAULT_DEVICE_NAME)
 
     @classmethod
     def from_serial(
@@ -153,115 +154,127 @@ class TMC2209ArduinoProxy:
         self._device.close()
 
     def help(self) -> list[str]:
-        return self._transact_lines(TMC2209Command.HELP)
+        return self._transact_lines(Command.HELP)
 
-    def info(self) -> list[TMC2209KeyValue]:
-        lines = self._transact_lines(TMC2209Command.INFO)
-        return [TMC2209KeyValue.from_line(line) for line in lines if line.strip()]
+    def info(self) -> dict[str, int | str]:
+        lines = self._transact_lines(Command.INFO)
+        info: dict[str, int | str] = {}
+        for line in lines:
+            if not line.strip():
+                continue
+            item = TMC2209KeyValue.from_line(line)
+            info[item.key] = self._parse_info_value(item.value)
+        return info
 
     def get_position(self) -> int:
-        line = self._transact_single_line(TMC2209Command.POS)
-        return self._parse_int_prefix(line, TMC2209ProtocolConstants.POS_PREFIX)
+        line = self._transact_single_line(Command.POS)
+        return self._parse_int_prefix(line, ProtocolConstants.POS_PREFIX)
 
     def set_position(self, value: int) -> int:
-        line = self._transact_single_line(TMC2209Command.SET_POS, str(value))
-        return self._parse_int_prefix(line, TMC2209ProtocolConstants.POS_PREFIX)
+        line = self._transact_single_line(Command.SET_POS, str(value))
+        return self._parse_int_prefix(line, ProtocolConstants.POS_PREFIX)
 
     def enable(self, enabled: bool) -> bool:
         value = self._bool_to_str(enabled)
-        line = self._transact_single_line(TMC2209Command.ENABLE, value)
-        parsed = self._parse_int_prefix(line, TMC2209ProtocolConstants.ENABLE_PREFIX)
-        return parsed != TMC2209ProtocolConstants.BOOL_FALSE
+        line = self._transact_single_line(Command.ENABLE, value)
+        parsed = self._parse_int_prefix(line, ProtocolConstants.ENABLE_PREFIX)
+        return parsed != ProtocolConstants.BOOL_FALSE
 
     def set_direction(self, reverse: bool) -> bool:
         value = self._bool_to_str(reverse)
-        line = self._transact_single_line(TMC2209Command.DIR, value)
-        parsed = self._parse_int_prefix(line, TMC2209ProtocolConstants.DIR_PREFIX)
-        return parsed != TMC2209ProtocolConstants.BOOL_FALSE
+        line = self._transact_single_line(Command.DIR, value)
+        parsed = self._parse_int_prefix(line, ProtocolConstants.DIR_PREFIX)
+        return parsed != ProtocolConstants.BOOL_FALSE
 
     def run(self, steps_per_second: int) -> list[str]:
         self._validate_speed(steps_per_second)
-        return self._transact_lines(TMC2209Command.RUN, str(steps_per_second))
+        return self._transact_lines(Command.RUN, str(steps_per_second))
 
     def move(self, steps: int, steps_per_second: Optional[int] = None) -> list[str]:
         args = [str(steps)]
         if steps_per_second is not None:
             self._validate_speed(steps_per_second)
             args.append(str(steps_per_second))
-        return self._transact_lines(TMC2209Command.MOVE, *args)
+        return self._transact_lines(Command.MOVE, *args)
 
     def stop(self) -> list[str]:
-        return self._transact_lines(TMC2209Command.STOP)
+        return self._transact_lines(Command.STOP)
 
     def set_current_ma(self, milliamps: int) -> int:
         if (
-            milliamps < TMC2209ProtocolConstants.MIN_CURRENT_MA
-            or milliamps > TMC2209ProtocolConstants.MAX_CURRENT_MA
+            milliamps < ProtocolConstants.MIN_CURRENT_MA
+            or milliamps > ProtocolConstants.MAX_CURRENT_MA
         ):
             raise TMC2209ProtocolError("current out of range")
-        line = self._transact_single_line(TMC2209Command.CURRENT, str(milliamps))
-        return self._parse_int_prefix(line, TMC2209ProtocolConstants.RMS_CURRENT_PREFIX)
+        line = self._transact_single_line(Command.CURRENT, str(milliamps))
+        return self._parse_int_prefix(line, ProtocolConstants.RMS_CURRENT_PREFIX)
 
     def set_microsteps(self, microsteps: int) -> int:
-        allowed = self._allowed_microsteps()
-        if microsteps not in allowed:
+        if microsteps not in ProtocolConstants.MICROSTEPS_ALLOWED:
             raise TMC2209ProtocolError("invalid microsteps value")
-        line = self._transact_single_line(TMC2209Command.MICROSTEPS, str(microsteps))
-        return self._parse_int_prefix(line, TMC2209ProtocolConstants.MICROSTEPS_PREFIX)
+        line = self._transact_single_line(Command.MICROSTEPS, str(microsteps))
+        return self._parse_int_prefix(line, ProtocolConstants.MICROSTEPS_PREFIX)
 
     def set_stealth(self, enabled: bool) -> bool:
         value = self._bool_to_str(enabled)
-        line = self._transact_single_line(TMC2209Command.STEALTH, value)
-        parsed = self._parse_int_prefix(line, TMC2209ProtocolConstants.STEALTH_PREFIX)
-        return parsed != TMC2209ProtocolConstants.BOOL_FALSE
+        line = self._transact_single_line(Command.STEALTH, value)
+        parsed = self._parse_int_prefix(line, ProtocolConstants.STEALTH_PREFIX)
+        return parsed != ProtocolConstants.BOOL_FALSE
 
     def set_sgthrs(self, value: int) -> int:
-        if value < TMC2209ProtocolConstants.SGTHRS_MIN or value > TMC2209ProtocolConstants.SGTHRS_MAX:
+        if value < ProtocolConstants.SGTHRS_MIN or value > ProtocolConstants.SGTHRS_MAX:
             raise TMC2209ProtocolError("sgthrs out of range")
-        line = self._transact_single_line(TMC2209Command.SGTHRS, str(value))
-        return self._parse_int_prefix(line, TMC2209ProtocolConstants.SGTHRS_PREFIX)
+        line = self._transact_single_line(Command.SGTHRS, str(value))
+        return self._parse_int_prefix(line, ProtocolConstants.SGTHRS_PREFIX)
 
     def read_notifications(self) -> list[str]:
         lines = self._device.read_lines_until_idle(
-            TMC2209ProtocolConstants.LINE_TERMINATOR,
+            ProtocolConstants.LINE_TERMINATOR,
             self._config.idle_timeout_s,
         )
         return self._decode_lines(lines)
 
     def _read_all_input_after_connect(self) -> None:
         self._device.read_lines_until_idle(
-            TMC2209ProtocolConstants.LINE_TERMINATOR,
+            ProtocolConstants.LINE_TERMINATOR,
             self._config.idle_timeout_s * 5,
         )
 
-    def _transact_lines(self, command: TMC2209Command, *args: str) -> list[str]:
+    def _transact_lines(self, command: Command, *args: str) -> list[str]:
         payload = self._encode_command(command, *args)
         lines = self._device.transact_lines(
             payload,
-            TMC2209ProtocolConstants.LINE_TERMINATOR,
+            ProtocolConstants.LINE_TERMINATOR,
             self._config.idle_timeout_s,
         )
         if not lines:
             raise TMC2209TimeoutError("no response from device")
         return self._decode_lines(lines)
 
-    def _transact_single_line(self, command: TMC2209Command, *args: str) -> str:
+    def _transact_single_line(self, command: Command, *args: str) -> str:
         lines = self._transact_lines(command, *args)
-        return lines[TMC2209ProtocolConstants.BOOL_FALSE]
+        return lines[ProtocolConstants.FIRST_LINE_INDEX]
 
-    def _encode_command(self, command: TMC2209Command, *args: str) -> bytes:
+    def _encode_command(self, command: Command, *args: str) -> bytes:
         parts = [command.value]
         if args:
             parts.extend(args)
-        line = TMC2209ProtocolConstants.ARG_SEPARATOR.join(parts) + TMC2209ProtocolConstants.LINE_TERMINATOR_STR
-        return line.encode(TMC2209ProtocolConstants.ENCODING)
+        line = ProtocolConstants.ARG_SEPARATOR.join(parts) + ProtocolConstants.LINE_TERMINATOR_STR
+        return line.encode(ProtocolConstants.ENCODING)
+
+    @staticmethod
+    def _parse_info_value(value: str) -> int | str:
+        try:
+            return int(value)
+        except ValueError:
+            return value
 
     @staticmethod
     def _decode_lines(lines: list[bytes]) -> list[str]:
         decoded: list[str] = []
         for line in lines:
-            text = line.decode(TMC2209ProtocolConstants.ENCODING, errors=TMC2209ProtocolConstants.DECODE_ERRORS)
-            decoded.append(text.rstrip(TMC2209ProtocolConstants.STRIP_CHARS))
+            text = line.decode(ProtocolConstants.ENCODING, errors=ProtocolConstants.DECODE_ERRORS)
+            decoded.append(text.rstrip(ProtocolConstants.STRIP_CHARS))
         return decoded
 
     @staticmethod
@@ -276,17 +289,13 @@ class TMC2209ArduinoProxy:
     @staticmethod
     def _bool_to_str(value: bool) -> str:
         if value:
-            return str(TMC2209ProtocolConstants.BOOL_TRUE)
-        return str(TMC2209ProtocolConstants.BOOL_FALSE)
-
-    @staticmethod
-    def _allowed_microsteps() -> set[int]:
-        return set(TMC2209ProtocolConstants.MICROSTEPS_ALLOWED)
+            return str(ProtocolConstants.BOOL_TRUE)
+        return str(ProtocolConstants.BOOL_FALSE)
 
     @staticmethod
     def _validate_speed(steps_per_second: int) -> None:
-        if steps_per_second == TMC2209ProtocolConstants.BOOL_FALSE:
+        if steps_per_second == ProtocolConstants.ZERO:
             raise TMC2209ProtocolError("steps per second must be non-zero")
         sps = abs(steps_per_second)
-        if sps < TMC2209ProtocolConstants.MIN_SPS or sps > TMC2209ProtocolConstants.MAX_SPS:
+        if sps < ProtocolConstants.MIN_SPS or sps > ProtocolConstants.MAX_SPS:
             raise TMC2209ProtocolError("steps per second out of range")

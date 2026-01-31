@@ -293,6 +293,7 @@ static void dumpInfo() {
   // stst    : standstill — драйвер считает, что стоит (для некоторых режимов/регистров).
   // stealth : фактический режим stealthChop активен сейчас.
   // cs_actual: фактическое значение тока (current scale) в данный момент.
+  // TODO: Add stall guard
   printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_OT, driver.ot());
   printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_OTPW, driver.otpw());
   printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_S2GA, driver.s2ga());

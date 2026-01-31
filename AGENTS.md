@@ -31,3 +31,7 @@
 - Remember about architecture, you can create and edit ARCHITECHTURE.md in every place if you want to save important piece of big picture
 - Use writed methods instead writing new
 - Organize it
+
+## Generalized rules from recent edits
+- Prefer concise, context-local names over repeating prefixes in enums/types when the module already scopes them.
+- Make zero usage explicit with named constants and store allowed option sets as set-like constants.

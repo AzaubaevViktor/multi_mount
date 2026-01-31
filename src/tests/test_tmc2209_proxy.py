@@ -12,7 +12,7 @@ from lib.logging_setup import set_all_loggers_level
 from tmc2209.proxy import (
     TMC2209ArduinoConfig,
     TMC2209ArduinoProxy,
-    TMC2209ProtocolConstants,
+    ProtocolConstants,
 )
 
 LOGGER = logging.getLogger("tests.tmc2209.proxy")
@@ -21,9 +21,9 @@ set_all_loggers_level(logging.DEBUG)
 
 class TMC2209TestConstants:
     PORT = "/dev/tty.usbserial-2110"
-    BAUD = TMC2209ProtocolConstants.DEFAULT_BAUD
-    TIMEOUT_S = TMC2209ProtocolConstants.DEFAULT_TIMEOUT_S
-    IDLE_TIMEOUT_S = TMC2209ProtocolConstants.DEFAULT_IDLE_TIMEOUT_S
+    BAUD = ProtocolConstants.DEFAULT_BAUD
+    TIMEOUT_S = ProtocolConstants.DEFAULT_TIMEOUT_S
+    IDLE_TIMEOUT_S = ProtocolConstants.DEFAULT_IDLE_TIMEOUT_S
     DEFAULT_POLL_INTERVAL_S = 0.05
     MOVE_TIMEOUT_FACTOR = 3.0
     MOVE_TIMEOUT_MIN_S = 0.5
@@ -65,35 +65,35 @@ class TMC2209TestConfig:
     def __post_init__(self) -> None:
         if not self.port:
             raise ValueError("Serial port is required.")
-        if self.baud <= TMC2209ProtocolConstants.BOOL_FALSE:
+        if self.baud <= ProtocolConstants.BOOL_FALSE:
             raise ValueError("Baud must be positive.")
-        if self.timeout_s <= TMC2209ProtocolConstants.BOOL_FALSE:
+        if self.timeout_s <= ProtocolConstants.BOOL_FALSE:
             raise ValueError("Timeout must be positive.")
-        if self.idle_timeout_s <= TMC2209ProtocolConstants.BOOL_FALSE:
+        if self.idle_timeout_s <= ProtocolConstants.BOOL_FALSE:
             raise ValueError("Idle timeout must be positive.")
-        if self.steps_per_second == TMC2209ProtocolConstants.BOOL_FALSE:
+        if self.steps_per_second == ProtocolConstants.BOOL_FALSE:
             raise ValueError("Steps per second must be non-zero.")
-        if self.move_steps == TMC2209ProtocolConstants.BOOL_FALSE:
+        if self.move_steps == ProtocolConstants.BOOL_FALSE:
             raise ValueError("Move steps must be non-zero.")
-        if self.poll_interval_s <= TMC2209ProtocolConstants.BOOL_FALSE:
+        if self.poll_interval_s <= ProtocolConstants.BOOL_FALSE:
             raise ValueError("Poll interval must be positive.")
-        if self.move_timeout_s <= TMC2209ProtocolConstants.BOOL_FALSE:
+        if self.move_timeout_s <= ProtocolConstants.BOOL_FALSE:
             raise ValueError("Move timeout must be positive.")
-        if self.settle_delay_s < TMC2209ProtocolConstants.BOOL_FALSE:
+        if self.settle_delay_s < ProtocolConstants.BOOL_FALSE:
             raise ValueError("Settle delay must be non-negative.")
-        if self.microsteps not in TMC2209ProtocolConstants.MICROSTEPS_ALLOWED:
+        if self.microsteps not in ProtocolConstants.MICROSTEPS_ALLOWED:
             raise ValueError("Microsteps must be allowed by protocol.")
         if (
-            self.current_ma < TMC2209ProtocolConstants.MIN_CURRENT_MA
-            or self.current_ma > TMC2209ProtocolConstants.MAX_CURRENT_MA
+            self.current_ma < ProtocolConstants.MIN_CURRENT_MA
+            or self.current_ma > ProtocolConstants.MAX_CURRENT_MA
         ):
             raise ValueError("Current must be within allowed range.")
-        if self.sgthrs < TMC2209ProtocolConstants.SGTHRS_MIN or self.sgthrs > TMC2209ProtocolConstants.SGTHRS_MAX:
+        if self.sgthrs < ProtocolConstants.SGTHRS_MIN or self.sgthrs > ProtocolConstants.SGTHRS_MAX:
             raise ValueError("SGTHRS must be within allowed range.")
 
 
 def _compute_move_timeout_s(steps: int, sps: int) -> float:
-    duration = abs(steps) / max(abs(sps), TMC2209ProtocolConstants.MIN_SPS)
+    duration = abs(steps) / max(abs(sps), ProtocolConstants.MIN_SPS)
     scaled = duration * TMC2209TestConstants.MOVE_TIMEOUT_FACTOR
     return max(TMC2209TestConstants.MOVE_TIMEOUT_MIN_S, scaled)
 
