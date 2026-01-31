@@ -47,13 +47,13 @@ class TMC2209Command(StrEnum):
 class TMC2209ProtocolConstants:
     ENCODING = "ascii"
     DECODE_ERRORS = "replace"
-    LINE_TERMINATOR = b"\n"
-    LINE_TERMINATOR_STR = "\n"
+    LINE_TERMINATOR = b"\r"
+    LINE_TERMINATOR_STR = "\r\n"
     ARG_SEPARATOR = " "
     STRIP_CHARS = "\r\n"
     DEFAULT_BAUD = 115200
     DEFAULT_TIMEOUT_S = 0.5
-    DEFAULT_IDLE_TIMEOUT_S = 0.2
+    DEFAULT_IDLE_TIMEOUT_S = .5
     DEFAULT_DEVICE_NAME = "lx200.tmc2209.serial"
     BOOL_TRUE = 1
     BOOL_FALSE = 0
@@ -145,7 +145,9 @@ class TMC2209ArduinoProxy:
             config.timeout_s,
             config.device_name,
         )
-        return cls(device, config, logger=logger)
+        proxy = cls(device, config, logger=logger)
+        proxy._read_all_input_after_connect()
+        return proxy
 
     def close(self) -> None:
         self._device.close()
@@ -225,6 +227,12 @@ class TMC2209ArduinoProxy:
             self._config.idle_timeout_s,
         )
         return self._decode_lines(lines)
+
+    def _read_all_input_after_connect(self) -> None:
+        self._device.read_lines_until_idle(
+            TMC2209ProtocolConstants.LINE_TERMINATOR,
+            self._config.idle_timeout_s * 5,
+        )
 
     def _transact_lines(self, command: TMC2209Command, *args: str) -> list[str]:
         payload = self._encode_command(command, *args)

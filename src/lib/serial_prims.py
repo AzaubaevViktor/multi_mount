@@ -20,6 +20,7 @@ class SerialLineDeviceConstants:
 class SerialLineDevice:
     def __init__(self, port: str, baud: int, timeout_s: float, name: str):
         self.log = logging.getLogger(name)
+        self.log.setLevel(logging.DEBUG)
         self.lock = threading.Lock()
         if serial is None:
             self.log.error("pyserial not available: install with 'pip install pyserial'")

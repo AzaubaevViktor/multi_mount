@@ -24,7 +24,7 @@
 - For entities which can converts into some formats, use dataclasses
 - Each class must verify consistency, or be designed so consistency is ensured by default
     - check logic, dont check types
-- If you see multiple functions / methods / piece of code add `# TODO: prompt` for future fixing
+- If you see multiple functions / methods / piece of code add `# TODO: <what should be better here>` for future fixing
 
 - Don't import all methods from module files in `__init__.py`, just import `from lib.module import methods`
 
