@@ -23,6 +23,7 @@
         - Don't make constant for simple numbers like -1, 0, 1, etc
 - For each error create Exception classes structures
 - For entities which can converts into some formats, use dataclasses
+- Don't add dataclasses (or new config containers) just to group constants/options unless explicitly requested.
 - Each class must verify consistency, or be designed so consistency is ensured by default
     - check logic, dont check types
 - If you see multiple functions / methods / piece of code add `# TODO: <what should be better here>` for future fixing

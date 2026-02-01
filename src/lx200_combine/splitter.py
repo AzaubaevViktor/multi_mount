@@ -66,6 +66,7 @@ class LX200CombineConstants:
     SITE_NAME_TEMPLATE = "Combine mount RA:{ra} DEC:{dec}"
 
 
+@dataclasses.dataclass(frozen=True)
 class LX200PrimaryAxis(StrEnum):
     RA = "ra"
     DEC = "dec"
