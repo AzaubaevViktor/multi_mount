@@ -109,7 +109,6 @@ class LX200Command(StrEnum):
     GET_DATE = "GC"
     GET_DATE_ALT = "Gc"
     GET_UTC_OFFSET = "GG"
-    GET_TRACKING_RATE = "GT"
     GET_SITE_NAME = "GM"
     GET_LONGITUDE = "Gg"
     GET_LATITUDE = "Gt"

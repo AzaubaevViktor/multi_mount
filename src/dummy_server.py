@@ -293,9 +293,6 @@ class LX200DummyServer:
     def get_site_name(self) -> str:
         return LX200Constants.DEFAULT_SITE_NAME
 
-    def get_tracking_rate(self) -> str:
-        return LX200Constants.DEFAULT_TRACKING_RATE
-
     def set_object_size(self, value: str) -> bool:
         return True
 

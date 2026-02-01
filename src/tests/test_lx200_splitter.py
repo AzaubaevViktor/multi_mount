@@ -15,7 +15,6 @@ class SplitterTestConstants:
     CMD_GET_RA = ":GR#"
     CMD_GET_DEC = ":GD#"
     CMD_GOTO = ":MS#"
-    CMD_GET_TRACKING_RATE = ":GT#"
     CMD_GET_SITE_NAME = ":GM#"
     CMD_STOP_ALL = ":Q#"
     CMD_STOP_EAST = ":Qe#"
@@ -25,9 +24,6 @@ class SplitterTestConstants:
     RESP_DEC = "DEC"
     RESP_OK = "0"
     RESP_DEFAULT = ""
-    RESP_TRACKING_RA = "60.0#"
-    RESP_TRACKING_DEC = "58.0#"
-    RESP_TRACKING_COMBINED = "59.0#"
     RESP_SITE_NAME_RA = "RA-MOUNT#"
     RESP_SITE_NAME_DEC = "DEC-MOUNT#"
     RESP_SITE_NAME_COMBINED = "Combine mount RA:RA-MOUNT DEC:DEC-MOUNT#"
@@ -186,26 +182,6 @@ def test_stop_with_invalid_direction_raises_parse_error() -> None:
 
     assert ra_handler.calls == SplitterTestConstants.EMPTY_CALLS
     assert dec_handler.calls == SplitterTestConstants.EMPTY_CALLS
-
-
-def test_combines_tracking_rate_from_both_mounts() -> None:
-    ra_handler = SplitterHandlerStub(
-        name="ra",
-        responses={SplitterTestConstants.CMD_GET_TRACKING_RATE: SplitterTestConstants.RESP_TRACKING_RA},
-        default_response=SplitterTestConstants.RESP_DEFAULT,
-    )
-    dec_handler = SplitterHandlerStub(
-        name="dec",
-        responses={SplitterTestConstants.CMD_GET_TRACKING_RATE: SplitterTestConstants.RESP_TRACKING_DEC},
-        default_response=SplitterTestConstants.RESP_DEFAULT,
-    )
-    splitter = LX200Splitter(ra_handler, dec_handler)
-
-    result = splitter.handle_command(SplitterTestConstants.CMD_GET_TRACKING_RATE)
-
-    assert result == SplitterTestConstants.RESP_TRACKING_COMBINED
-    assert ra_handler.calls == [SplitterTestConstants.CMD_GET_TRACKING_RATE]
-    assert dec_handler.calls == [SplitterTestConstants.CMD_GET_TRACKING_RATE]
 
 
 def test_combines_site_name_from_both_mounts() -> None:

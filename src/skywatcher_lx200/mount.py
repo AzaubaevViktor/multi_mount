@@ -48,7 +48,6 @@ class SkyWatcherMount:
         self._device: Optional[SerialLineDevice] = None
         self._axis_states: dict[SkyWatcherAxis, SkyWatcherAxisState] = {}
         self._slew_rate = LX200SlewRate.CENTER
-        self._tracking_rate = SkyWatcherBackendConstants.DEFAULT_TRACKING_RATE
         self._target_ra = self._config.initial_ra
         self._target_dec = self._config.initial_dec
         self._initialized = False
@@ -101,9 +100,6 @@ class SkyWatcherMount:
 
     def set_slew_rate(self, rate: LX200SlewRate) -> None:
         self._slew_rate = rate
-
-    def get_tracking_rate(self) -> str:
-        return self._tracking_rate
 
     def get_current_ra(self) -> LX200Ra:
         state = self._axis_states[self._config.axis_mapping.ra_axis]

@@ -16,15 +16,8 @@ def format_empty(_: Optional[object]) -> str:
     return LX200Constants.RESPONSE_EMPTY
 
 
-def format_tracking_rate(value: str) -> str:
-    return f"{value}{LX200Constants.TERMINATOR}"
-
-
 class LX200TrackingBackend(Protocol):
     def set_slew_rate(self, rate: LX200SlewRate) -> None:
-        raise NotImplementedError
-
-    def get_tracking_rate(self) -> str:
         raise NotImplementedError
 
 
@@ -38,7 +31,6 @@ class LX200TrackingPlugin:
             CommandSpec(LX200Command.RATE_CENTER, parse_no_arg, self.set_rate_center, format_empty),
             CommandSpec(LX200Command.RATE_FIND, parse_no_arg, self.set_rate_find, format_empty),
             CommandSpec(LX200Command.RATE_SLEW, parse_no_arg, self.set_rate_slew, format_empty),
-            CommandSpec(LX200Command.GET_TRACKING_RATE, parse_no_arg, self.get_tracking_rate, format_tracking_rate),
         ]
 
     def set_rate_guide(self) -> None:
@@ -56,6 +48,3 @@ class LX200TrackingPlugin:
     def set_rate_slew(self) -> None:
         self._backend.set_slew_rate(LX200SlewRate.SLEW)
         return None
-
-    def get_tracking_rate(self) -> str:
-        return self._backend.get_tracking_rate()

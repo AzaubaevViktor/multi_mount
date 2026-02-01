@@ -53,7 +53,6 @@ class LX200CombineConstants:
         LX200Command.GET_DISTANCE,
     }
     COMBINE_COMMANDS = {  # Combine values from both mounts
-        LX200Command.GET_TRACKING_RATE,
         LX200Command.GET_SITE_NAME,
     }
     RA_ONLY_DIRECTIONS = {
@@ -64,9 +63,7 @@ class LX200CombineConstants:
         LX200MoveDirection.NORTH,
         LX200MoveDirection.SOUTH,
     }
-    TRACKING_RATE_DECIMALS = 1
     SITE_NAME_TEMPLATE = "Combine mount RA:{ra} DEC:{dec}"
-    TRACKING_RATE_COMBINE_DIVISOR = 2.0
 
 
 class LX200PrimaryAxis(StrEnum):
@@ -276,25 +273,12 @@ class LX200Splitter(LX200CommandHandler):
         raise LX200CombineConfigurationError(f"Unsupported primary axis: {self._primary!r}")
 
     def _combine_response(self, command: LX200Command, ra_response: str, dec_response: str) -> str:
-        if command == LX200Command.GET_TRACKING_RATE:
-            ra_rate = self._parse_tracking_rate(ra_response)
-            dec_rate = self._parse_tracking_rate(dec_response)
-            combined = (ra_rate + dec_rate) / LX200CombineConstants.TRACKING_RATE_COMBINE_DIVISOR
-            formatted = f"{combined:.{LX200CombineConstants.TRACKING_RATE_DECIMALS}f}"
-            return f"{formatted}{LX200Constants.TERMINATOR}"
         if command == LX200Command.GET_SITE_NAME:
             ra_name = self._strip_terminator(ra_response)
             dec_name = self._strip_terminator(dec_response)
             combined = LX200CombineConstants.SITE_NAME_TEMPLATE.format(ra=ra_name, dec=dec_name)
             return f"{combined}{LX200Constants.TERMINATOR}"
         raise LX200CombineConfigurationError(f"Combine handler missing for command: {command!r}")
-
-    def _parse_tracking_rate(self, response: str) -> float:
-        value = self._strip_terminator(response)
-        try:
-            return float(value)
-        except ValueError as exc:
-            raise LX200CombineError(f"invalid tracking rate: {response!r}") from exc
 
     def _strip_terminator(self, response: str) -> str:
         if response.endswith(LX200Constants.TERMINATOR):

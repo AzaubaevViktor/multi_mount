@@ -15,6 +15,3 @@ class SkyWatcherTrackingBackend(LX200TrackingBackend):
 
     def set_slew_rate(self, rate: LX200SlewRate) -> None:
         self._mount.set_slew_rate(rate)
-
-    def get_tracking_rate(self) -> str:
-        return self._mount.get_tracking_rate()
