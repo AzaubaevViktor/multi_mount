@@ -112,6 +112,12 @@ class LX200Splitter(LX200CommandHandler):
         self._dec_handler = dec_handler
         self._primary = primary
         self._log = logger or logging.getLogger(LX200CombineConstants.LOGGER_NAME)
+        self._log.info(
+            "splitter init primary=%s ra_handler=%r dec_handler=%r",
+            primary,
+            ra_handler,
+            dec_handler,
+        )
         self._validate_routes()
 
     def handle_command(self, raw: str) -> str:
@@ -257,11 +263,24 @@ class LX200Splitter(LX200CommandHandler):
             raise LX200ParseError(f"invalid direction: {arg!r}") from exc
 
     def _handle_both(self, raw: str, command: LX200Command) -> str:
+        self._log.info("splitter dispatch both command=%s", command)
         ra_response = self._ra_handler.handle_command(raw)
         dec_response = self._dec_handler.handle_command(raw)
+        self._log.debug(
+            "splitter responses command=%s ra=%r dec=%r",
+            command,
+            ra_response,
+            dec_response,
+        )
         if command in LX200CombineConstants.COMBINE_COMMANDS:
             return self._combine_response(command, ra_response, dec_response)
         if ra_response != dec_response:
+            self._log.warning(
+                "splitter response mismatch command=%s ra=%r dec=%r",
+                command,
+                ra_response,
+                dec_response,
+            )
             raise LX200CombineResponseMismatchError(command, ra_response, dec_response)
         return ra_response
 
@@ -277,6 +296,7 @@ class LX200Splitter(LX200CommandHandler):
             ra_name = self._strip_terminator(ra_response)
             dec_name = self._strip_terminator(dec_response)
             combined = LX200CombineConstants.SITE_NAME_TEMPLATE.format(ra=ra_name, dec=dec_name)
+            self._log.info("splitter combine site_name ra=%r dec=%r", ra_name, dec_name)
             return f"{combined}{LX200Constants.TERMINATOR}"
         raise LX200CombineConfigurationError(f"Combine handler missing for command: {command!r}")
 

@@ -27,6 +27,7 @@ class TMC2209TimeoutError(TMC2209Error):
 class TMC2209ResponseError(TMC2209Error):
     pass
 
+
 class Command(StrEnum):
     HELP = "help"
     INFO = "info"
@@ -133,6 +134,7 @@ class TMC2209ArduinoProxy:
         self._device = device
         self._config = config
         self._log = logger or logging.getLogger(ProtocolConstants.DEFAULT_DEVICE_NAME)
+        self._log.info("tmc2209 proxy init device=%r config=%r", device, config)
 
     @classmethod
     def from_serial(
@@ -141,6 +143,14 @@ class TMC2209ArduinoProxy:
         *,
         logger: Optional[logging.Logger] = None,
     ) -> "TMC2209ArduinoProxy":
+        log = logger or logging.getLogger(ProtocolConstants.DEFAULT_DEVICE_NAME)
+        log.info(
+            "tmc2209 connect port=%s baud=%s timeout_s=%s idle_timeout_s=%s",
+            config.port,
+            config.baud,
+            config.timeout_s,
+            config.idle_timeout_s,
+        )
         device = SerialLineDevice(
             config.port,
             config.baud,
@@ -152,6 +162,7 @@ class TMC2209ArduinoProxy:
         return proxy
 
     def close(self) -> None:
+        self._log.info("tmc2209 close")
         self._device.close()
 
     def help(self) -> list[str]:
@@ -239,19 +250,24 @@ class TMC2209ArduinoProxy:
         return self._parse_int_prefix(line, ProtocolConstants.SGTHRS_PREFIX)
 
     def read_notifications(self) -> list[str]:
+        self._log.debug("tmc2209 read_notifications")
         lines = self._device.read_lines_until_idle(
             ProtocolConstants.LINE_TERMINATOR,
             self._config.idle_timeout_s,
         )
-        return self._decode_lines(lines)
+        decoded = self._decode_lines(lines)
+        self._log.info("tmc2209 notifications count=%s", len(decoded))
+        return decoded
 
     def _read_all_input_after_connect(self) -> None:
+        self._log.debug("tmc2209 drain input after connect")
         self._device.read_lines_until_idle(
             ProtocolConstants.LINE_TERMINATOR,
             self._config.idle_timeout_s * 5,
         )
 
     def _transact_lines(self, command: Command, *args: str) -> list[str]:
+        self._log.info("tmc2209 tx command=%s args=%s", command.value, args)
         payload = self._encode_command(command, *args)
         lines = self._device.transact_lines(
             payload,
@@ -260,7 +276,9 @@ class TMC2209ArduinoProxy:
         )
         if not lines:
             raise TMC2209TimeoutError("no response from device")
-        return self._decode_lines(lines)
+        decoded = self._decode_lines(lines)
+        self._log.debug("tmc2209 rx command=%s lines=%r", command.value, decoded)
+        return decoded
 
     def _transact_single_line(self, command: Command, *args: str) -> str:
         lines = self._transact_lines(command, *args)

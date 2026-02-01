@@ -45,6 +45,7 @@ class SkyWatcherMount:
         self._log = logger or logging.getLogger(SkyWatcherBackendConstants.LOGGER_NAME)
         self._mc = mc
         self._config = config or SkyWatcherMountConfig()
+        self._log.info("skywatcher mount init config=%r", self._config)
         self._device: Optional[SerialLineDevice] = None
         self._axis_states: dict[SkyWatcherAxis, SkyWatcherAxisState] = {}
         self._slew_rate = LX200SlewRate.CENTER
@@ -63,6 +64,13 @@ class SkyWatcherMount:
         *,
         logger: Optional[logging.Logger] = None,
     ) -> "SkyWatcherMount":
+        log = logger or logging.getLogger(SkyWatcherBackendConstants.LOGGER_NAME)
+        log.info(
+            "skywatcher connect port=%s baud=%s timeout_s=%s",
+            serial_config.port,
+            serial_config.baud,
+            serial_config.timeout_s,
+        )
         dev = SerialLineDevice(
             serial_config.port,
             serial_config.baud,
@@ -95,11 +103,13 @@ class SkyWatcherMount:
         self._refresh_axis_states(reset_zero=True)
 
     def close(self) -> None:
+        self._log.info("skywatcher mount close")
         if self._device is not None:
             self._device.close()
 
     def set_slew_rate(self, rate: LX200SlewRate) -> None:
         self._slew_rate = rate
+        self._log.info("skywatcher slew rate set=%s", rate)
 
     def get_current_ra(self) -> LX200Ra:
         state = self._axis_states[self._config.axis_mapping.ra_axis]
@@ -117,15 +127,18 @@ class SkyWatcherMount:
 
     def set_target_ra(self, ra: LX200Ra) -> bool:
         self._target_ra = ra
+        self._log.info("skywatcher target ra=%s", ra)
         return True
 
     def set_target_dec(self, dec: LX200Dec) -> bool:
         self._target_dec = dec
+        self._log.info("skywatcher target dec=%s", dec)
         return True
 
     def slew_to_target(self) -> LX200GotoResult:
         ra_delta = self._compute_target_delta(self._config.axis_mapping.ra_axis, self._target_ra.hours)
         dec_delta = self._compute_target_delta(self._config.axis_mapping.dec_axis, self._target_dec.degrees)
+        self._log.info("skywatcher slew_to_target ra_delta=%s dec_delta=%s", ra_delta, dec_delta)
         if self._is_delta_within_tolerance(ra_delta) and self._is_delta_within_tolerance(dec_delta):
             return LX200GotoResult.ALREADY_THERE
         self._run_goto(self._config.axis_mapping.ra_axis, ra_delta)
@@ -133,17 +146,26 @@ class SkyWatcherMount:
         return LX200GotoResult.OK
 
     def sync_to_target(self) -> LX200SyncResult:
+        self._log.info("skywatcher sync_to_target ra=%s dec=%s", self._target_ra, self._target_dec)
         self._sync_axis(self._config.axis_mapping.ra_axis, self._target_ra.hours, wrap=True)
         self._sync_axis(self._config.axis_mapping.dec_axis, self._target_dec.degrees, wrap=False)
         return LX200SyncResult.OK
 
     def stop_all(self) -> None:
+        self._log.info("skywatcher stop_all")
         self._mc.stop_motion(self._config.axis_mapping.ra_axis)
         self._mc.stop_motion(self._config.axis_mapping.dec_axis)
 
     def start_move(self, direction: LX200MoveDirection) -> None:
         axis, sky_dir = self._map_direction(direction)
         rate = self._rate_for_direction(sky_dir)
+        self._log.info(
+            "skywatcher start_move axis=%s direction=%s sky_dir=%s rate=%s",
+            axis,
+            direction,
+            sky_dir,
+            rate,
+        )
         try:
             self._mc.set_ra_rate(rate, axis=axis)
         except SkyWatcherTrackingError as exc:
@@ -152,6 +174,7 @@ class SkyWatcherMount:
 
     def stop_move(self, direction: LX200MoveDirection) -> None:
         axis, _ = self._map_direction(direction)
+        self._log.info("skywatcher stop_move axis=%s direction=%s", axis, direction)
         self._mc.stop_motion(axis)
 
     def _refresh_axis_states(self, *, reset_zero: bool = False) -> None:
@@ -173,6 +196,13 @@ class SkyWatcherMount:
                     zero_ticks=ticks,
                     zero_deg=zero_deg,
                 )
+            self._log.info(
+                "skywatcher axis_state axis=%s cpr=%s zero_ticks=%s zero_deg=%s",
+                axis,
+                self._axis_states[axis].cpr,
+                self._axis_states[axis].zero_ticks,
+                self._axis_states[axis].zero_deg,
+            )
 
     def _axis_ticks_to_deg(self, state: SkyWatcherAxisState, ticks: int, *, wrap: bool) -> float:
         delta_ticks = self._wrap_delta_ticks(ticks - state.zero_ticks)
@@ -200,11 +230,19 @@ class SkyWatcherMount:
         direction = self._skywatcher_direction(delta_ticks)
         steps = abs(delta_ticks)
         if steps <= SkyWatcherBackendConstants.ZERO_INT:
+            self._log.info("skywatcher goto axis=%s skipped: no steps", axis)
             return
         mode = SkyWatcherMotionMode(
             slew_mode=SkyWatcherSlewMode.GOTO,
             direction=direction,
             speed_mode=self._config.goto_config.speed_mode,
+        )
+        self._log.info(
+            "skywatcher goto axis=%s direction=%s steps=%s speed_mode=%s",
+            axis,
+            direction,
+            steps,
+            self._config.goto_config.speed_mode,
         )
         self._mc.set_motion_mode(axis, mode)
         self._mc.set_step_period(axis, self._config.goto_config.step_period)
@@ -222,6 +260,12 @@ class SkyWatcherMount:
             target_deg = clamp(target_value, LX200Constants.MIN_LAT_DEG, LX200Constants.MAX_LAT_DEG)
         target_ticks = state.ticks_from_degrees(target_deg - state.zero_deg)
         target_ticks = self._wrap_ticks(state.zero_ticks + target_ticks)
+        self._log.info(
+            "skywatcher sync axis=%s target_deg=%s target_ticks=%s",
+            axis,
+            target_deg,
+            target_ticks,
+        )
         self._mc.set_axis_position(axis, target_ticks)
         state.zero_ticks = target_ticks
         state.zero_deg = target_deg if wrap else target_deg

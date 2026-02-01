@@ -45,6 +45,7 @@ class TMC2209Mount:
     ) -> None:
         self._log = logger or logging.getLogger(TMC2209LX200Constants.LOGGER_NAME)
         self._config = config or TMC2209MountConfig()
+        self._log.info("tmc2209 mount init config=%r dec_proxy=%r", self._config, dec_proxy)
         if self._config.ra_axis_config is not None:
             raise TMC2209ConfigError("RA axis is not supported for DEC-only mount")
         self._dec_proxy = dec_proxy
@@ -55,11 +56,13 @@ class TMC2209Mount:
         self._initialize_axes()
 
     def close(self) -> None:
+        self._log.info("tmc2209 mount close dec_proxy=%r", self._dec_proxy)
         if self._dec_proxy is not None:
             self._dec_proxy.close()
 
     def set_slew_rate(self, rate: LX200SlewRate) -> None:
         self._slew_rate = rate
+        self._log.info("tmc2209 slew rate set=%s", rate)
 
     def get_current_ra(self) -> LX200Ra:
         return self._target_ra
@@ -74,45 +77,63 @@ class TMC2209Mount:
 
     def set_target_ra(self, ra: LX200Ra) -> bool:
         self._target_ra = ra
+        self._log.info("tmc2209 target ra=%s", ra)
         return True
 
     def set_target_dec(self, dec: LX200Dec) -> bool:
         self._target_dec = dec
+        self._log.info("tmc2209 target dec=%s", dec)
         return True
 
     def slew_to_target(self) -> LX200GotoResult:
+        self._log.info("tmc2209 slew_to_target ra=%s dec=%s", self._target_ra, self._target_dec)
         ra_result = self._slew_axis_to_target(TMC2209Axis.RA, self._target_ra.hours, wrap=True)
         dec_result = self._slew_axis_to_target(TMC2209Axis.DEC, self._target_dec.degrees, wrap=False)
         if ra_result and dec_result:
+            self._log.info("tmc2209 slew_to_target result=%s", LX200GotoResult.ALREADY_THERE)
             return LX200GotoResult.ALREADY_THERE
+        self._log.info("tmc2209 slew_to_target result=%s", LX200GotoResult.OK)
         return LX200GotoResult.OK
 
     def sync_to_target(self) -> LX200SyncResult:
+        self._log.info("tmc2209 sync_to_target ra=%s dec=%s", self._target_ra, self._target_dec)
         self._sync_axis(TMC2209Axis.RA, self._target_ra.hours, wrap=True)
         self._sync_axis(TMC2209Axis.DEC, self._target_dec.degrees, wrap=False)
         return LX200SyncResult.OK
 
     def stop_all(self) -> None:
         if self._dec_axis is None:
+            self._log.info("tmc2209 stop_all skipped: no dec axis")
             return None
         if self._dec_axis.proxy is not None:
+            self._log.info("tmc2209 stop_all axis=%s", self._dec_axis.state.axis.value)
             self._dec_axis.proxy.stop()
 
     def start_move(self, direction: LX200MoveDirection) -> None:
         axis = self._axis_for_direction(direction)
         if axis == TMC2209Axis.RA:
+            self._log.info("tmc2209 start_move direction=%s axis=%s ignored", direction, axis.value)
             return None
         runtime = self._require_axis(axis, direction.name)
         sps = self._speed_for_axis(runtime.config, self._slew_rate)
         signed_sps = self._signed_speed_for_direction(runtime.state, direction, sps)
+        self._log.info(
+            "tmc2209 start_move axis=%s direction=%s sps=%s signed_sps=%s",
+            axis.value,
+            direction,
+            sps,
+            signed_sps,
+        )
         self._ensure_enabled(runtime)
         runtime.proxy.run(signed_sps)
 
     def stop_move(self, direction: LX200MoveDirection) -> None:
         axis = self._axis_for_direction(direction)
         if axis == TMC2209Axis.RA:
+            self._log.info("tmc2209 stop_move direction=%s axis=%s ignored", direction, axis.value)
             return None
         runtime = self._require_axis(axis, direction.name)
+        self._log.info("tmc2209 stop_move axis=%s direction=%s", axis.value, direction)
         runtime.proxy.stop()
 
     def _initialize_axes(self) -> None:
@@ -132,6 +153,14 @@ class TMC2209Mount:
                 state=state,
                 config=self._config.dec_axis_config,
                 proxy=self._dec_proxy,
+            )
+            self._log.info(
+                "tmc2209 axis ready axis=%s steps_per_degree=%s zero_steps=%s zero_deg=%s direction=%s",
+                state.axis.value,
+                state.steps_per_degree,
+                state.zero_steps,
+                state.zero_deg,
+                state.direction_sign,
             )
 
     def _create_axis_state(
@@ -179,9 +208,11 @@ class TMC2209Mount:
 
     def _slew_axis_to_target(self, axis: TMC2209Axis, target_value: float, *, wrap: bool) -> bool:
         if axis == TMC2209Axis.RA:
+            self._log.debug("tmc2209 slew axis=%s ignored", axis.value)
             return True
         runtime = self._dec_axis
         if runtime is None:
+            self._log.info("tmc2209 slew axis=%s skipped: no runtime", axis.value)
             return True
         # TODO: deduplicate target degree computation shared with _sync_axis.
         target_deg = clamp(target_value, LX200Constants.MIN_LAT_DEG, LX200Constants.MAX_LAT_DEG)
@@ -191,21 +222,44 @@ class TMC2209Mount:
             delta_deg = self._wrap_delta_degrees(delta_deg)
         steps = runtime.state.steps_from_degrees(delta_deg)
         if abs(steps) <= runtime.config.tolerance_steps:
+            self._log.info(
+                "tmc2209 slew axis=%s already_there steps=%s tolerance=%s",
+                axis.value,
+                steps,
+                runtime.config.tolerance_steps,
+            )
             return True
+        self._log.info(
+            "tmc2209 slew axis=%s target=%s current=%s delta=%s steps=%s sps=%s",
+            axis.value,
+            target_deg,
+            current_deg,
+            delta_deg,
+            steps,
+            runtime.config.goto_sps,
+        )
         self._ensure_enabled(runtime)
         runtime.proxy.move(steps, runtime.config.goto_sps)
         return False
 
     def _sync_axis(self, axis: TMC2209Axis, target_value: float, *, wrap: bool) -> None:
         if axis == TMC2209Axis.RA:
+            self._log.debug("tmc2209 sync axis=%s ignored", axis.value)
             return None
         runtime = self._dec_axis
         if runtime is None:
+            self._log.info("tmc2209 sync axis=%s skipped: no runtime", axis.value)
             return None
         target_deg = clamp(target_value, LX200Constants.MIN_LAT_DEG, LX200Constants.MAX_LAT_DEG)
         current_steps = self._axis_current_steps(runtime)
         runtime.state.zero_steps = current_steps
         runtime.state.zero_deg = target_deg if not wrap else wrap_deg(target_deg)
+        self._log.info(
+            "tmc2209 sync axis=%s zero_steps=%s zero_deg=%s",
+            axis.value,
+            runtime.state.zero_steps,
+            runtime.state.zero_deg,
+        )
         if runtime.proxy is None:
             runtime.virtual_steps = current_steps
 
@@ -237,6 +291,7 @@ class TMC2209Mount:
         if runtime.proxy is None:
             return None
         if runtime.config.auto_enable:
+            self._log.debug("tmc2209 enable axis=%s", runtime.state.axis.value)
             runtime.proxy.enable(True)
 
     def _wrap_delta_degrees(self, delta: float) -> float:
