@@ -19,18 +19,20 @@
     - but you can use strings or numbers inplace in:
         - logs (use default notation `("str %s %d", var, var2)`)
         - text for exceptions (use f-strings)
-        - simple cases (like 0, 1 or 1.0, but not if its external interface or)
+        - Don't make constant for simple numbers like -1, 0, 1, etc
 - For each error create Exception classes structures
 - For entities which can converts into some formats, use dataclasses
 - Each class must verify consistency, or be designed so consistency is ensured by default
     - check logic, dont check types
 - If you see multiple functions / methods / piece of code add `# TODO: <what should be better here>` for future fixing
 
-- Don't write any imports in `lib/__init__.py`, just import `from lib.module import methods` in other modules
+- DON'T add any imports in `__init__.py` in ANY module, just import `from lib.module import methods` in other modules
 
 - Remember about architecture, you can create and edit ARCHITECHTURE.md in every place if you want to save important piece of big picture
 - Use writed methods instead writing new
 - Organize it
+
+- When you remove some valriable, or constant, make sure it's removed from all places
 
 ## Generalized rules from recent edits
 - Try to generalize common rules from recent edits
