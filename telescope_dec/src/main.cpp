@@ -3,6 +3,7 @@
   Commands in Serial Monitor (115200, newline):
     help
     info              - dump registers/status
+    fastinfo          - compact status (fast)
     enable 0|1
     dir 0|1
     run <sps>         - continuous, steps per second; negative => reverse
@@ -56,6 +57,7 @@ struct Runner {
   bool stepHigh = false;
   uint32_t stepHighUntilUs = 0;
   int lastSps = 500;
+  uint32_t lastStepUs = 0;
 } run;
 
 // ---------- Step position counter ----------
@@ -74,6 +76,7 @@ static inline long getPosition() {
 
 static const char* const COMMAND_POS = "pos";
 static const char* const COMMAND_SET_POS = "setpos";
+static const char* const COMMAND_FAST_INFO = "fastinfo";
 
 static inline void setEnable(bool on) {
   run.enabled = on;
@@ -91,6 +94,16 @@ static inline void setSpeedSps(int sps_abs) {
   run.lastSps = sps_abs;
   run.stepIntervalUs = (uint32_t)(1000000UL / (uint32_t)sps_abs);
   if (run.stepIntervalUs < (run.pulseWidthUs + 4)) run.stepIntervalUs = run.pulseWidthUs + 4;
+}
+
+static const char* const MODE_IDLE = "idle";
+static const char* const MODE_MOVE = "move";
+static const char* const MODE_RUN = "run";
+
+static inline const char* getRunMode() {
+  if (run.continuous) return MODE_RUN;
+  if (run.remaining > 0) return MODE_MOVE;
+  return MODE_IDLE;
 }
 
 static void serviceStepper() {
@@ -117,6 +130,7 @@ static void serviceStepper() {
     run.stepHighUntilUs = now + run.pulseWidthUs;
     run.nextStepUs = now + run.stepIntervalUs;
 
+    run.lastStepUs = now;
     stepPosition += run.dir ? STEP_NEGATIVE : STEP_POSITIVE;
 
     if (!run.continuous && run.remaining > 0) {
@@ -133,8 +147,10 @@ static const uint8_t HEX_BUF_LEN = HEX_PREFIX_LEN + HEX_WIDTH + 1;
 static const char* const DUMP_SUBSYS_TMC = "tmc";
 static const char* const DUMP_SUBSYS_IOIN = "ioin";
 static const char* const DUMP_SUBSYS_STATUS = "status";
+static const char* const DUMP_SUBSYS_FAST = "fast";
 
 static const char* const DUMP_KEY_IFCNT = "ifcnt";
+static const char* const DUMP_KEY_IFCNT_DELTA = "ifcnt_delta";
 static const char* const DUMP_KEY_GCONF = "gconf";
 static const char* const DUMP_KEY_GSTAT = "gstat";
 static const char* const DUMP_KEY_IHOLD_IRUN = "ihold_irun";
@@ -150,6 +166,11 @@ static const char* const DUMP_KEY_MSCNT = "mscnt";
 static const char* const DUMP_KEY_MSCURACT = "mscuract";
 static const char* const DUMP_KEY_DRV_STATUS = "drv_status";
 static const char* const DUMP_KEY_SG_RESULT = "sg_result";
+static const char* const DUMP_KEY_ENABLED = "enabled";
+static const char* const DUMP_KEY_MODE = "mode";
+static const char* const DUMP_KEY_REMAINING_STEPS = "remaining_steps";
+static const char* const DUMP_KEY_CMD_SPS = "cmd_sps";
+static const char* const DUMP_KEY_LAST_STEP_AGE_US = "last_step_age_us";
 
 static const char* const DUMP_KEY_RAW = "raw";
 static const char* const DUMP_KEY_VERSION = "version";
@@ -175,6 +196,9 @@ static const char* const DUMP_KEY_T157 = "t157";
 static const char* const DUMP_KEY_STST = "stst";
 static const char* const DUMP_KEY_STEALTH = "stealth";
 static const char* const DUMP_KEY_CS_ACTUAL = "cs_actual";
+static const char* const DUMP_KEY_STALL_GUARD = "stall_guard";
+
+static const uint32_t IFCNT_MAX = 0xFF;
 
 static void printKeyPrefix(const char* subsystem, const char* key) {
   Serial.print(subsystem);
@@ -252,7 +276,8 @@ static void dumpInfo() {
 
   // SGTHRS: чувствительность StallGuard (0..255). Чем больше — тем чувствительнее/раньше срабатывает (в общем случае).
   // Точное поведение зависит от механики/тока/скорости.
-  printKeyValueU32(DUMP_SUBSYS_TMC, DUMP_KEY_SGTHRS, driver.SGTHRS());
+  const uint32_t sg_thrs = driver.SGTHRS();
+  printKeyValueU32(DUMP_SUBSYS_TMC, DUMP_KEY_SGTHRS, sg_thrs);
 
   // CHOPCONF: конфиг чопера (toff, blank time, hysteresis, microstep interp и пр.).
   // Критично для стабильности, шума и качества шага.
@@ -282,7 +307,8 @@ static void dumpInfo() {
 
   // SG_RESULT: значение StallGuard (оценка нагрузки/скольжения). Обычно выше = легче крутится.
   // Имеет смысл только в диапазоне скоростей, где StallGuard активен.
-  printKeyValueU32(DUMP_SUBSYS_TMC, DUMP_KEY_SG_RESULT, driver.SG_RESULT());
+  const uint32_t sg_result = driver.SG_RESULT();
+  printKeyValueU32(DUMP_SUBSYS_TMC, DUMP_KEY_SG_RESULT, sg_result);
 
   // ---------- Декодированные флаги безопасности/диагностики (из DRV_STATUS) ----------
   // ot      : overtemperature shutdown — перегрев, драйвер отключил выход.
@@ -293,7 +319,6 @@ static void dumpInfo() {
   // stst    : standstill — драйвер считает, что стоит (для некоторых режимов/регистров).
   // stealth : фактический режим stealthChop активен сейчас.
   // cs_actual: фактическое значение тока (current scale) в данный момент.
-  // TODO: Add stall guard
   printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_OT, driver.ot());
   printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_OTPW, driver.otpw());
   printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_S2GA, driver.s2ga());
@@ -306,12 +331,63 @@ static void dumpInfo() {
   printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_T157, driver.t157());
   printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_STST, driver.stst());
   printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_STEALTH, driver.stealth());
+  printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_STALL_GUARD, driver.stallguard());
   printKeyValueU32(DUMP_SUBSYS_STATUS, DUMP_KEY_CS_ACTUAL, driver.cs_actual());
+}
+
+static void fastDumpInfo() {
+  const uint32_t ifcnt = driver.IFCNT();
+  static bool has_prev_ifcnt = false;
+  static uint32_t prev_ifcnt = 0;
+
+  printKeyValueU32(DUMP_SUBSYS_FAST, DUMP_KEY_IFCNT, ifcnt);
+  if (has_prev_ifcnt) {
+    uint32_t delta = 0;
+    if (ifcnt >= prev_ifcnt) {
+      delta = ifcnt - prev_ifcnt;
+    } else {
+      delta = (IFCNT_MAX + 1u - prev_ifcnt) + ifcnt;
+    }
+    printKeyValueU32(DUMP_SUBSYS_FAST, DUMP_KEY_IFCNT_DELTA, delta);
+  }
+  prev_ifcnt = ifcnt;
+  has_prev_ifcnt = true;
+
+  const bool enn_state = driver.enn();
+  const bool enabled = EN_ACTIVE_LOW ? !enn_state : enn_state;
+  printKeyValueBool(DUMP_SUBSYS_FAST, DUMP_KEY_ENABLED, enabled);
+
+  const char* const mode = getRunMode();
+  printKeyPrefix(DUMP_SUBSYS_FAST, DUMP_KEY_MODE);
+  Serial.println(mode);
+
+  printKeyValueBool(DUMP_SUBSYS_FAST, DUMP_KEY_STST, driver.stst());
+  printKeyValueU32(DUMP_SUBSYS_FAST, DUMP_KEY_TSTEP, driver.TSTEP());
+
+  if (!strcmp(mode, MODE_MOVE)) {
+    printKeyValueU32(DUMP_SUBSYS_FAST, DUMP_KEY_REMAINING_STEPS, (uint32_t)run.remaining);
+  }
+
+  printKeyValueU32(DUMP_SUBSYS_FAST, DUMP_KEY_CMD_SPS, (uint32_t)run.lastSps);
+
+  const uint32_t now = micros();
+  const uint32_t last_step_age_us = now - run.lastStepUs;
+  printKeyValueU32(DUMP_SUBSYS_FAST, DUMP_KEY_LAST_STEP_AGE_US, last_step_age_us);
+
+  printKeyValueBool(DUMP_SUBSYS_FAST, DUMP_KEY_OTPW, driver.otpw());
+  printKeyValueBool(DUMP_SUBSYS_FAST, DUMP_KEY_OT, driver.ot());
+  printKeyValueBool(DUMP_SUBSYS_FAST, DUMP_KEY_S2GA, driver.s2ga());
+  printKeyValueBool(DUMP_SUBSYS_FAST, DUMP_KEY_S2GB, driver.s2gb());
+  printKeyValueBool(DUMP_SUBSYS_FAST, DUMP_KEY_OLA, driver.ola());
+  printKeyValueBool(DUMP_SUBSYS_FAST, DUMP_KEY_OLB, driver.olb());
+
+  printKeyValueU32(DUMP_SUBSYS_FAST, DUMP_KEY_SG_RESULT, driver.SG_RESULT());
+  printKeyValueU32(DUMP_SUBSYS_FAST, DUMP_KEY_CS_ACTUAL, driver.cs_actual());
 }
 
 static void printHelp() {
   Serial.println(F(
-    "help | info | enable 0|1 | dir 0|1 | run <sps> | move <steps> <sps> | stop\n"
+    "help | info | fastinfo | enable 0|1 | dir 0|1 | run <sps> | move <steps> <sps> | stop\n"
     "current <mA> | microsteps <n> | stealth 0|1 | sgthrs <0..255>\n"
     "pos | setpos <value>\n"
   ));
@@ -330,6 +406,7 @@ static void handleLine(char *s) {
 
   if (!strcmp(cmd, "help")) { printHelp(); return; }
   if (!strcmp(cmd, "info") || !strcmp(cmd, "dump")) { dumpInfo(); return; }
+  if (!strcmp(cmd, COMMAND_FAST_INFO)) { fastDumpInfo(); return; }
   if (!strcmp(cmd, COMMAND_POS)) {
     Serial.print(F("pos="));
     Serial.println(getPosition());
@@ -466,6 +543,7 @@ void setup() {
   digitalWrite(STEP_PIN, LOW);
   setDir(false);
   setEnable(false);
+  run.lastStepUs = micros();
 
   TMCSerial.begin(TMC_BAUD);
 

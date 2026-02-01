@@ -30,6 +30,7 @@ class TMC2209ResponseError(TMC2209Error):
 class Command(StrEnum):
     HELP = "help"
     INFO = "info"
+    FAST_INFO = "fastinfo"
     ENABLE = "enable"
     DIR = "dir"
     RUN = "run"
@@ -158,6 +159,16 @@ class TMC2209ArduinoProxy:
 
     def info(self) -> dict[str, int | str]:
         lines = self._transact_lines(Command.INFO)
+        info: dict[str, int | str] = {}
+        for line in lines:
+            if not line.strip():
+                continue
+            item = TMC2209KeyValue.from_line(line)
+            info[item.key] = self._parse_info_value(item.value)
+        return info
+
+    def fast_info(self) -> dict[str, int | str]:
+        lines = self._transact_lines(Command.FAST_INFO)
         info: dict[str, int | str] = {}
         for line in lines:
             if not line.strip():
