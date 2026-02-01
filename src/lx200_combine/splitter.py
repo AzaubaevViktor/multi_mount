@@ -6,6 +6,7 @@ from typing import Optional
 
 from lx200.protocol import (
     LX200Command,
+    LX200Constants,
     LX200MoveDirection,
     LX200ParseError,
     LX200CommandRequest,
@@ -63,6 +64,14 @@ class LX200CombineConstants:
         LX200MoveDirection.NORTH,
         LX200MoveDirection.SOUTH,
     }
+    TRACKING_RATE_DECIMALS = 1
+    SITE_NAME_TEMPLATE = "Combine mount RA:{ra} DEC:{dec}"
+    TRACKING_RATE_COMBINE_DIVISOR = 2.0
+
+
+class LX200PrimaryAxis(StrEnum):
+    RA = "ra"
+    DEC = "dec"
 
 
 class LX200CombineError(Exception):
@@ -96,12 +105,15 @@ class LX200Splitter(LX200CommandHandler):
         self,
         ra_handler: LX200CommandHandler,
         dec_handler: LX200CommandHandler,
+        *,
+        primary: LX200PrimaryAxis = LX200PrimaryAxis.RA,
         logger: Optional[logging.Logger] = None,
     ) -> None:
         if ra_handler is None or dec_handler is None:
             raise LX200CombineConfigurationError("Both RA and DEC handlers are required.")
         self._ra_handler = ra_handler
         self._dec_handler = dec_handler
+        self._primary = primary
         self._log = logger or logging.getLogger(LX200CombineConstants.LOGGER_NAME)
         self._validate_routes()
 
@@ -132,16 +144,62 @@ class LX200Splitter(LX200CommandHandler):
             raise LX200CombineConfigurationError(
                 f"Commands cannot be both axis-specific and shared: {command_list}"
             )
+        primary_overlap = (
+            LX200CombineConstants.RA_ONLY_COMMANDS & LX200CombineConstants.PRIMARY_COMMANDS
+        ) | (LX200CombineConstants.DEC_ONLY_COMMANDS & LX200CombineConstants.PRIMARY_COMMANDS)
+        if primary_overlap:
+            command_list = ",".join(
+                cmd.value for cmd in sorted(primary_overlap, key=lambda cmd: cmd.value)
+            )
+            raise LX200CombineConfigurationError(
+                f"Commands cannot be both axis-specific and primary: {command_list}"
+            )
+        combine_overlap = (
+            LX200CombineConstants.RA_ONLY_COMMANDS & LX200CombineConstants.COMBINE_COMMANDS
+        ) | (LX200CombineConstants.DEC_ONLY_COMMANDS & LX200CombineConstants.COMBINE_COMMANDS)
+        if combine_overlap:
+            command_list = ",".join(
+                cmd.value for cmd in sorted(combine_overlap, key=lambda cmd: cmd.value)
+            )
+            raise LX200CombineConfigurationError(
+                f"Commands cannot be both axis-specific and combined: {command_list}"
+            )
+        shared_overlap = (
+            LX200CombineConstants.BOTH_COMMANDS & LX200CombineConstants.COMBINE_COMMANDS
+        ) | (LX200CombineConstants.BOTH_COMMANDS & LX200CombineConstants.PRIMARY_COMMANDS)
+        if shared_overlap:
+            command_list = ",".join(
+                cmd.value for cmd in sorted(shared_overlap, key=lambda cmd: cmd.value)
+            )
+            raise LX200CombineConfigurationError(
+                f"Commands cannot be both shared and combined/primary: {command_list}"
+            )
+        primary_combine_overlap = (
+            LX200CombineConstants.PRIMARY_COMMANDS & LX200CombineConstants.COMBINE_COMMANDS
+        )
+        if primary_combine_overlap:
+            command_list = ",".join(
+                cmd.value for cmd in sorted(primary_combine_overlap, key=lambda cmd: cmd.value)
+            )
+            raise LX200CombineConfigurationError(
+                f"Commands cannot be both primary and combined: {command_list}"
+            )
         if LX200Command.STOP in LX200CombineConstants.RA_ONLY_COMMANDS:
             raise LX200CombineConfigurationError("STOP cannot be a RA-only command.")
         if LX200Command.STOP in LX200CombineConstants.DEC_ONLY_COMMANDS:
             raise LX200CombineConfigurationError("STOP cannot be a DEC-only command.")
         if LX200Command.STOP in LX200CombineConstants.BOTH_COMMANDS:
             raise LX200CombineConfigurationError("STOP cannot be a shared command.")
+        if LX200Command.STOP in LX200CombineConstants.PRIMARY_COMMANDS:
+            raise LX200CombineConfigurationError("STOP cannot be a primary command.")
+        if LX200Command.STOP in LX200CombineConstants.COMBINE_COMMANDS:
+            raise LX200CombineConfigurationError("STOP cannot be a combined command.")
         union = (
             LX200CombineConstants.RA_ONLY_COMMANDS
             | LX200CombineConstants.DEC_ONLY_COMMANDS
             | LX200CombineConstants.BOTH_COMMANDS
+            | LX200CombineConstants.PRIMARY_COMMANDS
+            | LX200CombineConstants.COMBINE_COMMANDS
             | {LX200Command.STOP}
         )
         if union != set(LX200Command):
@@ -177,7 +235,11 @@ class LX200Splitter(LX200CommandHandler):
             return LX200Route.RA
         if request.command in LX200CombineConstants.DEC_ONLY_COMMANDS:
             return LX200Route.DEC
+        if request.command in LX200CombineConstants.PRIMARY_COMMANDS:
+            return self._primary_route()
         if request.command in LX200CombineConstants.BOTH_COMMANDS:
+            return LX200Route.BOTH
+        if request.command in LX200CombineConstants.COMBINE_COMMANDS:
             return LX200Route.BOTH
         raise LX200CombineConfigurationError(f"Unhandled command route: {request.command!r}")
 
@@ -200,6 +262,41 @@ class LX200Splitter(LX200CommandHandler):
     def _handle_both(self, raw: str, command: LX200Command) -> str:
         ra_response = self._ra_handler.handle_command(raw)
         dec_response = self._dec_handler.handle_command(raw)
+        if command in LX200CombineConstants.COMBINE_COMMANDS:
+            return self._combine_response(command, ra_response, dec_response)
         if ra_response != dec_response:
             raise LX200CombineResponseMismatchError(command, ra_response, dec_response)
         return ra_response
+
+    def _primary_route(self) -> LX200Route:
+        if self._primary == LX200PrimaryAxis.RA:
+            return LX200Route.RA
+        if self._primary == LX200PrimaryAxis.DEC:
+            return LX200Route.DEC
+        raise LX200CombineConfigurationError(f"Unsupported primary axis: {self._primary!r}")
+
+    def _combine_response(self, command: LX200Command, ra_response: str, dec_response: str) -> str:
+        if command == LX200Command.GET_TRACKING_RATE:
+            ra_rate = self._parse_tracking_rate(ra_response)
+            dec_rate = self._parse_tracking_rate(dec_response)
+            combined = (ra_rate + dec_rate) / LX200CombineConstants.TRACKING_RATE_COMBINE_DIVISOR
+            formatted = f"{combined:.{LX200CombineConstants.TRACKING_RATE_DECIMALS}f}"
+            return f"{formatted}{LX200Constants.TERMINATOR}"
+        if command == LX200Command.GET_SITE_NAME:
+            ra_name = self._strip_terminator(ra_response)
+            dec_name = self._strip_terminator(dec_response)
+            combined = LX200CombineConstants.SITE_NAME_TEMPLATE.format(ra=ra_name, dec=dec_name)
+            return f"{combined}{LX200Constants.TERMINATOR}"
+        raise LX200CombineConfigurationError(f"Combine handler missing for command: {command!r}")
+
+    def _parse_tracking_rate(self, response: str) -> float:
+        value = self._strip_terminator(response)
+        try:
+            return float(value)
+        except ValueError as exc:
+            raise LX200CombineError(f"invalid tracking rate: {response!r}") from exc
+
+    def _strip_terminator(self, response: str) -> str:
+        if response.endswith(LX200Constants.TERMINATOR):
+            return response[: -len(LX200Constants.TERMINATOR)]
+        return response
