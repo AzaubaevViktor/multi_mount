@@ -1,4 +1,5 @@
 # Development rules
+- DON'T add any imports in `__init__.py` in ANY module, just import `from lib.module import methods` in other modules
 - First, try to use in-file like code style
 - No magic strings or numbers in logic code;
     - For numeric constants use class with classvalues
@@ -25,8 +26,6 @@
 - Each class must verify consistency, or be designed so consistency is ensured by default
     - check logic, dont check types
 - If you see multiple functions / methods / piece of code add `# TODO: <what should be better here>` for future fixing
-
-- DON'T add any imports in `__init__.py` in ANY module, just import `from lib.module import methods` in other modules
 
 - Remember about architecture, you can create and edit ARCHITECHTURE.md in every place if you want to save important piece of big picture
 - Use writed methods instead writing new
