@@ -5,7 +5,7 @@ import dataclasses
 import pytest
 
 from lx200.protocol import LX200ParseError
-from lx200_combine import (
+from lx200_combine.splitter import (
     LX200CombineResponseMismatchError,
     LX200Splitter,
 )
