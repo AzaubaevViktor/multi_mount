@@ -35,6 +35,8 @@ class LX200CombineConstants:
         LX200Command.RATE_CENTER,
         LX200Command.RATE_FIND,
         LX200Command.RATE_SLEW,
+    }
+    PRIMARY_COMMANDS = {  # send only to "primary" mount set in __init__
         LX200Command.SET_LOCAL_TIME,
         LX200Command.SET_DATE,
         LX200Command.SET_UTC_OFFSET,
@@ -44,12 +46,14 @@ class LX200CombineConstants:
         LX200Command.GET_DATE,
         LX200Command.GET_DATE_ALT,
         LX200Command.GET_UTC_OFFSET,
-        LX200Command.GET_TRACKING_RATE,
-        LX200Command.GET_SITE_NAME,
         LX200Command.GET_LONGITUDE,
         LX200Command.GET_LATITUDE,
         LX200Command.SET_OBJECT_SIZE,
         LX200Command.GET_DISTANCE,
+    }
+    COMBINE_COMMANDS = {  # Combine values from both mounts
+        LX200Command.GET_TRACKING_RATE,
+        LX200Command.GET_SITE_NAME,
     }
     RA_ONLY_DIRECTIONS = {
         LX200MoveDirection.EAST,
