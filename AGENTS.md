@@ -26,7 +26,7 @@
     - check logic, dont check types
 - If you see multiple functions / methods / piece of code add `# TODO: <what should be better here>` for future fixing
 
-- Don't import all methods from module files in `__init__.py`, just import `from lib.module import methods`
+- Don't write any imports in `lib/__init__.py`, just import `from lib.module import methods` in other modules
 
 - Remember about architecture, you can create and edit ARCHITECHTURE.md in every place if you want to save important piece of big picture
 - Use writed methods instead writing new
