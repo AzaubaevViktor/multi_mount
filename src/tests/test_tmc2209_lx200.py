@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 
-from lx200.models import LX200Ra
+from lx200.models import LX200Dec
 from lx200.protocol import LX200GotoResult, LX200MoveDirection, LX200SlewRate
 from tmc2209_lx200.common import (
     TMC2209AxisConfig,
@@ -15,12 +15,12 @@ from tmc2209_lx200.mount import TMC2209Mount
 
 class TMC2209LX200TestConstants:
     ZERO_INT = 0
-    RA_WRAP_START_HOURS = 23.0
-    RA_WRAP_TARGET_HOURS = 1.0
-    RA_WRAP_STEPS_PER_DEG = 1.0
-    RA_WRAP_EXPECTED_STEPS = 30
-    RA_SYNC_START_POS = 100
-    RA_SYNC_TARGET_HOURS = 10.0
+    DEC_SLEW_START_DEG = 10.0
+    DEC_SLEW_TARGET_DEG = 12.5
+    DEC_SLEW_STEPS_PER_DEG = 2.0
+    DEC_SLEW_EXPECTED_STEPS = 5
+    DEC_SYNC_START_POS = 100
+    DEC_SYNC_TARGET_DEG = 10.0
     STEPS_PER_DEG = 2.0
     GUIDE_SPS = 10
     CENTER_SPS = 20
@@ -77,26 +77,26 @@ def _axis_config() -> TMC2209AxisConfig:
 
 
 def test_start_move_direction_mapping() -> None:
-    ra_proxy = _FakeProxy()
+    dec_proxy = _FakeProxy()
     mapping = TMC2209AxisMapping(ra_forward_is_east=True, dec_forward_is_north=False)
     config = TMC2209MountConfig(
         axis_mapping=mapping,
-        ra_axis_config=_axis_config(),
+        dec_axis_config=_axis_config(),
     )
-    mount = TMC2209Mount(ra_proxy=ra_proxy, config=config)
+    mount = TMC2209Mount(dec_proxy=dec_proxy, config=config)
     mount.set_slew_rate(LX200SlewRate.FIND)
 
-    mount.start_move(LX200MoveDirection.EAST)
-    assert ra_proxy.last_run_sps == TMC2209LX200TestConstants.FIND_SPS
+    mount.start_move(LX200MoveDirection.NORTH)
+    assert dec_proxy.last_run_sps == -TMC2209LX200TestConstants.FIND_SPS
 
-    mount.start_move(LX200MoveDirection.WEST)
-    assert ra_proxy.last_run_sps == -TMC2209LX200TestConstants.FIND_SPS
+    mount.start_move(LX200MoveDirection.SOUTH)
+    assert dec_proxy.last_run_sps == TMC2209LX200TestConstants.FIND_SPS
 
 
-def test_slew_to_target_wraps_ra() -> None:
-    ra_proxy = _FakeProxy()
-    ra_config = TMC2209AxisConfig(
-        steps_per_degree=TMC2209LX200TestConstants.RA_WRAP_STEPS_PER_DEG,
+def test_slew_to_target_moves_dec() -> None:
+    dec_proxy = _FakeProxy()
+    dec_config = TMC2209AxisConfig(
+        steps_per_degree=TMC2209LX200TestConstants.DEC_SLEW_STEPS_PER_DEG,
         guide_sps=TMC2209LX200Constants.DEFAULT_GUIDE_SPS,
         center_sps=TMC2209LX200Constants.DEFAULT_CENTER_SPS,
         find_sps=TMC2209LX200Constants.DEFAULT_FIND_SPS,
@@ -105,30 +105,44 @@ def test_slew_to_target_wraps_ra() -> None:
         tolerance_steps=TMC2209LX200TestConstants.TOLERANCE_STEPS,
     )
     config = TMC2209MountConfig(
-        ra_axis_config=ra_config,
-        initial_ra=LX200Ra(hours=TMC2209LX200TestConstants.RA_WRAP_START_HOURS),
+        dec_axis_config=dec_config,
+        initial_dec=LX200Dec(degrees=TMC2209LX200TestConstants.DEC_SLEW_START_DEG),
     )
-    mount = TMC2209Mount(ra_proxy=ra_proxy, config=config)
-    mount.set_target_ra(LX200Ra(hours=TMC2209LX200TestConstants.RA_WRAP_TARGET_HOURS))
+    mount = TMC2209Mount(dec_proxy=dec_proxy, config=config)
+    mount.set_target_dec(LX200Dec(degrees=TMC2209LX200TestConstants.DEC_SLEW_TARGET_DEG))
 
     result = mount.slew_to_target()
 
     assert result == LX200GotoResult.OK
-    assert ra_proxy.last_move == (
-        TMC2209LX200TestConstants.RA_WRAP_EXPECTED_STEPS,
+    assert dec_proxy.last_move == (
+        TMC2209LX200TestConstants.DEC_SLEW_EXPECTED_STEPS,
         TMC2209LX200TestConstants.GOTO_SPS,
     )
 
 
 def test_sync_to_target_updates_zero() -> None:
-    ra_proxy = _FakeProxy(position=TMC2209LX200TestConstants.RA_SYNC_START_POS)
+    dec_proxy = _FakeProxy(position=TMC2209LX200TestConstants.DEC_SYNC_START_POS)
     config = TMC2209MountConfig(
-        ra_axis_config=_axis_config(),
-        initial_ra=LX200Ra(hours=TMC2209LX200Constants.ZERO_FLOAT),
+        dec_axis_config=_axis_config(),
+        initial_dec=LX200Dec(degrees=0),
     )
-    mount = TMC2209Mount(ra_proxy=ra_proxy, config=config)
-    mount.set_target_ra(LX200Ra(hours=TMC2209LX200TestConstants.RA_SYNC_TARGET_HOURS))
+    mount = TMC2209Mount(dec_proxy=dec_proxy, config=config)
+    mount.set_target_dec(LX200Dec(degrees=TMC2209LX200TestConstants.DEC_SYNC_TARGET_DEG))
 
     mount.sync_to_target()
 
-    assert mount.get_current_ra().hours == TMC2209LX200TestConstants.RA_SYNC_TARGET_HOURS
+    assert mount.get_current_dec().degrees == TMC2209LX200TestConstants.DEC_SYNC_TARGET_DEG
+
+
+def test_ra_moves_are_noop() -> None:
+    dec_proxy = _FakeProxy()
+    config = TMC2209MountConfig(
+        dec_axis_config=_axis_config(),
+    )
+    mount = TMC2209Mount(dec_proxy=dec_proxy, config=config)
+
+    mount.start_move(LX200MoveDirection.EAST)
+    assert dec_proxy.last_run_sps is None
+
+    mount.stop_move(LX200MoveDirection.WEST)
+    assert not dec_proxy.stopped

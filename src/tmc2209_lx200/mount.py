@@ -4,7 +4,7 @@ import dataclasses
 import logging
 from typing import Optional
 
-from lx200.coords import clamp, wrap_deg, wrap_hours
+from lx200.coords import clamp, wrap_deg
 from lx200.models import LX200Dec, LX200Ra
 from lx200.protocol import LX200Constants, LX200GotoResult, LX200MoveDirection, LX200SlewRate, LX200SyncResult
 from tmc2209.proxy import TMC2209ArduinoProxy
@@ -30,42 +30,42 @@ class _AxisRuntime:
     virtual_steps: int = 0
 
 
+class _TMC2209MountConstants:
+    RA_DIRECTIONS = frozenset({LX200MoveDirection.EAST, LX200MoveDirection.WEST})
+    POSITIVE_DIRECTIONS = frozenset({LX200MoveDirection.EAST, LX200MoveDirection.NORTH})
+
+
 class TMC2209Mount:
     def __init__(
         self,
         *,
-        ra_proxy: TMC2209ArduinoProxy | None = None,
+        dec_proxy: TMC2209ArduinoProxy | None = None,
         config: TMC2209MountConfig | None = None,
         logger: Optional[logging.Logger] = None,
     ) -> None:
         self._log = logger or logging.getLogger(TMC2209LX200Constants.LOGGER_NAME)
         self._config = config or TMC2209MountConfig()
-        if self._config.dec_axis_config is not None:
-            raise TMC2209ConfigError("DEC axis is not supported for RA-only mount")
-        self._ra_proxy = ra_proxy
+        if self._config.ra_axis_config is not None:
+            raise TMC2209ConfigError("RA axis is not supported for DEC-only mount")
+        self._dec_proxy = dec_proxy
         self._slew_rate = LX200SlewRate.CENTER
         self._target_ra = self._config.initial_ra
         self._target_dec = self._config.initial_dec
-        self._axes: dict[TMC2209Axis, _AxisRuntime] = {}
+        self._dec_axis: _AxisRuntime | None = None
         self._initialize_axes()
 
     def close(self) -> None:
-        if self._ra_proxy is not None:
-            self._ra_proxy.close()
+        if self._dec_proxy is not None:
+            self._dec_proxy.close()
 
     def set_slew_rate(self, rate: LX200SlewRate) -> None:
         self._slew_rate = rate
 
     def get_current_ra(self) -> LX200Ra:
-        runtime = self._axes.get(TMC2209Axis.RA)
-        if runtime is None:
-            return self._target_ra
-        degrees = self._axis_current_degrees(runtime, wrap=True)
-        hours = wrap_hours(degrees / TMC2209LX200Constants.RA_DEG_PER_HOUR)
-        return LX200Ra(hours=hours)
+        return self._target_ra
 
     def get_current_dec(self) -> LX200Dec:
-        runtime = self._axes.get(TMC2209Axis.DEC)
+        runtime = self._dec_axis
         if runtime is None:
             return self._target_dec
         degrees = self._axis_current_degrees(runtime, wrap=False)
@@ -93,12 +93,15 @@ class TMC2209Mount:
         return LX200SyncResult.OK
 
     def stop_all(self) -> None:
-        for runtime in self._axes.values():
-            if runtime.proxy is not None:
-                runtime.proxy.stop()
+        if self._dec_axis is None:
+            return None
+        if self._dec_axis.proxy is not None:
+            self._dec_axis.proxy.stop()
 
     def start_move(self, direction: LX200MoveDirection) -> None:
         axis = self._axis_for_direction(direction)
+        if axis == TMC2209Axis.RA:
+            return None
         runtime = self._require_axis(axis, direction.name)
         sps = self._speed_for_axis(runtime.config, self._slew_rate)
         signed_sps = self._signed_speed_for_direction(runtime.state, direction, sps)
@@ -107,26 +110,28 @@ class TMC2209Mount:
 
     def stop_move(self, direction: LX200MoveDirection) -> None:
         axis = self._axis_for_direction(direction)
+        if axis == TMC2209Axis.RA:
+            return None
         runtime = self._require_axis(axis, direction.name)
         runtime.proxy.stop()
 
     def _initialize_axes(self) -> None:
-        if self._ra_proxy is not None and self._config.ra_axis_config is None:
-            raise TMC2209ConfigError("RA axis config is required when RA proxy is set")
-        if self._config.ra_axis_config is not None:
-            if self._ra_proxy is None:
-                raise TMC2209ConfigError("RA proxy is required when RA axis config is set")
+        if self._dec_proxy is not None and self._config.dec_axis_config is None:
+            raise TMC2209ConfigError("DEC axis config is required when DEC proxy is set")
+        if self._config.dec_axis_config is not None:
+            if self._dec_proxy is None:
+                raise TMC2209ConfigError("DEC proxy is required when DEC axis config is set")
             state = self._create_axis_state(
-                axis=TMC2209Axis.RA,
-                config=self._config.ra_axis_config,
+                axis=TMC2209Axis.DEC,
+                config=self._config.dec_axis_config,
                 mapping=self._config.axis_mapping,
-                zero_deg=self._config.initial_ra.hours * TMC2209LX200Constants.RA_DEG_PER_HOUR,
-                proxy=self._ra_proxy,
+                zero_deg=self._config.initial_dec.degrees,
+                proxy=self._dec_proxy,
             )
-            self._axes[TMC2209Axis.RA] = _AxisRuntime(
+            self._dec_axis = _AxisRuntime(
                 state=state,
-                config=self._config.ra_axis_config,
-                proxy=self._ra_proxy,
+                config=self._config.dec_axis_config,
+                proxy=self._dec_proxy,
             )
 
     def _create_axis_state(
@@ -173,14 +178,13 @@ class TMC2209Mount:
         return runtime.proxy.get_position()
 
     def _slew_axis_to_target(self, axis: TMC2209Axis, target_value: float, *, wrap: bool) -> bool:
-        runtime = self._axes.get(axis)
+        if axis == TMC2209Axis.RA:
+            return True
+        runtime = self._dec_axis
         if runtime is None:
             return True
         # TODO: deduplicate target degree computation shared with _sync_axis.
-        if axis == TMC2209Axis.RA:
-            target_deg = wrap_deg(target_value * TMC2209LX200Constants.RA_DEG_PER_HOUR)
-        else:
-            target_deg = clamp(target_value, LX200Constants.MIN_LAT_DEG, LX200Constants.MAX_LAT_DEG)
+        target_deg = clamp(target_value, LX200Constants.MIN_LAT_DEG, LX200Constants.MAX_LAT_DEG)
         current_deg = self._axis_current_degrees(runtime, wrap=wrap)
         delta_deg = target_deg - current_deg
         if wrap:
@@ -193,13 +197,12 @@ class TMC2209Mount:
         return False
 
     def _sync_axis(self, axis: TMC2209Axis, target_value: float, *, wrap: bool) -> None:
-        runtime = self._axes.get(axis)
+        if axis == TMC2209Axis.RA:
+            return None
+        runtime = self._dec_axis
         if runtime is None:
             return None
-        if axis == TMC2209Axis.RA:
-            target_deg = wrap_deg(target_value * TMC2209LX200Constants.RA_DEG_PER_HOUR)
-        else:
-            target_deg = clamp(target_value, LX200Constants.MIN_LAT_DEG, LX200Constants.MAX_LAT_DEG)
+        target_deg = clamp(target_value, LX200Constants.MIN_LAT_DEG, LX200Constants.MAX_LAT_DEG)
         current_steps = self._axis_current_steps(runtime)
         runtime.state.zero_steps = current_steps
         runtime.state.zero_deg = target_deg if not wrap else wrap_deg(target_deg)
@@ -216,7 +219,7 @@ class TMC2209Mount:
         return config.slew_sps
 
     def _axis_for_direction(self, direction: LX200MoveDirection) -> TMC2209Axis:
-        if direction in (LX200MoveDirection.EAST, LX200MoveDirection.WEST):
+        if direction in _TMC2209MountConstants.RA_DIRECTIONS:
             return TMC2209Axis.RA
         return TMC2209Axis.DEC
 
@@ -226,7 +229,7 @@ class TMC2209Mount:
         direction: LX200MoveDirection,
         sps: int,
     ) -> int:
-        if direction in (LX200MoveDirection.EAST, LX200MoveDirection.NORTH):
+        if direction in _TMC2209MountConstants.POSITIVE_DIRECTIONS:
             return sps * int(state.direction_sign)
         return -sps * int(state.direction_sign)
 
@@ -245,7 +248,9 @@ class TMC2209Mount:
         return wrapped
 
     def _require_axis(self, axis: TMC2209Axis, op: str) -> _AxisRuntime:
-        runtime = self._axes.get(axis)
+        if axis == TMC2209Axis.RA:
+            raise TMC2209OperationError(f"{op} requires {axis.value} axis")
+        runtime = self._dec_axis
         if runtime is None or runtime.proxy is None:
             raise TMC2209OperationError(f"{op} requires {axis.value} axis")
         return runtime
