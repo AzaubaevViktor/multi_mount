@@ -33,5 +33,6 @@
 - Organize it
 
 ## Generalized rules from recent edits
+- Try to generalize common rules from recent edits
 - Prefer concise, context-local names over repeating prefixes in enums/types when the module already scopes them.
 - Make zero usage explicit with named constants and store allowed option sets as set-like constants.
