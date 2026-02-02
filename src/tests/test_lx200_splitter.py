@@ -27,6 +27,7 @@ class SplitterTestConstants:
     RESP_DEC = "DEC"
     RESP_ACCEPTED = "1"
     RESP_OK = "0"
+    RESP_ALREADY = "1"
     RESP_DEFAULT = ""
     RESP_SITE_NAME_RA = "RA-MOUNT#"
     RESP_SITE_NAME_DEC = "DEC-MOUNT#"
@@ -220,7 +221,7 @@ def test_routes_stop_command_by_direction() -> None:
     assert dec_handler.calls == [SplitterTestConstants.CMD_STOP_NORTH]
 
 
-def test_raises_on_mismatched_responses() -> None:
+def test_combines_goto_mismatched_responses() -> None:
     ra_handler = SplitterHandlerStub(
         name="ra",
         responses={SplitterTestConstants.CMD_GOTO: SplitterTestConstants.RESP_OK},
@@ -228,16 +229,36 @@ def test_raises_on_mismatched_responses() -> None:
     )
     dec_handler = SplitterHandlerStub(
         name="dec",
-        responses={SplitterTestConstants.CMD_GOTO: SplitterTestConstants.RESP_DEC},
+        responses={SplitterTestConstants.CMD_GOTO: SplitterTestConstants.RESP_ALREADY},
+        default_response=SplitterTestConstants.RESP_DEFAULT,
+    )
+    splitter = LX200Splitter(ra_handler, dec_handler)
+
+    result = splitter.handle_command(SplitterTestConstants.CMD_GOTO)
+
+    assert result == SplitterTestConstants.RESP_OK
+    assert ra_handler.calls == [SplitterTestConstants.CMD_GOTO]
+    assert dec_handler.calls == [SplitterTestConstants.CMD_GOTO]
+
+
+def test_raises_on_mismatched_responses() -> None:
+    ra_handler = SplitterHandlerStub(
+        name="ra",
+        responses={SplitterTestConstants.CMD_SYNC: SplitterTestConstants.RESP_OK},
+        default_response=SplitterTestConstants.RESP_DEFAULT,
+    )
+    dec_handler = SplitterHandlerStub(
+        name="dec",
+        responses={SplitterTestConstants.CMD_SYNC: SplitterTestConstants.RESP_DEC},
         default_response=SplitterTestConstants.RESP_DEFAULT,
     )
     splitter = LX200Splitter(ra_handler, dec_handler)
 
     with pytest.raises(LX200CombineResponseMismatchError):
-        splitter.handle_command(SplitterTestConstants.CMD_GOTO)
+        splitter.handle_command(SplitterTestConstants.CMD_SYNC)
 
-    assert ra_handler.calls == [SplitterTestConstants.CMD_GOTO]
-    assert dec_handler.calls == [SplitterTestConstants.CMD_GOTO]
+    assert ra_handler.calls == [SplitterTestConstants.CMD_SYNC]
+    assert dec_handler.calls == [SplitterTestConstants.CMD_SYNC]
 
 
 def test_stop_with_invalid_direction_raises_parse_error() -> None:

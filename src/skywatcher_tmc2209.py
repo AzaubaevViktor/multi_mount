@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import argparse
-import dataclasses
 import logging
-from typing import Optional
 
 from dummy_server import (
     LX200DummyConstants,
@@ -17,10 +15,8 @@ from lx200.plugins import (
     LX200TimePlugin,
     LX200TrackingPlugin,
 )
-from lx200.protocol import LX200Command, LX200GotoResult
 from lx200.server import LX200CommandHandler, LX200Server
 from lx200_combine.splitter import (
-    LX200CombineResponseMismatchError,
     LX200PrimaryAxis,
     LX200Splitter,
 )
@@ -45,128 +41,40 @@ from tmc2209_lx200.tracking import TMC2209TrackingBackend
 from lib.logging_setup import setup_logging
 
 
-class SkyWatcherTMC2209SplitterConstants:
-    LOGGER_NAME = "lx200.combine.skywatcher_tmc2209"
-    DEFAULT_PRIMARY = LX200PrimaryAxis.RA
-    DEFAULT_TMC_SITE_NAME = "TMC2209"
+SPLITTER_LOGGER_NAME = "lx200.combine.skywatcher_tmc2209"
+DEFAULT_PRIMARY = LX200PrimaryAxis.RA
+DEFAULT_TMC_SITE_NAME = "TMC2209"
 
 
-class SkyWatcherTMC2209SplitterError(Exception):
-    pass
+def _build_skywatcher_handler(
+    mount: SkyWatcherMount,
+    *,
+    site_name: str,
+) -> LX200CommandHandler:
+    plugins = [
+        LX200PointingPlugin(SkyWatcherPointingBackend(mount)),
+        LX200TimePlugin(SkyWatcherTimeBackend()),
+        LX200SitePlugin(SkyWatcherSiteBackend(site_name=site_name)),
+        LX200TrackingPlugin(SkyWatcherTrackingBackend(mount)),
+        LX200ObjectPlugin(SkyWatcherObjectBackend()),
+    ]
+    return LX200Server(plugins)
 
 
-class SkyWatcherTMC2209SplitterConfigError(SkyWatcherTMC2209SplitterError):
-    pass
-
-
-@dataclasses.dataclass(frozen=True)
-class SkyWatcherTMC2209SplitterConfig:
-    primary: LX200PrimaryAxis = SkyWatcherTMC2209SplitterConstants.DEFAULT_PRIMARY
-    skywatcher_site_name: str = SkyWatcherBackendConstants.DEFAULT_SITE_NAME
-    tmc_site_name: str = SkyWatcherTMC2209SplitterConstants.DEFAULT_TMC_SITE_NAME
-
-    def __post_init__(self) -> None:
-        if self.primary not in (LX200PrimaryAxis.RA, LX200PrimaryAxis.DEC):
-            raise SkyWatcherTMC2209SplitterConfigError(
-                f"unsupported primary axis: {self.primary!r}"
-            )
-        if not self.skywatcher_site_name:
-            raise SkyWatcherTMC2209SplitterConfigError("skywatcher site name is required")
-        if not self.tmc_site_name:
-            raise SkyWatcherTMC2209SplitterConfigError("tmc2209 site name is required")
-
-
-class SkyWatcherTMC2209Splitter(LX200CommandHandler):
-    def __init__(
-        self,
-        skywatcher_mount: SkyWatcherMount,
-        tmc_mount: TMC2209Mount,
-        config: SkyWatcherTMC2209SplitterConfig | None = None,
-        *,
-        logger: Optional[logging.Logger] = None,
-    ) -> None:
-        if skywatcher_mount is None or tmc_mount is None:
-            raise SkyWatcherTMC2209SplitterConfigError("Both mounts are required")
-        self._config = config or SkyWatcherTMC2209SplitterConfig()
-        self._log = logger or logging.getLogger(SkyWatcherTMC2209SplitterConstants.LOGGER_NAME)
-        self._skywatcher_mount = skywatcher_mount
-        self._tmc_mount = tmc_mount
-        self._ra_handler = self._build_skywatcher_handler(
-            self._skywatcher_mount,
-            site_name=self._config.skywatcher_site_name,
-        )
-        self._dec_handler = self._build_tmc_handler(
-            self._tmc_mount,
-            site_name=self._config.tmc_site_name,
-        )
-        self._splitter = LX200Splitter(
-            self._ra_handler,
-            self._dec_handler,
-            primary=self._config.primary,
-            logger=self._log,
-        )
-        self._log.info(
-            "skywatcher+tmc2209 splitter init primary=%s", self._config.primary
-        )
-
-    def handle_command(self, raw: str) -> str:
-        try:
-            return self._splitter.handle_command(raw)
-        except LX200CombineResponseMismatchError as exc:
-            if exc.command != LX200Command.GOTO:
-                raise
-            return self._combine_goto_response(exc.ra_response, exc.dec_response)
-
-    def close(self) -> None:
-        self._log.info("skywatcher+tmc2209 splitter close")
-        self._skywatcher_mount.close()
-        self._tmc_mount.close()
-
-    @staticmethod
-    def _build_skywatcher_handler(
-        mount: SkyWatcherMount,
-        *,
-        site_name: str,
-    ) -> LX200CommandHandler:
-        plugins = [
-            LX200PointingPlugin(SkyWatcherPointingBackend(mount)),
-            LX200TimePlugin(SkyWatcherTimeBackend()),
-            LX200SitePlugin(SkyWatcherSiteBackend(site_name=site_name)),
-            LX200TrackingPlugin(SkyWatcherTrackingBackend(mount)),
-            LX200ObjectPlugin(SkyWatcherObjectBackend()),
-        ]
-        return LX200Server(plugins)
-
-    @staticmethod
-    def _build_tmc_handler(
-        mount: TMC2209Mount,
-        *,
-        site_name: str,
-    ) -> LX200CommandHandler:
-        # TODO: extract shared time/site/object backends into a neutral lx200 module.
-        plugins = [
-            LX200PointingPlugin(TMC2209PointingBackend(mount)),
-            LX200TimePlugin(SkyWatcherTimeBackend()),
-            LX200SitePlugin(SkyWatcherSiteBackend(site_name=site_name)),
-            LX200TrackingPlugin(TMC2209TrackingBackend(mount)),
-            LX200ObjectPlugin(SkyWatcherObjectBackend()),
-        ]
-        return LX200Server(plugins)
-
-    def _combine_goto_response(self, ra_response: str, dec_response: str) -> str:
-        results = []
-        for response in (ra_response, dec_response):
-            try:
-                results.append(LX200GotoResult(response))
-            except ValueError as exc:
-                raise SkyWatcherTMC2209SplitterError(
-                    f"unsupported goto response: {response!r}"
-                ) from exc
-        if LX200GotoResult.BELOW_HORIZON in results:
-            return LX200GotoResult.BELOW_HORIZON.value
-        if LX200GotoResult.OK in results:
-            return LX200GotoResult.OK.value
-        return LX200GotoResult.ALREADY_THERE.value
+def _build_tmc_handler(
+    mount: TMC2209Mount,
+    *,
+    site_name: str,
+) -> LX200CommandHandler:
+    # TODO: extract shared time/site/object backends into a neutral lx200 module.
+    plugins = [
+        LX200PointingPlugin(TMC2209PointingBackend(mount)),
+        LX200TimePlugin(SkyWatcherTimeBackend()),
+        LX200SitePlugin(SkyWatcherSiteBackend(site_name=site_name)),
+        LX200TrackingPlugin(TMC2209TrackingBackend(mount)),
+        LX200ObjectPlugin(SkyWatcherObjectBackend()),
+    ]
+    return LX200Server(plugins)
 
 
 CLI_DESCRIPTION = "SkyWatcher RA + TMC2209 DEC LX200 splitter server"
@@ -264,7 +172,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--primary",
         choices=[axis.value for axis in LX200PrimaryAxis],
-        default=SkyWatcherTMC2209SplitterConstants.DEFAULT_PRIMARY.value,
+        default=DEFAULT_PRIMARY.value,
     )
     parser.add_argument(
         "--skywatcher-site-name",
@@ -272,7 +180,7 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--tmc-site-name",
-        default=SkyWatcherTMC2209SplitterConstants.DEFAULT_TMC_SITE_NAME,
+        default=DEFAULT_TMC_SITE_NAME,
     )
     parser.add_argument("--tmc-port", default=DEFAULT_TMC_PORT)
     parser.add_argument(
@@ -354,32 +262,37 @@ def _resolve_skywatcher_serial(args: argparse.Namespace) -> SkyWatcherSerialConf
     )
 
 
-def _build_splitter(args: argparse.Namespace) -> SkyWatcherTMC2209Splitter:
+def _build_splitter(
+    args: argparse.Namespace,
+) -> tuple[LX200Splitter, SkyWatcherMount, TMC2209Mount]:
     skywatcher_serial = _resolve_skywatcher_serial(args)
     skywatcher_mount = SkyWatcherMount.from_serial(skywatcher_serial)
+    if not args.skywatcher_site_name:
+        raise SkyWatcherTMC2209CliConfigError("skywatcher site name is required")
     tmc_serial = _resolve_tmc_serial(args)
     tmc_proxy = TMC2209ArduinoProxy.from_serial(tmc_serial)
     tmc_config = _resolve_tmc_mount_config(args)
     tmc_mount = TMC2209Mount(dec_proxy=tmc_proxy, config=tmc_config)
-    splitter_config = SkyWatcherTMC2209SplitterConfig(
-        primary=_parse_primary(args.primary),
-        skywatcher_site_name=args.skywatcher_site_name,
-        tmc_site_name=args.tmc_site_name,
+    if not args.tmc_site_name:
+        raise SkyWatcherTMC2209CliConfigError("tmc2209 site name is required")
+    primary = _parse_primary(args.primary)
+    splitter = LX200Splitter(
+        _build_skywatcher_handler(skywatcher_mount, site_name=args.skywatcher_site_name),
+        _build_tmc_handler(tmc_mount, site_name=args.tmc_site_name),
+        primary=primary,
+        logger=logging.getLogger(SPLITTER_LOGGER_NAME),
     )
-    return SkyWatcherTMC2209Splitter(
-        skywatcher_mount=skywatcher_mount,
-        tmc_mount=tmc_mount,
-        config=splitter_config,
-    )
+    return splitter, skywatcher_mount, tmc_mount
 
 
 def run_server(host: str, port: int, *, args: argparse.Namespace) -> None:
-    splitter = _build_splitter(args)
+    splitter, skywatcher_mount, tmc_mount = _build_splitter(args)
     server = LX200DummyTcpServer(splitter, host=host, port=port)
     try:
         server.serve_forever()
     finally:
-        splitter.close()
+        skywatcher_mount.close()
+        tmc_mount.close()
 
 
 def main() -> None:

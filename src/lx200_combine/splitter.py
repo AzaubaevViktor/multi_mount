@@ -7,10 +7,11 @@ from typing import Optional
 
 from lx200.protocol import (
     LX200Command,
+    LX200CommandRequest,
     LX200Constants,
+    LX200GotoResult,
     LX200MoveDirection,
     LX200ParseError,
-    LX200CommandRequest,
     parse_request,
 )
 from lx200.server import LX200CommandHandler
@@ -31,7 +32,6 @@ class LX200CombineConstants:
         LX200Command.MOVE_SOUTH,
     }
     BOTH_COMMANDS = {
-        LX200Command.GOTO,
         LX200Command.SYNC,
         LX200Command.RATE_GUIDE,
         LX200Command.RATE_CENTER,
@@ -54,6 +54,7 @@ class LX200CombineConstants:
         LX200Command.GET_DISTANCE,
     }
     COMBINE_COMMANDS = {  # Combine values from both mounts
+        LX200Command.GOTO,
         LX200Command.GET_SITE_NAME,
     }
     RA_ONLY_DIRECTIONS = {
@@ -300,7 +301,24 @@ class LX200Splitter(LX200CommandHandler):
             combined = LX200CombineConstants.SITE_NAME_TEMPLATE.format(ra=ra_name, dec=dec_name)
             self._log.info("splitter combine site_name ra=%r dec=%r", ra_name, dec_name)
             return f"{combined}{LX200Constants.TERMINATOR}"
+        if command == LX200Command.GOTO:
+            return self._combine_goto_response(ra_response, dec_response)
         raise LX200CombineConfigurationError(f"Combine handler missing for command: {command!r}")
+
+    def _combine_goto_response(self, ra_response: str, dec_response: str) -> str:
+        results = []
+        for response in (ra_response, dec_response):
+            try:
+                results.append(LX200GotoResult(response))
+            except ValueError as exc:
+                raise LX200CombineError(
+                    f"unsupported goto response: {response!r}"
+                ) from exc
+        if LX200GotoResult.BELOW_HORIZON in results:
+            return LX200GotoResult.BELOW_HORIZON.value
+        if LX200GotoResult.OK in results:
+            return LX200GotoResult.OK.value
+        return LX200GotoResult.ALREADY_THERE.value
 
     def _strip_terminator(self, response: str) -> str:
         if response.endswith(LX200Constants.TERMINATOR):

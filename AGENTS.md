@@ -1,3 +1,9 @@
+# Architecture rules
+- Before implement new functionality, check:
+    - Check tests for examples
+    - If it's already implemented in other files
+    - If you can inherit from or add into existing class
+
 # Development rules
 - DON'T add any imports in `__init__.py` in ANY module, just import `from lib.module import methods` in other modules
 - First, try to use in-file like code style
