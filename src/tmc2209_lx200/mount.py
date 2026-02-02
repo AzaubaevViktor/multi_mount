@@ -146,7 +146,6 @@ class TMC2209Mount:
                 axis=TMC2209Axis.DEC,
                 config=self._config.dec_axis_config,
                 mapping=self._config.axis_mapping,
-                zero_deg=self._config.initial_dec.degrees,
                 proxy=self._dec_proxy,
             )
             self._dec_axis = _AxisRuntime(
@@ -155,11 +154,9 @@ class TMC2209Mount:
                 proxy=self._dec_proxy,
             )
             self._log.info(
-                "tmc2209 axis ready axis=%s steps_per_degree=%s zero_steps=%s zero_deg=%s direction=%s",
+                "tmc2209 axis ready axis=%s steps_per_degree=%s direction=%s",
                 state.axis.value,
                 state.steps_per_degree,
-                state.zero_steps,
-                state.zero_deg,
                 state.direction_sign,
             )
 
@@ -169,7 +166,6 @@ class TMC2209Mount:
         axis: TMC2209Axis,
         config: TMC2209AxisConfig,
         mapping: TMC2209AxisMapping,
-        zero_deg: float,
         proxy: TMC2209ArduinoProxy,
     ) -> TMC2209AxisState:
         if axis == TMC2209Axis.RA:
@@ -184,19 +180,16 @@ class TMC2209Mount:
                 if mapping.dec_forward_is_north
                 else TMC2209DirectionSign.NEGATIVE
             )
-        zero_steps = proxy.get_position()
         return TMC2209AxisState(
             axis=axis,
             steps_per_degree=config.steps_per_degree,
-            zero_steps=zero_steps,
-            zero_deg=zero_deg,
             direction_sign=direction_sign,
         )
 
     def _axis_current_degrees(self, runtime: _AxisRuntime, *, wrap: bool) -> float:
         steps = self._axis_current_steps(runtime)
-        delta = runtime.state.degrees_from_steps(steps - runtime.state.zero_steps)
-        degrees = runtime.state.zero_deg + delta
+        delta = runtime.state.degrees_from_steps(steps)
+        degrees = delta
         if wrap:
             return wrap_deg(degrees)
         return degrees
@@ -252,13 +245,9 @@ class TMC2209Mount:
             return None
         target_deg = clamp(target_value, LX200Constants.MIN_LAT_DEG, LX200Constants.MAX_LAT_DEG)
         current_steps = self._axis_current_steps(runtime)
-        runtime.state.zero_steps = current_steps
-        runtime.state.zero_deg = target_deg if not wrap else wrap_deg(target_deg)
         self._log.info(
-            "tmc2209 sync axis=%s zero_steps=%s zero_deg=%s",
+            "tmc2209 sync axis=%s",
             axis.value,
-            runtime.state.zero_steps,
-            runtime.state.zero_deg,
         )
         if runtime.proxy is None:
             runtime.virtual_steps = current_steps

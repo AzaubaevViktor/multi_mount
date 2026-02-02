@@ -191,32 +191,24 @@ class SkyWatcherMount:
                 if reset_zero:
                     state.zero_ticks = ticks
             else:
-                zero_deg = self._initial_zero_deg(axis)
                 self._axis_states[axis] = SkyWatcherAxisState(
                     axis=axis,
                     cpr=cpr,
                     zero_ticks=ticks,
-                    zero_deg=zero_deg,
                 )
             self._log.info(
-                "skywatcher axis_state axis=%s cpr=%s zero_ticks=%s zero_deg=%s",
+                "skywatcher axis_state axis=%s cpr=%s zero_ticks=%s",
                 axis,
                 self._axis_states[axis].cpr,
                 self._axis_states[axis].zero_ticks,
-                self._axis_states[axis].zero_deg,
             )
 
     def _axis_ticks_to_deg(self, state: SkyWatcherAxisState, ticks: int, *, wrap: bool) -> float:
         delta_ticks = self._wrap_delta_ticks(ticks - state.zero_ticks)
-        deg = state.zero_deg + state.degrees_from_ticks(delta_ticks)
+        deg = state.degrees_from_ticks(delta_ticks)
         if wrap:
             return wrap_deg(deg)
         return deg
-
-    def _initial_zero_deg(self, axis: SkyWatcherAxis) -> float:
-        if axis == self._config.axis_mapping.ra_axis:
-            return wrap_deg(self._config.initial_ra.hours * SkyWatcherBackendConstants.RA_DEG_PER_HOUR)
-        return self._config.initial_dec.degrees
 
     def _compute_target_delta(self, axis: SkyWatcherAxis, target_value: float) -> int:
         state = self._axis_states[axis]
@@ -224,8 +216,7 @@ class SkyWatcherMount:
             target_deg = wrap_deg(target_value * SkyWatcherBackendConstants.RA_DEG_PER_HOUR)
         else:
             target_deg = clamp(target_value, LX200Constants.MIN_LAT_DEG, LX200Constants.MAX_LAT_DEG)
-        delta_deg = target_deg - state.zero_deg
-        raw_ticks = state.ticks_from_degrees(delta_deg)
+        raw_ticks = state.ticks_from_degrees(target_deg)
         return self._wrap_delta_ticks(raw_ticks)
 
     def _run_goto(self, axis: SkyWatcherAxis, delta_ticks: int) -> None:
@@ -260,7 +251,7 @@ class SkyWatcherMount:
             target_deg = wrap_deg(target_value * SkyWatcherBackendConstants.RA_DEG_PER_HOUR)
         else:
             target_deg = clamp(target_value, LX200Constants.MIN_LAT_DEG, LX200Constants.MAX_LAT_DEG)
-        target_ticks = state.ticks_from_degrees(target_deg - state.zero_deg)
+        target_ticks = state.ticks_from_degrees(target_deg)
         target_ticks = self._wrap_ticks(state.zero_ticks + target_ticks)
         self._log.info(
             "skywatcher sync axis=%s target_deg=%s target_ticks=%s",
@@ -270,7 +261,6 @@ class SkyWatcherMount:
         )
         self._mc.set_axis_position(axis, target_ticks)
         state.zero_ticks = target_ticks
-        state.zero_deg = target_deg if wrap else target_deg
 
     def _wrap_ticks(self, ticks: int) -> int:
         return ticks % SkyWatcherBackendConstants.REVU24_MOD

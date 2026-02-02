@@ -87,8 +87,6 @@ class TMC2209AxisConfig:
 class TMC2209AxisState:
     axis: TMC2209Axis
     steps_per_degree: float
-    zero_steps: int
-    zero_deg: float
     direction_sign: TMC2209DirectionSign
 
     def __post_init__(self) -> None:

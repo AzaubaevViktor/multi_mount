@@ -745,10 +745,9 @@ def test_ra_roundtrip_set_get(
         axis=axis,
         cpr=cpr,
         zero_ticks=zero_ticks,
-        zero_deg=0.0,
     )
     target_deg = wrap_deg(ra_target.hours * SkyWatcherBackendConstants.RA_DEG_PER_HOUR)
-    delta_ticks = state.ticks_from_degrees(target_deg - state.zero_deg)
+    delta_ticks = state.ticks_from_degrees(target_deg)
     target_ticks = _wrap_ticks(state.zero_ticks + delta_ticks)
     LOGGER.info(
         "STEP ra_roundtrip axis=%s target_ra=%s target_ticks=%s",
@@ -764,7 +763,7 @@ def test_ra_roundtrip_set_get(
         pos = skywatcher_mc.inquire_position(axis)
         _log_position(axis, pos, "ra_roundtrip")
         delta_ticks_read = _wrap_delta_ticks(pos - zero_ticks)
-        deg_read = state.zero_deg + state.degrees_from_ticks(delta_ticks_read)
+        deg_read = state.degrees_from_ticks(delta_ticks_read)
         ra_hours_read = wrap_hours(deg_read / SkyWatcherBackendConstants.RA_DEG_PER_HOUR)
         ra_read = LX200Ra(hours=ra_hours_read)
         LOGGER.info(

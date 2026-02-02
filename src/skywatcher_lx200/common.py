@@ -149,7 +149,6 @@ class SkyWatcherAxisState:
     axis: SkyWatcherAxis
     cpr: int
     zero_ticks: int
-    zero_deg: float
 
     def __post_init__(self) -> None:
         if self.cpr <= 0:
