@@ -7,6 +7,7 @@
 - IGNORE all files in slop_src folder. You can read it ONLY if user say so
 
 # Development rules
+- Don't create constants for simple values like (0, -1, 0.0), except it has some semantic
 - DON'T add any imports in `__init__.py` in ANY module, just import `from lib.module import methods` in other modules
 - First, try to use in-file like code style
 - For each error create Exception classes structures
