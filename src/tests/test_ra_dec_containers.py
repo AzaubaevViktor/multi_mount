@@ -1,0 +1,218 @@
+import pytest
+
+from lx200.protocols import (
+    LX200Dec,
+    LX200DecFormatError,
+    LX200DecRangeError,
+    LX200Hours,
+    LX200HoursFormatError,
+    LX200HoursRangeError,
+)
+
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        ("00:00:00", (0, 0, 0)),
+        ("01:02:03", (1, 2, 3)),
+        ("23:59:59", (23, 59, 59)),
+    ],
+)
+def test_hours_from_string_valid(value, expected):
+    hours = LX200Hours.from_string(value)
+    assert (hours.hours, hours.minutes, hours.seconds) == expected
+    assert str(hours) == value
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "1:02:03",
+        "01:2:03",
+        "01:02",
+        "01-02-03",
+        "ab:cd:ef",
+        "",
+    ],
+)
+def test_hours_from_string_invalid_format(value):
+    with pytest.raises(LX200HoursFormatError):
+        LX200Hours.from_string(value)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "24:00:00",
+        "00:60:00",
+        "00:00:60",
+        "99:00:00",
+    ],
+)
+def test_hours_from_string_range_errors(value):
+    with pytest.raises(LX200HoursRangeError):
+        LX200Hours.from_string(value)
+
+
+@pytest.mark.parametrize(
+    "parts",
+    [
+        (-1, 0, 0),
+        (24, 0, 0),
+        (0, -1, 0),
+        (0, 60, 0),
+        (0, 0, -1),
+        (0, 0, 60),
+    ],
+)
+def test_hours_init_range_errors(parts):
+    with pytest.raises(LX200HoursRangeError):
+        LX200Hours(*parts)
+
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        (0, "00:00:00"),
+        (1, "00:00:01"),
+        (60, "00:01:00"),
+        (3600, "01:00:00"),
+        (86399, "23:59:59"),
+    ],
+)
+def test_hours_from_seconds_valid(value, expected):
+    hours = LX200Hours.from_seconds(value)
+    assert str(hours) == expected
+    assert hours.to_seconds() == value
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        -1,
+        86400,
+        1.5,
+        3600.1,
+    ],
+)
+def test_hours_from_seconds_invalid(value):
+    with pytest.raises(LX200HoursRangeError):
+        LX200Hours.from_seconds(value)
+
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        (0.0, "00:00:00"),
+        (1.5, "01:30:00"),
+        (2.25, "02:15:00"),
+    ],
+)
+def test_hours_from_hours_valid(value, expected):
+    hours = LX200Hours.from_hours(value)
+    assert str(hours) == expected
+    assert hours.to_hours() == pytest.approx(value)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        1.0000001,
+        -0.1,
+        24.0,
+    ],
+)
+def test_hours_from_hours_invalid(value):
+    with pytest.raises(LX200HoursRangeError):
+        LX200Hours.from_hours(value)
+
+
+def test_hours_repr():
+    hours = LX200Hours(1, 2, 3)
+    assert repr(hours) == "LX200Hours('01:02:03')"
+
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        ("+00*00'00", ("+", 0, 0, 0)),
+        ("-12*34'56", ("-", 12, 34, 56)),
+        ("+12*34\u201956", ("+", 12, 34, 56)),
+    ],
+)
+def test_dec_from_string_valid(value, expected):
+    dec = LX200Dec.from_string(value)
+    assert (dec.sign, dec.degrees, dec.minutes, dec.seconds) == expected
+    assert str(dec) == f"{expected[0]}{expected[1]:02d}*{expected[2]:02d}'{expected[3]:02d}"
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "12*34'56",
+        "+1*02'03",
+        "+12:34:56",
+        "+12*3456",
+        "+12*34'5",
+        "+12*34\"56",
+        "",
+    ],
+)
+def test_dec_from_string_invalid_format(value):
+    with pytest.raises(LX200DecFormatError):
+        LX200Dec.from_string(value)
+
+
+@pytest.mark.parametrize(
+    "parts",
+    [
+        ("x", 0, 0, 0),
+        ("+", -1, 0, 0),
+        ("+", 91, 0, 0),
+        ("+", 90, 1, 0),
+        ("+", 90, 0, 1),
+        ("+", 0, 60, 0),
+        ("+", 0, 0, 60),
+    ],
+)
+def test_dec_init_range_errors(parts):
+    with pytest.raises(LX200DecRangeError):
+        LX200Dec(*parts)
+
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        (0.0, "+00*00'00"),
+        (12.5, "+12*30'00"),
+        (-12.0, "-12*00'00"),
+        (45.25, "+45*15'00"),
+    ],
+)
+def test_dec_from_degrees_valid(value, expected):
+    dec = LX200Dec.from_degrees(value)
+    assert str(dec) == expected
+    assert dec.to_degrees() == pytest.approx(value)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        90.0002777778,
+        -90.1,
+        12.0000001,
+    ],
+)
+def test_dec_from_degrees_invalid(value):
+    with pytest.raises(LX200DecRangeError):
+        LX200Dec.from_degrees(value)
+
+
+def test_dec_to_degrees_negative():
+    dec = LX200Dec("-", 1, 30, 0)
+    assert dec.to_degrees() == pytest.approx(-1.5)
+
+
+def test_dec_repr():
+    dec = LX200Dec("+", 5, 6, 7)
+    assert repr(dec) == "LX200Dec('+05*06'07')"
