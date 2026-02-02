@@ -61,8 +61,8 @@ class RelativeFormatter(logging.Formatter):
     def __init__(self, *, start_time: float, base_path: str) -> None:
         super().__init__(
             fmt=(
-                "[%(levelname)s] %(elapsed)s %(asctime_date)s %(asctime_time)s "
-                "%(name)s %(relpath)s:%(lineno)d %(funcName)s: %(message)s"
+                "[%(levelname)6s] %(name)s %(elapsed)s %(asctime_date)s %(asctime_time)s "
+                " %(relpath)s:%(lineno)d %(funcName)s: %(message)s"
             )
         )
         self._start_time = start_time
