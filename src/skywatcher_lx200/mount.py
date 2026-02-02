@@ -94,7 +94,7 @@ class SkyWatcherMount:
                 )
             except TimeoutError:
                 timed_out_axes.append(axis)
-        if len(timed_out_axes) >= SkyWatcherBackendConstants.TWO_INT:
+        if len(timed_out_axes) >= 2:
             raise SkyWatcherInitializationError("skywatcher init timeout for all axes")
         if timed_out_axes:
             timed_out = ",".join(axis.name for axis in timed_out_axes)
@@ -180,7 +180,7 @@ class SkyWatcherMount:
     def _refresh_axis_states(self, *, reset_zero: bool = False) -> None:
         for axis in (self._config.axis_mapping.ra_axis, self._config.axis_mapping.dec_axis):
             cpr = self._mc.inquire_cpr(axis)
-            if cpr <= SkyWatcherBackendConstants.ZERO_INT:
+            if cpr <= 0:
                 raise SkyWatcherAxisStateError("axis CPR must be positive")
             ticks = self._mc.inquire_position(axis)
             if axis in self._axis_states:
@@ -229,7 +229,7 @@ class SkyWatcherMount:
     def _run_goto(self, axis: SkyWatcherAxis, delta_ticks: int) -> None:
         direction = self._skywatcher_direction(delta_ticks)
         steps = abs(delta_ticks)
-        if steps <= SkyWatcherBackendConstants.ZERO_INT:
+        if steps <= 0:
             self._log.info("skywatcher goto axis=%s skipped: no steps", axis)
             return
         mode = SkyWatcherMotionMode(
@@ -279,7 +279,7 @@ class SkyWatcherMount:
         return ((ticks + half) % mod) - half
 
     def _skywatcher_direction(self, delta_ticks: int) -> SkyWatcherDirection:
-        if delta_ticks < SkyWatcherBackendConstants.ZERO_INT:
+        if delta_ticks < 0:
             return SkyWatcherDirection.BACKWARD
         return SkyWatcherDirection.FORWARD
 
@@ -308,8 +308,8 @@ class SkyWatcherMount:
         return SkyWatcherDirection.BACKWARD if forward else SkyWatcherDirection.FORWARD
 
     def _rate_for_direction(self, direction: SkyWatcherDirection) -> float:
-        sign = -SkyWatcherBackendConstants.ONE_INT
+        sign = -1
         if direction == SkyWatcherDirection.FORWARD:
-            sign = SkyWatcherBackendConstants.ONE_INT
+            sign = 1
         mult = self._config.slew_rate_config.multiplier_for(self._slew_rate)
         return float(sign) * mult

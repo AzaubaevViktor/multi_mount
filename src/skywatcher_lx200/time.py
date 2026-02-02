@@ -23,7 +23,7 @@ class SkyWatcherTimeBackend(LX200TimeBackend):
     def initialize(self) -> None:
         now = dt.datetime.now().astimezone()
         offset = now.utcoffset()
-        offset_hours = SkyWatcherBackendConstants.ZERO_FLOAT
+        offset_hours = 0.0
         if offset is not None:
             offset_hours = offset.total_seconds() / LX200Constants.SECONDS_PER_HOUR
         self._local_time = LX200Time(hour=now.hour, minute=now.minute, second=now.second)

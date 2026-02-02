@@ -13,8 +13,8 @@ class SkyWatcherSiteBackend(LX200SiteBackend):
         site_name: str = SkyWatcherBackendConstants.DEFAULT_SITE_NAME,
     ) -> None:
         self._site = site or LX200Site(
-            latitude_deg=SkyWatcherBackendConstants.ZERO_FLOAT,
-            longitude_west_deg=SkyWatcherBackendConstants.ZERO_FLOAT,
+            latitude_deg=0.0,
+            longitude_west_deg=0.0,
         )
         self._site_name = site_name
 

@@ -318,7 +318,7 @@ class LX200Site:
         )
 
     def longitude_to_string(self) -> str:
-        sign, deg, minutes, _ = self._deg_to_dms(self.latitude_deg)
+        sign, deg, minutes, _ = self._deg_to_dms(self.longitude_west_deg)
         sign_char = (
             LX200Constants.SIGN_POS
             if sign == LX200Constants.SIGN_POS_INT

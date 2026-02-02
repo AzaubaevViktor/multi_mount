@@ -14,13 +14,9 @@ class SkyWatcherBackendConstants:
     DEFAULT_DISTANCE = LX200Constants.DEFAULT_DISTANCE
     DEFAULT_TRACKING_RATE = LX200Constants.DEFAULT_TRACKING_RATE
     DEFAULT_OBJECT_SIZE = LX200Constants.DEFAULT_DISTANCE
-    ZERO_INT = 0
-    ONE_INT = 1
-    TWO_INT = 2
-    ZERO_FLOAT = 0.0
     RA_DEG_PER_HOUR = SkyWatcherConstants.DEGREES_PER_REV / LX200Constants.HOURS_PER_DAY
-    REVU24_MOD = SkyWatcherRevu24Constants.MAX_VALUE + ONE_INT
-    REVU24_HALF = REVU24_MOD // TWO_INT
+    REVU24_MOD = SkyWatcherRevu24Constants.MAX_VALUE + 1
+    REVU24_HALF = REVU24_MOD // 2
     DEFAULT_INIT_TIMEOUT_S = 5.0
     DEFAULT_INIT_POLL_INTERVAL_S = 0.2
     DEFAULT_GOTO_STEP_PERIOD = 18
@@ -40,9 +36,9 @@ class SkyWatcherBackendConstants:
         day=LX200Constants.MIN_DAY,
         year=LX200Constants.YEAR_BASE,
     )
-    DEFAULT_UTC_OFFSET = LX200UtcOffset(hours=ZERO_FLOAT)
-    DEFAULT_INITIAL_RA = LX200Ra(hours=ZERO_FLOAT)
-    DEFAULT_INITIAL_DEC = LX200Dec(degrees=ZERO_FLOAT)
+    DEFAULT_UTC_OFFSET = LX200UtcOffset(hours=0.0)
+    DEFAULT_INITIAL_RA = LX200Ra(hours=0.0)
+    DEFAULT_INITIAL_DEC = LX200Dec(degrees=0.0)
 
 
 class SkyWatcherBackendError(Exception):
@@ -75,9 +71,9 @@ class SkyWatcherSerialConfig:
     def __post_init__(self) -> None:
         if not self.port:
             raise SkyWatcherConfigError("serial port is required")
-        if self.baud <= SkyWatcherBackendConstants.ZERO_INT:
+        if self.baud <= 0:
             raise SkyWatcherConfigError("baud rate must be positive")
-        if self.timeout_s <= SkyWatcherBackendConstants.ZERO_FLOAT:
+        if self.timeout_s <= 0.0:
             raise SkyWatcherConfigError("timeout must be positive")
 
 
@@ -87,9 +83,9 @@ class SkyWatcherInitConfig:
     poll_interval_s: float = SkyWatcherBackendConstants.DEFAULT_INIT_POLL_INTERVAL_S
 
     def __post_init__(self) -> None:
-        if self.timeout_s <= SkyWatcherBackendConstants.ZERO_FLOAT:
+        if self.timeout_s <= 0.0:
             raise SkyWatcherConfigError("init timeout must be positive")
-        if self.poll_interval_s <= SkyWatcherBackendConstants.ZERO_FLOAT:
+        if self.poll_interval_s <= 0.0:
             raise SkyWatcherConfigError("init poll interval must be positive")
 
 
@@ -101,11 +97,11 @@ class SkyWatcherGotoConfig:
     speed_mode: SkyWatcherSpeedMode = SkyWatcherSpeedMode.LOWSPEED
 
     def __post_init__(self) -> None:
-        if self.step_period <= SkyWatcherBackendConstants.ZERO_INT:
+        if self.step_period <= 0:
             raise SkyWatcherConfigError("goto step period must be positive")
-        if self.break_max <= SkyWatcherBackendConstants.ZERO_INT:
+        if self.break_max <= 0:
             raise SkyWatcherConfigError("goto break max must be positive")
-        if self.tolerance_ticks < SkyWatcherBackendConstants.ZERO_INT:
+        if self.tolerance_ticks < 0:
             raise SkyWatcherConfigError("goto tolerance must be non-negative")
 
 
@@ -123,7 +119,7 @@ class SkyWatcherSlewRateConfig:
             self.find_rate_mult,
             self.slew_rate_mult,
         ):
-            if value <= SkyWatcherBackendConstants.ZERO_FLOAT:
+            if value <= 0.0:
                 raise SkyWatcherConfigError("slew rate multipliers must be positive")
 
     def multiplier_for(self, rate: LX200SlewRate) -> float:
@@ -156,11 +152,11 @@ class SkyWatcherAxisState:
     zero_deg: float
 
     def __post_init__(self) -> None:
-        if self.cpr <= SkyWatcherBackendConstants.ZERO_INT:
+        if self.cpr <= 0:
             raise SkyWatcherAxisStateError("axis CPR must be positive")
         if not isinstance(self.axis, SkyWatcherAxis):
             raise SkyWatcherAxisStateError("axis must be SkyWatcherAxis")
-        if self.zero_ticks < SkyWatcherBackendConstants.ZERO_INT:
+        if self.zero_ticks < 0:
             raise SkyWatcherAxisStateError("zero ticks must be non-negative")
         if self.zero_ticks > SkyWatcherRevu24Constants.MAX_VALUE:
             raise SkyWatcherAxisStateError("zero ticks exceed revu24 range")

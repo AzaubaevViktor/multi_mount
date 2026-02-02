@@ -15,8 +15,11 @@ HIGH_SPEED_PERIOD = 1
 SIDEREAL_RATE_DEG_S = 360.0 / 86164.0905
 TRACKING_MIN_TICK_DELTA = 1
 TRACKING_STOP_MAX_TICK_DELTA = 100
+RA_TEST_STR = "10:40:00"
+RA_EXPECTED_STR = f"{RA_TEST_STR}#"
 
-from lx200.coords import clamp
+from lx200.coords import clamp, wrap_deg, wrap_hours
+from lx200.models import LX200Ra
 from lib.serial_prims import SerialLineDevice
 from lib.skywatcher import (
     SkyWatcherAxis,
@@ -28,6 +31,7 @@ from lib.skywatcher import (
     SkyWatcherSpeedMode,
     SkyWatcherStatus,
 )
+from skywatcher_lx200.common import SkyWatcherAxisState, SkyWatcherBackendConstants
 
 
 @dataclasses.dataclass(frozen=True)
@@ -92,6 +96,17 @@ def _compute_step_period(cpr: int, timer_freq: int, rate_deg_s: float) -> int:
     preset = int(round(timer_freq / counts_per_s))
     bounded = int(clamp(preset, 1, (1 << 24) - 1))
     return bounded
+
+
+# TODO: Reuse shared tick wrap helpers instead of duplicating SkyWatcher mount logic.
+def _wrap_ticks(value: int) -> int:
+    return value % SkyWatcherBackendConstants.REVU24_MOD
+
+
+def _wrap_delta_ticks(value: int) -> int:
+    mod = SkyWatcherBackendConstants.REVU24_MOD
+    half = SkyWatcherBackendConstants.REVU24_HALF
+    return ((value + half) % mod) - half
 
 
 def _wait_for_status(
@@ -714,6 +729,60 @@ def test_set_ra_position(skywatcher_mc: SkyWatcherMC, skywatcher_config: SkyWatc
         max_delta=100,
         note="set_ra_stable",
     )
+
+
+def test_ra_roundtrip_set_get(
+    skywatcher_mc: SkyWatcherMC,
+    skywatcher_config: SkyWatcherTestConfig,
+) -> None:
+    if skywatcher_config.axis != SkyWatcherAxis.RA:
+        pytest.skip("RA axis required for RA roundtrip test.")
+    axis = SkyWatcherAxis.RA
+    ra_target = LX200Ra.from_string(RA_TEST_STR)
+    cpr = skywatcher_mc.inquire_cpr(axis)
+    zero_ticks = skywatcher_mc.inquire_position(axis)
+    state = SkyWatcherAxisState(
+        axis=axis,
+        cpr=cpr,
+        zero_ticks=zero_ticks,
+        zero_deg=0.0,
+    )
+    target_deg = wrap_deg(ra_target.hours * SkyWatcherBackendConstants.RA_DEG_PER_HOUR)
+    delta_ticks = state.ticks_from_degrees(target_deg - state.zero_deg)
+    target_ticks = _wrap_ticks(state.zero_ticks + delta_ticks)
+    LOGGER.info(
+        "STEP ra_roundtrip axis=%s target_ra=%s target_ticks=%s",
+        axis.name,
+        RA_TEST_STR,
+        target_ticks,
+    )
+    try:
+        skywatcher_mc.instant_stop(axis)
+        time.sleep(skywatcher_config.settle_delay_s)
+        skywatcher_mc.set_axis_position(axis, target_ticks)
+        time.sleep(skywatcher_config.settle_delay_s)
+        pos = skywatcher_mc.inquire_position(axis)
+        _log_position(axis, pos, "ra_roundtrip")
+        delta_ticks_read = _wrap_delta_ticks(pos - zero_ticks)
+        deg_read = state.zero_deg + state.degrees_from_ticks(delta_ticks_read)
+        ra_hours_read = wrap_hours(deg_read / SkyWatcherBackendConstants.RA_DEG_PER_HOUR)
+        ra_read = LX200Ra(hours=ra_hours_read)
+        LOGGER.info(
+            "CHECK ra_roundtrip target_hours=%s read_hours=%s",
+            ra_target.hours,
+            ra_read.hours,
+        )
+        assert ra_read.to_string() == RA_EXPECTED_STR
+    finally:
+        skywatcher_mc.set_axis_position(axis, zero_ticks)
+        _assert_position_stable(
+            skywatcher_mc,
+            axis,
+            duration_s=skywatcher_config.settle_delay_s,
+            poll_interval_s=skywatcher_config.poll_interval_s,
+            max_delta=100,
+            note="ra_roundtrip_restore",
+        )
 
 
 def test_sidereal_tracking_enable_disable(
