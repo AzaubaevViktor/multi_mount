@@ -10,3 +10,4 @@ skywatcher.h
 
 .pio
 polar_alignment_*.png
+logs/
