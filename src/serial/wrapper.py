@@ -1,0 +1,44 @@
+import logging
+
+import serial
+
+
+class SerialLine:
+    def __init__(self, port: str, baud: int, timeout_s: float, name: str, terminator: str = "\n", encoding: str ='ascii') -> None:
+        self.logger = logging.getLogger(f"serial.{name}")
+        self.port = port
+        self.baud = baud
+        self.timeout_s = timeout_s
+        self.encoding = encoding
+        self.terminator = terminator.encode(self.encoding)
+
+        self.serial: serial.Serial
+
+    def connect(self):
+        self.serial = serial.Serial(port=self.port, baudrate=self.baud, timeout=self.timeout_s)
+        self.logger.info("Connected to %s:%s (timeout=%d)", self.port, self.baud, self.timeout_s)
+
+    def query(self, payload: str) -> str:
+        self.logger.debug("Send `%s`", payload)
+        self.serial.reset_input_buffer()
+        self.serial.write(payload.encode(self.encoding))
+        self.serial.flush()
+
+        line = self.serial.read_until(self.terminator)
+
+        responce = line.decode(self.encoding)
+        self.logger.debug("Receive `%s`", responce)
+        return responce
+    
+    def read_all_data(self) -> list[str] | None:
+        if (data := self.serial.read_all()) is None:
+            return None
+        
+        lines = [line.decode(self.encoding) for line in data.split(self.terminator)]
+
+        self.logger.debug("Receive all data from input:\n%s", lines)
+
+    def close(self):
+        self.serial.close()
+
+
