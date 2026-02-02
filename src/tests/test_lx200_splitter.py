@@ -14,7 +14,10 @@ from lx200_combine.splitter import (
 class SplitterTestConstants:
     CMD_GET_RA = ":GR#"
     CMD_GET_DEC = ":GD#"
+    CMD_SET_RA = ":Sr01:02:03#"
+    CMD_SET_DEC = ":Sd+10*20:30#"
     CMD_GOTO = ":MS#"
+    CMD_SYNC = ":CM#"
     CMD_GET_SITE_NAME = ":GM#"
     CMD_STOP_ALL = ":Q#"
     CMD_STOP_EAST = ":Qe#"
@@ -22,6 +25,7 @@ class SplitterTestConstants:
     CMD_STOP_INVALID = ":Qx#"
     RESP_RA = "RA"
     RESP_DEC = "DEC"
+    RESP_ACCEPTED = "1"
     RESP_OK = "0"
     RESP_DEFAULT = ""
     RESP_SITE_NAME_RA = "RA-MOUNT#"
@@ -100,6 +104,78 @@ def test_routes_both_commands_and_returns_shared_response() -> None:
     assert result == SplitterTestConstants.RESP_OK
     assert ra_handler.calls == [SplitterTestConstants.CMD_GOTO]
     assert dec_handler.calls == [SplitterTestConstants.CMD_GOTO]
+
+
+def test_routes_slew_to_targets_to_matching_mounts() -> None:
+    ra_handler = SplitterHandlerStub(
+        name="ra",
+        responses={
+            SplitterTestConstants.CMD_SET_RA: SplitterTestConstants.RESP_ACCEPTED,
+            SplitterTestConstants.CMD_GOTO: SplitterTestConstants.RESP_OK,
+        },
+        default_response=SplitterTestConstants.RESP_DEFAULT,
+    )
+    dec_handler = SplitterHandlerStub(
+        name="dec",
+        responses={
+            SplitterTestConstants.CMD_SET_DEC: SplitterTestConstants.RESP_ACCEPTED,
+            SplitterTestConstants.CMD_GOTO: SplitterTestConstants.RESP_OK,
+        },
+        default_response=SplitterTestConstants.RESP_DEFAULT,
+    )
+    splitter = LX200Splitter(ra_handler, dec_handler)
+
+    result_ra = splitter.handle_command(SplitterTestConstants.CMD_SET_RA)
+    result_dec = splitter.handle_command(SplitterTestConstants.CMD_SET_DEC)
+    result_goto = splitter.handle_command(SplitterTestConstants.CMD_GOTO)
+
+    assert result_ra == SplitterTestConstants.RESP_ACCEPTED
+    assert result_dec == SplitterTestConstants.RESP_ACCEPTED
+    assert result_goto == SplitterTestConstants.RESP_OK
+    assert ra_handler.calls == [
+        SplitterTestConstants.CMD_SET_RA,
+        SplitterTestConstants.CMD_GOTO,
+    ]
+    assert dec_handler.calls == [
+        SplitterTestConstants.CMD_SET_DEC,
+        SplitterTestConstants.CMD_GOTO,
+    ]
+
+
+def test_routes_sync_to_targets_to_matching_mounts() -> None:
+    ra_handler = SplitterHandlerStub(
+        name="ra",
+        responses={
+            SplitterTestConstants.CMD_SET_RA: SplitterTestConstants.RESP_ACCEPTED,
+            SplitterTestConstants.CMD_SYNC: SplitterTestConstants.RESP_OK,
+        },
+        default_response=SplitterTestConstants.RESP_DEFAULT,
+    )
+    dec_handler = SplitterHandlerStub(
+        name="dec",
+        responses={
+            SplitterTestConstants.CMD_SET_DEC: SplitterTestConstants.RESP_ACCEPTED,
+            SplitterTestConstants.CMD_SYNC: SplitterTestConstants.RESP_OK,
+        },
+        default_response=SplitterTestConstants.RESP_DEFAULT,
+    )
+    splitter = LX200Splitter(ra_handler, dec_handler)
+
+    result_ra = splitter.handle_command(SplitterTestConstants.CMD_SET_RA)
+    result_dec = splitter.handle_command(SplitterTestConstants.CMD_SET_DEC)
+    result_sync = splitter.handle_command(SplitterTestConstants.CMD_SYNC)
+
+    assert result_ra == SplitterTestConstants.RESP_ACCEPTED
+    assert result_dec == SplitterTestConstants.RESP_ACCEPTED
+    assert result_sync == SplitterTestConstants.RESP_OK
+    assert ra_handler.calls == [
+        SplitterTestConstants.CMD_SET_RA,
+        SplitterTestConstants.CMD_SYNC,
+    ]
+    assert dec_handler.calls == [
+        SplitterTestConstants.CMD_SET_DEC,
+        SplitterTestConstants.CMD_SYNC,
+    ]
 
 
 def test_routes_stop_command_to_both_when_no_direction() -> None:
