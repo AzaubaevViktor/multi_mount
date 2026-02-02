@@ -13,15 +13,15 @@ FM Controls Current position
 - INDI
     - Connect with LX200
 - SkyWatcher
-    - ✅ Connect with mount
-    - ✅ Move
-    - ✅ Read position
-    - ✅ Slew to position
-    - ✅ Sideral tracking
+    - Connect with mount
+    - Move
+    - Read position
+    - Slew to position
+    - Sideral tracking
     - Correction sideral tracking
 - Arduino-based dec mount
-    - ✅ Connect Arduino to motor
-    - ✅ Control motor
+    - Connect Arduino to motor
+    - Control motor
     - Control with LX200
 - Combine
     - Tests for LX200 protocol
