@@ -128,11 +128,13 @@ class SkyWatcherMount:
     def set_target_ra(self, ra: LX200Ra) -> bool:
         self._target_ra = ra
         self._log.info("skywatcher target ra=%s", ra)
+        self._sync_axis(self._config.axis_mapping.ra_axis, ra.hours, wrap=True)
         return True
 
     def set_target_dec(self, dec: LX200Dec) -> bool:
         self._target_dec = dec
         self._log.info("skywatcher target dec=%s", dec)
+        self._sync_axis(self._config.axis_mapping.dec_axis, dec.degrees, wrap=False)
         return True
 
     def slew_to_target(self) -> LX200GotoResult:
