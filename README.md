@@ -11,7 +11,19 @@ FM Controls Current position
 ## TODO
 - ✅ Remove AI-generated slop
 - INDI
-    - Connect with LX200
+    - ✅ Connect with LX200
+- Implement commands
+    - Base
+        - GR#
+        - GM#
+        - GT#
+        - Gt#
+        - GG#
+        - GL#
+        - GC#
+        - SG
+        - Sg
+        - Sr
 - SkyWatcher
     - Connect with mount
     - Move

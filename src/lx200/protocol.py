@@ -9,4 +9,5 @@ class AlignmentMode(StrEnum):
 
 class Protocol:
     ALIGNMENT_QUERY_BYTE = b"\x06"
+    COMMAND_PREFIX = ":"
     TERMINATOR = "#"

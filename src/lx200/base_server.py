@@ -35,6 +35,8 @@ class LX200BaseServer:
                 thread.start()
     
     def _handle_client(self, conn: socket.socket) -> None:
+        # TODO: Don't allow multiple connections
+        # TODO: Detect disconnection and run self.handle_disconnect
         with conn:
             self._connection_id += 1
 
@@ -72,9 +74,18 @@ class LX200BaseServer:
                         break
                     raw = bytes(buf[: idx + 1])
                     del buf[: idx + 1]
+                    
+                    self.log.debug("Receive %s", raw)
 
-                    self.log.debug("Receive from ")
-                    response = self.handle(raw.decode(self.encoding))
+                    message = raw.decode(self.encoding)
+
+                    if not message.startswith(Protocol.COMMAND_PREFIX):
+                        self.log.warning("Wrong command (prefix): %s", message)
+                        break
+
+                    cmd = message.removeprefix(Protocol.COMMAND_PREFIX).removesuffix(Protocol.TERMINATOR)
+
+                    response = self.handle(cmd)
                     self.log.debug("Send %s", response)
                     conn.sendall(response.encode(self.encoding))
 
