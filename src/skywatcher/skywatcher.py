@@ -52,7 +52,7 @@ class SkyWatcherSpeedMode(IntEnum):
     HIGHSPEED = 1
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass
 class SkyWatcherStatus:
     raw: int
     running: bool
@@ -81,7 +81,7 @@ class SkyWatcherStatus:
             direction=direction,
             speed_mode=speed_mode,
         )
-    
+
 
 class Axis(StrEnum):
     RA = "1"
@@ -130,6 +130,10 @@ class SkyWatcherMount:
     _SIDEREAL_SPEED = 15.04106864
 
     _LOWSPEED_RATE = 128
+    _LOWSPEED_MARGIN = 20000
+
+    _LOWSPEED_PERIOD = 18  # ??
+    _HIGH_PERIOD = 10
 
     _POSITION_OFFSET = 0x800000
 
@@ -216,18 +220,93 @@ class SkyWatcherMount:
         self._serial.connect()
         self._do_initialise()
 
+    def _ticks_to_hours(self, ticks: int) -> float:
+        return ticks / self.ra_steps_360 * 24
+    
+    def _hours_to_ticks(self, hours: float) -> int:
+        return int(hours / 24 * self.ra_steps_360)
+
     def get_telescope_ra(self):
         data = self._transact(SkyWatcherCommand.INQUIRE_POSITION)
         ticks = (Revu24.from_mount(data) - self._POSITION_OFFSET) % self.ra_steps_360
         # Ticks / Full circle / (24h) -> hours
-        hours = ticks / self.ra_steps_360 * 24
+        hours = self._ticks_to_hours(ticks)
         total_seconds = int(round(hours * 3600)) % (24 * 3600)
         return LX200Hours.from_seconds(total_seconds)
     
     def set_telescope_ra(self, position: LX200Hours) -> bool:
         hours = position.to_hours()
-        ticks = (hours / 24 * self.ra_steps_360 + self._POSITION_OFFSET) % self.ra_steps_360
+        ticks = (self._hours_to_ticks(hours) + self._POSITION_OFFSET) % self.ra_steps_360
 
         self._transact(SkyWatcherCommand.SET_AXIS_POSITION, Revu24.from_int(int(ticks)))
 
         return True
+    
+    def _wait_motor_stop(self):
+        self._transact(SkyWatcherCommand.STOP_MOTION)
+        self.logger.debug("Wait while motor stops...")
+        while True:
+            status = self.get_status()
+            if not status.running:
+                break
+
+            time.sleep(.5)
+            
+    
+    def _set_motion(self, new_status: SkyWatcherStatus):
+        self._wait_motor_stop()
+        if new_status.slew_mode == SkyWatcherSlewMode.SLEW:
+            motion_mode = "1" if new_status.speed_mode == SkyWatcherSpeedMode.LOWSPEED else "3"
+        elif new_status.slew_mode == SkyWatcherSlewMode.GOTO:
+            motion_mode = "2" if new_status.speed_mode == SkyWatcherSpeedMode.LOWSPEED else "0"
+        else:
+            motion_mode = "1"
+
+        direction_mode = "0" if new_status.direction == SkyWatcherDirection.FORWARD else "1"
+
+        self._transact(SkyWatcherCommand.SET_MOTION_MODE, f"{motion_mode}{direction_mode}")
+
+    def _set_speed(self, period: int):
+        self._transact(SkyWatcherCommand.SET_STEP_PERIOD, Revu24.from_int(period))
+    
+    def _set_target(self, ticks: int):
+        self._transact(SkyWatcherCommand.SET_GOTO_TARGET_INCREMENT, Revu24.from_int(ticks))
+
+    def _set_target_breaks(self, ticks: int):
+        self._transact(SkyWatcherCommand.SET_BREAK_POINT_INCREMENT, Revu24.from_int(ticks))
+
+    def _start_motor(self):
+        self._transact(SkyWatcherCommand.START_MOTION)
+    
+    def slew_to_ra(self, position: LX200Hours) -> bool:
+        new_status = self.get_status()
+        new_status.slew_mode = SkyWatcherSlewMode.GOTO
+
+        current_position = self.get_telescope_ra()
+
+        delta = position - current_position
+        
+        new_status.direction = SkyWatcherDirection.FORWARD if delta.to_hours() > 0 else SkyWatcherDirection.BACKWARD
+
+        delta = -delta
+
+        if self._hours_to_ticks(delta.to_hours()) > self._LOWSPEED_MARGIN:
+            new_status.speed_mode = SkyWatcherSpeedMode.HIGHSPEED
+            is_highspeed = True
+        else:
+            new_status.speed_mode = SkyWatcherSpeedMode.LOWSPEED
+            is_highspeed = False
+
+        self._set_motion(new_status)
+        self._set_speed(self._HIGH_PERIOD if is_highspeed else self._LOWSPEED_PERIOD)
+        ticks = self._hours_to_ticks(delta.to_hours())
+        self._set_target(ticks)
+        self._set_target_breaks(200)  # TODO: Check highspeed
+        self._start_motor()
+
+    def move_ra(self, rate: float) -> bool:
+        status = self.get_status()
+        if status.running and status.slew_mode == SkyWatcherSlewMode.GOTO:
+            self.logger.warning("Can not slew while GOTO in progress")
+            return False
+        

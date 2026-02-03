@@ -85,6 +85,12 @@ class LX200Hours:
         minutes = remainder // 60
         seconds = remainder % 60
         return cls(hours, minutes, seconds)
+    
+    def __sub__(self, b: LX200Hours):
+        return LX200Hours.from_hours(self.to_hours() - b.to_hours())
+    
+    def __neg__(self):
+        return LX200Hours.from_hours(-self.to_hours())
 
     @classmethod
     def from_hours(cls, total_hours: float) -> "LX200Hours":

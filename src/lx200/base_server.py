@@ -101,6 +101,9 @@ class LX200SimpleServer:
                     else:
                         str_response = str(response) + Protocol.TERMINATOR
 
+                    self.log.debug("Convert %r -> %s", response, str_response)
+
+
                     if str_response is None:
                         self.log.debug("Nothing to return")
                     else:

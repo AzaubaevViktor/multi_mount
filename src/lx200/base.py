@@ -82,15 +82,22 @@ class LX200Base:
             case LX200Commands.SET_TELESCOPE_RA, position:
                 self._target_ra = LX200Hours.from_string(position)
                 result = True
+
             case LX200Commands.GET_TELESCOPE_DEC, _:
                 result = self.get_telescope_dec()
             case LX200Commands.SET_TELESCOPE_DEC, position:
                 self._target_dec = LX200Dec.from_string(position)
                 result = True
+
             case LX200Commands.SYNC, _:
                 result = self.set_telescope_ra(self._target_ra)
                 result &= self.set_telescope_dec(self._target_dec)
                 result = "OK"
+            case LX200Commands.SLEW, _:
+                result = self.slew_to_ra(self._target_ra)
+                result = self.slew_to_dec(self._target_dec)
+                result = "OK"
+
             case LX200Commands.GET_CALENDAR_FORMAT, _:
                 result = self.get_calendar_format()
             case LX200Commands.GET_SITE1_NAME, _:
@@ -134,14 +141,13 @@ class LX200Base:
         result = self._do_handle(cmd, argument)
         
         if result is not None:
-            _logger.debug("Convert %r -> %s", result)
             _logger.info("Answer command %s %s(%s) -> %s", cmd, cmd.name, argument, result)
 
             time.sleep(.1)
 
             return result
         else:
-            _logger.warning("Empty responce: %s %s(%s)", cmd, cmd.name, argument, result)
+            _logger.warning("Empty responce: %s %s(%s) -> ∅", cmd, cmd.name, argument)
             return None
 
     def get_telescope_ra(self) -> LX200Hours:
@@ -154,6 +160,12 @@ class LX200Base:
         raise NotImplementedError()
     
     def set_telescope_dec(self, position: LX200Dec) -> bool:
+        raise NotImplementedError()
+    
+    def slew_to_ra(self, position: LX200Hours) -> bool:
+        raise NotImplementedError()
+    
+    def slew_to_dec(self, position: LX200Dec) -> bool:
         raise NotImplementedError()
     
     def get_calendar_format(self) -> str:
