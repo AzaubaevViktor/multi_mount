@@ -21,7 +21,7 @@ class LX200TestDECServer(LX200Base):
         return LX200Dec.from_degrees(self.dec)
     
     def set_telescope_dec(self, position: LX200Dec) -> bool:
-        self.dec = position.degrees
+        self.dec = position.to_degrees()
         return True
 
     def handle_alignment(self, data: bytes) -> AlignmentMode:
@@ -35,7 +35,7 @@ class LX200TestDECServer(LX200Base):
     
 
 if __name__ == "__main__":
-    skywatcher_serial = SerialLine("/dev/tty.PL2303G-USBtoUART2120", 112500, .2, "skywatcher")
+    skywatcher_serial = SerialLine("/dev/tty.PL2303G-USBtoUART2120", 112500, .05, "skywatcher")
     skywatcher_ra_mount = SkyWatcherMount(skywatcher_serial)
     skywatcher_lx200 = SkyWatcherLX200(skywatcher_ra_mount)
 

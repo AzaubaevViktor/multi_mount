@@ -12,7 +12,7 @@ class LX200SimpleServer:
             lx200: LX200Base,
             host: str = 'localhost', 
             port: int = 7624, 
-            buffer_size: int = 1024,
+            buffer_size: int = 16,
             encoding: str = 'ascii') -> None:
         self.log = logging.getLogger("server")
         self.lx200 = lx200
