@@ -222,3 +222,10 @@ class SkyWatcherMount:
         # Ticks / Full circle / (24h) -> hours
         hours = ticks / self.ra_steps_360 / 24
         return LX200Hours.from_hours(hours)
+    
+    def set_telescope_ra(self, position: LX200Hours) -> bool:
+        ticks = (position.to_hours() * self.ra_steps_360 * 24 + self._POSITION_OFFSET) % self.ra_steps_360
+
+        self._transact(SkyWatcherCommand.SET_AXIS_POSITION, Revu24.from_int(int(ticks)))
+
+        return True
