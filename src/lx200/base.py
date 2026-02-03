@@ -14,9 +14,6 @@ class LX200UnknownCommand(Exception):
 
 
 class LX200Base:
-    def get_telescope_ra(self) -> LX200Hours:
-        raise NotImplementedError()
-    
     def do_handle(self, full_command: str) -> str:
         cmd, argument = full_command[:2], full_command[2:]
         match (cmd, argument):
@@ -30,5 +27,7 @@ class LX200Base:
         else:
             raise Exception("Wrong return")
 
+    def get_telescope_ra(self) -> LX200Hours:
+        raise NotImplementedError()
 
 
