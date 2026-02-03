@@ -4,7 +4,7 @@ import serial
 
 
 class SerialLine:
-    def __init__(self, port: str, baud: int, timeout_s: float, name: str, terminator: str = "\n", encoding: str ='ascii') -> None:
+    def __init__(self, port: str, baud: int, timeout_s: float, name: str, terminator: str = "\r", encoding: str ='ascii') -> None:
         self.logger = logging.getLogger(f"serial.{name}")
         self.port = port
         self.baud = baud
@@ -24,7 +24,7 @@ class SerialLine:
         self.serial.write(payload.encode(self.encoding))
         self.serial.flush()
 
-        line = self.serial.read_until(self.terminator, 100)
+        line = self.serial.read_until(self.terminator, 1024)
 
         responce = line.decode(self.encoding)
         self.logger.debug("Receive `%s`", responce)

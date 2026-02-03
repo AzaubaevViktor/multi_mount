@@ -1,6 +1,7 @@
 
 from enum import Enum, StrEnum
 import logging
+import time
 from typing import Any, Callable
 
 
@@ -14,6 +15,9 @@ class LX200Commands(StrEnum):
 
     GET_TELESCOPE_DEC = "GD"
     SET_TELESCOPE_DEC = "Sd"
+
+    SYNC = "CM"
+    SLEW = "MS"
 
     MOVE_EAST = "Me"
     MOVE_NORTH = "Mn"
@@ -41,7 +45,7 @@ class LX200Commands(StrEnum):
     GET_CURRENT_DATE = "GC"
 
     SET_CURRENT_SITE_LONGTITUDE = "Sg"
-    SET_CURR_SITE_LATITUDE = "St"
+    SET_CURRENT_SITE_LATITUDE = "St"
     SET_UTC = "SG"
 
     SET_LOCAL_TIME = "SL"
@@ -61,25 +65,32 @@ _logger = logging.getLogger("lx200")
 
 
 class LX200Base:
+    def __init__(self) -> None:
+        self._target_ra: LX200Hours = LX200Hours.from_hours(0)
+        self._target_dec: LX200Dec = LX200Dec.from_degrees(0)
+        
     def connect(self):
         raise NotImplementedError()
     
     def handle_alignment(self, data: bytes) -> AlignmentMode:
         raise NotImplementedError()
-
-    def handle(self, full_command: str) -> str | None:
-        cmd, argument = full_command[:2], full_command[2:]
-        _logger.info("Get command %s(%s)", cmd, argument)
-
+    
+    def _do_handle(self, cmd: LX200Commands, argument: Any) -> Any:
         match (cmd, argument):
             case LX200Commands.GET_TELECOPE_RA, _:
                 result = self.get_telescope_ra()
             case LX200Commands.SET_TELESCOPE_RA, position:
-                result = self.set_telescope_ra(LX200Hours.from_string(position))
+                self._target_ra = LX200Hours.from_string(position)
+                result = True
             case LX200Commands.GET_TELESCOPE_DEC, _:
                 result = self.get_telescope_dec()
             case LX200Commands.SET_TELESCOPE_DEC, position:
-                result = self.set_telescope_dec(LX200Dec.from_string(position))
+                self._target_dec = LX200Dec.from_string(position)
+                result = True
+            case LX200Commands.SYNC, _:
+                result = self.set_telescope_ra(self._target_ra)
+                result &= self.set_telescope_dec(self._target_dec)
+                result = "OK"
             case LX200Commands.GET_CALENDAR_FORMAT, _:
                 result = self.get_calendar_format()
             case LX200Commands.GET_SITE1_NAME, _:
@@ -87,30 +98,50 @@ class LX200Base:
             case LX200Commands.GET_TRACKING_RATE, _:
                 result = self.get_tracking_rate()
             case LX200Commands.GET_CURRENT_SITE_LATITUDE, _:
-                result = "+10*10"
+                result = "+00*00"
             case LX200Commands.GET_CURRENT_SITE_LONGITUDE, _:
-                result = "+011*11"
+                result = "+000*00"
+            case LX200Commands.SET_CURRENT_SITE_LONGTITUDE, _:
+                result = True
+            case LX200Commands.SET_CURRENT_SITE_LATITUDE, _:
+                result = False
+
             case LX200Commands.GET_UTC_OFFSET_TIME, _:
-                result = "-4"
+                result = "+0"
+            case LX200Commands.SET_UTC, _:
+                result = True
+
             case LX200Commands.GET_LOCAL_TIME, _:
                 result = "00:00:00"
+            case LX200Commands.SET_LOCAL_TIME, _:
+                result = True
             case LX200Commands.GET_CURRENT_DATE, _:
-                result = "01/01/2000"
+                result = "01/01/26"
+            case LX200Commands.SET_LOCAL_DATE, _:
+                result = True
             case _:
-                _logger.warning("Wrong command: %s", full_command)
+                _logger.warning("Wrong command: %s(%s)", cmd, argument)
                 result = None
                 # raise LX200UnknownCommand(full_command)
         
-        if result is not None:
-            if isinstance(result, bool):
-                str_result = "1" if result else "0"
-            else:
-                str_result = str(result)
-            _logger.debug("Convert %r -> %s", result, str_result)
-            _logger.info("Answer command %s(%s) -> %s", cmd, argument, str_result)
+        return result
+        
+    def handle(self, full_command: str) -> Any:
+        _cmd, argument = full_command[:2], full_command[2:]
+        cmd = LX200Commands(_cmd)
+        _logger.info("Get command %s %s(%s)", cmd, cmd.name, argument)
 
-            return str_result
+        result = self._do_handle(cmd, argument)
+        
+        if result is not None:
+            _logger.debug("Convert %r -> %s", result)
+            _logger.info("Answer command %s %s(%s) -> %s", cmd, cmd.name, argument, result)
+
+            time.sleep(.1)
+
+            return result
         else:
+            _logger.warning("Empty responce: %s %s(%s)", cmd, cmd.name, argument, result)
             return None
 
     def get_telescope_ra(self) -> LX200Hours:
