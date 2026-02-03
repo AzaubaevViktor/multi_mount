@@ -3,7 +3,7 @@ from enum import IntEnum, StrEnum
 import logging
 from sqlite3 import Time
 import time
-from serial.wrapper import SerialLine
+from serial_wrapper.wrapper import SerialLine
 
 
 class SkyWatcherWrongResponce(Exception):
