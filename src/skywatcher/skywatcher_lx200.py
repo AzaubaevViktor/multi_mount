@@ -13,5 +13,8 @@ class SkyWatcherLX200(LX200Base):
     def get_telescope_ra(self) -> LX200Hours:
         return self.mount.get_telescope_ra()
     
-    def set_telescope_ra(self, position: LX200Hours) -> str:
+    def set_telescope_ra(self, position: LX200Hours) -> bool:
         return self.mount.set_telescope_ra(position)
+
+    def get_site1_name(self) -> str:
+        return "skywatcher"

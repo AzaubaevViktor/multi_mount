@@ -18,5 +18,8 @@ class LX200Splitter(LX200Base):
     def get_telescope_ra(self) -> LX200Hours:
         return self.ra.get_telescope_ra()
 
-    def set_telescope_ra(self, position: LX200Hours) -> str:
+    def set_telescope_ra(self, position: LX200Hours) -> bool:
         return self.ra.set_telescope_ra(position)
+    
+    def get_site1_name(self) -> str:
+        return f"splitter_ra_{self.ra.get_site1_name()}_dec_{self.dec.get_site1_name()}"

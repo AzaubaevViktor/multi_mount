@@ -14,7 +14,7 @@ FM Controls Current position
     - ✅ Connect with LX200
 - Implement commands
     - Base
-        - GR#
+        - ✅ GR#
         - GD
         - GM#
         - GT#

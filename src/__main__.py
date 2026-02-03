@@ -16,6 +16,9 @@ class LX200TestDECServer(LX200Base):
     def handle_alignment(self, data: bytes) -> AlignmentMode:
         return AlignmentMode.POLAR
     
+    def get_site1_name(self) -> str:
+        return "noop"
+    
     def connect(self):
         pass
     
