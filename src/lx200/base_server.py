@@ -100,8 +100,9 @@ class LX200SimpleServer:
                         self.log.debug("Send %s", str_response)
                     else:
                         str_response = str(response) + Protocol.TERMINATOR
+                        
 
-                    self.log.debug("Convert %r -> %s", response, str_response)
+                    self.log.debug("Convert %r -> `%s`", response, str_response)
 
 
                     if str_response is None:

@@ -28,6 +28,7 @@ class SkyWatcherCommand(StrEnum):
     SET_GOTO_TARGET = "S"
     SET_GOTO_TARGET_INCREMENT = "H"
     SET_BREAK_POINT_INCREMENT = "M"
+    SET_BREAK_POINT = "M"
     SET_AXIS_POSITION = "E"
     SET_MOTION_MODE = "G"
     START_MOTION = "J"
@@ -270,10 +271,10 @@ class SkyWatcherMount:
         self._transact(SkyWatcherCommand.SET_STEP_PERIOD, Revu24.from_int(period))
     
     def _set_target(self, ticks: int):
-        self._transact(SkyWatcherCommand.SET_GOTO_TARGET_INCREMENT, Revu24.from_int(ticks))
+        self._transact(SkyWatcherCommand.SET_GOTO_TARGET, Revu24.from_int(ticks + self._POSITION_OFFSET))
 
     def _set_target_breaks(self, ticks: int):
-        self._transact(SkyWatcherCommand.SET_BREAK_POINT_INCREMENT, Revu24.from_int(ticks))
+        self._transact(SkyWatcherCommand.SET_BREAK_POINT, Revu24.from_int(ticks))
 
     def _start_motor(self):
         self._transact(SkyWatcherCommand.START_MOTION)
@@ -299,9 +300,8 @@ class SkyWatcherMount:
 
         self._set_motion(new_status)
         self._set_speed(self._HIGH_PERIOD if is_highspeed else self._LOWSPEED_PERIOD)
-        ticks = self._hours_to_ticks(delta.to_hours())
-        self._set_target(ticks)
-        self._set_target_breaks(200)  # TODO: Check highspeed
+        self._set_target(self._hours_to_ticks(position.to_hours()))
+        self._set_target_breaks(self._hours_to_ticks(position.to_hours()))  # TODO: Check highspeed
         self._start_motor()
 
     def move_ra(self, rate: float) -> bool:

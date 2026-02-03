@@ -1,6 +1,6 @@
 from lx200.base import LX200Base
 from lx200.protocols import LX200Hours
-from .skywatcher import SkyWatcherMount
+from .skywatcher import SkyWatcherMount, SkyWatcherSlewMode
 
 
 class SkyWatcherLX200(LX200Base):
@@ -21,3 +21,9 @@ class SkyWatcherLX200(LX200Base):
 
     def get_site1_name(self) -> str:
         return "skywatcher"
+    
+    def get_distance(self) -> str:
+        if self.mount.get_status().slew_mode == SkyWatcherSlewMode.GOTO:
+            return "\x7f"
+        else:
+            return ""

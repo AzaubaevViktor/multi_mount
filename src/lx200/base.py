@@ -18,6 +18,7 @@ class LX200Commands(StrEnum):
 
     SYNC = "CM"
     SLEW = "MS"
+    GET_DISTANCE = "D"
 
     MOVE_EAST = "Me"
     MOVE_NORTH = "Mn"
@@ -96,7 +97,7 @@ class LX200Base:
             case LX200Commands.SLEW, _:
                 result = self.slew_to_ra(self._target_ra)
                 result = self.slew_to_dec(self._target_dec)
-                result = "OK"
+                result = "0"
 
             case LX200Commands.GET_CALENDAR_FORMAT, _:
                 result = self.get_calendar_format()
@@ -126,6 +127,9 @@ class LX200Base:
                 result = "01/01/26"
             case LX200Commands.SET_LOCAL_DATE, _:
                 result = True
+
+            case LX200Commands.GET_DISTANCE, _:
+                result = self.get_distance()
             case _:
                 _logger.warning("Wrong command: %s(%s)", cmd, argument)
                 result = None
@@ -176,3 +180,6 @@ class LX200Base:
     
     def get_tracking_rate(self) -> str:
         return "60.0"
+
+    def get_distance(self) -> str:
+        raise NotImplementedError()

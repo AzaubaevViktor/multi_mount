@@ -35,3 +35,6 @@ class LX200Splitter(LX200Base):
     
     def get_site1_name(self) -> str:
         return f"splitter_ra_{self.ra.get_site1_name()}_dec_{self.dec.get_site1_name()}"
+
+    def get_distance(self) -> str:
+        return self.ra.get_distance() + self.dec.get_distance()

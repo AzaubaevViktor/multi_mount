@@ -36,6 +36,9 @@ class LX200TestDECServer(LX200Base):
     
     def connect(self):
         pass
+
+    def get_distance(self) -> str:
+        return ""
     
 
 if __name__ == "__main__":
