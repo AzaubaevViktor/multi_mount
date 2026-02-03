@@ -286,12 +286,16 @@ class SkyWatcherMount:
         current_position = self.get_telescope_ra()
 
         delta = position - current_position
+        delta_hours = delta.to_hours()
         
-        new_status.direction = SkyWatcherDirection.FORWARD if delta.to_hours() > 0 else SkyWatcherDirection.BACKWARD
+        if delta_hours > 12:
+            new_status.direction = SkyWatcherDirection.BACKWARD
+            distance = -delta
+        else:
+            new_status.direction = SkyWatcherDirection.FORWARD
+            distance = delta
 
-        delta = -delta
-
-        if self._hours_to_ticks(delta.to_hours()) > self._LOWSPEED_MARGIN:
+        if self._hours_to_ticks(distance.to_hours()) > self._LOWSPEED_MARGIN:
             new_status.speed_mode = SkyWatcherSpeedMode.HIGHSPEED
             is_highspeed = True
         else:
@@ -303,6 +307,7 @@ class SkyWatcherMount:
         self._set_target(self._hours_to_ticks(position.to_hours()))
         self._set_target_breaks(self._hours_to_ticks(position.to_hours()))  # TODO: Check highspeed
         self._start_motor()
+        return True
 
     def move_ra(self, rate: float) -> bool:
         status = self.get_status()
