@@ -88,6 +88,30 @@ class Axis(StrEnum):
     DEC = "2"
 
 
+class SkyWatcherRevu24:
+    @staticmethod
+    def from_mount(data: str) -> int:
+        if len(data) < 6:
+            raise SkyWatcherRevu24Error(f"Expected at least 6 hex chars, got {len(data)}")
+
+        reordered = data[4:6] + data[2:4] + data[0:2]
+        try:
+            return int(reordered, 16)
+        except ValueError as exc:
+            raise SkyWatcherRevu24Error(f"Invalid hex data: {data!r}") from exc
+
+    @staticmethod
+    def from_int(value: int) -> str:
+        try:
+            if value < 0 or value > 0xFFFFFF:
+                raise SkyWatcherRevu24Error(
+                    f"Expected value in range 0..{0xFFFFFF}, got {value}"
+                )
+        except TypeError as exc:
+            raise SkyWatcherRevu24Error(f"Invalid value: {value!r}") from exc
+
+        return value.to_bytes(3, "little").hex().upper()
+
 
 class SkyWatcherMount:
     _LEADING = ":"
