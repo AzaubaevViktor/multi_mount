@@ -7,8 +7,8 @@ MINUTES_PER_DEGREE = 60
 SECONDS_PER_DEGREE = 60 * MINUTES_PER_DEGREE
 MAX_DEC_DEGREES = 90
 
-APOSTROPHE = "'"
-UNICODE_APOSTROPHE = "\u2019"
+APOSTROPHE = ":"
+UNICODE_APOSTROPHE = ":"
 
 HOURS_PATTERN = re.compile(r"^(\d{2}):(\d{2}):(\d{2})$")
 DEC_PATTERN = re.compile(rf"^([{SIGN_CHARS}])(\d{{2}})\*(\d{{2}})[{APOSTROPHE}{UNICODE_APOSTROPHE}](\d{{2}})$")
@@ -143,7 +143,7 @@ class LX200Dec:
     def from_string(cls, value: str) -> "LX200Dec":
         match = DEC_PATTERN.match(value)
         if not match:
-            raise LX200DecFormatError(f"Invalid sDD*MM'SS format: {value!r}")
+            raise LX200DecFormatError(f"Invalid sDD*MM:SS format: {value!r}")
 
         sign = match.group(1)
         degrees = int(match.group(2))

@@ -90,9 +90,10 @@ class LX200SimpleServer:
 
                     cmd = message.removeprefix(Protocol.COMMAND_PREFIX).removesuffix(Protocol.TERMINATOR)
 
-                    response = self.handle(cmd)
+                    response = self.handle(cmd) + Protocol.TERMINATOR
                     self.log.debug("Send %s", response)
                     conn.sendall(response.encode(self.encoding))
+                    
 
     def handle_alignment(self, data: bytes) -> AlignmentMode:
         return self.lx200.handle_alignment(data)
