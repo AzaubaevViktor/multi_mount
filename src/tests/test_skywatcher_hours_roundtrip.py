@@ -50,7 +50,7 @@ def _distance_seconds(a: int, b: int) -> int:
 
 
 def test_slew_to_ra_moves_mount(mount: SkyWatcherMount):
-    slew_delta_seconds = 120
+    slew_delta_seconds = 240
     timeout_s = 15
     target_tolerance_seconds = 5
 
@@ -74,5 +74,5 @@ def test_slew_to_ra_moves_mount(mount: SkyWatcherMount):
     actual = mount.get_telescope_ra()
     distance = _distance_seconds(actual.to_seconds(), target.to_seconds())
     assert distance <= target_tolerance_seconds, (
-        f"Mount did not reach target: distance={distance}s target={target} actual={actual}"
+        f"Mount did not reach target: distance={distance}s target={target} actual={actual}, status={mount.get_status()}"
     )

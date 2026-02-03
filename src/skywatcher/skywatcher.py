@@ -149,17 +149,14 @@ class SkyWatcherMount:
         self.ra_steps_worm: int
         self.ra_highspeed_ratio: int
 
-    def _get_axis(self):
-        return Axis.RA  # RA axis
-
-    def _transact(self, cmd: SkyWatcherCommand, arg: str | None = None) -> str:
+    def _transact(self, cmd: SkyWatcherCommand, arg: str | None = None, axis: Axis = Axis.RA) -> str:
         """ All transactions works only with RA """
         self.logger.info("Send %s(%s) ...", cmd.name, arg if arg is not None else "")
 
         payload = [
             self._LEADING,
             cmd.value,
-            str(self._get_axis())
+            str(axis)
         ]
 
         if arg is not None:
@@ -244,7 +241,7 @@ class SkyWatcherMount:
         return True
     
     def _wait_motor_stop(self):
-        self._transact(SkyWatcherCommand.STOP_MOTION)
+        # self._transact(SkyWatcherCommand.STOP_MOTION)
         self.logger.debug("Wait while motor stops...")
         while True:
             status = self.get_status()
@@ -271,10 +268,10 @@ class SkyWatcherMount:
         self._transact(SkyWatcherCommand.SET_STEP_PERIOD, Revu24.from_int(period))
     
     def _set_target(self, ticks: int):
-        self._transact(SkyWatcherCommand.SET_GOTO_TARGET, Revu24.from_int(ticks + self._POSITION_OFFSET))
+        self._transact(SkyWatcherCommand.SET_GOTO_TARGET, Revu24.from_int(ticks))
 
     def _set_target_breaks(self, ticks: int):
-        self._transact(SkyWatcherCommand.SET_BREAK_POINT, Revu24.from_int(ticks))
+        self._transact(SkyWatcherCommand.SET_BREAK_POINT_INCREMENT, Revu24.from_int(ticks))
 
     def _start_motor(self):
         self._transact(SkyWatcherCommand.START_MOTION)
@@ -295,17 +292,22 @@ class SkyWatcherMount:
             new_status.direction = SkyWatcherDirection.FORWARD
             distance = delta
 
-        if self._hours_to_ticks(distance.to_hours()) > self._LOWSPEED_MARGIN:
+        delta_ticks = self._hours_to_ticks(distance.to_hours())
+
+        if delta_ticks > self._LOWSPEED_MARGIN:
             new_status.speed_mode = SkyWatcherSpeedMode.HIGHSPEED
             is_highspeed = True
         else:
             new_status.speed_mode = SkyWatcherSpeedMode.LOWSPEED
             is_highspeed = False
+        
+        new_status.speed_mode = SkyWatcherSpeedMode.LOWSPEED
+
 
         self._set_motion(new_status)
         self._set_speed(self._HIGH_PERIOD if is_highspeed else self._LOWSPEED_PERIOD)
-        self._set_target(self._hours_to_ticks(position.to_hours()))
-        self._set_target_breaks(self._hours_to_ticks(position.to_hours()))  # TODO: Check highspeed
+        self._set_target(self._hours_to_ticks(position.to_hours()) + self._POSITION_OFFSET)
+        self._set_target_breaks(min(200, delta_ticks))  # TODO: Check highspeed
         self._start_motor()
         return True
 
