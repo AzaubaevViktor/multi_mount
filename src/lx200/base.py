@@ -14,12 +14,28 @@ class LX200Commands(StrEnum):
 
     GET_TELESCOPE_DEC = "GD"
     SET_TELESCOPE_DEC = "Sd"
+
+    MOVE_EAST = "Me"
+    MOVE_NORTH = "Mn"
+    MOVE_SOUTH = "Ms"
+    MOVE_WEST = "Mw"
+
+    HALT_ALL = "Q"
+
+    HALT_EAST = "Qe"
+    HALT_NORTH = "Qn"
+    HALT_SOUTH = "Qs"
+    HALT_WEST = "Qw"
+
+    SET_TARGET_DEC = "Sd"
+    SET_TARGET_RA = "Sr"
     
     GET_CALENDAR_FORMAT = "Gc"
     GET_SITE1_NAME = "GM"
 
     GET_TRACKING_RATE = "GT"
     GET_CURRENT_SITE_LATITUDE= "Gt"
+    GET_CURRENT_SITE_LONGITUDE = "Gg"
     GET_UTC_OFFSET_TIME = "GG"
     GET_LOCAL_TIME = "GL"
     GET_CURRENT_DATE = "GC"
@@ -51,7 +67,7 @@ class LX200Base:
     def handle_alignment(self, data: bytes) -> AlignmentMode:
         raise NotImplementedError()
 
-    def handle(self, full_command: str) -> str:
+    def handle(self, full_command: str) -> str | None:
         cmd, argument = full_command[:2], full_command[2:]
         _logger.info("Get command %s(%s)", cmd, argument)
 
@@ -71,16 +87,18 @@ class LX200Base:
             case LX200Commands.GET_TRACKING_RATE, _:
                 result = self.get_tracking_rate()
             case LX200Commands.GET_CURRENT_SITE_LATITUDE, _:
-                result = False
+                result = "+10*10"
+            case LX200Commands.GET_CURRENT_SITE_LONGITUDE, _:
+                result = "+011*11"
             case LX200Commands.GET_UTC_OFFSET_TIME, _:
-                result = False
+                result = "-4"
             case LX200Commands.GET_LOCAL_TIME, _:
-                result = False
+                result = "00:00:00"
             case LX200Commands.GET_CURRENT_DATE, _:
-                result = False
+                result = "01/01/2000"
             case _:
                 _logger.warning("Wrong command: %s", full_command)
-                result = False
+                result = None
                 # raise LX200UnknownCommand(full_command)
         
         if result is not None:
@@ -93,7 +111,7 @@ class LX200Base:
 
             return str_result
         else:
-            raise Exception("Wrong return")
+            return None
 
     def get_telescope_ra(self) -> LX200Hours:
         raise NotImplementedError()

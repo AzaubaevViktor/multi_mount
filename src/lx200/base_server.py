@@ -12,7 +12,7 @@ class LX200SimpleServer:
             lx200: LX200Base,
             host: str = 'localhost', 
             port: int = 7624, 
-            buffer_size: int = 16,
+            buffer_size: int = 1,
             encoding: str = 'ascii') -> None:
         self.log = logging.getLogger("server")
         self.lx200 = lx200
@@ -90,9 +90,13 @@ class LX200SimpleServer:
 
                     cmd = message.removeprefix(Protocol.COMMAND_PREFIX).removesuffix(Protocol.TERMINATOR)
 
-                    response = self.handle(cmd) + Protocol.TERMINATOR
-                    self.log.debug("Send %s", response)
-                    conn.sendall(response.encode(self.encoding))
+                    response = self.handle(cmd)
+                    if response is None:
+                        self.log.debug("Nothing to return")
+                    else:
+                        response += Protocol.TERMINATOR
+                        self.log.debug("Send %s", response)
+                        conn.sendall(response.encode(self.encoding))
                     
 
     def handle_alignment(self, data: bytes) -> AlignmentMode:
