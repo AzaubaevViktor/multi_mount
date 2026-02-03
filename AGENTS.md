@@ -23,6 +23,7 @@
 - Organize it
 
 - When you remove some valriable, or constant, make sure it's removed from all places
+- Don't read environment variables in tests
 
 ## Generalized rules from recent edits
 - Try to generalize common rules from recent edits

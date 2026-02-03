@@ -218,13 +218,15 @@ class SkyWatcherMount:
 
     def get_telescope_ra(self):
         data = self._transact(SkyWatcherCommand.INQUIRE_POSITION)
-        ticks = Revu24.from_mount(data) - self._POSITION_OFFSET
+        ticks = (Revu24.from_mount(data) - self._POSITION_OFFSET) % self.ra_steps_360
         # Ticks / Full circle / (24h) -> hours
-        hours = ticks / self.ra_steps_360 / 24
-        return LX200Hours.from_hours(hours)
+        hours = ticks / self.ra_steps_360 * 24
+        total_seconds = int(round(hours * 3600)) % (24 * 3600)
+        return LX200Hours.from_seconds(total_seconds)
     
     def set_telescope_ra(self, position: LX200Hours) -> bool:
-        ticks = (position.to_hours() * self.ra_steps_360 * 24 + self._POSITION_OFFSET) % self.ra_steps_360
+        hours = position.to_hours()
+        ticks = (hours / 24 * self.ra_steps_360 + self._POSITION_OFFSET) % self.ra_steps_360
 
         self._transact(SkyWatcherCommand.SET_AXIS_POSITION, Revu24.from_int(int(ticks)))
 
