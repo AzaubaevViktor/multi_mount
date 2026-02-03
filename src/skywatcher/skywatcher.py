@@ -2,6 +2,7 @@ import dataclasses
 from enum import IntEnum, StrEnum
 import logging
 import time
+from lx200.protocols import LX200Hours
 from serial_wrapper.wrapper import SerialLine
 
 
@@ -87,6 +88,11 @@ class Axis(StrEnum):
     DEC = "2"
 
 
+@dataclasses.dataclass
+class SkyWatcherAxisState:
+    cpr: int
+
+
 class Revu24:
     @staticmethod
     def from_mount(data: str) -> int:
@@ -118,6 +124,15 @@ class SkyWatcherMount:
     _COMMAND_ERROR_PREFIX = "!"
     _RESPONCE_PREFIX = "="
 
+    _STELLAR_DAY = 86164.098903691
+    _STELLAR_SPEED = 15.041067179
+    _SIDEREAL_DAY = 86164.09053083288
+    _SIDEREAL_SPEED = 15.04106864
+
+    _LOWSPEED_RATE = 128
+
+    _POSITION_OFFSET = 0x800000
+
     def __init__(self, serial: SerialLine) -> None:
         self.logger = logging.getLogger("skywatcher")
         self._serial = serial
@@ -125,12 +140,16 @@ class SkyWatcherMount:
         self.timeout_s = 5
         self.poll_interval_s = .5
 
+        self.ra_steps_360: int
+        self.ra_steps_worm: int
+        self.ra_highspeed_ratio: int
+
     def _get_axis(self):
         return Axis.RA  # RA axis
 
     def _transact(self, cmd: SkyWatcherCommand, arg: str | None = None) -> str:
         """ All transactions works only with RA """
-        self.logger.info("Send %s(%s) ...", cmd, arg if arg is not None else "")
+        self.logger.info("Send %s(%s) ...", cmd.name, arg if arg is not None else "")
 
         payload = [
             self._LEADING,
@@ -163,7 +182,7 @@ class SkyWatcherMount:
         
         responce_clean = responce_clean.removeprefix(self._RESPONCE_PREFIX)
         
-        self.logger.info("Receive: %s(%s) -> %s", cmd, arg if arg is not None else "", responce_clean)
+        self.logger.info("Receive: %s(%s) -> %s", cmd.name, arg if arg is not None else "", responce_clean)
         
         return responce_clean
     
@@ -180,6 +199,12 @@ class SkyWatcherMount:
         else:
             self.logger.info("Mount initialized")
 
+        self.logger.info("Get rate values")
+        self.ra_steps_360 = Revu24.from_mount(self._transact(SkyWatcherCommand.INQUIRE_CPR))
+        self.ra_steps_worm = Revu24.from_mount(self._transact(SkyWatcherCommand.INQUIRE_TIMER_FREQ))
+        # TODO: Make 2-hex-digits revu24
+        # self.ra_highspeed_ratio = Revu24.from_mount(self._transact(SkyWatcherCommand.INQUIRE_HIGHSPEED_RATIO))
+
     def get_status(self) -> SkyWatcherStatus:
         status = SkyWatcherStatus.from_bytes(
             self._transact(SkyWatcherCommand.INQUIRE_STATUS).encode('ascii')
@@ -193,4 +218,7 @@ class SkyWatcherMount:
 
     def get_telescope_ra(self):
         data = self._transact(SkyWatcherCommand.INQUIRE_POSITION)
-        return Revu24.from_mount(data)
+        ticks = Revu24.from_mount(data) - self._POSITION_OFFSET
+        # Ticks / Full circle / (24h) -> hours
+        hours = ticks / self.ra_steps_360 / 24
+        return LX200Hours.from_hours(hours)

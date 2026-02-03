@@ -74,8 +74,11 @@ class LX200Hours:
     @classmethod
     def from_seconds(cls, total_seconds: float) -> "LX200Hours":
         whole_seconds = _require_whole_seconds(total_seconds, LX200HoursRangeError, "seconds")
-        if whole_seconds < 0 or whole_seconds > ((23 * 3600) + (59 * 60) + 59):
-            raise LX200HoursRangeError(f"Seconds out of range: {total_seconds!r}")
+        while whole_seconds < 0:
+            whole_seconds += 24 * 3600
+            
+        while whole_seconds > 24 * 3600:
+            whole_seconds -= 24 * 3600
 
         hours = whole_seconds // 3600
         remainder = whole_seconds % 3600

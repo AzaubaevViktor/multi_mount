@@ -2,17 +2,20 @@ import logging
 import socket
 import threading
 
+from lx200.base import LX200Base
 from lx200.protocol import AlignmentMode, Protocol
 
 
-class LX200BaseServer:
+class LX200SimpleServer:
     def __init__(
             self, 
-            host:str = 'localhost', 
-            port:int = 7624, 
-            buffer_size:int = 1024,
+            lx200: LX200Base,
+            host: str = 'localhost', 
+            port: int = 7624, 
+            buffer_size: int = 1024,
             encoding: str = 'ascii') -> None:
-        self.log = logging.getLogger("Server")
+        self.log = logging.getLogger("server")
+        self.lx200 = lx200
         self.host = host
         self.port = port
         self.buffer_size = buffer_size
@@ -22,6 +25,8 @@ class LX200BaseServer:
         self._connection_id = -1
         
     def serve_forever(self) -> None:
+        self.lx200.connect()
+
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as srv:
             srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             srv.bind((self.host, self.port))
@@ -90,7 +95,7 @@ class LX200BaseServer:
                     conn.sendall(response.encode(self.encoding))
 
     def handle_alignment(self, data: bytes) -> AlignmentMode:
-        raise NotImplementedError()
+        return self.lx200.handle_alignment(data)
 
     def handle(self, data: str) -> str:
-        raise NotImplementedError()
+        return self.lx200.handle(data)

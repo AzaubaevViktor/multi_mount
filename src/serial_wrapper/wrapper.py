@@ -24,7 +24,7 @@ class SerialLine:
         self.serial.write(payload.encode(self.encoding))
         self.serial.flush()
 
-        line = self.serial.read_until(self.terminator)
+        line = self.serial.read_until(self.terminator, 100)
 
         responce = line.decode(self.encoding)
         self.logger.debug("Receive `%s`", responce)

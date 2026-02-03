@@ -1,7 +1,9 @@
 
 from enum import Enum, StrEnum
+import logging
 from typing import Any, Callable
 
+from .protocol import AlignmentMode
 from lx200.protocols import LX200Hours
 
 
@@ -13,16 +15,27 @@ class LX200UnknownCommand(Exception):
     pass
 
 
+_logger = logging.getLogger("lx200")
+
+
 class LX200Base:
-    def do_handle(self, full_command: str) -> str:
+    def connect(self):
+        raise NotImplementedError()
+    
+    def handle_alignment(self, data: bytes) -> AlignmentMode:
+        raise NotImplementedError()
+
+    def handle(self, full_command: str) -> str:
         cmd, argument = full_command[:2], full_command[2:]
         match (cmd, argument):
-            case LX200Commands.GET_TELECOPE_RA:
+            case LX200Commands.GET_TELECOPE_RA, _:
                 result = self.get_telescope_ra()
             case _:
                 raise LX200UnknownCommand(full_command)
             
         if result:
+            str_result = str(result)
+            _logger.debug("Convert %r -> %s", result, str_result)
             return str(result)
         else:
             raise Exception("Wrong return")
