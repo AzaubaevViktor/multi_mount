@@ -1,7 +1,6 @@
 import dataclasses
 from enum import IntEnum, StrEnum
 import logging
-from sqlite3 import Time
 import time
 from serial_wrapper.wrapper import SerialLine
 
@@ -88,7 +87,7 @@ class Axis(StrEnum):
     DEC = "2"
 
 
-class SkyWatcherRevu24:
+class Revu24:
     @staticmethod
     def from_mount(data: str) -> int:
         if len(data) < 6:
@@ -194,3 +193,4 @@ class SkyWatcherMount:
 
     def get_telescope_ra(self):
         data = self._transact(SkyWatcherCommand.INQUIRE_POSITION)
+        return Revu24.from_mount(data)

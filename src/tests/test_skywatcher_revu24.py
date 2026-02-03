@@ -2,7 +2,7 @@ import random
 
 import pytest
 
-from skywatcher.skywatcher import SkyWatcherRevu24, SkyWatcherRevu24Error
+from skywatcher.skywatcher import Revu24, SkyWatcherRevu24Error
 
 
 @pytest.mark.parametrize(
@@ -15,7 +15,7 @@ from skywatcher.skywatcher import SkyWatcherRevu24, SkyWatcherRevu24Error
     ],
 )
 def test_revu24_from_int(value, expected):
-    assert SkyWatcherRevu24.from_int(value) == expected
+    assert Revu24.from_int(value) == expected
 
 
 @pytest.mark.parametrize(
@@ -28,15 +28,15 @@ def test_revu24_from_int(value, expected):
     ],
 )
 def test_revu24_from_mount(data, expected):
-    assert SkyWatcherRevu24.from_mount(data) == expected
+    assert Revu24.from_mount(data) == expected
 
 
 def test_revu24_roundtrip_random_values():
     rng = random.Random(0)
     for _ in range(200):
         value = rng.randrange(0x1000000)
-        encoded = SkyWatcherRevu24.from_int(value)
-        assert SkyWatcherRevu24.from_mount(encoded) == value
+        encoded = Revu24.from_int(value)
+        assert Revu24.from_mount(encoded) == value
 
 
 @pytest.mark.parametrize(
@@ -50,7 +50,7 @@ def test_revu24_roundtrip_random_values():
 )
 def test_revu24_from_mount_invalid(data):
     with pytest.raises(SkyWatcherRevu24Error):
-        SkyWatcherRevu24.from_mount(data)
+        Revu24.from_mount(data)
 
 
 @pytest.mark.parametrize(
@@ -64,4 +64,4 @@ def test_revu24_from_mount_invalid(data):
 )
 def test_revu24_from_int_invalid(value):
     with pytest.raises(SkyWatcherRevu24Error):
-        SkyWatcherRevu24.from_int(value)
+        Revu24.from_int(value)
