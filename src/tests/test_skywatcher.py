@@ -115,8 +115,9 @@ def test_slew_to_ra_moves_mount(mount: SkyWatcherMount):
     current = mount.get_telescope_ra()
     target_seconds = (current.to_seconds() + slew_delta_seconds) % (24 * 3600)
     target = LX200Ha.from_seconds(target_seconds)
+    delta = LX200Ha.from_seconds(slew_delta_seconds)
 
-    assert mount.slew_to_ra(target) is True
+    assert mount.slew_to_ra(delta) is True
 
     def get_position(mount: SkyWatcherMount):
         logging.info("pos: %s", mount.get_telescope_ra())
@@ -131,11 +132,9 @@ def test_slew_to_ra_moves_mount(mount: SkyWatcherMount):
 
 
 def test_move_ra_rejects_goto_in_progress(mount: SkyWatcherMount) -> None:
-    current = mount.get_telescope_ra()
-    target_seconds = (current.to_seconds() + 1800) % (24 * 3600)
-    target = LX200Ha.from_seconds(target_seconds)
+    delta = LX200Ha.from_seconds(1800)
 
-    assert mount.slew_to_ra(target) is True
+    assert mount.slew_to_ra(delta) is True
 
     wait_for_goto_s = 2.0
     start_time = time.monotonic()

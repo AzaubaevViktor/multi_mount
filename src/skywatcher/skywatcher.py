@@ -238,7 +238,7 @@ class SkyWatcherMount:
         ticks = (Revu24.from_mount(data) - self._POSITION_OFFSET) % self.ra_steps_360
         # Ticks / Full circle / (24h) -> hours
         hours = self._ticks_to_hours(ticks)
-        total_seconds = int(round(hours * 3600)) % (24 * 3600)
+        total_seconds = round(hours * 3600) % (24 * 3600)
         return LX200Ha.from_seconds(total_seconds)
     
     def set_telescope_ra(self, position: LX200Ha) -> bool:
@@ -304,7 +304,7 @@ class SkyWatcherMount:
         self._transact(SkyWatcherCommand.SET_STEP_PERIOD, Revu24.from_int(period))
     
     def _set_target(self, ticks: int):
-        self._transact(SkyWatcherCommand.SET_GOTO_TARGET, Revu24.from_int(ticks))
+        self._transact(SkyWatcherCommand.SET_GOTO_TARGET_INCREMENT, Revu24.from_int(ticks))
 
     def _set_target_breaks(self, ticks: int):
         self._transact(SkyWatcherCommand.SET_BREAK_POINT_INCREMENT, Revu24.from_int(ticks))
@@ -312,30 +312,23 @@ class SkyWatcherMount:
     def _start_motor(self):
         self._transact(SkyWatcherCommand.START_MOTION)
     
-    def slew_to_ra(self, position: LX200Ha) -> bool:
+    def slew_to_ra(self, delta: LX200Ha) -> bool:
         new_status = self.get_status()
         new_status.slew_mode = SlewMode.GOTO
 
         current_position = self.get_telescope_ra()
+        current_ticks = self._hours_to_ticks(current_position.to_hours()) % self.ra_steps_360
+        delta_ticks = self._hours_to_ticks(delta.to_hours()) % self.ra_steps_360
+        target_ticks = (current_ticks + delta_ticks) % self.ra_steps_360
 
-        delta = position - current_position
-        delta_hours = delta.to_hours()
-
-        delta_hours %= 24
-        
-        if delta_hours > 12:
+        distance_ticks = (target_ticks - current_ticks) % self.ra_steps_360
+        if distance_ticks > (self.ra_steps_360 // 2):
             new_status.direction = Direction.BACKWARD
-            distance = -delta_hours
-        if delta_hours < 0:
-            new_status.direction = Direction.BACKWARD
-            distance = delta_hours
+            distance_ticks = self.ra_steps_360 - distance_ticks
         else:
             new_status.direction = Direction.FORWARD
-            distance = delta_hours
 
-        delta_ticks = self._hours_to_ticks(distance)
-
-        if delta_ticks > self._LOWSPEED_MARGIN:
+        if distance_ticks > self._LOWSPEED_MARGIN:
             new_status.speed_mode = SpeedMode.HIGHSPEED
             is_highspeed = True
         else:
@@ -344,8 +337,8 @@ class SkyWatcherMount:
 
         self._set_motion(new_status)
         self._set_speed(self._HIGH_PERIOD if is_highspeed else self._LOWSPEED_PERIOD)
-        self._set_target((self._hours_to_ticks(position.to_hours()) + self._POSITION_OFFSET) % self.ra_steps_360)
-        self._set_target_breaks(min(200, delta_ticks))  # TODO: Check highspeed
+        self._set_target(distance_ticks)
+        self._set_target_breaks(min(200, distance_ticks))  # TODO: Check highspeed
         self._start_motor()
         return True
 
@@ -392,6 +385,3 @@ class SkyWatcherMount:
             self.gracefully_stop_motor()
         
         return True
-
-
-

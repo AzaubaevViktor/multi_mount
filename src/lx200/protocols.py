@@ -75,16 +75,15 @@ class LX200Ha:
 
     @classmethod
     def from_seconds(cls, total_seconds: float) -> "LX200Ha":
-        whole_seconds = _require_whole_seconds(total_seconds, LX200HoursRangeError, "seconds")
         circle_seconds = cls.SECONDS_PER_CIRCLE
-        remainder = whole_seconds % circle_seconds
-        if whole_seconds > 0 and remainder == 0:
-            whole_seconds = circle_seconds
+        remainder = total_seconds % circle_seconds
+        if total_seconds > 0 and remainder == 0:
+            total_seconds = circle_seconds
         else:
-            whole_seconds = remainder
+            total_seconds = remainder
 
-        hours = whole_seconds // 3600
-        remainder = whole_seconds % 3600
+        hours = total_seconds // 3600
+        remainder = total_seconds % 3600
         minutes = remainder // 60
         seconds = remainder % 60
         return cls(hours, minutes, seconds)
@@ -209,9 +208,3 @@ class LX200Dec:
         if degrees == 90 and (minutes != 0 or seconds != 0):
             raise LX200DecRangeError(f"Degrees out of range: {degrees!r}")
 
-
-def _require_whole_seconds(value: float, error_type, label: str) -> int:
-    whole = int(round(value))
-    if abs(value - whole) > 1e-9:
-        raise error_type(f"Expected whole {label}: {value!r}")
-    return whole

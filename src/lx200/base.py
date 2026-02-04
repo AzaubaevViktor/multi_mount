@@ -154,8 +154,6 @@ class LX200Base:
         if result is not None:
             _logger.info("Answer command %s %s(%s) -> %s", cmd, cmd.name, argument, result)
 
-            time.sleep(.1)
-
             return result
         else:
             _logger.warning("Empty responce: %s %s(%s) -> ∅", cmd, cmd.name, argument)

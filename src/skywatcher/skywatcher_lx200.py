@@ -23,8 +23,6 @@ class SkyWatcherLX200(LX200Base):
         self.mount.connect()
 
         self.set_telescope_ra(LX200Ha.from_hours(0))
-        self._last_mount_seconds = 0
-        self._last_mount_seconds = time.monotonic()
 
         self.mount.start_tracking()
 
@@ -39,9 +37,9 @@ class SkyWatcherLX200(LX200Base):
         actual_delta_seconds = (mount_seconds - self._last_mount_seconds) % LX200Ha.SECONDS_PER_CIRCLE
 
         delta = expected_delta_seconds - actual_delta_seconds
-        self.logger.debug("Calculated delta: %f = (%f - %f)", delta, expected_delta_seconds, actual_delta_seconds)
+        self.logger.debug("Calculated delta: %f = (%f - %f); %f", delta, expected_delta_seconds, actual_delta_seconds, self._ra_seconds)
 
-        if delta < self._ACCEPTED_DELTA_S:
+        if abs(delta) < self._ACCEPTED_DELTA_S:
             delta = 0
         
         self._ra_seconds = (self._ra_seconds + delta) % LX200Ha.SECONDS_PER_CIRCLE
@@ -64,7 +62,7 @@ class SkyWatcherLX200(LX200Base):
         return True
     
     def slew_to_ra(self, position: LX200Ha) -> bool:
-        return self.mount.slew_to_ra(position)
+        return self.mount.slew_to_ra(LX200Ha.from_seconds(position.to_seconds() - self._ra_seconds))
 
     def get_site1_name(self) -> str:
         return "skywatcher"
@@ -73,5 +71,6 @@ class SkyWatcherLX200(LX200Base):
         if self.mount.get_status().slew_mode == SlewMode.GOTO:
             return "|"
         else:
+            # Here we understand that INDI wants us to go to track mode
+            self.mount.start_tracking()
             return ""
-

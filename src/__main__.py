@@ -45,7 +45,7 @@ class LX200TestDECServer(LX200Base):
     
 
 if __name__ == "__main__":
-    skywatcher_serial = SerialLine("/dev/tty.PL2303G-USBtoUART2110", 112500, .05, "skywatcher")
+    skywatcher_serial = SerialLine("/dev/tty.PL2303G-USBtoUART210", 112500, .05, "skywatcher")
     skywatcher_ra_mount = SkyWatcherMount(skywatcher_serial)
     skywatcher_lx200 = SkyWatcherLX200(skywatcher_ra_mount)
 
