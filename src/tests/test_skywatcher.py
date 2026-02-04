@@ -3,7 +3,7 @@ import time
 
 import pytest
 
-from lx200.protocols import LX200Hours
+from lx200.protocols import LX200Ha
 from serial_wrapper.wrapper import SerialLine
 from skywatcher.skywatcher import SkyWatcherMount, SlewMode
 
@@ -38,7 +38,7 @@ def mount() -> SkyWatcherMount:
     ],
 )
 def test_skywatcher_hours_roundtrip(mount: SkyWatcherMount, hours_value: str):
-    expected = LX200Hours.from_string(hours_value)
+    expected = LX200Ha.from_string(hours_value)
     mount.set_telescope_ra(expected)
     time.sleep(0.2)
     actual = mount.get_telescope_ra()
@@ -62,7 +62,7 @@ def _measure_ra_shift(
 ) -> tuple[int, int, float]:
     _ensure_idle(mount, timeout_s)
     mid_ra_seconds = 12 * 3600
-    mount.set_telescope_ra(LX200Hours.from_seconds(mid_ra_seconds))
+    mount.set_telescope_ra(LX200Ha.from_seconds(mid_ra_seconds))
     time.sleep(0.2)
 
     start_seconds = mount.get_telescope_ra().to_seconds()
@@ -110,11 +110,11 @@ def test_slew_to_ra_moves_mount(mount: SkyWatcherMount):
     timeout_s = 15
     target_tolerance_seconds = 5
 
-    mount.set_telescope_ra(LX200Hours.from_seconds(0))
+    mount.set_telescope_ra(LX200Ha.from_seconds(0))
 
     current = mount.get_telescope_ra()
     target_seconds = (current.to_seconds() + slew_delta_seconds) % (24 * 3600)
-    target = LX200Hours.from_seconds(target_seconds)
+    target = LX200Ha.from_seconds(target_seconds)
 
     assert mount.slew_to_ra(target) is True
 
@@ -133,7 +133,7 @@ def test_slew_to_ra_moves_mount(mount: SkyWatcherMount):
 def test_move_ra_rejects_goto_in_progress(mount: SkyWatcherMount) -> None:
     current = mount.get_telescope_ra()
     target_seconds = (current.to_seconds() + 1800) % (24 * 3600)
-    target = LX200Hours.from_seconds(target_seconds)
+    target = LX200Ha.from_seconds(target_seconds)
 
     assert mount.slew_to_ra(target) is True
 
@@ -171,8 +171,8 @@ def test_start_tracking_speed_and_direction(mount: SkyWatcherMount, trackspeed: 
     duration_s = 4.0
     timeout_s = 5.0
 
-    speed_value = trackspeed * mount._STELLAR_SPEED
-    expected_rate = abs(speed_value) / mount._STELLAR_SPEED
+    speed_value = trackspeed * mount.STELLAR_SPEED
+    expected_rate = abs(speed_value) / mount.STELLAR_SPEED
 
     start_seconds, end_seconds, elapsed = _measure_ra_shift(
         mount,
@@ -186,7 +186,7 @@ def test_start_tracking_speed_and_direction(mount: SkyWatcherMount, trackspeed: 
 
 def test_start_tracking_zero_stops_motor(mount: SkyWatcherMount) -> None:
     timeout_s = 5.0
-    speed_value = mount._STELLAR_SPEED
+    speed_value = mount.STELLAR_SPEED
     stop_speed = 0
 
     assert mount.start_tracking(speed_value) is True

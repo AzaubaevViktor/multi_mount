@@ -1,5 +1,5 @@
 from lx200.base import LX200Base
-from lx200.protocols import LX200Hours
+from lx200.protocols import LX200Ha
 from .skywatcher import SkyWatcherMount, SlewMode
 
 
@@ -39,20 +39,20 @@ class SkyWatcherLX200(LX200Base):
     
     def connect(self):
         self.mount.connect()
-        self.mount.set_telescope_ra(LX200Hours.from_hours(0))
+        self.mount.set_telescope_ra(LX200Ha.from_hours(0))
         self.mount.start_tracking()
 
-    def get_telescope_ra(self) -> LX200Hours:
+    def get_telescope_ra(self) -> LX200Ha:
         return self.mount.get_telescope_ra()
     
-    def set_telescope_ra(self, position: LX200Hours) -> bool:
+    def set_telescope_ra(self, position: LX200Ha) -> bool:
         return self.mount.set_telescope_ra(position)
     
     def stop(self) -> bool:
         self.mount.gracefully_stop_motor()
         return True
     
-    def slew_to_ra(self, position: LX200Hours) -> bool:
+    def slew_to_ra(self, position: LX200Ha) -> bool:
         return self.mount.slew_to_ra(position)
 
     def get_site1_name(self) -> str:

@@ -39,7 +39,7 @@ class LX200DecRangeError(LX200DecError):
     pass
 
 
-class LX200Hours:
+class LX200Ha:
     __slots__ = ("_hours", "_minutes", "_seconds")
 
     def __init__(self, hours: int, minutes: int, seconds: int) -> None:
@@ -61,7 +61,7 @@ class LX200Hours:
         return self._seconds
 
     @classmethod
-    def from_string(cls, value: str) -> "LX200Hours":
+    def from_string(cls, value: str) -> "LX200Ha":
         match = HOURS_PATTERN.match(value)
         if not match:
             raise LX200HoursFormatError(f"Invalid HH:MM:SS format: {value!r}")
@@ -72,7 +72,7 @@ class LX200Hours:
         return cls(hours, minutes, seconds)
 
     @classmethod
-    def from_seconds(cls, total_seconds: float) -> "LX200Hours":
+    def from_seconds(cls, total_seconds: float) -> "LX200Ha":
         whole_seconds = _require_whole_seconds(total_seconds, LX200HoursRangeError, "seconds")
         while whole_seconds < 0:
             whole_seconds += 24 * 3600
@@ -86,14 +86,14 @@ class LX200Hours:
         seconds = remainder % 60
         return cls(hours, minutes, seconds)
     
-    def __sub__(self, b: LX200Hours):
-        return LX200Hours.from_hours(self.to_hours() - b.to_hours())
+    def __sub__(self, b: LX200Ha):
+        return LX200Ha.from_hours(self.to_hours() - b.to_hours())
     
     def __neg__(self):
-        return LX200Hours.from_hours(-self.to_hours())
+        return LX200Ha.from_hours(-self.to_hours())
 
     @classmethod
-    def from_hours(cls, total_hours: float) -> "LX200Hours":
+    def from_hours(cls, total_hours: float) -> "LX200Ha":
         total_seconds = total_hours * 3600
         return cls.from_seconds(total_seconds)
 

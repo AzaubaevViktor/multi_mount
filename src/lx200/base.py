@@ -6,7 +6,7 @@ from typing import Any, Callable
 
 
 from .protocol import AlignmentMode
-from lx200.protocols import LX200Hours, LX200Dec
+from lx200.protocols import LX200Ha, LX200Dec
 
 
 class LX200Commands(StrEnum):
@@ -67,7 +67,7 @@ _logger = logging.getLogger("lx200")
 
 class LX200Base:
     def __init__(self) -> None:
-        self._target_ra: LX200Hours = LX200Hours.from_hours(0)
+        self._target_ra: LX200Ha = LX200Ha.from_hours(0)
         self._target_dec: LX200Dec = LX200Dec.from_degrees(0)
         
     def connect(self):
@@ -83,7 +83,7 @@ class LX200Base:
             case LX200Commands.GET_TELECOPE_RA, _:
                 result = self.get_telescope_ra()
             case LX200Commands.SET_TELESCOPE_RA, position:
-                self._target_ra = LX200Hours.from_string(position)
+                self._target_ra = LX200Ha.from_string(position)
                 result = True
 
             case LX200Commands.GET_TELESCOPE_DEC, _:
@@ -161,10 +161,10 @@ class LX200Base:
             _logger.warning("Empty responce: %s %s(%s) -> ∅", cmd, cmd.name, argument)
             return None
 
-    def get_telescope_ra(self) -> LX200Hours:
+    def get_telescope_ra(self) -> LX200Ha:
         raise NotImplementedError()
     
-    def set_telescope_ra(self, position: LX200Hours) -> bool:
+    def set_telescope_ra(self, position: LX200Ha) -> bool:
         raise NotImplementedError()
     
     def get_telescope_dec(self) -> LX200Dec:
@@ -173,7 +173,7 @@ class LX200Base:
     def set_telescope_dec(self, position: LX200Dec) -> bool:
         raise NotImplementedError()
     
-    def slew_to_ra(self, position: LX200Hours) -> bool:
+    def slew_to_ra(self, position: LX200Ha) -> bool:
         raise NotImplementedError()
     
     def slew_to_dec(self, position: LX200Dec) -> bool:

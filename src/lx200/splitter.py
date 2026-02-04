@@ -1,7 +1,7 @@
 import logging
 from lx200.base import LX200Base
 from lx200.protocol import AlignmentMode
-from lx200.protocols import LX200Dec, LX200Hours
+from lx200.protocols import LX200Dec, LX200Ha
 
 
 class LX200Splitter(LX200Base):
@@ -18,16 +18,16 @@ class LX200Splitter(LX200Base):
     def handle_alignment(self, data: bytes) -> AlignmentMode:
         return AlignmentMode.POLAR
     
-    def get_telescope_ra(self) -> LX200Hours:
+    def get_telescope_ra(self) -> LX200Ha:
         return self.ra.get_telescope_ra()
     
-    def slew_to_ra(self, position: LX200Hours) -> bool:
+    def slew_to_ra(self, position: LX200Ha) -> bool:
         return self.ra.slew_to_ra(position)
     
     def slew_to_dec(self, position: LX200Dec) -> bool:
         return self.dec.slew_to_dec(position)
 
-    def set_telescope_ra(self, position: LX200Hours) -> bool:
+    def set_telescope_ra(self, position: LX200Ha) -> bool:
         return self.ra.set_telescope_ra(position)
     
     def get_telescope_dec(self) -> LX200Dec:

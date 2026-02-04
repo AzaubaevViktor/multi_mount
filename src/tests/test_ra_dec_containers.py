@@ -4,7 +4,7 @@ from lx200.protocols import (
     LX200Dec,
     LX200DecFormatError,
     LX200DecRangeError,
-    LX200Hours,
+    LX200Ha,
     LX200HoursFormatError,
     LX200HoursRangeError,
 )
@@ -19,7 +19,7 @@ from lx200.protocols import (
     ],
 )
 def test_hours_from_string_valid(value, expected):
-    hours = LX200Hours.from_string(value)
+    hours = LX200Ha.from_string(value)
     assert (hours.hours, hours.minutes, hours.seconds) == expected
     assert str(hours) == value
 
@@ -37,7 +37,7 @@ def test_hours_from_string_valid(value, expected):
 )
 def test_hours_from_string_invalid_format(value):
     with pytest.raises(LX200HoursFormatError):
-        LX200Hours.from_string(value)
+        LX200Ha.from_string(value)
 
 
 @pytest.mark.parametrize(
@@ -51,7 +51,7 @@ def test_hours_from_string_invalid_format(value):
 )
 def test_hours_from_string_range_errors(value):
     with pytest.raises(LX200HoursRangeError):
-        LX200Hours.from_string(value)
+        LX200Ha.from_string(value)
 
 
 @pytest.mark.parametrize(
@@ -67,7 +67,7 @@ def test_hours_from_string_range_errors(value):
 )
 def test_hours_init_range_errors(parts):
     with pytest.raises(LX200HoursRangeError):
-        LX200Hours(*parts)
+        LX200Ha(*parts)
 
 
 @pytest.mark.parametrize(
@@ -81,7 +81,7 @@ def test_hours_init_range_errors(parts):
     ],
 )
 def test_hours_from_seconds_valid(value, expected):
-    hours = LX200Hours.from_seconds(value)
+    hours = LX200Ha.from_seconds(value)
     assert str(hours) == expected
     assert hours.to_seconds() == value
 
@@ -97,7 +97,7 @@ def test_hours_from_seconds_valid(value, expected):
 )
 def test_hours_from_seconds_invalid(value):
     with pytest.raises(LX200HoursRangeError):
-        LX200Hours.from_seconds(value)
+        LX200Ha.from_seconds(value)
 
 
 @pytest.mark.parametrize(
@@ -109,7 +109,7 @@ def test_hours_from_seconds_invalid(value):
     ],
 )
 def test_hours_from_hours_valid(value, expected):
-    hours = LX200Hours.from_hours(value)
+    hours = LX200Ha.from_hours(value)
     assert str(hours) == expected
     assert hours.to_hours() == pytest.approx(value)
 
@@ -124,11 +124,11 @@ def test_hours_from_hours_valid(value, expected):
 )
 def test_hours_from_hours_invalid(value):
     with pytest.raises(LX200HoursRangeError):
-        LX200Hours.from_hours(value)
+        LX200Ha.from_hours(value)
 
 
 def test_hours_repr():
-    hours = LX200Hours(1, 2, 3)
+    hours = LX200Ha(1, 2, 3)
     assert repr(hours) == "LX200Hours('01:02:03')"
 
 

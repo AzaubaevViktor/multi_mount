@@ -3,7 +3,7 @@ from enum import IntEnum, StrEnum
 import logging
 import time
 from typing import Callable, Self
-from lx200.protocols import LX200Hours
+from lx200.protocols import LX200Ha
 from serial_wrapper.wrapper import SerialLine
 
 
@@ -131,7 +131,7 @@ class SkyWatcherMount:
     _RESPONCE_PREFIX = "="
 
     _STELLAR_DAY = 86164.098903691
-    _STELLAR_SPEED = 15.041067179
+    STELLAR_SPEED = 15.041067179
     _SIDEREAL_DAY = 86164.09053083288
     _SIDEREAL_SPEED = 15.04106864
 
@@ -239,9 +239,9 @@ class SkyWatcherMount:
         # Ticks / Full circle / (24h) -> hours
         hours = self._ticks_to_hours(ticks)
         total_seconds = int(round(hours * 3600)) % (24 * 3600)
-        return LX200Hours.from_seconds(total_seconds)
+        return LX200Ha.from_seconds(total_seconds)
     
-    def set_telescope_ra(self, position: LX200Hours) -> bool:
+    def set_telescope_ra(self, position: LX200Ha) -> bool:
         hours = position.to_hours()
         ticks = (self._hours_to_ticks(hours) + self._POSITION_OFFSET) % self.ra_steps_360
 
@@ -312,7 +312,7 @@ class SkyWatcherMount:
     def _start_motor(self):
         self._transact(SkyWatcherCommand.START_MOTION)
     
-    def slew_to_ra(self, position: LX200Hours) -> bool:
+    def slew_to_ra(self, position: LX200Ha) -> bool:
         new_status = self.get_status()
         new_status.slew_mode = SlewMode.GOTO
 
@@ -383,8 +383,8 @@ class SkyWatcherMount:
         
         return True
     
-    def start_tracking(self, trackspeed: float) -> bool:
-        rate = trackspeed / self._STELLAR_SPEED if trackspeed else 0
+    def start_tracking(self, trackspeed: float = STELLAR_SPEED) -> bool:
+        rate = trackspeed / self.STELLAR_SPEED if trackspeed else 0
         if rate:
             self._set_ra_rate(rate)
             self._start_motor()
