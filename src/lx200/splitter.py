@@ -1,3 +1,4 @@
+import logging
 from lx200.base import LX200Base
 from lx200.protocol import AlignmentMode
 from lx200.protocols import LX200Dec, LX200Hours
@@ -5,8 +6,10 @@ from lx200.protocols import LX200Dec, LX200Hours
 
 class LX200Splitter(LX200Base):
     def __init__(self, ra: LX200Base, dec: LX200Base) -> None:
+        self.logger = logging.getLogger("splitter")
         self.ra = ra
         self.dec = dec
+        self.logger.info("RA: %r; DEC: %r", self.ra, self.dec)
     
     def connect(self):
         self.ra.connect()
@@ -38,3 +41,16 @@ class LX200Splitter(LX200Base):
 
     def get_distance(self) -> str:
         return self.ra.get_distance() + self.dec.get_distance()
+    
+    def stop(self) -> bool:
+        try:
+            self.ra.stop()
+        except Exception:
+            self.logger.exception("While stop RA")
+        
+        try:
+            self.dec.stop()
+        except Exception:
+            self.logger.exception("While stop DEC")
+        
+        return True

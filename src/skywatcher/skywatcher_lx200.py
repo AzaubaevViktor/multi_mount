@@ -16,6 +16,10 @@ class SkyWatcherLX200(LX200Base):
     def set_telescope_ra(self, position: LX200Hours) -> bool:
         return self.mount.set_telescope_ra(position)
     
+    def stop(self) -> bool:
+        self.mount.gracefully_stop_motor()
+        return True
+    
     def slew_to_ra(self, position: LX200Hours) -> bool:
         return self.mount.slew_to_ra(position)
 

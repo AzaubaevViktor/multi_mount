@@ -24,6 +24,9 @@ class LX200TestDECServer(LX200Base):
         self.dec = position.to_degrees()
         return True
     
+    def stop(self) -> bool:
+        return True
+    
     def slew_to_dec(self, position: LX200Dec) -> bool:
         self.dev = position.to_degrees()
         return True

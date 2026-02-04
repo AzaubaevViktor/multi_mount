@@ -77,6 +77,8 @@ class LX200Base:
         raise NotImplementedError()
     
     def _do_handle(self, cmd: LX200Commands, argument: Any) -> Any:
+        result = None
+
         match (cmd, argument):
             case LX200Commands.GET_TELECOPE_RA, _:
                 result = self.get_telescope_ra()
@@ -100,6 +102,9 @@ class LX200Base:
                 result = False
                 # But 1<below horison>#
                 # But 2<below higher>#
+            case LX200Commands.HALT_ALL, _:
+                self.stop()
+                result = None
 
             case LX200Commands.GET_CALENDAR_FORMAT, _:
                 result = self.get_calendar_format()
@@ -184,4 +189,7 @@ class LX200Base:
         return "60.0"
 
     def get_distance(self) -> str:
+        raise NotImplementedError()
+    
+    def stop(self) -> bool:
         raise NotImplementedError()

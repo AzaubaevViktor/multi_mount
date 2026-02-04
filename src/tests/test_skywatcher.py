@@ -1,3 +1,4 @@
+import logging
 import time
 
 import pytest
@@ -117,7 +118,10 @@ def test_slew_to_ra_moves_mount(mount: SkyWatcherMount):
 
     assert mount.slew_to_ra(target) is True
 
-    mount.wait_till_stop(timeout_s)
+    def get_position(mount: SkyWatcherMount):
+        logging.info("pos: %s", mount.get_telescope_ra())
+
+    mount.wait_till_stop(timeout_s, func=get_position)
 
     actual = mount.get_telescope_ra()
     distance = _distance_seconds(actual.to_seconds(), target.to_seconds())
