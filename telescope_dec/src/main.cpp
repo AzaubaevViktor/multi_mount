@@ -71,14 +71,14 @@ struct RunnerV2 {
   float speedSps = 500.0f;
   float actualSpeedSps = 0.0f;
   float desiredSpeedSps = 0.0f;
-  float accelStepsPerMs = 1.0f;
+  float accelStepsPerUs = 0.001f;
   uint32_t stepIntervalUs = 2000;
   uint32_t pulseWidthUs   = 3;
   uint32_t nextStepUs     = 0;
   bool stepHigh = false;
   uint32_t stepHighUntilUs = 0;
   uint32_t lastStepUs = 0;
-  uint32_t lastUpdateMs = 0;
+  uint32_t lastUpdateUs = 0;
 } runV2;
 
 static bool v2Initialized = false;
@@ -361,7 +361,7 @@ static void dumpInfo() {
   printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_T157, driver.t157());
   printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_STST, driver.stst());
   printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_STEALTH, driver.stealth());
-  printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_STALL_GUARD, driver.stallguard());
+  // printKeyValueBool(DUMP_SUBSYS_STATUS, DUMP_KEY_STALL_GUARD, driver.stallguard());
   printKeyValueU32(DUMP_SUBSYS_STATUS, DUMP_KEY_CS_ACTUAL, driver.cs_actual());
 }
 
@@ -577,7 +577,7 @@ void setup() {
   setEnable(false);
   run.lastStepUs = micros();
   runV2.lastStepUs = run.lastStepUs;
-  runV2.lastUpdateMs = millis();
+  runV2.lastUpdateUs = micros();
   runV2.nextStepUs = 0;
   runV2.enabled = false;
   runV2.dir = false;
@@ -844,7 +844,7 @@ static bool setSpeedSpsV2(long sps, const char** errorKey) {
 static bool setAccelStepsPerMsV2(long accel, const char** errorKey) {
   if (accel < 0) { if (errorKey) *errorKey = "range"; return false; }
   if (accel > 100000) { if (errorKey) *errorKey = "range"; return false; }
-  runV2.accelStepsPerMs = (float)accel;
+  runV2.accelStepsPerUs = (float)accel / 1000.0f;
   return true;
 }
 
@@ -881,14 +881,14 @@ static uint32_t calcStepIntervalUsV2(float speedSps) {
 }
 
 static void updateMotionStateV2() {
-  const uint32_t nowMs = millis();
-  if (runV2.lastUpdateMs == 0) {
-    runV2.lastUpdateMs = nowMs;
+  const uint32_t nowUs = micros();
+  if (runV2.lastUpdateUs == 0) {
+    runV2.lastUpdateUs = nowUs;
     return;
   }
-  const uint32_t dtMs = nowMs - runV2.lastUpdateMs;
-  if (dtMs == 0) return;
-  runV2.lastUpdateMs = nowMs;
+  const uint32_t dtUs = nowUs - runV2.lastUpdateUs;
+  if (dtUs == 0) return;
+  runV2.lastUpdateUs = nowUs;
 
   if (!runV2.enabled) {
     runV2.actualSpeedSps = 0.0f;
@@ -914,9 +914,9 @@ static void updateMotionStateV2() {
     desired = runV2.speedSps;
   }
 
-  if (runV2.hasTarget && desired > 0.0f && runV2.accelStepsPerMs > 0.0f) {
+  if (runV2.hasTarget && desired > 0.0f && runV2.accelStepsPerUs > 0.0f) {
     const long delta = runV2.target - getPosition();
-    const float accelSps2 = runV2.accelStepsPerMs * 1000.0f;
+    const float accelSps2 = runV2.accelStepsPerUs * 1000000.0f;
     const float stoppingDistance = (runV2.actualSpeedSps * runV2.actualSpeedSps) / (2.0f * accelSps2);
     if ((float)labs(delta) <= stoppingDistance) {
       desired = 0.0f;
@@ -924,10 +924,10 @@ static void updateMotionStateV2() {
   }
 
   runV2.desiredSpeedSps = desired;
-  if (runV2.accelStepsPerMs <= 0.0f) {
+  if (runV2.accelStepsPerUs <= 0.0f) {
     runV2.actualSpeedSps = desired;
   } else {
-    const float deltaSpeed = runV2.accelStepsPerMs * (float)dtMs;
+    const float deltaSpeed = runV2.accelStepsPerUs * (float)dtUs;
     if (runV2.actualSpeedSps < desired) {
       runV2.actualSpeedSps += deltaSpeed;
       if (runV2.actualSpeedSps > desired) runV2.actualSpeedSps = desired;
@@ -962,7 +962,7 @@ static void handleLineV2(char* s) {
     respondKeyValueBoolV2("target_set", runV2.hasTarget);
     respondKeyValueFloatV2("speed", runV2.speedSps, 2);
     respondKeyValueFloatV2("actual_speed", runV2.actualSpeedSps, 2);
-    respondKeyValueFloatV2("accel", runV2.accelStepsPerMs, 2);
+    respondKeyValueFloatV2("accel", runV2.accelStepsPerUs * 1000.0f, 2);
     respondEndV2();
     return;
   }
@@ -1065,7 +1065,7 @@ static void handleLineV2(char* s) {
     const char* errorKey = nullptr;
     if (!setAccelStepsPerMsV2(value, &errorKey)) { respondErrorV2(errorKey ? errorKey : "range"); return; }
     respondStartV2(true);
-    respondKeyValueFloatV2("accel", runV2.accelStepsPerMs, 2);
+    respondKeyValueFloatV2("accel", runV2.accelStepsPerUs * 1000.0f, 2);
     respondEndV2();
     return;
   }
@@ -1089,7 +1089,7 @@ static void handleLineV2(char* s) {
     runV2.running = true;
     runV2.stopRequested = false;
     if (!runV2.enabled) setEnableV2(true);
-    runV2.lastUpdateMs = millis();
+    runV2.lastUpdateUs = micros();
     respondStartV2(true);
     respondKeyValueBoolV2("running", true);
     respondEndV2();
@@ -1099,7 +1099,7 @@ static void handleLineV2(char* s) {
   if (!strcmp(cmd, "stop")) {
     runV2.stopRequested = true;
     runV2.running = true;
-    runV2.lastUpdateMs = millis();
+    runV2.lastUpdateUs = micros();
     respondStartV2(true);
     respondKeyValueBoolV2("stopping", true);
     respondEndV2();
