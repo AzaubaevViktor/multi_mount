@@ -562,18 +562,55 @@ void setup() {
   // Clear latched flags
   driver.GSTAT(0x7);
 
-  Serial.println(F("Ready. Type 'help'."));
-  dumpInfo();
+  Serial.println(F("ready"));
+}
+
+void serviceSerialv2() {
+  /* 
+  Protocol:
+  TX: <cmd> [arg1] [arg2] ... [:<name1>=<value1>] [:<name2>=<value2>]
+  RX: <status>; [var1=value1;] [var2=value2;] [...]
+
+  <status>: 1 if ok 0 if not ok
+
+  Commands read:
+  - status 
+    returns short status: (initialised, enabled, position, phase=idle/hold/acceleration/running/deceleration, target, speed, accel)
+  - driver_status
+    return full status from driver: (GCONF, DRV_STATUS, SG_RESULT, )
+  - get <parameter_name>
+    Check <parameter_name> in set command
+
+  Commands set
+  - set [:<parameter_name>=<value>]
+    We can set only one at time!
+    <parameter_name>:
+    - ihold=<ma>
+    - irun=<ma>
+    - tpowerdown=<ticks>
+    - tpwmthrs=<stealth_speed_limit>
+    - sgthrs=<stall_guard_feel>
+    - microsteps=<power_of_2>
+    - stealth=<on_off>
+  - position <value>
+  - enabled <value>
+  - direction <dir>
+  - speed <speed_steps>
+  - acceleration <steps_per_millis>
+  - target <target_position>
+  - run
+  - stop
+
+  */
+}
+
+void serviceStepperv2() {
+
 }
 
 void loop() {
+  
   serviceSerial();
   serviceStepper();
 
-  // Optional: notify when a move finished (edge)
-  static long lastRemaining = -1;
-  if (!run.continuous && lastRemaining != 0 && run.remaining == 0) {
-    Serial.println(F("move done"));
-  }
-  lastRemaining = run.remaining;
 }
