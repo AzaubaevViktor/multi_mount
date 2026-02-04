@@ -31,12 +31,17 @@ class FakeClock:
 
 class FakeMount:
     STELLAR_SPEED = SkyWatcherMount.STELLAR_SPEED
+    SLEW_SPEED_SECONDS_PER_S = 120.0
 
     def __init__(self, clock: FakeClock, start_ra: LX200Ha) -> None:
         self._clock = clock
         self._tracking_speed = NO_TRACKING_SPEED
         self._reference_seconds = start_ra.to_seconds()
         self._reference_time = self._clock.monotonic()
+        self._slew_target_seconds: int | None = None
+        self._slew_start_seconds = self._reference_seconds
+        self._slew_start_time = self._reference_time
+        self._slew_distance_seconds = 0
         self._status = SkyWatcherStatus(
             raw=0,
             running=False,
@@ -54,6 +59,7 @@ class FakeMount:
         self._status.initialized = True
 
     def start_tracking(self, trackspeed: float = STELLAR_SPEED) -> bool:
+        self._cancel_slew()
         self._freeze_reference()
         self._tracking_speed = trackspeed
         self._status.running = trackspeed != 0
@@ -66,24 +72,26 @@ class FakeMount:
         self.start_tracking(NO_TRACKING_SPEED)
 
     def get_status(self) -> SkyWatcherStatus:
+        self._current_seconds()
         return self._status
 
     def get_telescope_ra(self) -> LX200Ha:
         return LX200Ha.from_seconds(self._current_seconds())
 
     def set_telescope_ra(self, position: LX200Ha) -> bool:
+        self._cancel_slew()
         self._reference_seconds = position.to_seconds()
         self._reference_time = self._clock.monotonic()
         return True
 
-    def slew_to_ra(self, position: LX200Ha) -> bool:
-        self.set_telescope_ra(position)
-        self._status.slew_mode = SlewMode.GOTO
-        self._status.running = False
-        self.slew_to_ra_calls.append(position)
+    def slew_to_ra(self, delta: LX200Ha) -> bool:
+        self._prepare_slew(delta)
+        self.slew_to_ra_calls.append(delta)
         return True
 
     def _current_seconds(self) -> int:
+        if self._slew_target_seconds is not None:
+            return self._current_slew_seconds()
         elapsed = self._clock.monotonic() - self._reference_time
         delta_seconds = elapsed * (self._tracking_speed / DEGREES_PER_HOUR)
         return int(round(self._reference_seconds + delta_seconds)) % LX200Ha.SECONDS_PER_CIRCLE
@@ -91,6 +99,50 @@ class FakeMount:
     def _freeze_reference(self) -> None:
         self._reference_seconds = self._current_seconds()
         self._reference_time = self._clock.monotonic()
+
+    def _prepare_slew(self, delta: LX200Ha) -> None:
+        start_seconds = self._current_seconds()
+        delta_seconds = delta.to_seconds()
+        target_seconds = (start_seconds + delta_seconds) % LX200Ha.SECONDS_PER_CIRCLE
+        forward = delta_seconds
+        backward = delta_seconds - LX200Ha.SECONDS_PER_CIRCLE
+        half_circle_seconds = LX200Ha.SECONDS_PER_CIRCLE // 2
+
+        if forward <= half_circle_seconds:
+            distance = forward
+        else:
+            distance = backward
+
+        self._slew_target_seconds = target_seconds
+        self._slew_start_seconds = start_seconds
+        self._slew_start_time = self._clock.monotonic()
+        self._slew_distance_seconds = int(distance)
+
+        self._status.slew_mode = SlewMode.GOTO
+        self._status.running = True
+        self._status.direction = Direction.FORWARD if distance >= 0 else Direction.BACKWARD
+
+    def _current_slew_seconds(self) -> int:
+        elapsed = self._clock.monotonic() - self._slew_start_time
+        distance = self._slew_distance_seconds
+        direction = 1 if distance >= 0 else -1
+        travel = self.SLEW_SPEED_SECONDS_PER_S * elapsed
+
+        if travel >= abs(distance):
+            final_seconds = (self._slew_start_seconds + distance) % LX200Ha.SECONDS_PER_CIRCLE
+            self._slew_target_seconds = None
+            self._reference_seconds = final_seconds
+            self._reference_time = self._clock.monotonic()
+            self._tracking_speed = NO_TRACKING_SPEED
+            self._status.running = False
+            return final_seconds
+
+        current = self._slew_start_seconds + (travel * direction)
+        return int(round(current)) % LX200Ha.SECONDS_PER_CIRCLE
+
+    def _cancel_slew(self) -> None:
+        self._slew_target_seconds = None
+        self._slew_distance_seconds = 0
 
 
 @pytest.fixture
@@ -170,13 +222,36 @@ def test_lx200_connect_starts_tracking_and_stabilizes_ra(clock: FakeClock) -> No
     assert lx200.get_telescope_ra().to_seconds() == 0
 
 
-def test_lx200_slew_to_ra_delegates_to_mount(clock: FakeClock) -> None:
+def test_lx200_slew_to_ra_moves_over_time(clock: FakeClock) -> None:
     start = LX200Ha.from_string("01:00:00")
     mount = FakeMount(clock, start)
     lx200 = SkyWatcherLX200(mount)
 
-    target = LX200Ha.from_string("19:30:00")
+    lx200.set_telescope_ra(start)
+    target = LX200Ha.from_string("01:10:00")
+    expected_delta_seconds = (target.to_seconds() - start.to_seconds()) % LX200Ha.SECONDS_PER_CIRCLE
 
     assert lx200.slew_to_ra(target) is True
-    assert mount.slew_to_ra_calls == [target]
-    assert mount.get_telescope_ra().to_seconds() == target.to_seconds()
+    assert [call.to_seconds() for call in mount.slew_to_ra_calls] == [expected_delta_seconds]
+    assert mount.get_status().running is True
+
+    clock.advance(1.0)
+    mid_seconds = mount.get_telescope_ra().to_seconds()
+    mid_lx200_seconds = lx200.get_telescope_ra().to_seconds()
+    start_seconds = start.to_seconds()
+    target_seconds = target.to_seconds()
+    assert start_seconds < mid_seconds < target_seconds
+    assert mid_lx200_seconds != start_seconds
+
+    distance_seconds = target_seconds - start_seconds
+    max_steps = int(distance_seconds / mount.SLEW_SPEED_SECONDS_PER_S) + 3
+    for _ in range(max_steps):
+        if not mount.get_status().running:
+            break
+        clock.advance(1.0)
+        mount.get_telescope_ra()
+    else:
+        pytest.fail("Slew did not finish within expected time")
+
+    assert mount.get_telescope_ra().to_seconds() == target_seconds
+    assert mount.get_status().running is False
