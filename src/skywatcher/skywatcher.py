@@ -2,6 +2,7 @@ import dataclasses
 from enum import IntEnum, StrEnum
 import logging
 import time
+from typing import Callable, Self
 from lx200.protocols import LX200Hours
 from serial_wrapper.wrapper import SerialLine
 
@@ -252,7 +253,12 @@ class SkyWatcherMount:
         self.logger.info("Stop motor")
         self._transact(SkyWatcherCommand.STOP_MOTION)
 
-    def wait_till_stop(self, timeout_s: float | None = None, do_stop: bool = False) -> None:
+    def wait_till_stop(
+            self, 
+            timeout_s: float | None = None, 
+            do_stop: bool = False, 
+            func: Callable[[Self], None] | None = None
+        ) -> None:
         if timeout_s is not None and timeout_s <= 0:
             raise ValueError("timeout_s must be positive")
         
@@ -273,7 +279,13 @@ class SkyWatcherMount:
                 if time.monotonic() > deadline:
                     raise SkyWatcherTimeoutError(f"Slew did not finish within {timeout_s}s")
             
-            time.sleep(poll_interval_s)
+            poll_start = time.monotonic()
+            if func is not None:
+                try:
+                    func(self)
+                except Exception:
+                    self.logger.exception("While executing %r", func)
+            time.sleep(poll_interval_s - (time.monotonic() - poll_start))
     
     def _set_motion(self, new_status: SkyWatcherStatus):
         self.wait_till_stop(do_stop=True)
@@ -308,15 +320,20 @@ class SkyWatcherMount:
 
         delta = position - current_position
         delta_hours = delta.to_hours()
+
+        delta_hours %= 24
         
         if delta_hours > 12:
             new_status.direction = Direction.BACKWARD
-            distance = -delta
+            distance = -delta_hours
+        if delta_hours < 0:
+            new_status.direction = Direction.BACKWARD
+            distance = delta_hours
         else:
             new_status.direction = Direction.FORWARD
-            distance = delta
+            distance = delta_hours
 
-        delta_ticks = self._hours_to_ticks(distance.to_hours())
+        delta_ticks = self._hours_to_ticks(distance)
 
         if delta_ticks > self._LOWSPEED_MARGIN:
             new_status.speed_mode = SpeedMode.HIGHSPEED
@@ -324,9 +341,6 @@ class SkyWatcherMount:
         else:
             new_status.speed_mode = SpeedMode.LOWSPEED
             is_highspeed = False
-        
-        new_status.speed_mode = SpeedMode.LOWSPEED
-
 
         self._set_motion(new_status)
         self._set_speed(self._HIGH_PERIOD if is_highspeed else self._LOWSPEED_PERIOD)
