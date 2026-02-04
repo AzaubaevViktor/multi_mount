@@ -1,9 +1,9 @@
 import pytest
 
 from skywatcher.skywatcher import (
-    SkyWatcherDirection,
-    SkyWatcherSpeedMode,
-    SkyWatcherSlewMode,
+    Direction,
+    SpeedMode,
+    SlewMode,
     SkyWatcherStatus,
 )
 
@@ -33,9 +33,9 @@ def test_status_to_bytes_sets_flags_and_preserves_non_flag_bits() -> None:
         raw=RAW_NON_FLAG_BITS,
         running=True,
         initialized=True,
-        slew_mode=SkyWatcherSlewMode.SLEW,
-        direction=SkyWatcherDirection.BACKWARD,
-        speed_mode=SkyWatcherSpeedMode.HIGHSPEED,
+        slew_mode=SlewMode.SLEW,
+        direction=Direction.BACKWARD,
+        speed_mode=SpeedMode.HIGHSPEED,
     )
 
     status.to_bytes()
@@ -49,9 +49,9 @@ def test_status_to_bytes_clears_flags_and_preserves_non_flag_bits() -> None:
         raw=RAW_WITH_FLAGS,
         running=False,
         initialized=False,
-        slew_mode=SkyWatcherSlewMode.GOTO,
-        direction=SkyWatcherDirection.FORWARD,
-        speed_mode=SkyWatcherSpeedMode.LOWSPEED,
+        slew_mode=SlewMode.GOTO,
+        direction=Direction.FORWARD,
+        speed_mode=SpeedMode.LOWSPEED,
     )
 
     status.to_bytes()

@@ -9,7 +9,7 @@ from skywatcher.skywatcher import SkyWatcherMount
 
 @pytest.fixture
 def mount() -> SkyWatcherMount:
-    serial_line = SerialLine("/dev/tty.PL2303G-USBtoUART2120", 112500, 0.2, "skywatcher")
+    serial_line = SerialLine("/dev/tty.PL2303G-USBtoUART2110", 112500, 0.2, "skywatcher")
     mount = SkyWatcherMount(serial_line)
     mount.connect()
 
@@ -62,14 +62,7 @@ def test_slew_to_ra_moves_mount(mount: SkyWatcherMount):
 
     assert mount.slew_to_ra(target) is True
 
-    start = time.monotonic()
-    while True:
-        if not mount.get_status().running:
-            break
-        if time.monotonic() - start > timeout_s:
-            raise AssertionError(f"Slew did not finish within {timeout_s}s")
-        print(mount.get_telescope_ra().to_seconds())
-        time.sleep(0.2)
+    mount.wait_till_stop(timeout_s)
 
     actual = mount.get_telescope_ra()
     distance = _distance_seconds(actual.to_seconds(), target.to_seconds())
