@@ -24,6 +24,6 @@ class SkyWatcherLX200(LX200Base):
     
     def get_distance(self) -> str:
         if self.mount.get_status().slew_mode == SlewMode.GOTO:
-            return "\x7f"
+            return "|"
         else:
             return ""

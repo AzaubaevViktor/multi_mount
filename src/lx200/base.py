@@ -97,7 +97,9 @@ class LX200Base:
             case LX200Commands.SLEW, _:
                 result = self.slew_to_ra(self._target_ra)
                 result = self.slew_to_dec(self._target_dec)
-                result = "0"
+                result = False
+                # But 1<below horison>#
+                # But 2<below higher>#
 
             case LX200Commands.GET_CALENDAR_FORMAT, _:
                 result = self.get_calendar_format()
