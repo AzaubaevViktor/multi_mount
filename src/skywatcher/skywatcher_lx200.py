@@ -7,8 +7,6 @@ from .skywatcher import SkyWatcherMount, SlewMode
 
 
 DEGREES_PER_HOUR = 15
-SECONDS_PER_CIRCLE = 24 * 3600
-HALF_CIRCLE_SECONDS = SECONDS_PER_CIRCLE / 2
 
 
 class SkyWatcherLX200(LX200Base):
@@ -38,7 +36,7 @@ class SkyWatcherLX200(LX200Base):
 
         expected_delta_seconds = elapsed_s * (self.mount.STELLAR_SPEED / DEGREES_PER_HOUR)
         # TODO: Write tests for 23:59:59 -> 00:00:01
-        actual_delta_seconds = (mount_seconds - self._last_mount_seconds) % SECONDS_PER_CIRCLE
+        actual_delta_seconds = (mount_seconds - self._last_mount_seconds) % LX200Ha.SECONDS_PER_CIRCLE
 
         delta = expected_delta_seconds - actual_delta_seconds
         self.logger.debug("Calculated delta: %f = (%f - %f)", delta, expected_delta_seconds, actual_delta_seconds)
@@ -51,7 +49,7 @@ class SkyWatcherLX200(LX200Base):
         self._last_mount_seconds = float(mount_seconds)
         self._last_update_s = now
 
-        ra_seconds = int(round(self._ra_seconds)) % SECONDS_PER_CIRCLE
+        ra_seconds = int(round(self._ra_seconds)) % LX200Ha.SECONDS_PER_CIRCLE
         return LX200Ha.from_seconds(ra_seconds)
     
     def set_telescope_ra(self, position: LX200Ha) -> bool:

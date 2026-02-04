@@ -42,6 +42,8 @@ class LX200DecRangeError(LX200DecError):
 class LX200Ha:
     __slots__ = ("_hours", "_minutes", "_seconds")
 
+    SECONDS_PER_CIRCLE = 24 * 3600
+
     def __init__(self, hours: int, minutes: int, seconds: int) -> None:
         self._validate_parts(hours, minutes, seconds)
         self._hours = hours
@@ -74,11 +76,12 @@ class LX200Ha:
     @classmethod
     def from_seconds(cls, total_seconds: float) -> "LX200Ha":
         whole_seconds = _require_whole_seconds(total_seconds, LX200HoursRangeError, "seconds")
-        while whole_seconds < 0:
-            whole_seconds += 24 * 3600
-            
-        while whole_seconds > 24 * 3600:
-            whole_seconds -= 24 * 3600
+        circle_seconds = cls.SECONDS_PER_CIRCLE
+        remainder = whole_seconds % circle_seconds
+        if whole_seconds > 0 and remainder == 0:
+            whole_seconds = circle_seconds
+        else:
+            whole_seconds = remainder
 
         hours = whole_seconds // 3600
         remainder = whole_seconds % 3600
