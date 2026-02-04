@@ -344,7 +344,7 @@ class SkyWatcherMount:
 
         self._set_motion(new_status)
         self._set_speed(self._HIGH_PERIOD if is_highspeed else self._LOWSPEED_PERIOD)
-        self._set_target(self._hours_to_ticks(position.to_hours()) + self._POSITION_OFFSET)
+        self._set_target((self._hours_to_ticks(position.to_hours()) + self._POSITION_OFFSET) % self.ra_steps_360)
         self._set_target_breaks(min(200, delta_ticks))  # TODO: Check highspeed
         self._start_motor()
         return True
