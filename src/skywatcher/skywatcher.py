@@ -304,7 +304,7 @@ class SkyWatcherMount:
         self._transact(SkyWatcherCommand.SET_STEP_PERIOD, Revu24.from_int(period))
     
     def _set_target(self, ticks: int):
-        self._transact(SkyWatcherCommand.SET_GOTO_TARGET_INCREMENT, Revu24.from_int(ticks))
+        self._transact(SkyWatcherCommand.SET_GOTO_TARGET_INCREMENT, Revu24.from_int(ticks + self._POSITION_OFFSET))
 
     def _set_target_breaks(self, ticks: int):
         self._transact(SkyWatcherCommand.SET_BREAK_POINT_INCREMENT, Revu24.from_int(ticks))
