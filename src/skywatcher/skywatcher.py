@@ -316,12 +316,8 @@ class SkyWatcherMount:
         new_status = self.get_status()
         new_status.slew_mode = SlewMode.GOTO
 
-        current_position = self.get_telescope_ra()
-        current_ticks = self._hours_to_ticks(current_position.to_hours()) % self.ra_steps_360
         delta_ticks = self._hours_to_ticks(delta.to_hours()) % self.ra_steps_360
-        target_ticks = (current_ticks + delta_ticks) % self.ra_steps_360
-
-        distance_ticks = (target_ticks - current_ticks) % self.ra_steps_360
+        distance_ticks = delta_ticks
         if distance_ticks > (self.ra_steps_360 // 2):
             new_status.direction = Direction.BACKWARD
             distance_ticks = self.ra_steps_360 - distance_ticks
