@@ -88,6 +88,19 @@ class SkyWatcherStatus:
             speed_mode=speed_mode,
         )
 
+    def to_command(self) -> str:
+        slew_mode = self.slew_mode
+        speed_mode = self.speed_mode
+        if slew_mode == SlewMode.SLEW:
+            motion_mode = "1" if speed_mode == SpeedMode.LOWSPEED else "3"
+        elif slew_mode == SlewMode.GOTO:
+            motion_mode = "2" if speed_mode == SpeedMode.LOWSPEED else "0"
+        else:
+            motion_mode = "1"
+
+        direction_mode = "0" if self.direction == Direction.FORWARD else "1"
+        return f"{motion_mode}{direction_mode}"
+
 
 class Axis(StrEnum):
     RA = "1"
@@ -291,22 +304,13 @@ class SkyWatcherMount:
     
     def _set_motion(self, new_status: SkyWatcherStatus):
         self.wait_till_stop(do_stop=True)
-        if new_status.slew_mode == SlewMode.SLEW:
-            motion_mode = "1" if new_status.speed_mode == SpeedMode.LOWSPEED else "3"
-        elif new_status.slew_mode == SlewMode.GOTO:
-            motion_mode = "2" if new_status.speed_mode == SpeedMode.LOWSPEED else "0"
-        else:
-            motion_mode = "1"
-
-        direction_mode = "0" if new_status.direction == Direction.FORWARD else "1"
-
-        self._transact(SkyWatcherCommand.SET_MOTION_MODE, f"{motion_mode}{direction_mode}")
+        self._transact(SkyWatcherCommand.SET_MOTION_MODE, new_status.to_command())
 
     def _set_speed(self, period: int):
         self._transact(SkyWatcherCommand.SET_STEP_PERIOD, Revu24.from_int(period))
     
     def _set_target(self, ticks: int):
-        self._transact(SkyWatcherCommand.SET_GOTO_TARGET_INCREMENT, Revu24.from_int(ticks + self._POSITION_OFFSET))
+        self._transact(SkyWatcherCommand.SET_GOTO_TARGET_INCREMENT, Revu24.from_int(ticks))
 
     def _set_target_breaks(self, ticks: int):
         self._transact(SkyWatcherCommand.SET_BREAK_POINT_INCREMENT, Revu24.from_int(ticks))

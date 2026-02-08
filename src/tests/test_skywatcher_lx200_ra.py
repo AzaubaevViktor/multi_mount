@@ -32,6 +32,7 @@ class FakeClock:
 class FakeMount:
     STELLAR_SPEED = SkyWatcherMount.STELLAR_SPEED
     SLEW_SPEED_SECONDS_PER_S = 120.0
+    MAX_RATE = SkyWatcherMount.MAX_RATE
 
     def __init__(self, clock: FakeClock, start_ra: LX200Ha) -> None:
         self._clock = clock

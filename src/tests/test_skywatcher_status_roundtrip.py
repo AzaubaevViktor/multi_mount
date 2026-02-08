@@ -20,7 +20,7 @@ ROUNDTRIP_PAYLOADS = (
     bytes((0xA5, 0x5A, 0xC3)),
     bytes((0xF8, 0xFE, 0x7E)),
 )
-
+# TODO: Rewrite to_bytes -> to_command
 
 @pytest.mark.parametrize("payload", ROUNDTRIP_PAYLOADS)
 def test_status_roundtrip_preserves_bytes(payload: bytes) -> None:
