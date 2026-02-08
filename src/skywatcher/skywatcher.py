@@ -364,20 +364,22 @@ class SkyWatcherMount:
         status = status = self.get_status()
         if not (self.MIN_RATE < abs(rate) < self.MAX_RATE):
             self.logger.warning("Speed rate out of limits: %s %s")
+
+        status.slew_mode = SlewMode.SLEW
         
+        status.direction = Direction.FORWARD if rate > 0 else Direction.BACKWARD
+
         is_highspeed = False
         if abs(rate) > self._SKYWATCHER_LOWSPEED_RATE:
             sign = abs(rate) / rate
             rate /= self.ra_highspeed_ratio
             rate *= sign
             is_highspeed = True
+
+        status.speed_mode = SpeedMode.HIGHSPEED if is_highspeed else SpeedMode.LOWSPEED
         
         period = self._STELLAR_DAY * self.ra_steps_worm / self.ra_steps_360 / abs(rate)
 
-        status.direction = Direction.FORWARD if rate > 0 else Direction.BACKWARD
-        status.slew_mode = SlewMode.SLEW
-        
-        status.speed_mode = SpeedMode.HIGHSPEED if is_highspeed else SpeedMode.LOWSPEED
         self._set_motion(status)
         self._set_speed(int(period))
         
