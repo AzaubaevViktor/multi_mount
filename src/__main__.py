@@ -38,6 +38,33 @@ class LX200TestDECServer(LX200Base):
     def halt_all(self) -> bool:
         return True
     
+    def move_east(self) -> bool:
+        return False
+
+    def move_north(self) -> bool:
+        return True
+
+    def move_south(self) -> bool:
+        return True
+
+    def move_west(self) -> bool:
+        return False
+
+    def halt_east(self) -> bool:
+        return False
+
+    def halt_north(self) -> bool:
+        return True
+
+    def halt_south(self) -> bool:
+        return True
+
+    def halt_west(self) -> bool:
+        return False
+
+    def set_slew_to_find(self) -> bool:
+        return True
+
     def slew_to_dec(self, position: LX200Dec) -> bool:
         self.dec = position.to_degrees()
         return True

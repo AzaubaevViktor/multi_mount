@@ -1,6 +1,28 @@
 import logging
+import os
+import re
 
 import serial
+
+
+class SerialLineError(Exception):
+    pass
+
+
+class SerialLineSearchError(SerialLineError):
+    pass
+
+
+class SerialLineSearchInvalidPattern(SerialLineSearchError):
+    pass
+
+
+class SerialLineSearchDirectoryError(SerialLineSearchError):
+    pass
+
+
+class SerialLineSearchNotFound(SerialLineSearchError):
+    pass
 
 
 class SerialLine:
@@ -13,6 +35,34 @@ class SerialLine:
         self.terminator = terminator.encode(self.encoding)
 
         self.serial: serial.Serial
+
+    @classmethod
+    def search(cls, pattern: str, directory: str = "/dev") -> str:
+        if not pattern:
+            raise SerialLineSearchError("pattern is required")
+        if not directory:
+            raise SerialLineSearchError("directory is required")
+
+        try:
+            regex = re.compile(pattern)
+        except re.error as exc:
+            raise SerialLineSearchInvalidPattern(
+                f"invalid search pattern: {pattern!r}"
+            ) from exc
+
+        try:
+            with os.scandir(directory) as entries:
+                for entry in entries:
+                    if regex.search(entry.name):
+                        return entry.path
+        except OSError as exc:
+            raise SerialLineSearchDirectoryError(
+                f"cannot read directory: {directory!r}"
+            ) from exc
+
+        raise SerialLineSearchNotFound(
+            f"no match for pattern {pattern!r} in {directory!r}"
+        )
 
     def connect(self):
         self.serial = serial.Serial(port=self.port, baudrate=self.baud, timeout=self.timeout_s)
@@ -40,5 +90,4 @@ class SerialLine:
 
     def close(self):
         self.serial.close()
-
 

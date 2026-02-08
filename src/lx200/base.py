@@ -62,6 +62,13 @@ class LX200UnknownCommand(Exception):
     pass
 
 
+class MoveDirection(StrEnum):
+    EAST = "east"
+    NORTH = "north"
+    SOUTH = "south"
+    WEST = "west"
+
+
 _logger = logging.getLogger("lx200")
 
 
@@ -69,6 +76,7 @@ class LX200Base:
     def __init__(self) -> None:
         self._target_ra: LX200Ha = LX200Ha.from_hours(0)
         self._target_dec: LX200Dec = LX200Dec.from_degrees(0)
+        self._manual_move_direction: MoveDirection | None = None
         
     def connect(self):
         raise NotImplementedError()
@@ -105,31 +113,44 @@ class LX200Base:
 
             case LX200Commands.HALT_ALL, _:
                 self.halt_all()
+                self._manual_move_direction = None
                 result = None
             case LX200Commands.MOVE_EAST, _:
-                self.move_east()
+                if self.move_east():
+                    self._manual_move_direction = MoveDirection.EAST
                 result = None
             case LX200Commands.MOVE_NORTH, _:
-                self.move_north()
+                if self.move_north():
+                    self._manual_move_direction = MoveDirection.NORTH
                 result = None
             case LX200Commands.MOVE_SOUTH, _:
-                self.move_south()
+                if self.move_south():
+                    self._manual_move_direction = MoveDirection.SOUTH
                 result = None
             case LX200Commands.MOVE_WEST, _:
-                self.move_west()
+                if self.move_west():
+                    self._manual_move_direction = MoveDirection.WEST
                 result = None
 
             case LX200Commands.HALT_EAST, _:
-                self.halt_east()
+                if self._manual_move_direction == MoveDirection.EAST:
+                    self.halt_east()
+                    self._manual_move_direction = None
                 result = None
             case LX200Commands.HALT_NORTH, _:
-                self.halt_north()
+                if self._manual_move_direction == MoveDirection.NORTH:
+                    self.halt_north()
+                    self._manual_move_direction = None
                 result = None
             case LX200Commands.HALT_SOUTH, _:
-                self.halt_south()
+                if self._manual_move_direction == MoveDirection.SOUTH:
+                    self.halt_south()
+                    self._manual_move_direction = None
                 result = None
             case LX200Commands.HALT_WEST, _:
-                self.halt_west()
+                if self._manual_move_direction == MoveDirection.WEST:
+                    self.halt_west()
+                    self._manual_move_direction = None
                 result = None
 
             case LX200Commands.GET_CALENDAR_FORMAT, _:
@@ -160,6 +181,10 @@ class LX200Base:
                 result = "01/01/26"
             case LX200Commands.SET_LOCAL_DATE, _:
                 result = True
+
+            case LX200Commands.SET_SLEW_TO_FIND, _:
+                self.set_slew_to_find()
+                result = None
 
             case LX200Commands.GET_DISTANCE, _:
                 result = self.get_distance()
@@ -213,6 +238,9 @@ class LX200Base:
         return "60.0"
 
     def get_distance(self) -> str:
+        raise NotImplementedError()
+
+    def set_slew_to_find(self) -> bool:
         raise NotImplementedError()
     
     def halt_all(self) -> bool:

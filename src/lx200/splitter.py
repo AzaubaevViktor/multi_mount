@@ -54,3 +54,73 @@ class LX200Splitter(LX200Base):
             self.logger.exception("While stop DEC")
         
         return True
+
+    def move_east(self) -> bool:
+        try:
+            return self.ra.move_east()
+        except Exception:
+            self.logger.exception("While move RA east")
+            return False
+
+    def move_north(self) -> bool:
+        try:
+            return self.dec.move_north()
+        except Exception:
+            self.logger.exception("While move DEC north")
+            return False
+
+    def move_south(self) -> bool:
+        try:
+            return self.dec.move_south()
+        except Exception:
+            self.logger.exception("While move DEC south")
+            return False
+
+    def move_west(self) -> bool:
+        try:
+            return self.ra.move_west()
+        except Exception:
+            self.logger.exception("While move RA west")
+            return False
+
+    def halt_east(self) -> bool:
+        try:
+            return self.ra.halt_east()
+        except Exception:
+            self.logger.exception("While stop RA east")
+            return False
+
+    def halt_north(self) -> bool:
+        try:
+            return self.dec.halt_north()
+        except Exception:
+            self.logger.exception("While stop DEC north")
+            return False
+
+    def halt_south(self) -> bool:
+        try:
+            return self.dec.halt_south()
+        except Exception:
+            self.logger.exception("While stop DEC south")
+            return False
+
+    def halt_west(self) -> bool:
+        try:
+            return self.ra.halt_west()
+        except Exception:
+            self.logger.exception("While stop RA west")
+            return False
+
+    def set_slew_to_find(self) -> bool:
+        ok = True
+        try:
+            self.ra.set_slew_to_find()
+        except Exception:
+            self.logger.exception("While set RA slew rate")
+            ok = False
+        try:
+            self.dec.set_slew_to_find()
+        except Exception:
+            self.logger.exception("While set DEC slew rate")
+            ok = False
+        return ok

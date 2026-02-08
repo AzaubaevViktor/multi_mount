@@ -143,9 +143,10 @@ class SkyWatcherMount:
 
     _POSITION_OFFSET = 0x800000
 
-    _MIN_RATE = 0.05
-    _MAX_RATE = 800
+    MIN_RATE = 0.05
+    MAX_RATE = 800
     _SKYWATCHER_LOWSPEED_RATE = 128
+    _ZERO_RATE = 0.0
 
     def __init__(self, serial: SerialLine) -> None:
         self.logger = logging.getLogger("skywatcher")
@@ -157,6 +158,7 @@ class SkyWatcherMount:
         self.ra_steps_360: int
         self.ra_steps_worm: int
         self.ra_highspeed_ratio: int
+        self._last_tracking_speed = self.STELLAR_SPEED
 
     def _transact(self, cmd: SkyWatcherCommand, arg: str | None = None, axis: Axis = Axis.RA) -> str:
         """ All transactions works only with RA """
@@ -351,7 +353,7 @@ class SkyWatcherMount:
 
     def _set_ra_rate(self, rate: float):
         status = status = self.get_status()
-        if not (self._MIN_RATE < abs(rate) < self._MAX_RATE):
+        if not (self.MIN_RATE < abs(rate) < self.MAX_RATE):
             self.logger.warning("Speed rate out of limits: %s %s")
         
         is_highspeed = False
@@ -373,11 +375,18 @@ class SkyWatcherMount:
         return True
     
     def start_tracking(self, trackspeed: float = STELLAR_SPEED) -> bool:
-        rate = trackspeed / self.STELLAR_SPEED if trackspeed else 0
-        if rate:
-            self._set_ra_rate(rate)
-            self._start_motor()
-        else:
+        if trackspeed == self._ZERO_RATE:
             self.gracefully_stop_motor()
-        
+            return True
+
+        self._last_tracking_speed = trackspeed
+        rate = trackspeed / self.STELLAR_SPEED
+        self._set_ra_rate(rate)
+        self._start_motor()
         return True
+
+    def get_last_tracking_speed(self) -> float:
+        return self._last_tracking_speed
+
+    def resume_tracking(self) -> bool:
+        return self.start_tracking(self._last_tracking_speed)

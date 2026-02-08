@@ -18,6 +18,7 @@ class SkyWatcherLX200(LX200Base):
         self._ra_seconds = 0.0
         self._last_mount_seconds: float = 0
         self._last_update_s: float = 0
+        self._manual_slew_rate = self.mount.MAX_RATE
     
     def connect(self):
         self.mount.connect()
@@ -58,8 +59,8 @@ class SkyWatcherLX200(LX200Base):
         return True
     
     def halt_all(self) -> bool:
-        self.mount.gracefully_stop_motor()
-        self.mount.start_tracking()
+        self.mount.wait_till_stop(do_stop=True)
+        self.mount.resume_tracking()
         return True
     
     def slew_to_ra(self, position: LX200Ha) -> bool:
@@ -73,5 +74,41 @@ class SkyWatcherLX200(LX200Base):
             return "|"
         else:
             # Here we understand that INDI wants us to go to track mode
-            self.mount.start_tracking()
+            self.mount.resume_tracking()
             return ""
+
+    def set_slew_to_find(self) -> bool:
+        self._manual_slew_rate = self.mount.MAX_RATE
+        return True
+
+    def move_east(self) -> bool:
+        return self._start_manual_move(-self._manual_slew_rate)
+
+    def move_north(self) -> bool:
+        return False
+
+    def move_south(self) -> bool:
+        return False
+
+    def move_west(self) -> bool:
+        return self._start_manual_move(self._manual_slew_rate)
+
+    def halt_east(self) -> bool:
+        return self._stop_manual_move()
+
+    def halt_north(self) -> bool:
+        return False
+
+    def halt_south(self) -> bool:
+        return False
+
+    def halt_west(self) -> bool:
+        return self._stop_manual_move()
+
+    def _start_manual_move(self, rate: float) -> bool:
+        return self.mount.move_ra(rate)
+
+    def _stop_manual_move(self) -> bool:
+        self.mount.wait_till_stop(do_stop=True)
+        self.mount.resume_tracking()
+        return True
