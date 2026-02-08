@@ -64,7 +64,8 @@ class SkyWatcherLX200(LX200Base):
         return True
     
     def slew_to_ra(self, position: LX200Ha) -> bool:
-        return self.mount.slew_to_ra(LX200Ha.from_seconds(position.to_seconds() - self._ra_seconds))
+        # TODO: Need to keep in mind STELLAR_SPEED
+        return self.mount.slew_to_ra(LX200Ha.from_seconds(self._ra_seconds - position.to_seconds()))
 
     def get_site1_name(self) -> str:
         return "skywatcher"

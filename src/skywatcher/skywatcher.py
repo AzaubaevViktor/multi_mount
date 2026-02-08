@@ -115,6 +115,8 @@ class SkyWatcherAxisState:
 class Revu24:
     @staticmethod
     def from_mount(data: str) -> int:
+        if len(data) == 2:
+            data = f"{data}0000"
         if len(data) < 6:
             raise SkyWatcherRevu24Error(f"Expected at least 6 hex chars, got {len(data)}")
 
@@ -228,6 +230,7 @@ class SkyWatcherMount:
         self.logger.info("Get rate values")
         self.ra_steps_360 = Revu24.from_mount(self._transact(SkyWatcherCommand.INQUIRE_CPR))
         self.ra_steps_worm = Revu24.from_mount(self._transact(SkyWatcherCommand.INQUIRE_TIMER_FREQ))
+        self.ra_highspeed_ratio = Revu24.from_mount(self._transact(SkyWatcherCommand.INQUIRE_HIGHSPEED_RATIO))
         # TODO: Make 2-hex-digits revu24
         # self.ra_highspeed_ratio = Revu24.from_mount(self._transact(SkyWatcherCommand.INQUIRE_HIGHSPEED_RATIO))
 
@@ -336,6 +339,8 @@ class SkyWatcherMount:
         else:
             new_status.speed_mode = SpeedMode.LOWSPEED
             is_highspeed = False
+
+        self.logger.info("Start slewing for %d ticks %s, with highspeed:%s", distance_ticks, new_status.direction, is_highspeed)
 
         self._set_motion(new_status)
         self._set_speed(self._HIGH_PERIOD if is_highspeed else self._LOWSPEED_PERIOD)
