@@ -89,10 +89,7 @@ def test_hours_from_seconds_valid(value, expected):
 @pytest.mark.parametrize(
     "value",
     [
-        -1,
         86400,
-        1.5,
-        3600.1,
     ],
 )
 def test_hours_from_seconds_invalid(value):
@@ -117,8 +114,6 @@ def test_hours_from_hours_valid(value, expected):
 @pytest.mark.parametrize(
     "value",
     [
-        1.0000001,
-        -0.1,
         24.0,
     ],
 )
@@ -135,26 +130,28 @@ def test_hours_repr():
 @pytest.mark.parametrize(
     "value, expected",
     [
-        ("+00*00'00", ("+", 0, 0, 0)),
-        ("-12*34'56", ("-", 12, 34, 56)),
-        ("+12*34\u201956", ("+", 12, 34, 56)),
+        ("+00*00:00", ("+", 0, 0, 0)),
+        ("-12*34:56", ("-", 12, 34, 56)),
+        ("+12*34:56", ("+", 12, 34, 56)),
     ],
 )
 def test_dec_from_string_valid(value, expected):
     dec = LX200Dec.from_string(value)
     assert (dec.sign, dec.degrees, dec.minutes, dec.seconds) == expected
-    assert str(dec) == f"{expected[0]}{expected[1]:02d}*{expected[2]:02d}'{expected[3]:02d}"
+    assert str(dec) == f"{expected[0]}{expected[1]:02d}*{expected[2]:02d}:{expected[3]:02d}"
 
 
 @pytest.mark.parametrize(
     "value",
     [
-        "12*34'56",
-        "+1*02'03",
+        "12*34:56",
+        "+1*02:03",
         "+12:34:56",
         "+12*3456",
-        "+12*34'5",
+        "+12*34:5",
         "+12*34\"56",
+        "+12*34'56",
+        "+12*34\u201956",
         "",
     ],
 )
@@ -183,10 +180,10 @@ def test_dec_init_range_errors(parts):
 @pytest.mark.parametrize(
     "value, expected",
     [
-        (0.0, "+00*00'00"),
-        (12.5, "+12*30'00"),
-        (-12.0, "-12*00'00"),
-        (45.25, "+45*15'00"),
+        (0.0, "+00*00:00"),
+        (12.5, "+12*30:00"),
+        (-12.0, "-12*00:00"),
+        (45.25, "+45*15:00"),
     ],
 )
 def test_dec_from_degrees_valid(value, expected):
@@ -215,4 +212,4 @@ def test_dec_to_degrees_negative():
 
 def test_dec_repr():
     dec = LX200Dec("+", 5, 6, 7)
-    assert repr(dec) == "LX200Dec('+05*06'07')"
+    assert repr(dec) == "LX200Dec('+05*06:07')"

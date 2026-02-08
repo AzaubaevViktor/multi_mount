@@ -9,6 +9,7 @@ MAX_DEC_DEGREES = 90
 
 APOSTROPHE = ":"
 UNICODE_APOSTROPHE = ":"
+WHOLE_UNIT_TOLERANCE = 1e-9
 
 HOURS_PATTERN = re.compile(r"^(\d{2}):(\d{2}):(\d{2})$")
 DEC_PATTERN = re.compile(rf"^([{SIGN_CHARS}])(\d{{2}})\*(\d{{2}})[{APOSTROPHE}{UNICODE_APOSTROPHE}](\d{{2}})$")
@@ -44,7 +45,7 @@ class LX200Ha:
 
     SECONDS_PER_CIRCLE = 24 * 3600
 
-    def __init__(self, hours: int, minutes: int, seconds: int) -> None:
+    def __init__(self, hours: int, minutes: int, seconds: float) -> None:
         self._validate_parts(hours, minutes, seconds)
         self._hours = hours
         self._minutes = minutes
@@ -82,9 +83,9 @@ class LX200Ha:
         else:
             total_seconds = remainder
 
-        hours = total_seconds // 3600
+        hours = int(total_seconds // 3600)
         remainder = total_seconds % 3600
-        minutes = remainder // 60
+        minutes = int(remainder // 60)
         seconds = remainder % 60
         return cls(hours, minutes, seconds)
     
@@ -106,13 +107,13 @@ class LX200Ha:
         return self.to_seconds() / 3600
 
     def __str__(self) -> str:
-        return f"{self._hours:02d}:{self._minutes:02d}:{self._seconds:02d}"
+        return f"{self._hours:02d}:{self._minutes:02d}:{self._seconds:02.0f}"
 
     def __repr__(self) -> str:
         return f"LX200Hours('{self}')"
 
     @staticmethod
-    def _validate_parts(hours: int, minutes: int, seconds: int) -> None:
+    def _validate_parts(hours: int, minutes: int, seconds: float) -> None:
         if hours < 0 or hours > 23:
             raise LX200HoursRangeError(f"Hours out of range: {hours!r}")
         if minutes < 0 or minutes > 59:
@@ -165,7 +166,7 @@ class LX200Dec:
         abs_degrees = abs(total_degrees)
         total_arcseconds = int(round(abs_degrees * 3600))
 
-        if abs(abs_degrees * 3600 - total_arcseconds) > 1e-9:
+        if abs(abs_degrees * 3600 - total_arcseconds) > WHOLE_UNIT_TOLERANCE:
             raise LX200DecRangeError(f"Degrees require whole arcseconds: {total_degrees!r}")
 
         degrees = total_arcseconds // 3600
@@ -207,4 +208,3 @@ class LX200Dec:
             raise LX200DecRangeError(f"Seconds out of range: {seconds!r}")
         if degrees == 90 and (minutes != 0 or seconds != 0):
             raise LX200DecRangeError(f"Degrees out of range: {degrees!r}")
-

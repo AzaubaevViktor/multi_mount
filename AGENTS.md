@@ -5,6 +5,7 @@
     - If you can inherit from or add into existing class
 - Don't change anything in references folder
 - IGNORE all files in slop_src folder. You can read it ONLY if user say so
+- Before starting any changes tell me about plan and what need to be clarified
 
 # Development rules
 - Don't create constants for simple values like (0, -1, 0.0), except it has some semantic
