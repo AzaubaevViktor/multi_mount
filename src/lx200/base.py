@@ -106,8 +106,31 @@ class LX200Base:
             case LX200Commands.HALT_ALL, _:
                 self.halt_all()
                 result = None
-            
-            # TODO: Add halts and moves here
+            case LX200Commands.MOVE_EAST, _:
+                self.move_east()
+                result = None
+            case LX200Commands.MOVE_NORTH, _:
+                self.move_north()
+                result = None
+            case LX200Commands.MOVE_SOUTH, _:
+                self.move_south()
+                result = None
+            case LX200Commands.MOVE_WEST, _:
+                self.move_west()
+                result = None
+
+            case LX200Commands.HALT_EAST, _:
+                self.halt_east()
+                result = None
+            case LX200Commands.HALT_NORTH, _:
+                self.halt_north()
+                result = None
+            case LX200Commands.HALT_SOUTH, _:
+                self.halt_south()
+                result = None
+            case LX200Commands.HALT_WEST, _:
+                self.halt_west()
+                result = None
 
             case LX200Commands.GET_CALENDAR_FORMAT, _:
                 result = self.get_calendar_format()
@@ -218,4 +241,3 @@ class LX200Base:
     
     def halt_west(self) -> bool:
         raise NotImplementedError()
-
