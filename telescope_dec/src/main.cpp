@@ -13,7 +13,7 @@
 #include <stdio.h>
 
 // ---------- Pins ----------
-static const uint8_t STEP_PIN = 2;
+static const uint8_t STEP_PIN = 10;
 static const uint8_t DIR_PIN  = 3;
 static const uint8_t EN_PIN   = 4;   // Enable pin to driver
 static const bool    EN_ACTIVE_LOW = true;
@@ -53,6 +53,16 @@ struct RunnerV2 {
 } runV2;
 
 static bool v2Initialized = false;
+
+struct Profiler {
+  float serial = 0.0;
+  float serialLastProcessed = 0.0;
+
+  float stepper = 0.0;
+  float updateMotionState = 0.0;
+  float stepperHigh = 0.0;
+  float stepperLow = 0.0;
+} profiler;
 
 // ---------- Step position counter ----------
 static const long STEP_POSITIVE = 1;
@@ -400,6 +410,7 @@ static uint32_t calcStepIntervalUsV2(float speedSps) {
 
 static void updateMotionStateV2() {
   const uint32_t nowUs = micros();
+
   if (runV2.lastUpdateUs == 0) {
     runV2.lastUpdateUs = nowUs;
     return;
@@ -461,6 +472,10 @@ static void updateMotionStateV2() {
     runV2.actualSpeedSps = 0.0f;
     runV2.desiredSpeedSps = 0.0f;
   }
+
+  profiler.updateMotionState += micros() - nowUs;
+  profiler.updateMotionState /= 2.;
+
 }
 
 static void handleLineV2(char* s) {
@@ -624,6 +639,20 @@ static void handleLineV2(char* s) {
     return;
   }
 
+  if (!strcmp(cmd, "profile")) {
+    respondStartV2(true);
+    respondKeyValueFloatV2("serial", profiler.serial, 2);
+    respondKeyValueFloatV2("serialLastProcessed", profiler.serialLastProcessed, 2);
+    respondKeyValueFloatV2("serial", profiler.serial, 2);
+
+    respondKeyValueFloatV2("stepper", profiler.stepper, 2);
+    respondKeyValueFloatV2("stepperHigh", profiler.stepperHigh, 2);
+    respondKeyValueFloatV2("stepperLow", profiler.stepperLow, 2);
+    respondKeyValueFloatV2("updateMotionState", profiler.updateMotionState, 2);
+    respondEndV2();
+    return;
+  }
+
   respondErrorV2("unknown_cmd");
 }
 
@@ -632,9 +661,13 @@ void serviceSerialv2() {
     char c = (char)Serial.read();
     if (c == '\r') continue;
     if (c == '\n') {
+      long start = micros();
+
       lineBufV2[lineLenV2] = 0;
       handleLineV2(lineBufV2);
       lineLenV2 = 0;
+
+      profiler.serialLastProcessed = micros() - start;
       continue;
     }
     if (lineLenV2 < sizeof(lineBufV2) - 1) lineBufV2[lineLenV2++] = c;
@@ -645,10 +678,15 @@ void serviceStepperv2() {
   const uint32_t nowUs = micros();
 
   if (runV2.stepHigh) {
+    long start = micros();
+
     if ((int32_t)(nowUs - runV2.stepHighUntilUs) >= 0) {
       digitalWrite(STEP_PIN, LOW);
       runV2.stepHigh = false;
     }
+
+    profiler.stepperLow += micros() - start;
+    profiler.stepperLow /= 2.;
     return;
   }
 
@@ -666,6 +704,8 @@ void serviceStepperv2() {
   if (runV2.stepIntervalUs == 0) return;
 
   if ((int32_t)(nowUs - runV2.nextStepUs) >= 0) {
+    long start = micros();
+
     digitalWrite(STEP_PIN, HIGH);
     runV2.stepHigh = true;
     runV2.stepHighUntilUs = nowUs + runV2.pulseWidthUs;
@@ -681,10 +721,20 @@ void serviceStepperv2() {
         completeTargetV2();
       }
     }
+
+    profiler.stepperHigh += micros() - start;
+    profiler.stepperHigh /= 2.;
   }
 }
 
 void loop() {
+  long start = micros();
   serviceSerialv2();
+  profiler.serial += micros() - start;
+  profiler.serial /= 2.;
+
+  start = micros();
   serviceStepperv2();
+  profiler.stepper += micros() - start;
+  profiler.stepper /= 2.;
 }
