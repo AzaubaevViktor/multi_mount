@@ -59,6 +59,7 @@ class SkyWatcherLX200(LX200Base):
     
     def stop(self) -> bool:
         self.mount.gracefully_stop_motor()
+        self.mount.start_tracking()
         return True
     
     def slew_to_ra(self, position: LX200Ha) -> bool:
