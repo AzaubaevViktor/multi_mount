@@ -7,30 +7,25 @@ from skywatcher.skywatcher import (
     SkyWatcherStatus,
 )
 
-STATUS_FLAG_MASK = 0x010701
-RAW_BASE = 0xA5B6C7
-RAW_NON_FLAG_BITS = RAW_BASE & ~STATUS_FLAG_MASK
-RAW_WITH_FLAGS = RAW_NON_FLAG_BITS | STATUS_FLAG_MASK
 NO_STATUS_FLAGS = 0
 
 NO_FLAGS_BYTES = bytes((0x00, 0x00, 0x00))
-ROUNDTRIP_PAYLOADS = (
-    NO_FLAGS_BYTES,
-    bytes((0x07, 0x01, 0x01)),
-    bytes((0xA5, 0x5A, 0xC3)),
-    bytes((0xF8, 0xFE, 0x7E)),
+STATUS_COMMANDS = (
+    (NO_FLAGS_BYTES, "20"),
+    (bytes((0x07, 0x01, 0x01)), "31"),
+    (bytes((0xA5, 0x5A, 0xC3)), "30"),
+    (bytes((0xF8, 0xFE, 0x7E)), "20"),
 )
-# TODO: Rewrite to_bytes -> to_command
 
-@pytest.mark.parametrize("payload", ROUNDTRIP_PAYLOADS)
-def test_status_roundtrip_preserves_bytes(payload: bytes) -> None:
+@pytest.mark.parametrize(("payload", "expected_command"), STATUS_COMMANDS)
+def test_status_from_bytes_to_command(payload: bytes, expected_command: str) -> None:
     status = SkyWatcherStatus.from_bytes(payload)
-    assert status.to_bytes() == payload
+    assert status.to_command() == expected_command
 
 
-def test_status_to_bytes_sets_flags_and_preserves_non_flag_bits() -> None:
+def test_status_to_command_encodes_slew_highspeed_backward() -> None:
     status = SkyWatcherStatus(
-        raw=RAW_NON_FLAG_BITS,
+        raw=NO_STATUS_FLAGS,
         running=True,
         initialized=True,
         slew_mode=SlewMode.SLEW,
@@ -38,15 +33,12 @@ def test_status_to_bytes_sets_flags_and_preserves_non_flag_bits() -> None:
         speed_mode=SpeedMode.HIGHSPEED,
     )
 
-    status.to_bytes()
-
-    assert status.raw & STATUS_FLAG_MASK == STATUS_FLAG_MASK
-    assert status.raw & ~STATUS_FLAG_MASK == RAW_NON_FLAG_BITS
+    assert status.to_command() == "31"
 
 
-def test_status_to_bytes_clears_flags_and_preserves_non_flag_bits() -> None:
+def test_status_to_command_encodes_goto_lowspeed_forward() -> None:
     status = SkyWatcherStatus(
-        raw=RAW_WITH_FLAGS,
+        raw=NO_STATUS_FLAGS,
         running=False,
         initialized=False,
         slew_mode=SlewMode.GOTO,
@@ -54,7 +46,4 @@ def test_status_to_bytes_clears_flags_and_preserves_non_flag_bits() -> None:
         speed_mode=SpeedMode.LOWSPEED,
     )
 
-    status.to_bytes()
-
-    assert status.raw & STATUS_FLAG_MASK == NO_STATUS_FLAGS
-    assert status.raw & ~STATUS_FLAG_MASK == RAW_NON_FLAG_BITS
+    assert status.to_command() == "20"
