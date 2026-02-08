@@ -58,8 +58,9 @@ class LX200Commands(StrEnum):
     SET_SLEW_TO_FIND = "RM"
 
 
-class LX200UnknownCommand(Exception):
-    pass
+class _LX200NotImplementedCommand:
+    def __init__(self, cmd: str) -> None:
+        self.cmd = cmd
 
 
 class MoveDirection(StrEnum):
@@ -189,9 +190,8 @@ class LX200Base:
             case LX200Commands.GET_DISTANCE, _:
                 result = self.get_distance()
             case _:
-                _logger.warning("Wrong command: %s(%s)", cmd, argument)
-                result = None
-                # raise LX200UnknownCommand(full_command)
+                _logger.warning("Not implemented command: %s(%s)", cmd, argument)
+                result = _LX200NotImplementedCommand(cmd)
         
         return result
         
@@ -202,13 +202,17 @@ class LX200Base:
 
         result = self._do_handle(cmd, argument)
         
-        if result is not None:
-            _logger.info("Answer command %s %s(%s) -> %s", cmd, cmd.name, argument, result)
+        if isinstance(result, _LX200NotImplementedCommand):
+            _logger.warning("Empty responce: %s %s(%s) -> ∅", cmd, cmd.name, argument)
 
-            return result
+            result = None
+        elif result is not None:
+            _logger.info("Answer command %s %s(%s) -> %s", cmd, cmd.name, argument, result)
         else:
             _logger.warning("Empty responce: %s %s(%s) -> ∅", cmd, cmd.name, argument)
-            return None
+
+        return result
+
 
     def get_telescope_ra(self) -> LX200Ha:
         raise NotImplementedError()
