@@ -1,4 +1,5 @@
 import logging
+import os
 from logging_setup import setup_logging
 from lx200.base import LX200Base
 from lx200.base_server import LX200SimpleServer
@@ -12,6 +13,16 @@ from skywatcher.skywatcher_lx200 import SkyWatcherLX200, SkyWatcherMount
 setup_logging()
 
 log = logging.getLogger("lx200")
+
+class PL2303GDeviceNotFoundError(Exception):
+    pass
+
+def find_pl2303g_device_path() -> str:
+    with os.scandir("/dev") as entries:
+        for entry in entries:
+            if "PL2303G" in entry.name:
+                return entry.path
+    raise PL2303GDeviceNotFoundError("PL2303G device not found in /dev.")
 
 class LX200TestDECServer(LX200Base):
     def __init__(self) -> None:
@@ -45,7 +56,8 @@ class LX200TestDECServer(LX200Base):
     
 
 if __name__ == "__main__":
-    skywatcher_serial = SerialLine("/dev/tty.PL2303G-USBtoUART210", 112500, .05, "skywatcher")
+    device_path = find_pl2303g_device_path()
+    skywatcher_serial = SerialLine(device_path, 112500, .05, "skywatcher")
     skywatcher_ra_mount = SkyWatcherMount(skywatcher_serial)
     skywatcher_lx200 = SkyWatcherLX200(skywatcher_ra_mount)
 
