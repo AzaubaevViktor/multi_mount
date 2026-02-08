@@ -102,9 +102,12 @@ class LX200Base:
                 result = False
                 # But 1<below horison>#
                 # But 2<below higher>#
+
             case LX200Commands.HALT_ALL, _:
-                self.stop()
+                self.halt_all()
                 result = None
+            
+            # TODO: Add halts and moves here
 
             case LX200Commands.GET_CALENDAR_FORMAT, _:
                 result = self.get_calendar_format()
@@ -189,5 +192,30 @@ class LX200Base:
     def get_distance(self) -> str:
         raise NotImplementedError()
     
-    def stop(self) -> bool:
+    def halt_all(self) -> bool:
         raise NotImplementedError()
+    
+    def move_east(self) -> bool:
+        raise NotImplementedError()
+    
+    def move_north(self) -> bool:
+        raise NotImplementedError()
+    
+    def move_south(self) -> bool:
+        raise NotImplementedError()
+    
+    def move_west(self) -> bool:
+        raise NotImplementedError()
+
+    def halt_east(self) -> bool:
+        raise NotImplementedError()
+    
+    def halt_north(self) -> bool:
+        raise NotImplementedError()
+    
+    def halt_south(self) -> bool:
+        raise NotImplementedError()
+    
+    def halt_west(self) -> bool:
+        raise NotImplementedError()
+

@@ -42,14 +42,14 @@ class LX200Splitter(LX200Base):
     def get_distance(self) -> str:
         return self.ra.get_distance() + self.dec.get_distance()
     
-    def stop(self) -> bool:
+    def halt_all(self) -> bool:
         try:
-            self.ra.stop()
+            self.ra.halt_all()
         except Exception:
             self.logger.exception("While stop RA")
         
         try:
-            self.dec.stop()
+            self.dec.halt_all()
         except Exception:
             self.logger.exception("While stop DEC")
         

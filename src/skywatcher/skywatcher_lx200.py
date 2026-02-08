@@ -57,7 +57,7 @@ class SkyWatcherLX200(LX200Base):
         self._last_update_s = time.monotonic()
         return True
     
-    def stop(self) -> bool:
+    def halt_all(self) -> bool:
         self.mount.gracefully_stop_motor()
         self.mount.start_tracking()
         return True
