@@ -145,8 +145,8 @@ class SkyWatcherMount:
     _COMMAND_ERROR_PREFIX = "!"
     _RESPONCE_PREFIX = "="
 
-    _STELLAR_DAY = 86164.098903691
-    STELLAR_SPEED = 15.041067179
+    _STELLAR_DAY = 86164.098903691  # sec/day
+    STELLAR_SPEED = 15.041067179  # deg/hour
     _SIDEREAL_DAY = 86164.09053083288
     _SIDEREAL_SPEED = 15.04106864
 
@@ -161,7 +161,6 @@ class SkyWatcherMount:
     MIN_RATE = 0.05
     MAX_RATE = 800
     _SKYWATCHER_LOWSPEED_RATE = 128
-    _ZERO_RATE = 0.0
 
     def __init__(self, serial: SerialLine) -> None:
         self.logger = logging.getLogger("skywatcher")
@@ -173,7 +172,7 @@ class SkyWatcherMount:
         self.ra_steps_360: int
         self.ra_steps_worm: int
         self.ra_highspeed_ratio: int
-        self._last_tracking_speed = self.STELLAR_SPEED
+        self._last_tracking_rate = self.STELLAR_SPEED
 
         self.is_connected = False
 
@@ -358,12 +357,13 @@ class SkyWatcherMount:
             self.logger.warning("Can not slew while GOTO in progress")
             return False
         
-        self._set_ra_rate(rate)
+        self.set_ra_rate(rate)
         self._start_motor()
 
         return True
 
-    def _set_ra_rate(self, rate: float):
+    def set_ra_rate(self, rate: float):
+        """ Rate is multiplier for tracking rate """
         status = status = self.get_status()
         if not (self.MIN_RATE < abs(rate) < self.MAX_RATE):
             self.logger.warning("Speed rate out of limits: %s %s")
@@ -388,19 +388,15 @@ class SkyWatcherMount:
         
         return True
     
-    def start_tracking(self, trackspeed: float = STELLAR_SPEED) -> bool:
-        if trackspeed == self._ZERO_RATE:
+    def start_tracking(self, rate: float = 1.) -> bool:
+        if rate == .0:
             self.gracefully_stop_motor()
             return True
 
-        self._last_tracking_speed = trackspeed
-        rate = trackspeed / self.STELLAR_SPEED
-        self._set_ra_rate(rate)
+        self._last_tracking_rate = rate
+        self.set_ra_rate(rate)
         self._start_motor()
         return True
 
-    def get_last_tracking_speed(self) -> float:
-        return self._last_tracking_speed
-
     def resume_tracking(self) -> bool:
-        return self.start_tracking(self._last_tracking_speed)
+        return self.start_tracking(self._last_tracking_rate)

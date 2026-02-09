@@ -1,4 +1,6 @@
 import logging
+from math import log
+from operator import xor
 import threading
 import time
 
@@ -13,6 +15,7 @@ DEGREES_PER_HOUR = 15
 class SkyWatcherLX200(LX200Base):
     _ACCEPTED_DELTA_S = 0.01
     _RA_CHECK_TIME_S = .25
+    _STOP_GOTO_SECONDS = 1
 
     def __init__(self, mount: SkyWatcherMount) -> None:
         self.logger = logging.getLogger("SkyWatcherLX200")
@@ -23,8 +26,10 @@ class SkyWatcherLX200(LX200Base):
         self._manual_slew_rate = self.mount.MAX_RATE
 
         self._goto_to: LX200Ha | None = None
+        self._goto_direction_sign: int = 0
         
         self._check_ra_thread = threading.Thread(target=self._do_check_ra, name="SW_RA")
+        self._check_goto_thread = threading.Thread(target=self._check_goto, name="SW_GOTO")
         self._ra_update_lock = threading.Lock()
         self._working = True
 
@@ -55,16 +60,66 @@ class SkyWatcherLX200(LX200Base):
 
                 self._last_mount_seconds = float(mount_seconds)
                 self._last_update_s = now
-            
+
+    def _check_goto(self):
+        logger = self.logger.getChild("goto")
+
+        while self._working:
+            if not self.mount.is_connected:
+                time.sleep(self._RA_CHECK_TIME_S)
+                continue
+
             if self._goto_to:
-                if (delta := self._ra_seconds - self._goto_to.to_seconds()) < 1:
+                with self._ra_update_lock:
+                    current_ra = self._ra_seconds
+
+                if current_ra - self._goto_to.to_seconds() < self._STOP_GOTO_SECONDS:
+                    self.mount.wait_till_stop(do_stop=True)
                     self.mount.resume_tracking()
+                    
+                    with self._ra_update_lock:
+                        _current_ra = self._ra_seconds
+                    _current_ra = LX200Ha.from_seconds(_current_ra)
+                    logger.info("GOTO to %s finished in %s with delta: %fs", 
+                                self._goto_to, 
+                                _current_ra, 
+                                _current_ra - self._goto_to
+                                )
+                    
                     self._goto_to = None
                 else:
-                    self.mount.slew_to_ra(LX200Ha.from_seconds(self._ra_seconds - self._goto_to.to_seconds()))
+                    if self.mount.get_status().slew_mode != SlewMode.GOTO:
+                        # start goto
+                        raw_delta_seconds = current_ra - self._goto_to.to_seconds()
+                        
+                        # Add sky moving approximation
+                        real_delta_seconds = raw_delta_seconds + abs(raw_delta_seconds) / (self.mount.STELLAR_SPEED / DEGREES_PER_HOUR)
+                        real_delta = LX200Ha.from_seconds(real_delta_seconds)
+                        
+                        self.mount.slew_to_ra(real_delta)
+                        self._goto_direction_sign = 1 if (current_ra - self._goto_to.to_seconds() > 0) else -1
+
+                        logger.info("Run GOTO to %s from %s with delta %s (x%f)",
+                                    self._goto_to,
+                                    LX200Ha.from_seconds(current_ra),
+                                    real_delta,
+                                    real_delta_seconds / raw_delta_seconds,
+                                    )
+                    else:
+                        if ((delta_seconds := (current_ra - self._goto_to.to_seconds()) > 0) ^ (self._goto_direction_sign > 0)):
+                            # Too far away
+                            self.mount.gracefully_stop_motor()
+                            logger.warning("GOTO to %s went too far away (%s) %s, stop motor",
+                                           self._goto_to, 
+                                           LX200Ha.from_seconds(current_ra),
+                                           LX200Ha.from_seconds(delta_seconds),
+                                           )
+                        
+
     def __del__(self):
         self._working = False
         self._check_ra_thread.join(timeout=self._RA_CHECK_TIME_S * 5)
+        self._check_goto_thread.join(timeout=self._RA_CHECK_TIME_S * 5)
     
     def connect(self):
         self.mount.connect()
@@ -138,3 +193,12 @@ class SkyWatcherLX200(LX200Base):
         self.mount.wait_till_stop(do_stop=True)
         self.mount.resume_tracking()
         return True
+    
+    def guide_west(self) -> bool:
+        return self.mount.set_ra_rate(1.5)
+    
+    def guide_east(self) -> bool:
+        return self.mount.set_ra_rate(0.5)
+    
+    def guide_reset(self) -> bool:
+        return self.mount.set_ra_rate(1)
