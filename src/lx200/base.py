@@ -1,6 +1,9 @@
 
+from dataclasses import dataclass
 from enum import Enum, StrEnum
 import logging
+import queue
+import threading
 import time
 from typing import Any, Callable
 
@@ -57,6 +60,8 @@ class LX200Commands(StrEnum):
 
     SET_SLEW_TO_FIND = "RM"
 
+    GUIDE = "Mg"
+
 
 class _LX200NotImplementedCommand:
     def __init__(self, cmd: str) -> None:
@@ -73,13 +78,59 @@ class MoveDirection(StrEnum):
 _logger = logging.getLogger("lx200")
 
 
+@dataclass
+class GuideTask:
+    direction: str
+    ms: int
+
+
+
 class LX200Base:
     def __init__(self) -> None:
         self._target_ra: LX200Ha = LX200Ha.from_hours(0)
         self._target_dec: LX200Dec = LX200Dec.from_degrees(0)
+
         self._manual_move_direction: MoveDirection | None = None
+
+        self._guide_queue: queue.Queue[GuideTask] = queue.Queue()
+        self._guide_thread = threading.Thread(target=self._do_guide)
+        self._thread_work = True
+
+    def _do_guide(self):
+        DEFAULT_WAIT_TIMEOUT = 1
+        stop_guide = time.monotonic() + DEFAULT_WAIT_TIMEOUT
+        current_guide_direction: str | None = None
+
+        while self._thread_work:
+            timeout = time.monotonic() - stop_guide
+            try:
+                guide_task = self._guide_queue.get(timeout=timeout)
+            except queue.Empty:
+                self.guide_reset()
+                stop_guide = time.monotonic() + DEFAULT_WAIT_TIMEOUT
+                current_guide_direction = None
+                continue
+
+            if current_guide_direction is not None and \
+                current_guide_direction != guide_task.direction:
+                self.guide_reset()
+
+            match guide_task.direction:
+                case 'w':
+                    self.guide_west()
+                case 'e':
+                    self.guide_east()
+                case 'n':
+                    self.guide_north()
+                case 's':
+                    self.guide_south()
+                case _:
+                    raise RuntimeError(f"Wrong guide direction: {guide_task.direction}")
+                
+            stop_guide = time.monotonic() + guide_task.ms / 1000.
+            current_guide_direction = guide_task.direction
         
-    def connect(self):
+    def connect(self) -> None:
         raise NotImplementedError()
     
     def handle_alignment(self, data: bytes) -> AlignmentMode:
@@ -186,6 +237,19 @@ class LX200Base:
             case LX200Commands.SET_SLEW_TO_FIND, _:
                 self.set_slew_to_find()
                 result = None
+            case LX200Commands.GUIDE, data:
+                direction = data[0]
+                ms = int(data[1:])
+
+                guide_task = GuideTask(direction, ms)
+
+                match direction:
+                    case 'w' | 'e' | 'n' | 's':
+                        self._guide_queue.put(guide_task)
+                    case _:
+                        raise RuntimeError(f"Wrong guide direction: {direction}")
+                
+                result = None
 
             case LX200Commands.GET_DISTANCE, _:
                 result = self.get_distance()
@@ -213,6 +277,9 @@ class LX200Base:
 
         return result
 
+    def __del__(self):
+        self._thread_work = False
+        self._guide_thread.join()
 
     def get_telescope_ra(self) -> LX200Ha:
         raise NotImplementedError()
@@ -272,4 +339,21 @@ class LX200Base:
         raise NotImplementedError()
     
     def halt_west(self) -> bool:
+        raise NotImplementedError()
+    
+    # Guiding: increase / decrease current tracking rate and returns it when its ok
+    
+    def guide_east(self) -> bool:
+        raise NotImplementedError()
+    
+    def guide_north(self) -> bool:
+        raise NotImplementedError()
+    
+    def guide_south(self) -> bool:
+        raise NotImplementedError()
+    
+    def guide_west(self) -> bool:
+        raise NotImplementedError()
+    
+    def guide_reset(self) -> bool:
         raise NotImplementedError()
