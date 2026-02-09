@@ -93,8 +93,63 @@ static const uint8_t HEX_BUF_LEN = HEX_PREFIX_LEN + HEX_WIDTH + 1;
 static char lineBufV2[128];
 static uint8_t lineLenV2 = 0;
 
+// ---------- Fast TX response buffer ----------
+static char outBufV2[256];
+static uint16_t outLenV2 = 0;
+
+static inline void outResetV2() { outLenV2 = 0; }
+
+static inline void outAppendCharV2(char c) {
+  if (outLenV2 < sizeof(outBufV2) - 1) outBufV2[outLenV2++] = c;
+}
+
+static inline void outAppendStrV2(const char* s) {
+  if (!s) return;
+  while (*s && outLenV2 < sizeof(outBufV2) - 1) outBufV2[outLenV2++] = *s++;
+}
+
+static inline void outAppendNumLongV2(long v) {
+  char tmp[24];
+  int n = snprintf(tmp, sizeof(tmp), "%ld", v);
+  if (n > 0) {
+    for (int i = 0; i < n && outLenV2 < sizeof(outBufV2) - 1; i++) outBufV2[outLenV2++] = tmp[i];
+  }
+}
+
+static inline void outAppendNumU32V2(uint32_t v) {
+  char tmp[24];
+  int n = snprintf(tmp, sizeof(tmp), "%lu", (unsigned long)v);
+  if (n > 0) {
+    for (int i = 0; i < n && outLenV2 < sizeof(outBufV2) - 1; i++) outBufV2[outLenV2++] = tmp[i];
+  }
+}
+
+static inline void outAppendNumFloatV2(float v, uint8_t decimals) {
+  // dtostrf is faster than repeated Serial.print on AVR
+  char tmp[32];
+  dtostrf(v, 0, decimals, tmp);
+  // dtostrf may pad leading spaces; trim them
+  char* p = tmp;
+  while (*p == ' ') p++;
+  outAppendStrV2(p);
+}
+
+static inline void outAppendHexU32V2(uint32_t v) {
+  char tmp[HEX_BUF_LEN];
+  snprintf(tmp, sizeof(tmp), "0x%0*lX", HEX_WIDTH, (unsigned long)v);
+  outAppendStrV2(tmp);
+}
+
+static inline void outFlushLineV2() {
+  outAppendCharV2('\n');
+  outBufV2[outLenV2] = 0;
+  Serial.write((const uint8_t*)outBufV2, outLenV2);
+  outResetV2();
+}
+
 void setup() {
   Serial.begin(115200);
+  Serial.setTimeout(0);
   while (!Serial) {}
 
   pinMode(STEP_PIN, OUTPUT);
@@ -159,53 +214,55 @@ static bool parseU32V2(const char* s, uint32_t* value) {
 }
 
 static void respondStartV2(bool ok) {
-  Serial.print(ok ? 1 : 0);
-  Serial.print(';');
+  outResetV2();
+  outAppendCharV2(ok ? '1' : '0');
+  outAppendCharV2(';');
 }
 
 static void respondEndV2() {
-  Serial.println();
+  outFlushLineV2();
 }
 
 static void respondKeyValueLongV2(const char* key, long value) {
-  Serial.print(key);
-  Serial.print('=');
-  Serial.print(value);
-  Serial.print(';');
+  outAppendStrV2(key);
+  outAppendCharV2('=');
+  outAppendNumLongV2(value);
+  outAppendCharV2(';');
 }
 
 static void respondKeyValueU32V2(const char* key, uint32_t value) {
-  Serial.print(key);
-  Serial.print('=');
-  Serial.print(value);
-  Serial.print(';');
+  outAppendStrV2(key);
+  outAppendCharV2('=');
+  outAppendNumU32V2(value);
+  outAppendCharV2(';');
 }
 
 static void respondKeyValueBoolV2(const char* key, bool value) {
-  Serial.print(key);
-  Serial.print('=');
-  Serial.print(value ? 1 : 0);
-  Serial.print(';');
+  outAppendStrV2(key);
+  outAppendCharV2('=');
+  outAppendCharV2(value ? '1' : '0');
+  outAppendCharV2(';');
 }
 
 static void respondKeyValueFloatV2(const char* key, float value, uint8_t decimals) {
-  Serial.print(key);
-  Serial.print('=');
-  Serial.print(value, decimals);
-  Serial.print(';');
+  outAppendStrV2(key);
+  outAppendCharV2('=');
+  outAppendNumFloatV2(value, decimals);
+  outAppendCharV2(';');
 }
 
 static void respondKeyValueStrV2(const char* key, const char* value) {
-  Serial.print(key);
-  Serial.print('=');
-  Serial.print(value);
-  Serial.print(';');
+  outAppendStrV2(key);
+  outAppendCharV2('=');
+  outAppendStrV2(value);
+  outAppendCharV2(';');
 }
 
 static void respondKeyValueHexV2(const char* key, uint32_t value) {
-  char buf[HEX_BUF_LEN];
-  snprintf(buf, sizeof(buf), "0x%0*lX", HEX_WIDTH, (unsigned long)value);
-  respondKeyValueStrV2(key, buf);
+  outAppendStrV2(key);
+  outAppendCharV2('=');
+  outAppendHexU32V2(value);
+  outAppendCharV2(';');
 }
 
 static void respondErrorV2(const char* msg) {
@@ -643,8 +700,6 @@ static void handleLineV2(char* s) {
     respondStartV2(true);
     respondKeyValueFloatV2("serial", profiler.serial, 2);
     respondKeyValueFloatV2("serialLastProcessed", profiler.serialLastProcessed, 2);
-    respondKeyValueFloatV2("serial", profiler.serial, 2);
-
     respondKeyValueFloatV2("stepper", profiler.stepper, 2);
     respondKeyValueFloatV2("stepperHigh", profiler.stepperHigh, 2);
     respondKeyValueFloatV2("stepperLow", profiler.stepperLow, 2);
@@ -657,20 +712,39 @@ static void handleLineV2(char* s) {
 }
 
 void serviceSerialv2() {
+  // Non-blocking block read + scan for '\n'. Avoids per-char Stream parsing overhead,
+  // but still correctly detects line endings.
+  static uint8_t tmp[32];
+
   while (Serial.available()) {
-    char c = (char)Serial.read();
-    if (c == '\r') continue;
-    if (c == '\n') {
-      long start = micros();
+    const int avail = Serial.available();
+    if (avail <= 0) break;
 
-      lineBufV2[lineLenV2] = 0;
-      handleLineV2(lineBufV2);
-      lineLenV2 = 0;
+    size_t toRead = (size_t)avail;
+    if (toRead > sizeof(tmp)) toRead = sizeof(tmp);
 
-      profiler.serialLastProcessed = micros() - start;
-      continue;
+    size_t n = Serial.readBytes(tmp, toRead);
+    for (size_t i = 0; i < n; i++) {
+      char c = (char)tmp[i];
+      if (c == '\r') continue;
+
+      if (c == '\n') {
+        lineBufV2[lineLenV2] = 0;
+        const uint32_t start = micros();
+        handleLineV2(lineBufV2);
+        profiler.serialLastProcessed = micros() - start;
+        lineLenV2 = 0;
+        continue;
+      }
+
+      if (lineLenV2 < sizeof(lineBufV2) - 1) {
+        lineBufV2[lineLenV2++] = c;
+      } else {
+        // Overflow without newline: drop and resync.
+        lineLenV2 = 0;
+      }
     }
-    if (lineLenV2 < sizeof(lineBufV2) - 1) lineBufV2[lineLenV2++] = c;
+
   }
 }
 
