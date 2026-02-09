@@ -100,7 +100,7 @@ class LX200Ha:
         total_seconds = total_hours * 3600
         return cls.from_seconds(total_seconds)
 
-    def to_seconds(self) -> int:
+    def to_seconds(self) -> float:
         return (self._hours * 3600) + (self._minutes * 60) + self._seconds
 
     def to_hours(self) -> float:

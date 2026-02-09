@@ -93,7 +93,7 @@ class LX200Base:
         self._manual_move_direction: MoveDirection | None = None
 
         self._guide_queue: queue.Queue[GuideTask] = queue.Queue()
-        self._guide_thread = threading.Thread(target=self._do_guide)
+        self._guide_thread = threading.Thread(target=self._do_guide, name="GuideHelper")
         self._thread_work = True
 
     def _do_guide(self):

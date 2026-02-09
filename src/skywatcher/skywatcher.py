@@ -175,6 +175,8 @@ class SkyWatcherMount:
         self.ra_highspeed_ratio: int
         self._last_tracking_speed = self.STELLAR_SPEED
 
+        self.is_connected = False
+
     def _transact(self, cmd: SkyWatcherCommand, arg: str | None = None, axis: Axis = Axis.RA) -> str:
         """ All transactions works only with RA """
         self.logger.info("Send %s(%s) ...", cmd.name, arg if arg is not None else "")
@@ -244,6 +246,7 @@ class SkyWatcherMount:
     def connect(self):
         self._serial.connect()
         self._do_initialise()
+        self.is_connected = True
 
     def _ticks_to_hours(self, ticks: int) -> float:
         return ticks / self.ra_steps_360 * 24
