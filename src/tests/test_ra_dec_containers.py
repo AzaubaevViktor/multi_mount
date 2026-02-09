@@ -1,3 +1,5 @@
+import random
+
 import pytest
 
 from lx200.protocols import (
@@ -213,3 +215,13 @@ def test_dec_to_degrees_negative():
 def test_dec_repr():
     dec = LX200Dec("+", 5, 6, 7)
     assert repr(dec) == "LX200Dec('+05*06:07')"
+
+
+def test_dec_roundtrip_random_degrees():
+    rng = random.Random()
+    for _ in range(100):
+        total_arcseconds = rng.randrange(-90 * 3600, 90 * 3600 + 1)
+        degrees = total_arcseconds / 3600
+        value = str(LX200Dec.from_degrees(degrees))
+        roundtrip = LX200Dec.from_string(value)
+        assert roundtrip.to_degrees() == pytest.approx(degrees)
