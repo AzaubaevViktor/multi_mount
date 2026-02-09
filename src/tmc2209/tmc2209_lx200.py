@@ -27,31 +27,25 @@ class TMC2209LX200(LX200Base):
     def __init__(
         self,
         adapter: TMC2209Adapter,
-        microsteps: int,
-        speed_sps: int | None = None,
-        accel_steps_per_ms: int | None = None,
+        microsteps: int = 16,
+        speed_sps: int | None = 1000,
+        accel_steps_per_ms: int | None = 1,
     ) -> None:
-        if adapter is None:
-            raise TMC2209LX200ConfigError("adapter is required")
         if microsteps not in MICROSTEPS_ALLOWED:
             raise TMC2209LX200ConfigError(f"microsteps not allowed: {microsteps!r}")
 
+        # TODO: Make microsteps changable (with query to adapter) and add property for steps_per_rev
         steps_per_rev = STEPS_PER_REV * microsteps * GEAR_RATIO_1 * GEAR_RATIO_2
-        if steps_per_rev <= 0:
-            raise TMC2209LX200ConfigError("steps per revolution must be positive")
 
         self._steps_per_degree = steps_per_rev / DEGREES_PER_REV
-        if self._steps_per_degree <= 0:
-            raise TMC2209LX200ConfigError("steps per degree must be positive")
 
         self._arcseconds_per_step = SECONDS_PER_DEGREE / self._steps_per_degree
 
         self._adapter = adapter
         self._microsteps = microsteps
-        self._max_speed_sps = MAX_SPEED_SPS if speed_sps is None else speed_sps
-        self._accel_steps_per_ms = (
-            MAX_ACCEL_STEPS_PER_MS if accel_steps_per_ms is None else accel_steps_per_ms
-        )
+        # TODO: Add GOTO profile (steps, microsteps, accel), MANUAL SLEW profile and GUIDE profile
+        self._max_speed_sps = speed_sps
+        self._accel_steps_per_ms = accel_steps_per_ms
         self._manual_speed_sps = self._max_speed_sps
         self._guide_speed_sps = self._max_speed_sps
 
@@ -196,5 +190,5 @@ class TMC2209LX200(LX200Base):
         return int(round(position.to_degrees() * self._steps_per_degree))
 
     def _dec_from_steps(self, steps: int) -> LX200Dec:
-        total_arcseconds = int(round(steps * self._arcseconds_per_step))
+        total_arcseconds = steps * self._arcseconds_per_step
         return LX200Dec.from_degrees(total_arcseconds / SECONDS_PER_DEGREE)

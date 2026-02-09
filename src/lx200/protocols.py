@@ -3,7 +3,8 @@ import re
 SIGN_VALUES = {"+", "-"}
 SIGN_CHARS = "+-"
 
-MINUTES_PER_DEGREE = 60
+# TODO: Validate dec
+MINUTES_PER_DEGREE = 24 * 60 / 180
 SECONDS_PER_DEGREE = 60 * MINUTES_PER_DEGREE
 MAX_DEC_DEGREES = 90
 
@@ -60,7 +61,7 @@ class LX200Ha:
         return self._minutes
 
     @property
-    def seconds(self) -> int:
+    def seconds(self) -> float:
         return self._seconds
 
     @classmethod
@@ -125,7 +126,7 @@ class LX200Ha:
 class LX200Dec:
     __slots__ = ("_sign", "_degrees", "_minutes", "_seconds")
 
-    def __init__(self, sign: str, degrees: int, minutes: int, seconds: int) -> None:
+    def __init__(self, sign: str, degrees: int, minutes: int, seconds: float) -> None:
         self._validate_parts(sign, degrees, minutes, seconds)
         self._sign = sign
         self._degrees = degrees
@@ -145,7 +146,7 @@ class LX200Dec:
         return self._minutes
 
     @property
-    def seconds(self) -> int:
+    def seconds(self) -> float:
         return self._seconds
 
     @classmethod
@@ -164,14 +165,11 @@ class LX200Dec:
     def from_degrees(cls, total_degrees: float) -> "LX200Dec":
         sign = "-" if total_degrees < 0 else "+"
         abs_degrees = abs(total_degrees)
-        total_arcseconds = int(round(abs_degrees * 3600))
+        total_arcseconds = abs_degrees * 3600
 
-        if abs(abs_degrees * 3600 - total_arcseconds) > WHOLE_UNIT_TOLERANCE:
-            raise LX200DecRangeError(f"Degrees require whole arcseconds: {total_degrees!r}")
-
-        degrees = total_arcseconds // 3600
+        degrees = int(total_arcseconds // 3600)
         remainder = total_arcseconds % 3600
-        minutes = remainder // 60
+        minutes = int(remainder // 60)
         seconds = remainder % 60
 
         if degrees > 90:
@@ -197,7 +195,7 @@ class LX200Dec:
         return f"LX200Dec('{self}')"
 
     @staticmethod
-    def _validate_parts(sign: str, degrees: int, minutes: int, seconds: int) -> None:
+    def _validate_parts(sign: str, degrees: int, minutes: int, seconds: float) -> None:
         if sign not in SIGN_VALUES:
             raise LX200DecRangeError(f"Sign out of range: {sign!r}")
         if degrees < 0 or degrees > 90:
