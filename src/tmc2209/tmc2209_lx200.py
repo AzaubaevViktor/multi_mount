@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import logging
 import threading
 
@@ -15,6 +16,23 @@ from tmc2209.tmc2209_adapter import (
 )
 
 
+@dataclass
+class SpeedProfile:
+    microsteps: int
+    speed: int
+    accel: int
+
+
+GOTO_DELTA_ARCSEC_THRESHOLD = 5.0
+GOTO_FAST_ACCEL_STEPS_PER_MS = 10
+GOTO_SLOW_ACCEL_STEPS_PER_MS = 1
+GOTO_FAST_MICROSTEPS = 2
+GOTO_SLOW_MICROSTEPS = 16
+MANUAL_MICROSTEPS = 8
+GUIDE_MICROSTEPS = 32
+GUIDE_ARCSEC_PER_SEC = 0.5
+
+
 class TMC2209LX200Error(Exception):
     pass
 
@@ -24,117 +42,155 @@ class TMC2209LX200ConfigError(TMC2209LX200Error):
 
 
 class TMC2209LX200(LX200Base):
+    FAST_PROFILE_DELTA_DEG = 1
+
+    _goto_fast_profile = SpeedProfile(
+        microsteps=2, 
+        speed=5000,
+        accel=10,
+    )
+    _goto_slow_profile = SpeedProfile(
+        microsteps=16, 
+        speed=1000,
+        accel=1,
+    )
+    _slew_profile = SpeedProfile(
+        microsteps=8, 
+        speed=1000,
+        accel=2,
+    )
+    _guide_profile = SpeedProfile(
+        microsteps=128, 
+        speed=1000,
+        accel=10000,
+    )
+
     def __init__(
         self,
         adapter: TMC2209Adapter,
-        microsteps: int = 16,
-        speed_sps: int | None = 1000,
-        accel_steps_per_ms: int | None = 1,
     ) -> None:
-        if microsteps not in MICROSTEPS_ALLOWED:
-            raise TMC2209LX200ConfigError(f"microsteps not allowed: {microsteps!r}")
-
-        # TODO: Make microsteps changable (with query to adapter) and add property for steps_per_rev
-        steps_per_rev = STEPS_PER_REV * microsteps * GEAR_RATIO_1 * GEAR_RATIO_2
-
-        self._steps_per_degree = steps_per_rev / DEGREES_PER_REV
-
-        self._arcseconds_per_step = SECONDS_PER_DEGREE / self._steps_per_degree
-
         self._adapter = adapter
-        self._microsteps = microsteps
-        # TODO: Add GOTO profile (steps, microsteps, accel), MANUAL SLEW profile and GUIDE profile
-        self._max_speed_sps = speed_sps
-        self._accel_steps_per_ms = accel_steps_per_ms
-        self._manual_speed_sps = self._max_speed_sps
-        self._guide_speed_sps = self._max_speed_sps
 
         self._dec_steps = 0
-        self._goto_to: LX200Dec | None = None
-        self._goto_steps: int | None = None
-        self._state_lock = threading.Lock()
+        self._microsteps: int
 
         self.logger = logging.getLogger("TMC2209LX200")
 
+    # Microsteps update logic
+
+    def _query_microsteps(self) -> int:
+        raw = self._adapter.get_param("microsteps")
+        try:
+            microsteps = int(raw)
+        except ValueError as exc:
+            raise TMC2209LX200ConfigError(f"invalid microsteps value: {raw!r}") from exc
+        if microsteps not in MICROSTEPS_ALLOWED:
+            raise TMC2209LX200ConfigError(f"microsteps not allowed: {microsteps!r}")
+        return microsteps
+
+    def refresh_microsteps(self, microsteps: int) -> None:
+        microsteps = self._query_microsteps()
+        if microsteps != self._microsteps:
+            self._set_microsteps(microsteps)
+    
+    def _set_microsteps(self, microsteps: int) -> None:
+        if microsteps not in MICROSTEPS_ALLOWED:
+            raise TMC2209LX200ConfigError(f"microsteps not allowed: {microsteps!r}")
+        self._adapter.set_param("microsteps", microsteps)
+        actual = self._query_microsteps()
+        if actual != microsteps:
+            raise TMC2209LX200ConfigError(
+                f"microsteps mismatch: set {microsteps}, got {actual}"
+            )
+        self._microsteps = microsteps
+
+        # Reset position when microsteps changed
+        self._adapter.set_position(0)
+
+    # calculate steps_per_revolution
+    @property
+    def steps_per_rev(self):
+        return STEPS_PER_REV * self._microsteps * GEAR_RATIO_1 * GEAR_RATIO_2
+
+    @property
+    def steps_per_degree(self):
+        return self.steps_per_rev / 360
+
     def _initialize(self) -> None:
-        self._adapter.set_param("microsteps", self._microsteps)
-        self._adapter.set_speed_sps(self._max_speed_sps)
-        self._adapter.set_acceleration_steps_per_ms(self._accel_steps_per_ms)
-        self._adapter.set_enabled(True)
         status = self._adapter.status()
-        with self._state_lock:
-            self._dec_steps = status.position
+        self.logger.info("Status: %s", status)
 
     def connect(self) -> None:
         self._adapter.connect()
         self._initialize()
 
+    def _get_position(self) -> int:
+        position = self._adapter.status().position
+        new_position = int(position % self.steps_per_rev)
+        if new_position != position:
+            self._adapter.set_position(new_position)
+        return new_position
+
+    def _steps_from_dec(self, position: LX200Dec) -> int:
+        return int(round(position.to_degrees() * self.steps_per_degree % self.steps_per_rev))
+
+    def _dec_from_steps(self, steps: int) -> LX200Dec:
+        degrees = steps / self.steps_per_degree
+        return LX200Dec.from_degrees(degrees)
+
     def get_telescope_dec(self) -> LX200Dec:
-        self._sync_status()
-        with self._state_lock:
-            steps = self._dec_steps
-        return self._dec_from_steps(steps)
+        return self._dec_from_steps(self._get_position())
 
     def set_telescope_dec(self, position: LX200Dec) -> bool:
         steps = self._steps_from_dec(position)
         self._adapter.set_position(steps)
-        with self._state_lock:
-            self._dec_steps = steps
-            self._goto_to = None
-            self._goto_steps = None
         return True
 
     def halt_all(self) -> bool:
         self._adapter.stop()
-        with self._state_lock:
-            self._goto_to = None
-            self._goto_steps = None
         return True
 
     def slew_to_dec(self, position: LX200Dec) -> bool:
+        current_position = self._get_position()
         target_steps = self._steps_from_dec(position)
-        returned_target, target_set = self._adapter.set_target(target_steps)
-        if not target_set:
-            with self._state_lock:
-                self._goto_to = None
-                self._goto_steps = None
-            return True
+        delta_steps = target_steps - current_position
+
+        profile = self._goto_slow_profile
+        if abs(self._dec_from_steps(abs(delta_steps)).to_degrees()) > self.FAST_PROFILE_DELTA_DEG:
+            profile = self._goto_fast_profile
+
+        self._apply_profile(profile)
+        
+        self._adapter.set_target(target_steps)
 
         self._adapter.run()
-        with self._state_lock:
-            self._goto_to = position
-            self._goto_steps = returned_target
+        
         return True
 
     def get_site1_name(self) -> str:
         return "tmc2209"
 
     def get_distance(self) -> str:
-        with self._state_lock:
-            has_goto = self._goto_to is not None
-        if not has_goto:
-            return ""
-
         status = self._adapter.status()
-        if not status.target_set:
-            with self._state_lock:
-                self._goto_to = None
-                self._goto_steps = None
-            return ""
-        return "|"
+        if status.phase not in ('idle', 'hold'):
+            return "|"
+        return ""
 
     def set_slew_to_find(self) -> bool:
-        self._manual_speed_sps = self._max_speed_sps
         return True
 
     def move_east(self) -> bool:
         return False
 
     def move_north(self) -> bool:
-        return self._start_manual_move(False, self._manual_speed_sps)
+        return self._start_manual_move(
+            False,
+        )
 
     def move_south(self) -> bool:
-        return self._start_manual_move(True, self._manual_speed_sps)
+        return self._start_manual_move(
+            True,
+        )
 
     def move_west(self) -> bool:
         return False
@@ -143,10 +199,10 @@ class TMC2209LX200(LX200Base):
         return False
 
     def halt_north(self) -> bool:
-        return self._stop_manual_move()
+        return self.halt_all()
 
     def halt_south(self) -> bool:
-        return self._stop_manual_move()
+        return self.halt_all()
 
     def halt_west(self) -> bool:
         return False
@@ -155,40 +211,34 @@ class TMC2209LX200(LX200Base):
         return False
 
     def guide_north(self) -> bool:
-        return self._start_manual_move(False, self._guide_speed_sps)
+        self._apply_profile(self._guide_profile)
+        self._adapter.set_direction(False)
+        self._adapter.run()
+        return True
 
     def guide_south(self) -> bool:
-        return self._start_manual_move(True, self._guide_speed_sps)
+        self._apply_profile(self._guide_profile)
+        self._adapter.set_direction(True)
+        self._adapter.run()
+        return True
 
     def guide_west(self) -> bool:
         return False
 
     def guide_reset(self) -> bool:
-        return self._stop_manual_move()
+        return self.halt_all()
 
-    def _start_manual_move(self, direction: bool, speed_sps: int) -> bool:
-        with self._state_lock:
-            self._goto_to = None
-            self._goto_steps = None
-        self._adapter.set_speed_sps(speed_sps)
+    def _start_manual_move(
+        self,
+        direction: bool,
+    ) -> bool:
+        self._apply_profile(self._slew_profile)
         self._adapter.set_direction(direction)
         return self._adapter.run()
 
-    def _stop_manual_move(self) -> bool:
-        self._adapter.stop()
-        return True
-
-    def _sync_status(self) -> None:
-        status = self._adapter.status()
-        with self._state_lock:
-            self._dec_steps = status.position
-            if self._goto_to is not None and not status.target_set:
-                self._goto_to = None
-                self._goto_steps = None
-
-    def _steps_from_dec(self, position: LX200Dec) -> int:
-        return int(round(position.to_degrees() * self._steps_per_degree))
-
-    def _dec_from_steps(self, steps: int) -> LX200Dec:
-        total_arcseconds = steps * self._arcseconds_per_step
-        return LX200Dec.from_degrees(total_arcseconds / SECONDS_PER_DEGREE)
+    def _apply_profile(
+        self, profile: SpeedProfile
+    ) -> None:
+        self._adapter.set_param('microsteps', profile.microsteps)
+        self._adapter.set_speed_sps(profile.speed)
+        self._adapter.set_acceleration_steps_per_ms(profile.accel)
