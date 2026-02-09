@@ -22,7 +22,7 @@ static const uint8_t TMC_RX_PIN = 8;
 static const uint8_t TMC_TX_PIN = 9;
 
 // ---------- TMC config ----------
-static const uint32_t TMC_BAUD = 115200;
+static const uint32_t TMC_BAUD = 57600;
 // Most SilentStepStick-like modules use 0.11 ohm; check your board to be correct.
 static const float R_SENSE = 0.11f;
 // Address depends on MS1/MS2 (CFG pins) strapping; often 0b00 if both low.
@@ -166,6 +166,8 @@ void setup() {
 
   TMCSerial.begin(TMC_BAUD);
 
+  while (!TMCSerial) {};
+
   // Basic driver init (safe-ish defaults; tune later)
   driver.begin();
   driver.pdn_disable(true);          // use UART
@@ -300,6 +302,19 @@ static bool isMicrostepsAllowedV2(uint16_t value) {
   return false;
 }
 
+// --- Microsteps/CHOPCONF helpers ---
+static inline uint16_t microstepsFromChopconfV2(uint32_t chopconf) {
+  // CHOPCONF.MRES bits [24..27], encoding: 0->256, 1->128, 2->64, ..., 8->1
+  const uint8_t mres = (uint8_t)((chopconf >> 24) & 0x0F);
+  if (mres >= 8) return 1;
+  return (uint16_t)(256U >> mres);
+}
+
+static inline bool intpolFromChopconfV2(uint32_t chopconf) {
+  // CHOPCONF.INTPOL bit 28
+  return ((chopconf >> 28) & 0x01) != 0;
+}
+
 static uint8_t calcCurrentScaleFromMaV2(uint16_t mA, bool highSense) {
   const float vfs = highSense ? 0.180f : 0.325f;
   float cs = 32.0f * 1.41421f * mA / 1000.0f * (R_SENSE + 0.02f) / vfs - 1.0f;
@@ -347,7 +362,21 @@ static bool appendParamValueV2(const char* name, bool emit) {
     return true;
   }
   if (!strcmp(name, "microsteps")) {
-    if (emit) respondKeyValueU32V2("microsteps", driver.microsteps());
+    if (emit) {
+      const uint32_t chop = driver.CHOPCONF();
+      respondKeyValueU32V2("microsteps", microstepsFromChopconfV2(chop));
+    }
+    return true;
+  }
+  if (!strcmp(name, "intpol")) {
+    if (emit) {
+      const uint32_t chop = driver.CHOPCONF();
+      respondKeyValueBoolV2("intpol", intpolFromChopconfV2(chop));
+    }
+    return true;
+  }
+  if (!strcmp(name, "chopconf")) {
+    if (emit) respondKeyValueHexV2("chopconf", driver.CHOPCONF());
     return true;
   }
   if (!strcmp(name, "stealth")) {
@@ -402,8 +431,14 @@ static bool applySetParamV2(const char* name, const char* value, const char** er
     if (!parseLongV2(value, &v)) { if (errorKey) *errorKey = "bad_value"; return false; }
     if (v < 1 || v > 256) { if (errorKey) *errorKey = "range"; return false; }
     if (!isMicrostepsAllowedV2((uint16_t)v)) { if (errorKey) *errorKey = "invalid_microsteps"; return false; }
-    // TODO: Microsteps keeps 256
     driver.microsteps((uint16_t)v);
+    return true;
+  }
+  if (!strcmp(name, "intpol")) {
+    long v = 0;
+    if (!parseLongV2(value, &v)) { if (errorKey) *errorKey = "bad_value"; return false; }
+    if (v != 0 && v != 1) { if (errorKey) *errorKey = "invalid_bool"; return false; }
+    driver.intpol(v != 0);
     return true;
   }
   if (!strcmp(name, "stealth")) {
@@ -560,6 +595,7 @@ static void handleLineV2(char* s) {
   if (!strcmp(cmd, "full_status") || !strcmp(cmd, "driver_status")) {
     respondStartV2(true);
     respondKeyValueHexV2("gconf", driver.GCONF());
+    respondKeyValueHexV2("chopconf", driver.CHOPCONF());
     respondKeyValueHexV2("drv_status", driver.DRV_STATUS());
     respondKeyValueU32V2("sg_result", driver.SG_RESULT());
     respondEndV2();
