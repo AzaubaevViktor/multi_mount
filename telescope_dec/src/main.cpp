@@ -92,12 +92,12 @@ static const uint8_t HEX_PREFIX_LEN = 2;
 static const uint8_t HEX_BUF_LEN = HEX_PREFIX_LEN + HEX_WIDTH + 1;
 
 // ---------- Simple line parser ----------
-static char lineBufV2[128];
+static char lineBufV2[256];
 static uint8_t lineLenV2 = 0;
 
 // ---------- Fast TX response buffer ----------
 static char outBufV2[256];
-static uint16_t outLenV2 = 0;
+static uint8_t outLenV2 = 0;
 
 static inline void outResetV2() { outLenV2 = 0; }
 
