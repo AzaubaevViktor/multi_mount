@@ -77,7 +77,7 @@ def test_status_from_response():
     assert status.target_set is True
     assert status.speed_sps == pytest.approx(120.5)
     assert status.actual_speed_sps == pytest.approx(118.25)
-    assert status.accel_steps_per_ms == pytest.approx(10.0)
+    assert status.accel_steps_per_s == pytest.approx(10.0)
 
 
 def test_driver_status_from_response():

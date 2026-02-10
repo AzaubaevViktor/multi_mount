@@ -1,9 +1,11 @@
 import dataclasses
 import logging
+import time
 
 from lx200.protocols import LX200Dec
 from serial_wrapper.wrapper import SerialLine
 
+logging.getLogger().setLevel(logging.DEBUG)
 
 COMMAND_TERMINATOR = "\n"
 RESPONSE_DELIMITER = ";"
@@ -96,7 +98,7 @@ class TMC2209Status:
     target_set: bool
     speed_sps: float
     actual_speed_sps: float
-    accel_steps_per_ms: float
+    accel_steps_per_s: float
 
     @classmethod
     def from_response(cls, response: TMC2209Response) -> "TMC2209Status":
@@ -114,7 +116,7 @@ class TMC2209Status:
             target_set=_parse_bool(_require_value(values, "target_set"), "target_set"),
             speed_sps=_parse_float(_require_value(values, "speed"), "speed"),
             actual_speed_sps=_parse_float(_require_value(values, "actual_speed"), "actual_speed"),
-            accel_steps_per_ms=_parse_float(_require_value(values, "accel"), "accel"),
+            accel_steps_per_s=_parse_float(_require_value(values, "accel_per_s"), "accel_per_s"),
         )
 
 
@@ -147,9 +149,6 @@ def steps_from_dec(dec: LX200Dec, microsteps: int) -> int:
 
 class TMC2209Adapter:
     def __init__(self, serial: SerialLine) -> None:
-        if serial is None:
-            raise TMC2209ConfigError("serial is required")
-
         self._serial = serial
         self._log = logging.getLogger("tmc2209.adapter")
 
@@ -157,6 +156,15 @@ class TMC2209Adapter:
 
     def connect(self) -> None:
         self._serial.connect()
+        self._serial.reset()
+        self._log.debug("Wait while ready for ...")
+        start = time.monotonic()
+        while not (ready := self._serial.read_line(timeout=10)):
+            if time.monotonic() - start > 10:
+                break
+        
+        if ready != "ready":
+            raise ValueError(f"Device not ready `{ready}`")
 
     def close(self) -> None:
         self._serial.close()

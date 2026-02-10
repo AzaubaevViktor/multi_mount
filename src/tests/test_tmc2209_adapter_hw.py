@@ -6,11 +6,10 @@ from serial_wrapper.wrapper import SerialLine
 from tmc2209.tmc2209_adapter import TMC2209Adapter, TMC2209Status
 
 
-DEVICE_PATTERN = r"^tty\.usb.*$"
+DEVICE_PATTERN = r"^tty\.usbserial.*$"
 SERIAL_BAUD = 115200
-SERIAL_TIMEOUT_S = 0.2
+SERIAL_TIMEOUT_S = 2
 SERIAL_NAME = "tmc2209"
-SERIAL_TERMINATOR = "\n"
 
 POLL_INTERVAL_S = 0.2
 STOP_TIMEOUT_S = 8.0
@@ -31,7 +30,6 @@ def adapter() -> TMC2209Adapter:
         SERIAL_BAUD,
         SERIAL_TIMEOUT_S,
         SERIAL_NAME,
-        terminator=SERIAL_TERMINATOR,
     )
     adapter = TMC2209Adapter(serial_line)
     adapter.connect()
@@ -177,6 +175,8 @@ def test_hw_stop_during_run(adapter: TMC2209Adapter) -> None:
     moving_status = _wait_for_motion(adapter, 0, 1, 5.0, POLL_INTERVAL_S)
     assert moving_status.position != 0
 
+    time.sleep(1)
+
     assert adapter.stop() is True
     stopped_status = _wait_for_stop(adapter, STOP_TIMEOUT_S, POLL_INTERVAL_S)
 
@@ -194,6 +194,8 @@ def test_hw_stop_during_target_move(adapter: TMC2209Adapter) -> None:
     assert adapter.run() is True
 
     _wait_for_motion(adapter, 0, 1, 5.0, POLL_INTERVAL_S)
+
+    time.sleep(1)
 
     assert adapter.stop() is True
     stopped_status = _wait_for_stop(adapter, STOP_TIMEOUT_S, POLL_INTERVAL_S)

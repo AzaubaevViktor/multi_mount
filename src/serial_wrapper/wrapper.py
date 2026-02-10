@@ -26,7 +26,7 @@ class SerialLineSearchNotFound(SerialLineSearchError):
 
 
 class SerialLine:
-    def __init__(self, port: str, baud: int, timeout_s: float, name: str, terminator: str = "\r", encoding: str ='ascii') -> None:
+    def __init__(self, port: str, baud: int, timeout_s: float, name: str, terminator: str = "\n", encoding: str ='ascii') -> None:
         self.logger = logging.getLogger(f"serial.{name}")
         self.port = port
         self.baud = baud
@@ -63,6 +63,9 @@ class SerialLine:
         raise SerialLineSearchNotFound(
             f"no match for pattern {pattern!r} in {directory!r}"
         )
+    
+    def reset(self):
+        self.serial.dtr = True
 
     def connect(self):
         self.serial = serial.Serial(port=self.port, baudrate=self.baud, timeout=self.timeout_s)
@@ -74,15 +77,29 @@ class SerialLine:
         self.serial.write(payload.encode(self.encoding))
         self.serial.flush()
 
-        line = self.serial.read_until(self.terminator, 1024)
+        return self.read_line()
+    
+    def read_line(self, timeout: int | None = None):
+        _timeout = self.serial.timeout
+        self.serial.timeout = timeout
+        try:
+            line = self.serial.read_until(self.terminator, 1024)
+        finally:
+            self.serial.timeout = _timeout
 
-        responce = line.decode(self.encoding)
+        responce = line.decode(self.encoding).strip()
         self.logger.debug("Receive `%s`", responce)
+
         return responce
     
-    def read_all_data(self) -> list[str] | None:
-        if (data := self.serial.read_all()) is None:
-            return None
+    def read_all_data(self, timeout: int | None = None) -> list[str] | None:
+        _timeout = self.serial.timeout
+        self.serial.timeout = timeout
+        try:
+            if (data := self.serial.read_all()) is None:
+                return None
+        finally:
+            self.serial.timeout = _timeout
         
         lines = [line.decode(self.encoding) for line in data.split(self.terminator)]
 
