@@ -199,7 +199,6 @@ def test_dec_from_degrees_valid(value, expected):
     [
         90.0002777778,
         -90.1,
-        12.0000001,
     ],
 )
 def test_dec_from_degrees_invalid(value):

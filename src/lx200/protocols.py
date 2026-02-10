@@ -122,32 +122,47 @@ class LX200Ha:
             raise LX200HoursRangeError(f"Seconds out of range: {seconds!r}")
 
 
-# TODO: Base storage is arcseconds
 class LX200Dec:
-    __slots__ = ("_sign", "_degrees", "_minutes", "_seconds")
+    __slots__ = ("_arcseconds",)
 
     def __init__(self, sign: str, degrees: int, minutes: int, seconds: float) -> None:
         self._validate_parts(sign, degrees, minutes, seconds)
-        self._sign = sign
-        self._degrees = degrees
-        self._minutes = minutes
-        self._seconds = seconds
+        total_arcseconds = (
+            (degrees * SECONDS_PER_DEGREE)
+            + (minutes * MINUTES_PER_DEGREE)
+            + seconds
+        )
+        if sign == "-":
+            total_arcseconds = -total_arcseconds
+        self._arcseconds = total_arcseconds
 
     @property
     def sign(self) -> str:
-        return self._sign
+        return "-" if self._arcseconds < 0 else "+"
 
     @property
     def degrees(self) -> int:
-        return self._degrees
+        arcseconds = self._arcseconds
+        if arcseconds < 0:
+            arcseconds = -arcseconds
+        return int(arcseconds // SECONDS_PER_DEGREE)
 
     @property
     def minutes(self) -> int:
-        return self._minutes
+        arcseconds = self._arcseconds
+        if arcseconds < 0:
+            arcseconds = -arcseconds
+        remainder = arcseconds % SECONDS_PER_DEGREE
+        return int(remainder // MINUTES_PER_DEGREE)
 
     @property
     def seconds(self) -> float:
-        return self._seconds
+        arcseconds = self._arcseconds
+        if arcseconds < 0:
+            arcseconds = -arcseconds
+        remainder = arcseconds % SECONDS_PER_DEGREE
+        minutes = int(remainder // MINUTES_PER_DEGREE)
+        return remainder - (minutes * MINUTES_PER_DEGREE)
 
     @classmethod
     def from_string(cls, value: str) -> "LX200Dec":
@@ -163,19 +178,17 @@ class LX200Dec:
 
     @classmethod
     def from_degrees(cls, total_degrees: float) -> "LX200Dec":
-        sign = "-" if total_degrees < 0 else "+"
-        abs_degrees = abs(total_degrees)
-        total_arcseconds = abs_degrees * 3600
-
-        degrees = int(total_arcseconds // 3600)
-        remainder = total_arcseconds % 3600
-        minutes = int(remainder // 60)
-        seconds = remainder % 60
-
-        if degrees > 90:
+        total_arcseconds = total_degrees * SECONDS_PER_DEGREE
+        max_arcseconds = MAX_DEC_DEGREES * SECONDS_PER_DEGREE
+        if abs(total_arcseconds) > max_arcseconds:
             raise LX200DecRangeError(f"Degrees out of range: {total_degrees!r}")
-        if degrees == 90 and (minutes != 0 or seconds != 0):
-            raise LX200DecRangeError(f"Degrees out of range: {total_degrees!r}")
+
+        sign = "-" if total_arcseconds < 0 else "+"
+        abs_arcseconds = abs(total_arcseconds)
+        degrees = int(abs_arcseconds // SECONDS_PER_DEGREE)
+        remainder = abs_arcseconds - (degrees * SECONDS_PER_DEGREE)
+        minutes = int(remainder // MINUTES_PER_DEGREE)
+        seconds = remainder - (minutes * MINUTES_PER_DEGREE)
 
         if degrees == 0 and minutes == 0 and seconds == 0:
             sign = "+"
@@ -183,13 +196,29 @@ class LX200Dec:
         return cls(sign, degrees, minutes, seconds)
 
     def to_degrees(self) -> float:
-        total = self._degrees + (self._minutes / 60) + (self._seconds / 3600)
-        if self._sign == "-":
-            return -total
-        return total
+        return self._arcseconds / SECONDS_PER_DEGREE
+
+    def to_arcsec(self) -> float:
+        return self._arcseconds
 
     def __str__(self) -> str:
-        return f"{self._sign}{self._degrees:02d}*{self._minutes:02d}{APOSTROPHE}{int(self._seconds):02d}"
+        rounded_arcseconds = int(round(self._arcseconds))
+        if rounded_arcseconds < 0:
+            sign = "-"
+            rounded_arcseconds = -rounded_arcseconds
+        else:
+            sign = "+"
+
+        degrees = rounded_arcseconds // SECONDS_PER_DEGREE
+        remainder = rounded_arcseconds - (degrees * SECONDS_PER_DEGREE)
+        minutes = remainder // MINUTES_PER_DEGREE
+        seconds = remainder - (minutes * MINUTES_PER_DEGREE)
+        if rounded_arcseconds == 0:
+            sign = "+"
+
+        return (
+            f"{sign}{degrees:02d}*{minutes:02d}{APOSTROPHE}{seconds:02d}"
+        )
 
     def __repr__(self) -> str:
         return f"LX200Dec('{self}')"
