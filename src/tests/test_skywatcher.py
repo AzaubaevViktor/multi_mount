@@ -170,8 +170,8 @@ def test_start_tracking_speed_and_direction(mount: SkyWatcherMount, trackspeed: 
     duration_s = 4.0
     timeout_s = 5.0
 
-    speed_value = trackspeed * mount.STELLAR_SPEED
-    expected_rate = abs(speed_value) / mount.STELLAR_SPEED
+    speed_value = trackspeed
+    expected_rate = abs(speed_value)
 
     start_seconds, end_seconds, elapsed = _measure_ra_shift(
         mount,
@@ -180,7 +180,7 @@ def test_start_tracking_speed_and_direction(mount: SkyWatcherMount, trackspeed: 
         timeout_s,
     )
 
-    _assert_speed_and_direction(start_seconds, end_seconds, elapsed, expected_rate, trackspeed)
+    _assert_speed_and_direction(start_seconds, end_seconds, elapsed, expected_rate, trackspeed * mount.STELLAR_SPEED)
 
 
 def test_start_tracking_zero_stops_motor(mount: SkyWatcherMount) -> None:
