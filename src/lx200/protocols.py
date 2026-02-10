@@ -122,6 +122,7 @@ class LX200Ha:
             raise LX200HoursRangeError(f"Seconds out of range: {seconds!r}")
 
 
+# TODO: Base storage is arcseconds
 class LX200Dec:
     __slots__ = ("_sign", "_degrees", "_minutes", "_seconds")
 
@@ -188,7 +189,7 @@ class LX200Dec:
         return total
 
     def __str__(self) -> str:
-        return f"{self._sign}{self._degrees:02d}*{self._minutes:02d}{APOSTROPHE}{self._seconds:02d}"
+        return f"{self._sign}{self._degrees:02d}*{self._minutes:02d}{APOSTROPHE}{int(self._seconds):02d}"
 
     def __repr__(self) -> str:
         return f"LX200Dec('{self}')"
@@ -201,7 +202,7 @@ class LX200Dec:
             raise LX200DecRangeError(f"Degrees out of range: {degrees!r}")
         if minutes < 0 or minutes > 59:
             raise LX200DecRangeError(f"Minutes out of range: {minutes!r}")
-        if seconds < 0 or seconds > 59:
+        if seconds < 0 or seconds >= 60:
             raise LX200DecRangeError(f"Seconds out of range: {seconds!r}")
         if degrees == 90 and (minutes != 0 or seconds != 0):
             raise LX200DecRangeError(f"Degrees out of range: {degrees!r}")

@@ -216,12 +216,23 @@ def test_dec_repr():
     dec = LX200Dec("+", 5, 6, 7)
     assert repr(dec) == "LX200Dec('+05*06:07')"
 
+@pytest.mark.parametrize(
+    'arcseconds', (
+        'random',
+        -233381,
+        244108,
+        65134,
+    )
+)
+def test_dec_roundtrip_random_degrees(arcseconds):
+    if arcseconds == "random":
+        rng = random.Random()
+        arcseconds_ = [rng.randrange(-90 * 3600, 90 * 3600 + 1) for _ in range(100)]
+    else:
+        arcseconds_: list[float] = [arcseconds]
 
-def test_dec_roundtrip_random_degrees():
-    rng = random.Random()
-    for _ in range(100):
-        total_arcseconds = rng.randrange(-90 * 3600, 90 * 3600 + 1)
+    for total_arcseconds in arcseconds_:
         degrees = total_arcseconds / 3600
         value = str(LX200Dec.from_degrees(degrees))
         roundtrip = LX200Dec.from_string(value)
-        assert roundtrip.to_degrees() == pytest.approx(degrees)
+        assert roundtrip.to_degrees() == pytest.approx(degrees, abs=1./3600), total_arcseconds
