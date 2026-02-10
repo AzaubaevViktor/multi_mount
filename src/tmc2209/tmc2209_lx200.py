@@ -72,24 +72,14 @@ class TMC2209LX200(LX200Base):
         self._adapter = adapter
 
         self._dec_steps = 0
-        self._microsteps: int
+        self._microsteps: int = 1
 
         self.logger = logging.getLogger("TMC2209LX200")
 
     # Microsteps update logic
 
-    def _query_microsteps(self) -> int:
-        raw = self._adapter.get_param("microsteps")
-        try:
-            microsteps = int(raw)
-        except ValueError as exc:
-            raise TMC2209LX200ConfigError(f"invalid microsteps value: {raw!r}") from exc
-        if microsteps not in MICROSTEPS_ALLOWED:
-            raise TMC2209LX200ConfigError(f"microsteps not allowed: {microsteps!r}")
-        return microsteps
-
-    def refresh_microsteps(self, microsteps: int) -> None:
-        microsteps = self._query_microsteps()
+    def _refresh_microsteps(self, microsteps: int) -> None:
+        microsteps = self._microsteps
         if microsteps != self._microsteps:
             self._set_microsteps(microsteps)
     
@@ -97,11 +87,7 @@ class TMC2209LX200(LX200Base):
         if microsteps not in MICROSTEPS_ALLOWED:
             raise TMC2209LX200ConfigError(f"microsteps not allowed: {microsteps!r}")
         self._adapter.set_param("microsteps", microsteps)
-        actual = self._query_microsteps()
-        if actual != microsteps:
-            raise TMC2209LX200ConfigError(
-                f"microsteps mismatch: set {microsteps}, got {actual}"
-            )
+
         self._microsteps = microsteps
 
         # Reset position when microsteps changed
@@ -118,6 +104,7 @@ class TMC2209LX200(LX200Base):
 
     def _initialize(self) -> None:
         status = self._adapter.status()
+        self._apply_profile(self._slew_profile)
         self.logger.info("Status: %s", status)
 
     def connect(self) -> None:
@@ -239,6 +226,6 @@ class TMC2209LX200(LX200Base):
     def _apply_profile(
         self, profile: SpeedProfile
     ) -> None:
-        self._adapter.set_param('microsteps', profile.microsteps)
+        self._refresh_microsteps(profile.microsteps)
         self._adapter.set_speed_sps(profile.speed)
         self._adapter.set_acceleration_steps_per_ms(profile.accel)

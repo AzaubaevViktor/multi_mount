@@ -157,6 +157,7 @@ class TMC2209Adapter:
     def connect(self) -> None:
         self._serial.connect()
         self._serial.reset()
+        self._serial.read_all_data()
         self._log.debug("Wait while ready for ...")
         start = time.monotonic()
         while not (ready := self._serial.read_line(timeout=10)):
