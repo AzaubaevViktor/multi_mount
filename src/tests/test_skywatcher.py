@@ -10,7 +10,7 @@ from skywatcher.skywatcher import SkyWatcherMount, SlewMode
 
 @pytest.fixture
 def mount() -> SkyWatcherMount:
-    serial_line = SerialLine(SerialLine.search("PL2303G-USBtoUART"), 112500, 0.2, "skywatcher")
+    serial_line = SerialLine(SerialLine.search("PL2303G-USBtoUART"), 112500, 0.2, "skywatcher", terminator="\r")
     mount = SkyWatcherMount(serial_line)
     mount.connect()
 

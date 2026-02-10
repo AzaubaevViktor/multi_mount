@@ -163,7 +163,7 @@ class TMC2209Adapter:
             if time.monotonic() - start > 10:
                 break
         
-        if ready != "ready":
+        if ready.strip() != "ready":
             raise ValueError(f"Device not ready `{ready}`")
 
     def close(self) -> None:

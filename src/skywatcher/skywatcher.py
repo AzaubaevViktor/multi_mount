@@ -197,7 +197,6 @@ class SkyWatcherMount:
         response = self._serial.query(payload_raw)
         self.logger.debug("RX %s", response)
 
-        # TODO: Create Exceptions below
         if not response.endswith(self._TRAILING):
             raise SkyWatcherWrongResponce(response)
         

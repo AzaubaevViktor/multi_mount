@@ -30,6 +30,7 @@ def adapter() -> TMC2209Adapter:
         SERIAL_BAUD,
         SERIAL_TIMEOUT_S,
         SERIAL_NAME,
+        terminator="\n",
     )
     adapter = TMC2209Adapter(serial_line)
     adapter.connect()
