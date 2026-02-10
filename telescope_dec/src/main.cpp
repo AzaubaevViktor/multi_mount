@@ -463,10 +463,10 @@ static bool setSpeedSpsV2(long sps, const char** errorKey) {
   return true;
 }
 
-static bool setAccelStepsPerMsV2(long accel, const char** errorKey) {
+static bool setAccelStepsPerUsV2(long accel, const char** errorKey) {
   if (accel < 0) { if (errorKey) *errorKey = "range"; return false; }
   if (accel > 100000) { if (errorKey) *errorKey = "range"; return false; }
-  runV2.accelStepsPerUs = (float)accel / 1000.0f;
+  runV2.accelStepsPerUs = (float)accel / 1000000.0f;
   return true;
 }
 
@@ -591,7 +591,7 @@ static void handleLineV2(char* s) {
     respondKeyValueBoolV2("target_set", runV2.hasTarget);
     respondKeyValueFloatV2("speed", runV2.speedSps, 2);
     respondKeyValueFloatV2("actual_speed", runV2.actualSpeedSps, 2);
-    respondKeyValueFloatV2("accel", runV2.accelStepsPerUs * 1000.0f, 2);
+    respondKeyValueFloatV2("accel_per_s", runV2.accelStepsPerUs * 1000000., 2);
     respondEndV2();
     return;
   }
@@ -695,9 +695,9 @@ static void handleLineV2(char* s) {
     long value = 0;
     if (!a || !parseLongV2(a, &value)) { respondErrorV2("bad_value"); return; }
     const char* errorKey = nullptr;
-    if (!setAccelStepsPerMsV2(value, &errorKey)) { respondErrorV2(errorKey ? errorKey : "range"); return; }
+    if (!setAccelStepsPerUsV2(value, &errorKey)) { respondErrorV2(errorKey ? errorKey : "range"); return; }
     respondStartV2(true);
-    respondKeyValueFloatV2("accel", runV2.accelStepsPerUs * 1000.0f, 2);
+    respondKeyValueFloatV2("accel", runV2.accelStepsPerUs * 1000000.0f, 2);
     respondEndV2();
     return;
   }
