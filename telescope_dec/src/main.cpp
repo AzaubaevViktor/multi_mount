@@ -95,26 +95,48 @@ static const uint8_t HEX_BUF_LEN = HEX_PREFIX_LEN + HEX_WIDTH + 1;
 static char lineBufV2[256];
 static uint8_t lineLenV2 = 0;
 
-// ---------- Fast TX response buffer ----------
+// ---------- Fast TX ring buffer ----------
 static char outBufV2[256];
-static uint8_t outLenV2 = 0;
+static uint8_t outWriteV2 = 0;
+static uint8_t outReadV2 = 0;
 
-static inline void outResetV2() { outLenV2 = 0; }
+static inline bool outHasDataV2() {
+  return outWriteV2 != outReadV2;
+}
+
+static inline bool outPushV2(char c) {
+  uint8_t next = (uint8_t)(outWriteV2 + 1);
+  if (next == outReadV2) return false;
+  outBufV2[outWriteV2] = c;
+  outWriteV2 = next;
+  return true;
+}
+
+static inline bool outPopV2(char* c) {
+  if (!outHasDataV2()) return false;
+  *c = outBufV2[outReadV2];
+  outReadV2 = (uint8_t)(outReadV2 + 1);
+  return true;
+}
 
 static inline void outAppendCharV2(char c) {
-  if (outLenV2 < sizeof(outBufV2) - 1) outBufV2[outLenV2++] = c;
+  outPushV2(c);
 }
 
 static inline void outAppendStrV2(const char* s) {
   if (!s) return;
-  while (*s && outLenV2 < sizeof(outBufV2) - 1) outBufV2[outLenV2++] = *s++;
+  while (*s) {
+    if (!outPushV2(*s++)) return;
+  }
 }
 
 static inline void outAppendNumLongV2(long v) {
   char tmp[24];
   int n = snprintf(tmp, sizeof(tmp), "%ld", v);
   if (n > 0) {
-    for (int i = 0; i < n && outLenV2 < sizeof(outBufV2) - 1; i++) outBufV2[outLenV2++] = tmp[i];
+    for (int i = 0; i < n; i++) {
+      if (!outPushV2(tmp[i])) break;
+    }
   }
 }
 
@@ -122,7 +144,9 @@ static inline void outAppendNumU32V2(uint32_t v) {
   char tmp[24];
   int n = snprintf(tmp, sizeof(tmp), "%lu", (unsigned long)v);
   if (n > 0) {
-    for (int i = 0; i < n && outLenV2 < sizeof(outBufV2) - 1; i++) outBufV2[outLenV2++] = tmp[i];
+    for (int i = 0; i < n; i++) {
+      if (!outPushV2(tmp[i])) break;
+    }
   }
 }
 
@@ -144,9 +168,6 @@ static inline void outAppendHexU32V2(uint32_t v) {
 
 static inline void outFlushLineV2() {
   outAppendCharV2('\n');
-  outBufV2[outLenV2] = 0;
-  Serial.write((const uint8_t*)outBufV2, outLenV2);
-  outResetV2();
 }
 
 void setup() {
@@ -218,7 +239,6 @@ static bool parseU32V2(const char* s, uint32_t* value) {
 }
 
 static void respondStartV2(bool ok) {
-  outResetV2();
   outAppendCharV2(ok ? '1' : '0');
   outAppendCharV2(';');
 }
@@ -791,6 +811,11 @@ void serviceSerialv2() {
       }
     }
 
+  }
+
+  if (Serial.availableForWrite() > 0) {
+    char c = 0;
+    if (outPopV2(&c)) Serial.write((uint8_t)c);
   }
 }
 
