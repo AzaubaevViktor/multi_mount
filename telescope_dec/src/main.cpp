@@ -8,7 +8,7 @@
 */
 
 #include <Arduino.h>
-#include <SoftwareSerial.h>
+#include <AltSoftSerial.h>
 #include <TMCStepper.h>
 #include <stdio.h>
 
@@ -22,13 +22,13 @@ static const uint8_t TMC_RX_PIN = 8;
 static const uint8_t TMC_TX_PIN = 9;
 
 // ---------- TMC config ----------
-static const uint32_t TMC_BAUD = 57600;
+static const uint32_t TMC_BAUD = 9600;
 // Most SilentStepStick-like modules use 0.11 ohm; check your board to be correct.
 static const float R_SENSE = 0.11f;
 // Address depends on MS1/MS2 (CFG pins) strapping; often 0b00 if both low.
 static const uint8_t DRIVER_ADDRESS = 0b00;
 
-SoftwareSerial TMCSerial(TMC_RX_PIN, TMC_TX_PIN);
+AltSoftSerial TMCSerial(TMC_RX_PIN, TMC_TX_PIN);
 TMC2209Stepper driver(&TMCSerial, R_SENSE, DRIVER_ADDRESS);
 
 // ---------- Motion state (v2) ----------
@@ -50,6 +50,8 @@ struct RunnerV2 {
   uint32_t stepHighUntilUs = 0;
   uint32_t lastStepUs = 0;
   uint32_t lastUpdateUs = 0;
+  uint32_t lastStepperUs = 0;
+  float stepAcc = 0.0f;
 } runV2;
 
 static bool v2Initialized = false;
@@ -166,7 +168,7 @@ void setup() {
 
   TMCSerial.begin(TMC_BAUD);
 
-  while (!TMCSerial) {};
+  // while (!TMCSerial) {};
 
   // Basic driver init (safe-ish defaults; tune later)
   driver.begin();
@@ -480,6 +482,8 @@ static void completeTargetV2() {
   runV2.actualSpeedSps = 0.0f;
   runV2.desiredSpeedSps = 0.0f;
   runV2.nextStepUs = 0;
+  runV2.lastStepperUs = 0;
+  runV2.stepAcc = 0.0f;
 }
 
 static const char* getPhaseV2() {
@@ -654,6 +658,8 @@ static void handleLineV2(char* s) {
       runV2.actualSpeedSps = 0.0f;
       runV2.desiredSpeedSps = 0.0f;
       runV2.nextStepUs = 0;
+      runV2.lastStepperUs = 0;
+      runV2.stepAcc = 0.0f;
     }
     respondStartV2(true);
     respondKeyValueBoolV2("enabled", runV2.enabled);
@@ -716,6 +722,8 @@ static void handleLineV2(char* s) {
     runV2.stopRequested = false;
     if (!runV2.enabled) setEnableV2(true);
     runV2.lastUpdateUs = micros();
+    runV2.lastStepperUs = 0;
+    runV2.stepAcc = 0.0f;
     respondStartV2(true);
     respondKeyValueBoolV2("running", true);
     respondEndV2();
@@ -726,6 +734,8 @@ static void handleLineV2(char* s) {
     runV2.stopRequested = true;
     runV2.running = true;
     runV2.lastUpdateUs = micros();
+    // keep accumulated fractional steps; only reset time base
+    runV2.lastStepperUs = 0;
     respondStartV2(true);
     respondKeyValueBoolV2("stopping", true);
     respondEndV2();
@@ -787,53 +797,64 @@ void serviceSerialv2() {
 void serviceStepperv2() {
   const uint32_t nowUs = micros();
 
+  // Finish pulse (STEP LOW)
   if (runV2.stepHigh) {
-    long start = micros();
-
     if ((int32_t)(nowUs - runV2.stepHighUntilUs) >= 0) {
       digitalWrite(STEP_PIN, LOW);
       runV2.stepHigh = false;
     }
-
-    profiler.stepperLow += micros() - start;
-    profiler.stepperLow /= 2.;
     return;
   }
 
-  const float prevSpeed = runV2.actualSpeedSps;
+  // Update motion profile (desired/actual speed)
   updateMotionStateV2();
 
-  if (!runV2.enabled) return;
-  if (runV2.actualSpeedSps <= 0.0f) return;
-
-  if (prevSpeed <= 0.0f && runV2.actualSpeedSps > 0.0f) {
-    runV2.nextStepUs = nowUs;
+  if (!runV2.enabled || runV2.actualSpeedSps <= 0.0f) {
+    // When stopped/disabled, reset phase accumulator and time base.
+    runV2.stepAcc = 0.0f;
+    runV2.lastStepperUs = nowUs;
+    return;
   }
 
-  runV2.stepIntervalUs = calcStepIntervalUsV2(runV2.actualSpeedSps);
-  if (runV2.stepIntervalUs == 0) return;
+  // Time base for accumulator
+  if (runV2.lastStepperUs == 0) {
+    runV2.lastStepperUs = nowUs;
+    return;
+  }
 
-  if ((int32_t)(nowUs - runV2.nextStepUs) >= 0) {
-    long start = micros();
+  const uint32_t dtUs = nowUs - runV2.lastStepperUs;
+  runV2.lastStepperUs = nowUs;
+  if (dtUs == 0) return;
 
-    digitalWrite(STEP_PIN, HIGH);
-    runV2.stepHigh = true;
-    runV2.stepHighUntilUs = nowUs + runV2.pulseWidthUs;
-    runV2.nextStepUs = nowUs + runV2.stepIntervalUs;
-    runV2.lastStepUs = nowUs;
+  // Accumulate fractional steps: acc += speed[sps] * dt[s]
+  runV2.stepAcc += runV2.actualSpeedSps * ((float)dtUs / 1000000.0f);
 
-    stepPosition += runV2.dir ? STEP_NEGATIVE : STEP_POSITIVE;
+  // Clamp accumulator to avoid runaway after long stalls
+  if (runV2.stepAcc > 8.0f) runV2.stepAcc = 8.0f;
 
-    if (runV2.hasTarget) {
-      const long pos = getPosition();
-      if ((runV2.dir && pos <= runV2.target) || (!runV2.dir && pos >= runV2.target)) {
-        setPosition(runV2.target);
-        completeTargetV2();
-      }
+  // Emit at most ONE step per call because we need a HIGH->LOW pulse across calls
+  if (runV2.stepAcc < 1.0f) return;
+
+  const uint32_t tUs = micros();
+
+  digitalWrite(STEP_PIN, HIGH);
+  runV2.stepHigh = true;
+  runV2.stepHighUntilUs = tUs + runV2.pulseWidthUs;
+  runV2.lastStepUs = tUs;
+
+  // Consume one whole step from accumulator
+  runV2.stepAcc -= 1.0f;
+
+  // Update position
+  stepPosition += runV2.dir ? STEP_NEGATIVE : STEP_POSITIVE;
+
+  // Target completion check (same logic as before)
+  if (runV2.hasTarget) {
+    const long pos = getPosition();
+    if ((runV2.dir && pos <= runV2.target) || (!runV2.dir && pos >= runV2.target)) {
+      setPosition(runV2.target);
+      completeTargetV2();
     }
-
-    profiler.stepperHigh += micros() - start;
-    profiler.stepperHigh /= 2.;
   }
 }
 
