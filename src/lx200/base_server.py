@@ -3,14 +3,14 @@ import socket
 import threading
 from typing import Any
 
-from lx200.base import LX200Base
+from lx200.base import LX200Handler
 from lx200.protocol import AlignmentMode, Protocol
 
 
 class LX200SimpleServer:
     def __init__(
             self, 
-            lx200: LX200Base,
+            lx200: LX200Handler,
             host: str = 'localhost', 
             port: int = 7624, 
             buffer_size: int = 1,

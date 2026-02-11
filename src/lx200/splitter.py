@@ -11,6 +11,9 @@ class LX200Splitter(LX200Handler):
         self.ra = ra
         self.dec = dec
         self.logger.info("RA: %r; DEC: %r", self.ra, self.dec)
+
+        self._active_guide_dec = False
+        self._active_guide_ra = False
     
     def connect(self):
         self.ra.connect()
@@ -58,32 +61,16 @@ class LX200Splitter(LX200Handler):
         return True
 
     def move_east(self) -> bool:
-        try:
-            return self.ra.move_east()
-        except Exception:
-            self.logger.exception("While move RA east")
-            return False
+        return self.ra.move_east()
 
     def move_north(self) -> bool:
-        try:
-            return self.dec.move_north()
-        except Exception:
-            self.logger.exception("While move DEC north")
-            return False
+        return self.dec.move_north()
 
     def move_south(self) -> bool:
-        try:
-            return self.dec.move_south()
-        except Exception:
-            self.logger.exception("While move DEC south")
-            return False
+        return self.dec.move_south()
 
     def move_west(self) -> bool:
-        try:
-            return self.ra.move_west()
-        except Exception:
-            self.logger.exception("While move RA west")
-            return False
+        return self.ra.move_west()
 
     def halt_east(self) -> bool:
         try:
@@ -126,3 +113,30 @@ class LX200Splitter(LX200Handler):
             self.logger.exception("While set DEC slew rate")
             ok = False
         return ok
+    
+    def guide_reset(self) -> bool:
+        if self._active_guide_dec:
+            self.dec.guide_reset()
+            self._active_guide_dec = False
+
+        if self._active_guide_ra:
+            self.ra.guide_reset()
+            self._active_guide_ra = True
+            
+        return True
+
+    def guide_east(self) -> bool:
+        self._active_guide_ra = True
+        return self.ra.guide_east()
+
+    def guide_north(self) -> bool:
+        self._active_guide_dec = True
+        return self.dec.guide_north()
+
+    def guide_south(self) -> bool:
+        self._active_guide_dec = True
+        return self.dec.guide_south()
+
+    def guide_west(self) -> bool:
+        self._active_guide_ra = True
+        return self.ra.guide_west()

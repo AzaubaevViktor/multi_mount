@@ -118,7 +118,7 @@ class LX200Ha:
             raise LX200HoursRangeError(f"Hours out of range: {hours!r}")
         if minutes < 0 or minutes > 59:
             raise LX200HoursRangeError(f"Minutes out of range: {minutes!r}")
-        if seconds < 0 or seconds > 59:
+        if seconds < 0 or seconds > 60:
             raise LX200HoursRangeError(f"Seconds out of range: {seconds!r}")
 
 
