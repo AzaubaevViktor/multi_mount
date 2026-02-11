@@ -86,6 +86,94 @@ class GuideTask:
 
 
 class LX200Base:
+    def connect(self) -> None:
+        raise NotImplementedError()
+    
+    # Auxilary
+    def handle_alignment(self, data: bytes) -> AlignmentMode:
+        raise NotImplementedError()
+    
+    def get_calendar_format(self) -> str:
+        return "24"
+    
+    def get_site1_name(self) -> str:
+        return "base_lx200"
+    
+    def get_tracking_rate(self) -> str:
+        return "60.0"
+    
+    # Telecope control
+    def get_telescope_ra(self) -> LX200Ha:
+        raise NotImplementedError()
+    
+    def sync_telescope_ra(self, position: LX200Ha) -> bool:
+        raise NotImplementedError()
+    
+    def get_telescope_dec(self) -> LX200Dec:
+        raise NotImplementedError()
+    
+    def sync_telescope_dec(self, position: LX200Dec) -> bool:
+        raise NotImplementedError()
+    
+    def slew_to_ra(self, position: LX200Ha) -> bool:
+        raise NotImplementedError()
+    
+    def slew_to_dec(self, position: LX200Dec) -> bool:
+        raise NotImplementedError()
+
+    def set_slew_to_find(self) -> bool:
+        raise NotImplementedError()
+
+    def get_distance(self) -> str:
+        raise NotImplementedError()
+    
+    # Manual moving
+    def move_east(self) -> bool:
+        raise NotImplementedError()
+    
+    def move_north(self) -> bool:
+        raise NotImplementedError()
+    
+    def move_south(self) -> bool:
+        raise NotImplementedError()
+    
+    def move_west(self) -> bool:
+        raise NotImplementedError()
+
+    # Halt movements
+    def halt_all(self) -> bool:
+        raise NotImplementedError()
+    
+    def halt_east(self) -> bool:
+        raise NotImplementedError()
+    
+    def halt_north(self) -> bool:
+        raise NotImplementedError()
+    
+    def halt_south(self) -> bool:
+        raise NotImplementedError()
+    
+    def halt_west(self) -> bool:
+        raise NotImplementedError()
+    
+    # Guiding: increase / decrease current tracking rate and returns it when its ok
+    def guide_east(self) -> bool:
+        raise NotImplementedError()
+    
+    def guide_north(self) -> bool:
+        raise NotImplementedError()
+    
+    def guide_south(self) -> bool:
+        raise NotImplementedError()
+    
+    def guide_west(self) -> bool:
+        raise NotImplementedError()
+    
+    def guide_reset(self) -> bool:
+        raise NotImplementedError()
+
+
+class LX200Handler(LX200Base):
     def __init__(self) -> None:
         self._target_ra: LX200Ha = LX200Ha.from_hours(0)
         self._target_dec: LX200Dec = LX200Dec.from_degrees(0)
@@ -95,6 +183,9 @@ class LX200Base:
         self._guide_queue: queue.Queue[GuideTask] = queue.Queue()
         self._guide_thread = threading.Thread(target=self._do_guide, name="GuideHelper")
         self._thread_work = True
+        self._guide_thread.run()
+
+        self._is_connected = False
 
     def _do_guide(self):
         DEFAULT_WAIT_TIMEOUT = 1
@@ -131,10 +222,7 @@ class LX200Base:
             current_guide_direction = guide_task.direction
         
     def connect(self) -> None:
-        raise NotImplementedError()
-    
-    def handle_alignment(self, data: bytes) -> AlignmentMode:
-        raise NotImplementedError()
+        self._is_connected = True
     
     def _do_handle(self, cmd: LX200Commands, argument: Any) -> Any:
         result = None
@@ -153,8 +241,8 @@ class LX200Base:
                 result = True
 
             case LX200Commands.SYNC, _:
-                result = self.set_telescope_ra(self._target_ra)
-                result &= self.set_telescope_dec(self._target_dec)
+                result = self.sync_telescope_ra(self._target_ra)
+                result &= self.sync_telescope_dec(self._target_dec)
                 result = "OK"
             case LX200Commands.SLEW, _:
                 result = self.slew_to_ra(self._target_ra)
@@ -163,10 +251,6 @@ class LX200Base:
                 # But 1<below horison>#
                 # But 2<below higher>#
 
-            case LX200Commands.HALT_ALL, _:
-                self.halt_all()
-                self._manual_move_direction = None
-                result = None
             case LX200Commands.MOVE_EAST, _:
                 if self.move_east():
                     self._manual_move_direction = MoveDirection.EAST
@@ -184,6 +268,10 @@ class LX200Base:
                     self._manual_move_direction = MoveDirection.WEST
                 result = None
 
+            case LX200Commands.HALT_ALL, _:
+                self.halt_all()
+                self._manual_move_direction = None
+                result = None
             case LX200Commands.HALT_EAST, _:
                 if self._manual_move_direction == MoveDirection.EAST:
                     self.halt_east()
@@ -281,80 +369,3 @@ class LX200Base:
         self._thread_work = False
         if self._guide_thread and self._guide_thread.is_alive():
             self._guide_thread.join()
-
-    def get_telescope_ra(self) -> LX200Ha:
-        raise NotImplementedError()
-    
-    def set_telescope_ra(self, position: LX200Ha) -> bool:
-        raise NotImplementedError()
-    
-    def get_telescope_dec(self) -> LX200Dec:
-        raise NotImplementedError()
-    
-    def set_telescope_dec(self, position: LX200Dec) -> bool:
-        raise NotImplementedError()
-    
-    def slew_to_ra(self, position: LX200Ha) -> bool:
-        raise NotImplementedError()
-    
-    def slew_to_dec(self, position: LX200Dec) -> bool:
-        raise NotImplementedError()
-    
-    def get_calendar_format(self) -> str:
-        return "24"
-    
-    def get_site1_name(self) -> str:
-        return "base_lx200"
-    
-    def get_tracking_rate(self) -> str:
-        return "60.0"
-
-    def get_distance(self) -> str:
-        raise NotImplementedError()
-
-    def set_slew_to_find(self) -> bool:
-        raise NotImplementedError()
-    
-    def halt_all(self) -> bool:
-        raise NotImplementedError()
-    
-    def move_east(self) -> bool:
-        raise NotImplementedError()
-    
-    def move_north(self) -> bool:
-        raise NotImplementedError()
-    
-    def move_south(self) -> bool:
-        raise NotImplementedError()
-    
-    def move_west(self) -> bool:
-        raise NotImplementedError()
-
-    def halt_east(self) -> bool:
-        raise NotImplementedError()
-    
-    def halt_north(self) -> bool:
-        raise NotImplementedError()
-    
-    def halt_south(self) -> bool:
-        raise NotImplementedError()
-    
-    def halt_west(self) -> bool:
-        raise NotImplementedError()
-    
-    # Guiding: increase / decrease current tracking rate and returns it when its ok
-    
-    def guide_east(self) -> bool:
-        raise NotImplementedError()
-    
-    def guide_north(self) -> bool:
-        raise NotImplementedError()
-    
-    def guide_south(self) -> bool:
-        raise NotImplementedError()
-    
-    def guide_west(self) -> bool:
-        raise NotImplementedError()
-    
-    def guide_reset(self) -> bool:
-        raise NotImplementedError()

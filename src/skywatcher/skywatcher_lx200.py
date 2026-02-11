@@ -126,7 +126,7 @@ class SkyWatcherLX200(LX200Base):
     def connect(self):
         self.mount.connect()
 
-        self.set_telescope_ra(LX200Ha.from_hours(0))
+        self.sync_telescope_ra(LX200Ha.from_hours(0))
 
         self.mount.start_tracking()
 
@@ -134,7 +134,7 @@ class SkyWatcherLX200(LX200Base):
         ra_seconds = int(round(self._ra_seconds)) % LX200Ha.SECONDS_PER_CIRCLE
         return LX200Ha.from_seconds(ra_seconds)
     
-    def set_telescope_ra(self, position: LX200Ha) -> bool:
+    def sync_telescope_ra(self, position: LX200Ha) -> bool:
         with self._ra_update_lock:
             self._ra_seconds = position.to_seconds()
             # Don't need to calculate delta

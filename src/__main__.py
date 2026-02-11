@@ -20,7 +20,7 @@ class LX200TestDECServer(LX200Base):
     def get_telescope_dec(self) -> LX200Dec:
         return LX200Dec.from_degrees(self.dec)
     
-    def set_telescope_dec(self, position: LX200Dec) -> bool:
+    def sync_telescope_dec(self, position: LX200Dec) -> bool:
         self.dec = position.to_degrees()
         return True
     

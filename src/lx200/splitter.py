@@ -1,11 +1,12 @@
 import logging
-from lx200.base import LX200Base
+from lx200.base import LX200Base, LX200Handler
 from lx200.protocol import AlignmentMode
 from lx200.protocols import LX200Dec, LX200Ha
 
 
-class LX200Splitter(LX200Base):
+class LX200Splitter(LX200Handler):
     def __init__(self, ra: LX200Base, dec: LX200Base) -> None:
+        super().__init__()
         self.logger = logging.getLogger("splitter")
         self.ra = ra
         self.dec = dec
@@ -14,6 +15,7 @@ class LX200Splitter(LX200Base):
     def connect(self):
         self.ra.connect()
         self.dec.connect()
+        super().connect()
 
     def handle_alignment(self, data: bytes) -> AlignmentMode:
         return AlignmentMode.POLAR
@@ -27,14 +29,14 @@ class LX200Splitter(LX200Base):
     def slew_to_dec(self, position: LX200Dec) -> bool:
         return self.dec.slew_to_dec(position)
 
-    def set_telescope_ra(self, position: LX200Ha) -> bool:
-        return self.ra.set_telescope_ra(position)
+    def sync_telescope_ra(self, position: LX200Ha) -> bool:
+        return self.ra.sync_telescope_ra(position)
     
     def get_telescope_dec(self) -> LX200Dec:
         return self.dec.get_telescope_dec()
     
-    def set_telescope_dec(self, position: LX200Dec) -> bool:
-        return self.dec.set_telescope_dec(position)
+    def sync_telescope_dec(self, position: LX200Dec) -> bool:
+        return self.dec.sync_telescope_dec(position)
     
     def get_site1_name(self) -> str:
         return f"splitter_ra_{self.ra.get_site1_name()}_dec_{self.dec.get_site1_name()}"

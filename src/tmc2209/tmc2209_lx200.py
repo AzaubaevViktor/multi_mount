@@ -128,7 +128,7 @@ class TMC2209LX200(LX200Base):
     def get_telescope_dec(self) -> LX200Dec:
         return self._dec_from_steps(self._get_position())
 
-    def set_telescope_dec(self, position: LX200Dec) -> bool:
+    def sync_telescope_dec(self, position: LX200Dec) -> bool:
         steps = self._steps_from_dec(position)
         self._adapter.set_position(steps)
         return True
