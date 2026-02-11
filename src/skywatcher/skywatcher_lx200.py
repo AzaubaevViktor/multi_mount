@@ -1,6 +1,4 @@
 import logging
-from math import log
-from operator import xor
 import threading
 import time
 

@@ -1,11 +1,11 @@
 
 from dataclasses import dataclass
-from enum import Enum, StrEnum
+from enum import StrEnum
 import logging
 import queue
 import threading
 import time
-from typing import Any, Callable
+from typing import Any
 
 
 from .protocol import AlignmentMode

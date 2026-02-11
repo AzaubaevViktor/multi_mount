@@ -1,15 +1,11 @@
 from dataclasses import dataclass
 import logging
-import threading
 
 from lx200.base import LX200Base
-from lx200.protocols import LX200Dec, SECONDS_PER_DEGREE
+from lx200.protocols import LX200Dec
 from tmc2209.tmc2209_adapter import (
-    DEGREES_PER_REV,
     GEAR_RATIO_1,
     GEAR_RATIO_2,
-    MAX_ACCEL_STEPS_PER_MS,
-    MAX_SPEED_SPS,
     MICROSTEPS_ALLOWED,
     STEPS_PER_REV,
     TMC2209Adapter,
