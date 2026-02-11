@@ -118,8 +118,10 @@ class SkyWatcherLX200(LX200Base):
 
     def __del__(self):
         self._working = False
-        self._check_ra_thread.join(timeout=self._RA_CHECK_TIME_S * 5)
-        self._check_goto_thread.join(timeout=self._RA_CHECK_TIME_S * 5)
+        if self._check_ra_thread and self._check_ra_thread.is_alive():
+            self._check_ra_thread.join(timeout=self._RA_CHECK_TIME_S * 5)
+        if self._check_goto_thread and self._check_goto_thread.is_alive():
+            self._check_goto_thread.join(timeout=self._RA_CHECK_TIME_S * 5)
     
     def connect(self):
         self.mount.connect()

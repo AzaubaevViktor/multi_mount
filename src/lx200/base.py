@@ -279,7 +279,8 @@ class LX200Base:
 
     def __del__(self):
         self._thread_work = False
-        self._guide_thread.join()
+        if self._guide_thread and self._guide_thread.is_alive():
+            self._guide_thread.join()
 
     def get_telescope_ra(self) -> LX200Ha:
         raise NotImplementedError()
