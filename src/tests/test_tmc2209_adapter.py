@@ -7,6 +7,7 @@ from tmc2209.tmc2209_adapter import (
     GEAR_RATIO_2,
     MICROSTEPS_ALLOWED,
     STEPS_PER_REV,
+    Phase,
     TMC2209Adapter,
     TMC2209CommandError,
     TMC2209ConfigError,
@@ -72,7 +73,7 @@ def test_status_from_response():
     assert status.initialised is True
     assert status.enabled is False
     assert status.position == 12
-    assert status.phase == "hold"
+    assert status.phase == Phase.HOLD
     assert status.target == 5
     assert status.target_set is True
     assert status.speed_sps == pytest.approx(120.5)
@@ -119,7 +120,7 @@ def test_adapter_status_ok():
     adapter = TMC2209Adapter(serial)
     status = adapter.status()
     assert status.enabled is True
-    assert status.phase == "idle"
+    assert status.phase == Phase.IDLE
 
 
 def test_adapter_status_error():

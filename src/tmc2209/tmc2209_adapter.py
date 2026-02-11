@@ -1,4 +1,5 @@
 import dataclasses
+from enum import StrEnum
 import logging
 import time
 
@@ -22,7 +23,17 @@ GEAR_RATIO_1 = 1.5
 GEAR_RATIO_2 = 300
 
 MICROSTEPS_ALLOWED = {1, 2, 4, 8, 16, 32, 64, 128, 256}
-PHASE_VALUES = {"idle", "hold", "acceleration", "running", "deceleration"}
+
+
+class Phase(StrEnum):
+    IDLE = "idle"
+    HOLD = "hold"
+    ACCELERATION = "acceleration"
+    RUNNING = "running"
+    DECELERATION = "deceleration"
+
+
+PHASE_BY_VALUE = {phase.value: phase for phase in Phase}
 BOOL_VALUES = {"0", "1"}
 
 MIN_SPEED_SPS = 0
@@ -93,7 +104,7 @@ class TMC2209Status:
     initialised: bool
     enabled: bool
     position: int
-    phase: str
+    phase: Phase
     target: int
     target_set: bool
     speed_sps: float
@@ -103,9 +114,10 @@ class TMC2209Status:
     @classmethod
     def from_response(cls, response: TMC2209Response) -> "TMC2209Status":
         values = response.values
-        phase = _require_value(values, "phase")
-        if phase not in PHASE_VALUES:
-            raise TMC2209ProtocolError(f"unexpected phase: {phase!r}")
+        phase_raw = _require_value(values, "phase")
+        phase = PHASE_BY_VALUE.get(phase_raw)
+        if phase is None:
+            raise TMC2209ProtocolError(f"unexpected phase: {phase_raw!r}")
 
         return cls(
             initialised=_parse_bool(_require_value(values, "initialised"), "initialised"),
