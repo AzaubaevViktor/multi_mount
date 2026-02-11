@@ -1,6 +1,8 @@
 import dataclasses
 from enum import IntEnum, StrEnum
 import logging
+from operator import is_
+from socket import LOCAL_PEERCRED
 import time
 from typing import Callable, Self
 from lx200.protocols import LX200Ha
@@ -147,20 +149,18 @@ class SkyWatcherMount:
 
     _STELLAR_DAY = 86164.098903691  # sec/day
     STELLAR_SPEED = 15.041067179  # deg/hour
+    """deg/hour"""
     _SIDEREAL_DAY = 86164.09053083288
     _SIDEREAL_SPEED = 15.04106864
 
     _LOWSPEED_RATE = 128
-    _LOWSPEED_MARGIN = 20000
-
-    _LOWSPEED_PERIOD = 18  # ??
-    _HIGH_PERIOD = 10
+    _LOWSPEED_MARGIN_S = 10 * 60
+    _HIGHSPEED_RATE = 800
 
     _POSITION_OFFSET = 0x800000
 
     MIN_RATE = 0.05
     MAX_RATE = 800
-    _SKYWATCHER_LOWSPEED_RATE = 128
 
     def __init__(self, serial: SerialLine) -> None:
         self.logger = logging.getLogger("skywatcher")
@@ -202,6 +202,7 @@ class SkyWatcherMount:
 
         if not response.endswith(self._TRAILING):
             raise SkyWatcherWrongResponce(response)
+        # TODO: add repeat
         
         responce_clean = response.removesuffix(self._TRAILING)
 
@@ -249,23 +250,23 @@ class SkyWatcherMount:
         self._do_initialise()
         self.is_connected = True
 
-    def _ticks_to_hours(self, ticks: int) -> float:
-        return ticks / self.ra_steps_360 * 24
+    def _ticks_to_seconds(self, ticks: int) -> float:
+        return ticks / self.ra_steps_360 * 24 * 60 * 60
     
-    def _hours_to_ticks(self, hours: float) -> int:
-        return int(hours / 24 * self.ra_steps_360)
+    def _seconds_to_ticks(self, seconds: float) -> int:
+        return int(seconds / (24 * 60 * 60) * self.ra_steps_360)
 
     def get_telescope_ra(self):
         data = self._transact(SkyWatcherCommand.INQUIRE_POSITION)
         ticks = (Revu24.from_mount(data) - self._POSITION_OFFSET) % self.ra_steps_360
         # Ticks / Full circle / (24h) -> hours
-        hours = self._ticks_to_hours(ticks)
-        total_seconds = round(hours * 3600) % (24 * 3600)
+        seconds = self._ticks_to_seconds(ticks)
+        total_seconds = round(seconds) % (24 * 60 * 60)
         return LX200Ha.from_seconds(total_seconds)
     
     def set_telescope_ra(self, position: LX200Ha) -> bool:
-        hours = position.to_hours()
-        ticks = (self._hours_to_ticks(hours) + self._POSITION_OFFSET) % self.ra_steps_360
+        seconds = position.to_seconds()
+        ticks = (self._seconds_to_ticks(seconds) + self._POSITION_OFFSET) % self.ra_steps_360
 
         self._transact(SkyWatcherCommand.SET_AXIS_POSITION, Revu24.from_int(int(ticks)))
 
@@ -324,32 +325,37 @@ class SkyWatcherMount:
 
     def _start_motor(self):
         self._transact(SkyWatcherCommand.START_MOTION)
+
+    def _do_wrap_delta_move(self, delta_seconds: float) -> tuple[float, float]:
+        if delta_seconds > 12 * 60 * 60:
+            delta_seconds = 24 * 60 * 60 - delta_seconds
+        if delta_seconds < -12 * 60 * 60:
+            delta_seconds += 24 * 60 * 60
+        
+        delta_seconds = abs(delta_seconds)
+        
+        is_highspeed = delta_seconds > self._LOWSPEED_MARGIN_S
+
+        real_rate = self._HIGHSPEED_RATE if is_highspeed else self._LOWSPEED_RATE
+
+        real_rate *= 1 if delta_seconds > 0 else -1
+
+        return delta_seconds, real_rate
+
+    def get_slew_real_rate(self, delta_seconds: float) -> float:
+        return self._do_wrap_delta_move(delta_seconds)[1]
     
     def slew_to_ra(self, delta: LX200Ha) -> bool:
-        new_status = self.get_status()
-        new_status.slew_mode = SlewMode.GOTO
+        delta_seconds, real_rate = self._do_wrap_delta_move(delta.to_seconds())
 
-        delta_ticks = self._hours_to_ticks(delta.to_hours()) % self.ra_steps_360
-        distance_ticks = delta_ticks
-        if distance_ticks > (self.ra_steps_360 // 2):
-            new_status.direction = Direction.BACKWARD
-            distance_ticks = self.ra_steps_360 - distance_ticks
-        else:
-            new_status.direction = Direction.FORWARD
+        self.set_ra_rate(real_rate, SlewMode.GOTO)
 
-        if distance_ticks > self._LOWSPEED_MARGIN:
-            new_status.speed_mode = SpeedMode.HIGHSPEED
-            is_highspeed = True
-        else:
-            new_status.speed_mode = SpeedMode.LOWSPEED
-            is_highspeed = False
+        self.logger.info("Start slewing for %d ticks %s, with highspeed:%s", )
 
-        self.logger.info("Start slewing for %d ticks %s, with highspeed:%s", distance_ticks, new_status.direction, is_highspeed)
+        delta_ticks = self._seconds_to_ticks(delta_seconds) % self.ra_steps_360
 
-        self._set_motion(new_status)
-        self._set_speed(self._HIGH_PERIOD if is_highspeed else self._LOWSPEED_PERIOD)
-        self._set_target(distance_ticks)
-        self._set_target_breaks(min(200, distance_ticks))  # TODO: Check highspeed
+        self._set_target(delta_ticks)
+        self._set_target_breaks(min(200, delta_ticks))  # TODO: Check highspeed
         self._start_motor()
         return True
 
@@ -364,18 +370,18 @@ class SkyWatcherMount:
 
         return True
 
-    def set_ra_rate(self, rate: float):
+    def set_ra_rate(self, rate: float, mode: SlewMode = SlewMode.SLEW):
         """ Rate is multiplier for tracking rate """
         status = status = self.get_status()
         if not (self.MIN_RATE < abs(rate) < self.MAX_RATE):
             self.logger.warning("Speed rate out of limits: %s %s")
 
-        status.slew_mode = SlewMode.SLEW
+        status.slew_mode = mode
         
         status.direction = Direction.FORWARD if rate > 0 else Direction.BACKWARD
 
         is_highspeed = False
-        if abs(rate) > self._SKYWATCHER_LOWSPEED_RATE:
+        if abs(rate) > self._LOWSPEED_RATE:
             sign = abs(rate) / rate
             rate /= self.ra_highspeed_ratio
             rate *= sign
@@ -384,6 +390,8 @@ class SkyWatcherMount:
         status.speed_mode = SpeedMode.HIGHSPEED if is_highspeed else SpeedMode.LOWSPEED
         
         period = self._STELLAR_DAY * self.ra_steps_worm / self.ra_steps_360 / abs(rate)
+
+        self.logger.info("Set RA rate: %.1f * %d (highspeed=%s) mode=%s // period=%d", rate, self.ra_highspeed_ratio if is_highspeed else 1, is_highspeed, mode, int(period))
 
         self._set_motion(status)
         self._set_speed(int(period))

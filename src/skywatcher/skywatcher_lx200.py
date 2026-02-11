@@ -82,14 +82,17 @@ class SkyWatcherLX200(LX200Base):
                 with self._ra_update_lock:
                     current_ra = self._ra_seconds
 
-                if current_ra - self._goto_to.to_seconds() < self._STOP_GOTO_SECONDS:
+                if delta := abs(current_ra - self._goto_to.to_seconds()) < self._STOP_GOTO_SECONDS:
+                    logger.info("Stop mount in %s (%s), Δ=%.3fs", LX200Ha.from_seconds(current_ra), self._goto_to, delta)
                     self.mount.wait_till_stop(do_stop=True)
+                    logger.info("Mount stop, resume tracking")
                     self.mount.resume_tracking()
                     
                     with self._ra_update_lock:
                         _current_ra = self._ra_seconds
                     _current_ra = LX200Ha.from_seconds(_current_ra)
-                    logger.info("GOTO to %s finished in %s with delta: %fs", 
+
+                    logger.info("Finished GOTO to %s in %s with delta: %fs", 
                                 self._goto_to, 
                                 _current_ra, 
                                 (_current_ra - self._goto_to).to_seconds()
@@ -101,9 +104,11 @@ class SkyWatcherLX200(LX200Base):
                         # start goto
                         raw_delta_seconds = current_ra - self._goto_to.to_seconds()
                         
+                        real_rate = self.mount.get_slew_real_rate(raw_delta_seconds)
                         # Add sky moving approximation
-                        real_delta_seconds = raw_delta_seconds + abs(raw_delta_seconds) / (self.mount.STELLAR_SPEED / DEGREES_PER_HOUR)
+                        real_delta_seconds = raw_delta_seconds + abs(raw_delta_seconds) / (self.mount.STELLAR_SPEED / DEGREES_PER_HOUR) / real_rate
                         real_delta = LX200Ha.from_seconds(real_delta_seconds)
+
                         
                         self.mount.slew_to_ra(real_delta)
                         self._goto_direction_sign = 1 if (current_ra - self._goto_to.to_seconds() > 0) else -1
@@ -152,6 +157,7 @@ class SkyWatcherLX200(LX200Base):
         return True
     
     def halt_all(self) -> bool:
+        self._goto_to = None
         self.mount.wait_till_stop(do_stop=True)
         self.mount.resume_tracking()
         return True
