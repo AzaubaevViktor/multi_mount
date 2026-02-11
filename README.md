@@ -17,19 +17,20 @@ FM Controls Current position
         - ✅ Mocks: Site, Long/Lat, Time/Date, etc
         - ✅ Moving
         - ✅ Stop
-        - Tracking
+        - ✅ Tracking
+        - 💪 Guiding
 - SkyWatcher
     - ✅ Connect with mount
     - ✅ Move
     - ✅ Read position
     - ✅ Slew to position
-    - ? Sideral tracking
-    - Correction sideral tracking
-    - Tracking model
+    - ✅  Sideral tracking
+    - 💪 Guiding
+    - ✅ Tracking model
 - Arduino-based dec mount
-    - Connect Arduino to motor
-    - Control motor
-    - Control with LX200
+    - ✅ Connect Arduino to motor
+    - ✅ Control motor
+    - ✅ Control with LX200
 - Combine
     - Tests for LX200 protocol
     - ✅ Send RA to SkyWatcher
