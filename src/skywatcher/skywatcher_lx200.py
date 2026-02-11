@@ -4,7 +4,7 @@ import time
 
 from lx200.base import LX200Base
 from lx200.protocols import LX200Ha
-from .skywatcher import SkyWatcherMount, SlewMode
+from .skywatcher import SkyWatcherMount, SkyWatcherWrongResponce, SlewMode
 
 
 DEGREES_PER_HOUR = 15
@@ -26,10 +26,12 @@ class SkyWatcherLX200(LX200Base):
         self._goto_to: LX200Ha | None = None
         self._goto_direction_sign: int = 0
         
+        self._working = True
         self._check_ra_thread = threading.Thread(target=self._do_check_ra, name="SW_RA")
         self._check_goto_thread = threading.Thread(target=self._check_goto, name="SW_GOTO")
         self._ra_update_lock = threading.Lock()
-        self._working = True
+        self._check_ra_thread.start()
+        self._check_goto_thread.start()
 
     def _do_check_ra(self):
         while self._working:
@@ -40,7 +42,16 @@ class SkyWatcherLX200(LX200Base):
             # Base RA update
             with self._ra_update_lock:
                 now = time.monotonic()
-                mount_seconds = self.mount.get_telescope_ra().to_seconds()
+                sleep_time = self._RA_CHECK_TIME_S - (now - self._last_update_s)
+
+                if sleep_time > 0:
+                    time.sleep(sleep_time)
+
+                try:
+                    mount_seconds = self.mount.get_telescope_ra().to_seconds()
+                except SkyWatcherWrongResponce as e:
+                    self.logger.warning(f"Wrong responce: {e}")
+                    continue
 
                 elapsed_s = now - self._last_update_s
 
@@ -81,7 +92,7 @@ class SkyWatcherLX200(LX200Base):
                     logger.info("GOTO to %s finished in %s with delta: %fs", 
                                 self._goto_to, 
                                 _current_ra, 
-                                _current_ra - self._goto_to
+                                (_current_ra - self._goto_to).to_seconds()
                                 )
                     
                     self._goto_to = None

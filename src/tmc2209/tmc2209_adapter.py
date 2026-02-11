@@ -18,8 +18,8 @@ DEGREES_PER_REV = 360.0
 
 # Placeholder values; adjust when real mechanics are known.
 STEPS_PER_REV = 200
-GEAR_RATIO_1 = 1.0
-GEAR_RATIO_2 = 1.0
+GEAR_RATIO_1 = 1.5
+GEAR_RATIO_2 = 300
 
 MICROSTEPS_ALLOWED = {1, 2, 4, 8, 16, 32, 64, 128, 256}
 PHASE_VALUES = {"idle", "hold", "acceleration", "running", "deceleration"}
@@ -160,12 +160,14 @@ class TMC2209Adapter:
         self._serial.read_all_data()
         self._log.debug("Wait while ready for ...")
         start = time.monotonic()
-        while not (ready := self._serial.read_line(timeout=10)):
+        while not (ready := self._serial.query(None, timeout=10)):
             if time.monotonic() - start > 10:
                 break
-        
+
         if ready.strip() != "ready":
             raise ValueError(f"Device not ready `{ready}`")
+        
+        self._log.info("Connected")
 
     def close(self) -> None:
         self._serial.close()

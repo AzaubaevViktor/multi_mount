@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import threading
 
 import serial
 
@@ -34,6 +35,8 @@ class SerialLine:
         self.encoding = encoding
         self.terminator = terminator.encode(self.encoding)
 
+        self._lock = threading.Lock()
+
         self.serial: serial.Serial
 
     @classmethod
@@ -65,21 +68,26 @@ class SerialLine:
         )
     
     def reset(self):
-        self.serial.dtr = True
+        with self._lock:
+            self.serial.dtr = True
 
     def connect(self):
         self.serial = serial.Serial(port=self.port, baudrate=self.baud, timeout=self.timeout_s)
         self.logger.info("Connected to %s:%s (timeout=%d)", self.port, self.baud, self.timeout_s)
 
-    def query(self, payload: str) -> str:
-        self.logger.debug("Send `%s`", payload)
-        self.serial.reset_input_buffer()
-        self.serial.write(payload.encode(self.encoding))
-        self.serial.flush()
+    def query(self, payload: str | None, timeout: int | None = None) -> str:
+        with self._lock:
+            if payload is not None:
+                self.logger.debug("Send `%s`", payload)
+                self.serial.reset_input_buffer()
+                self.serial.write(payload.encode(self.encoding))
+                self.serial.flush()
+            else:
+                self.logger.debug("Just wait for answer")
 
-        return self.read_line()
+            return self._read_line(timeout=timeout)
     
-    def read_line(self, timeout: int | None = None):
+    def _read_line(self, timeout: int | None = None):
         _timeout = self.serial.timeout
         if timeout is not None:
             self.serial.timeout = timeout
@@ -95,19 +103,20 @@ class SerialLine:
         return responce
     
     def read_all_data(self, timeout: int | None = None) -> list[str] | None:
-        _timeout = self.serial.timeout
-        if timeout is not None:
-            self.serial.timeout = timeout
-        try:
-            if (data := self.serial.read_all()) is None:
-                return None
-        finally:
+        with self._lock:
+            _timeout = self.serial.timeout
             if timeout is not None:
-                self.serial.timeout = _timeout
-        
-        lines = [line.decode(self.encoding) for line in data.split(self.terminator)]
+                self.serial.timeout = timeout
+            try:
+                if (data := self.serial.read_all()) is None:
+                    return None
+            finally:
+                if timeout is not None:
+                    self.serial.timeout = _timeout
+            
+            lines = [line.decode(self.encoding) for line in data.split(self.terminator)]
 
-        self.logger.debug("Receive all data from input:\n%s", lines)
+            self.logger.debug("Receive all data from input:\n%s", lines)
 
     def close(self):
         self.serial.close()

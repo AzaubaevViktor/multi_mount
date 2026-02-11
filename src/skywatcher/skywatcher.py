@@ -165,6 +165,9 @@ class SkyWatcherMount:
     def __init__(self, serial: SerialLine) -> None:
         self.logger = logging.getLogger("skywatcher")
         self._serial = serial
+        
+        if self._serial.terminator != bytes(self._TRAILING, self._serial.encoding):
+            raise RuntimeError(f"Should be terminator: {self._TRAILING} instead {self._serial.terminator}")
 
         self.timeout_s = 5
         self.poll_interval_s = .5

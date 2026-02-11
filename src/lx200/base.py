@@ -180,12 +180,12 @@ class LX200Handler(LX200Base):
 
         self._manual_move_direction: MoveDirection | None = None
 
+        self._is_connected = False
+
         self._guide_queue: queue.Queue[GuideTask] = queue.Queue()
         self._guide_thread = threading.Thread(target=self._do_guide, name="GuideHelper")
         self._thread_work = True
-        self._guide_thread.run()
-
-        self._is_connected = False
+        self._guide_thread.start()
 
     def _do_guide(self):
         DEFAULT_WAIT_TIMEOUT = 1
@@ -193,13 +193,21 @@ class LX200Handler(LX200Base):
         current_guide_direction: str | None = None
 
         while self._thread_work:
-            timeout = time.monotonic() - stop_guide
+            if not self._is_connected:
+                time.sleep(.1)
+                continue
+
+            timeout = stop_guide - time.monotonic()
+            if timeout < 0:
+                timeout = 0
+            
             try:
                 guide_task = self._guide_queue.get(timeout=timeout)
             except queue.Empty:
-                self.guide_reset()
-                stop_guide = time.monotonic() + DEFAULT_WAIT_TIMEOUT
-                current_guide_direction = None
+                if current_guide_direction:
+                    self.guide_reset()
+                    stop_guide = time.monotonic() + DEFAULT_WAIT_TIMEOUT
+                    current_guide_direction = None
                 continue
 
             if current_guide_direction is not None and \
