@@ -1,5 +1,6 @@
 import time
 from collections.abc import Iterator
+from typing import Callable
 
 import pytest
 
@@ -151,7 +152,7 @@ class SplitterController:
     def get_dec_status(self) -> TMC2209Status:
         return self.dec._adapter.status()
 
-    def _wait_until(self, predicate, timeout_s: float, error_message: str) -> None:
+    def _wait_until(self, predicate: Callable[[], bool], timeout_s: float, error_message: str) -> None:
         deadline = time.monotonic() + timeout_s
         while time.monotonic() < deadline:
             if predicate():
