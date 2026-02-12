@@ -107,6 +107,9 @@ class TMC2209LX200(LX200Base):
         self._adapter.connect()
         self._initialize()
 
+    def stop(self):
+        self._adapter.close()
+
     def _get_position(self) -> int:
         position = self._adapter.status().position
         new_position = int(position % self.steps_per_rev)
@@ -130,7 +133,7 @@ class TMC2209LX200(LX200Base):
         return True
 
     def halt_all(self) -> bool:
-        self._adapter.stop()
+        self._adapter.halt()
         return True
 
     def slew_to_dec(self, position: LX200Dec) -> bool:

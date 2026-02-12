@@ -78,7 +78,7 @@ class SerialLine:
     def query(self, payload: str | None, timeout: int | None = None) -> str:
         with self._lock:
             if payload is not None:
-                self.logger.debug("Send `%s`", payload)
+                self.logger.debug("Send `%r`", payload)
                 self.serial.reset_input_buffer()
                 self.serial.write(payload.encode(self.encoding))
                 self.serial.flush()
@@ -98,7 +98,7 @@ class SerialLine:
                 self.serial.timeout = _timeout
 
         responce = line.decode(self.encoding)
-        self.logger.debug("Receive `%s`", responce)
+        self.logger.debug("Receive `%r`", responce)
 
         return responce
     

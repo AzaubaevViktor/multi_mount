@@ -245,7 +245,7 @@ class TMC2209Adapter:
         response = self._transact("run")
         return _parse_bool(_require_value(response.values, "running"), "running")
 
-    def stop(self) -> bool:
+    def halt(self) -> bool:
         response = self._transact("stop")
         return _parse_bool(_require_value(response.values, "stopping"), "stopping")
 

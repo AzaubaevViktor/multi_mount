@@ -41,7 +41,7 @@ def adapter() -> TMC2209Adapter:
         yield adapter
     finally:
         try:
-            adapter.stop()
+            adapter.halt()
             _wait_for_stop(adapter, STOP_TIMEOUT_S, POLL_INTERVAL_S)
         except Exception:
             pass
@@ -49,7 +49,7 @@ def adapter() -> TMC2209Adapter:
 
 
 def _prepare_adapter(adapter: TMC2209Adapter, position: int) -> None:
-    adapter.stop()
+    adapter.halt()
     _wait_for_stop(adapter, STOP_TIMEOUT_S, POLL_INTERVAL_S)
     adapter.set_position(position)
     adapter.set_target(position)
@@ -162,7 +162,7 @@ def test_hw_run_speed_and_direction(
     else:
         assert later_status.position > moving_status.position
 
-    adapter.stop()
+    adapter.halt()
     _wait_for_stop(adapter, STOP_TIMEOUT_S, POLL_INTERVAL_S)
 
 
@@ -178,7 +178,7 @@ def test_hw_stop_during_run(adapter: TMC2209Adapter) -> None:
 
     time.sleep(1)
 
-    assert adapter.stop() is True
+    assert adapter.halt() is True
     stopped_status = _wait_for_stop(adapter, STOP_TIMEOUT_S, POLL_INTERVAL_S)
 
     after_status = adapter.status()
@@ -198,7 +198,7 @@ def test_hw_stop_during_target_move(adapter: TMC2209Adapter) -> None:
 
     time.sleep(1)
 
-    assert adapter.stop() is True
+    assert adapter.halt() is True
     stopped_status = _wait_for_stop(adapter, STOP_TIMEOUT_S, POLL_INTERVAL_S)
 
     assert stopped_status.position != target

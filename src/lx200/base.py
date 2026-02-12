@@ -89,6 +89,12 @@ class LX200Base:
     def connect(self) -> None:
         raise NotImplementedError()
     
+    def stop(self) -> None:
+        raise NotImplementedError()
+    
+    def __del__(self):
+        self.stop()
+    
     # Auxilary
     def handle_alignment(self, data: bytes) -> AlignmentMode:
         raise NotImplementedError()
@@ -373,7 +379,7 @@ class LX200Handler(LX200Base):
 
         return result
 
-    def __del__(self):
+    def stop(self):
         self._thread_work = False
         if self._guide_thread and self._guide_thread.is_alive():
             self._guide_thread.join()

@@ -148,6 +148,7 @@ class SkyWatcherMount:
     _RESPONCE_PREFIX = "="
 
     _STELLAR_DAY = 86164.098903691  # sec/day
+    """sec/day"""
     STELLAR_SPEED = 15.041067179  # deg/hour
     """deg/hour"""
     _SIDEREAL_DAY = 86164.09053083288
@@ -250,6 +251,9 @@ class SkyWatcherMount:
         self._do_initialise()
         self.is_connected = True
 
+    def disconnect(self):
+        self._serial.close()
+
     def _ticks_to_seconds(self, ticks: int) -> float:
         return ticks / self.ra_steps_360 * 24 * 60 * 60
     
@@ -257,12 +261,14 @@ class SkyWatcherMount:
         return int(seconds / (24 * 60 * 60) * self.ra_steps_360)
 
     def get_telescope_ra(self):
+        return LX200Ha.from_seconds(self.get_telesope_seconds())
+    
+    def get_telesope_seconds(self) -> float:
         data = self._transact(SkyWatcherCommand.INQUIRE_POSITION)
         ticks = (Revu24.from_mount(data) - self._POSITION_OFFSET) % self.ra_steps_360
         # Ticks / Full circle / (24h) -> hours
         seconds = self._ticks_to_seconds(ticks)
-        total_seconds = round(seconds) % (24 * 60 * 60)
-        return LX200Ha.from_seconds(total_seconds)
+        return seconds % (24 * 60 * 60)
     
     def set_telescope_ra(self, position: LX200Ha) -> bool:
         seconds = position.to_seconds()

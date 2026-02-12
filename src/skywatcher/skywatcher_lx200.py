@@ -48,7 +48,7 @@ class SkyWatcherLX200(LX200Base):
                     time.sleep(sleep_time)
 
                 try:
-                    mount_seconds = self.mount.get_telescope_ra().to_seconds()
+                    mount_seconds = self.mount.get_telesope_seconds()
                 except SkyWatcherWrongResponce as e:
                     self.logger.warning(f"Wrong responce: {e}")
                     continue
@@ -60,14 +60,20 @@ class SkyWatcherLX200(LX200Base):
                 actual_delta_seconds = (mount_seconds - self._last_mount_seconds) % LX200Ha.SECONDS_PER_CIRCLE
 
                 delta = expected_delta_seconds - actual_delta_seconds
-                self.logger.debug("Calculated delta: %f = (%f - %f); %f", delta, expected_delta_seconds, actual_delta_seconds, self._ra_seconds)
+                self.logger.debug("Calculated delta: %f = (%f - %f = (%f - %f)); %f",
+                                  delta, 
+                                  expected_delta_seconds, actual_delta_seconds, 
+                                  mount_seconds,
+                                  self._last_mount_seconds,
+                                  self._ra_seconds,
+                                )
 
                 if abs(delta) < self._ACCEPTED_DELTA_S:
                     delta = 0
                 
                 self._ra_seconds = (self._ra_seconds + delta) % LX200Ha.SECONDS_PER_CIRCLE
 
-                self._last_mount_seconds = float(mount_seconds)
+                self._last_mount_seconds = mount_seconds
                 self._last_update_s = now
 
     def _check_goto(self):
@@ -131,11 +137,15 @@ class SkyWatcherLX200(LX200Base):
                         
 
     def __del__(self):
+        self.stop()
+    
+    def stop(self):
         self._working = False
         if self._check_ra_thread and self._check_ra_thread.is_alive():
             self._check_ra_thread.join(timeout=self._RA_CHECK_TIME_S * 5)
         if self._check_goto_thread and self._check_goto_thread.is_alive():
-            self._check_goto_thread.join(timeout=self._RA_CHECK_TIME_S * 5)
+            self._check_goto_thread.join(timeout=self._RA_CHECK_TIME_S * 5) 
+        self.mount.disconnect()
     
     def connect(self):
         self.mount.connect()
@@ -212,10 +222,10 @@ class SkyWatcherLX200(LX200Base):
         return True
     
     def guide_west(self) -> bool:
-        return self.mount.set_ra_rate(1.5)
+        return self.mount.set_ra_rate(0.5)
     
     def guide_east(self) -> bool:
-        return self.mount.set_ra_rate(0.5)
+        return self.mount.set_ra_rate(1.5)
     
     def guide_reset(self) -> bool:
         return self.mount.set_ra_rate(1)

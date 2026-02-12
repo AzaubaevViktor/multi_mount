@@ -4,6 +4,7 @@ from typing import Callable
 
 import pytest
 
+from lx200 import base
 from lx200.protocols import LX200Dec, LX200Ha
 from lx200.splitter import LX200Splitter
 from serial_wrapper.wrapper import SerialLine
@@ -386,6 +387,8 @@ def sc() -> Iterator[SplitterController]:
             pass
         time.sleep(SETTLE_S)
         del sc
+        splitter.stop()
+
         del splitter
         del sw_lx200
         del dec_lx200
@@ -576,6 +579,25 @@ def test_hw_splitter_slew_halt_all_stops_early(sc: SplitterController) -> None:
     assert abs(stopped_dec - target_dec.to_degrees()) > 2.0
 
 
+@pytest.mark.parametrize(("axis"), ("ra", "dec"))
+def test_hw_splitter_baseline_delta(
+    sc: SplitterController,
+    axis: str,
+):
+    sc.sync_known_position(LX200Ha.from_string("12:00:00"),
+        LX200Dec.from_string("+35*00:00"),
+    )
+
+    duration_s = 5
+
+    if axis == "ra":
+        baseline_delta = sc.measure_ra_delta(duration_s)
+        assert abs(baseline_delta) < .1
+    else:
+        baseline_delta = sc.measure_dec_delta(duration_s)
+        assert abs(baseline_delta) < .1
+
+
 @pytest.mark.parametrize(("direction", "pulse_ms", "axis", "expected_sign"), GUIDE_CASES)
 def test_hw_splitter_guiding_pulses_all_directions_vs_tracking(
     sc: SplitterController,
@@ -610,7 +632,7 @@ def test_hw_splitter_guiding_pulses_all_directions_vs_tracking(
     if axis == "ra":
         current_value = sc.get_ra().to_seconds()
         guide_delta = _signed_ra_delta_seconds(start_value, current_value)
-        assert guide_delta * expected_sign > RA_GUIDE_MARGIN_S, (
+        assert (guide_delta - baseline_delta) * expected_sign > RA_GUIDE_MARGIN_S, (
             f"RA guide pulse did not move in expected direction: "
             f"direction={direction} pulse_ms={pulse_ms} delta={guide_delta:.2f}s"
         )
@@ -622,7 +644,7 @@ def test_hw_splitter_guiding_pulses_all_directions_vs_tracking(
     else:
         current_value = sc.get_dec().to_degrees()
         guide_delta = current_value - start_value
-        assert guide_delta * expected_sign > DEC_GUIDE_MARGIN_DEG, (
+        assert (guide_delta - baseline_delta) * expected_sign > DEC_GUIDE_MARGIN_DEG, (
             f"DEC guide pulse did not move in expected direction: "
             f"direction={direction} pulse_ms={pulse_ms} delta={guide_delta:.3f}deg"
         )
