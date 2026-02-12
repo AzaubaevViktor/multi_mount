@@ -83,12 +83,12 @@ class SplitterController:
         ra: SkyWatcherLX200,
         dec: TMC2209LX200,
     ) -> None:
-        self.splitter = splitter
+        self._splitter = splitter
         self.ra = ra
         self.dec = dec
 
     def _cmd(self, command: str):
-        return self.splitter.handle(command)
+        return self._splitter.handle(command)
 
     def set_target_ra(self, value: LX200Ha) -> None:
         assert self._cmd(f"Sr{value}") is True
@@ -151,6 +151,196 @@ class SplitterController:
     def get_dec_status(self) -> TMC2209Status:
         return self.dec._adapter.status()
 
+    def _wait_until(self, predicate, timeout_s: float, error_message: str) -> None:
+        deadline = time.monotonic() + timeout_s
+        while time.monotonic() < deadline:
+            if predicate():
+                return
+            time.sleep(POLL_INTERVAL_S)
+        pytest.fail(error_message)
+
+    def _wait_ra_close(
+        self,
+        target: LX200Ha,
+        tolerance_s: float,
+        timeout_s: float,
+    ) -> None:
+        target_seconds = target.to_seconds()
+        last_ra = self.get_ra().to_seconds()
+
+        def _is_close() -> bool:
+            nonlocal last_ra
+            last_ra = self.get_ra().to_seconds()
+            return _ra_distance_seconds(last_ra, target_seconds) <= tolerance_s
+
+        self._wait_until(
+            _is_close,
+            timeout_s,
+            (
+                f"RA did not reach target in time: current={LX200Ha.from_seconds(last_ra)} "
+                f"target={target} distance={_ra_distance_seconds(last_ra, target_seconds):.2f}s"
+            ),
+        )
+
+    def _wait_dec_close(
+        self,
+        target: LX200Dec,
+        tolerance_deg: float,
+        timeout_s: float,
+    ) -> None:
+        target_deg = target.to_degrees()
+        last_dec = self.get_dec().to_degrees()
+
+        def _is_close() -> bool:
+            nonlocal last_dec
+            last_dec = self.get_dec().to_degrees()
+            return abs(last_dec - target_deg) <= tolerance_deg
+
+        self._wait_until(
+            _is_close,
+            timeout_s,
+            (
+                f"DEC did not reach target in time: current={LX200Dec.from_degrees(last_dec)} "
+                f"target={target} distance={abs(last_dec - target_deg):.3f}deg"
+            ),
+        )
+
+    def _sync_known_position(self, ra: LX200Ha, dec: LX200Dec) -> None:
+        self.halt_all()
+        self._assert_ra_explicitly_stopped()
+        self._assert_dec_explicitly_stopped()
+        time.sleep(SETTLE_S)
+        self.set_target_ra(ra)
+        self.set_target_dec(dec)
+        self.sync()
+        self._wait_ra_close(ra, SYNC_RA_TOLERANCE_S, 10.0)
+        self._wait_dec_close(dec, SYNC_DEC_TOLERANCE_DEG, 10.0)
+
+    def _wait_ra_moved(
+        self,
+        start_seconds: float,
+        expected_sign: int,
+        min_delta_s: float,
+        timeout_s: float,
+    ) -> float:
+        last_ra = start_seconds
+        last_delta = 0.0
+        deadline = time.monotonic() + timeout_s
+        while time.monotonic() < deadline:
+            last_ra = self.get_ra().to_seconds()
+            last_delta = _signed_ra_delta_seconds(start_seconds, last_ra)
+            if expected_sign > 0 and last_delta >= min_delta_s:
+                return last_delta
+            if expected_sign < 0 and last_delta <= -min_delta_s:
+                return last_delta
+            time.sleep(POLL_INTERVAL_S)
+        pytest.fail(
+            "RA did not move in expected direction: "
+            f"start={LX200Ha.from_seconds(start_seconds)} current={LX200Ha.from_seconds(last_ra)} "
+            f"delta={last_delta:.2f}s expected_sign={expected_sign}"
+        )
+
+    def _wait_dec_moved(
+        self,
+        start_deg: float,
+        expected_sign: int,
+        min_delta_deg: float,
+        timeout_s: float,
+    ) -> float:
+        last_dec = start_deg
+        last_delta = 0.0
+        deadline = time.monotonic() + timeout_s
+        while time.monotonic() < deadline:
+            last_dec = self.get_dec().to_degrees()
+            last_delta = last_dec - start_deg
+            if expected_sign > 0 and last_delta >= min_delta_deg:
+                return last_delta
+            if expected_sign < 0 and last_delta <= -min_delta_deg:
+                return last_delta
+            time.sleep(POLL_INTERVAL_S)
+        pytest.fail(
+            "DEC did not move in expected direction: "
+            f"start={LX200Dec.from_degrees(start_deg)} current={LX200Dec.from_degrees(last_dec)} "
+            f"delta={last_delta:.3f}deg expected_sign={expected_sign}"
+        )
+
+    def _measure_ra_delta(self, duration_s: float) -> float:
+        start = self.get_ra().to_seconds()
+        time.sleep(duration_s)
+        end = self.get_ra().to_seconds()
+        return _signed_ra_delta_seconds(start, end)
+
+    def _measure_dec_delta(self, duration_s: float) -> float:
+        start = self.get_dec().to_degrees()
+        time.sleep(duration_s)
+        end = self.get_dec().to_degrees()
+        return end - start
+
+    def _wait_dec_stopped(self, timeout_s: float) -> None:
+        last_status = self.get_dec_status()
+
+        def _is_stopped() -> bool:
+            nonlocal last_status
+            last_status = self.get_dec_status()
+            return last_status.phase in DEC_STOP_PHASES
+
+        self._wait_until(
+            _is_stopped,
+            timeout_s,
+            (
+                "DEC did not stop in time: "
+                f"phase={last_status.phase} target_set={last_status.target_set} "
+                f"speed={last_status.actual_speed_sps:.1f}"
+            ),
+        )
+
+    def _assert_ra_explicitly_stopped(self) -> None:
+        delta = self._measure_ra_delta(RA_STOP_CHECK_WINDOW_S)
+        assert abs(delta) <= RA_STOP_MAX_DELTA_S, (
+            "RA still looks like active manual/goto motion after stop command: "
+            f"delta={delta:.2f}s for {RA_STOP_CHECK_WINDOW_S:.1f}s"
+        )
+
+    def _assert_dec_explicitly_stopped(self) -> None:
+        self._wait_dec_stopped(STOP_CHECK_TIMEOUT_S)
+        delta = self._measure_dec_delta(DEC_STOP_CHECK_WINDOW_S)
+        assert abs(delta) <= DEC_STOP_MAX_DELTA_DEG, (
+            "DEC still changes after stop command: "
+            f"delta={delta:.3f}deg for {DEC_STOP_CHECK_WINDOW_S:.1f}s"
+        )
+
+    def _wait_slew_finished(
+        self,
+        has_ra_target: bool,
+        has_dec_target: bool,
+        timeout_s: float,
+    ) -> None:
+        last_dec = self.get_dec_status()
+
+        def _is_finished() -> bool:
+            nonlocal last_dec
+            ra_done = True
+            dec_done = True
+            if has_ra_target:
+                ra_done = not self.is_ra_goto_active()
+            if has_dec_target:
+                last_dec = self.get_dec_status()
+                dec_done = (
+                    last_dec.phase in DEC_STOP_PHASES
+                    and not last_dec.target_set
+                )
+            return ra_done and dec_done
+
+        self._wait_until(
+            _is_finished,
+            timeout_s,
+            (
+                "Slew did not finish in time: "
+                f"ra_active={self.is_ra_goto_active()} "
+                f"dec_phase={last_dec.phase} dec_target_set={last_dec.target_set}"
+            ),
+        )
+
 
 def _ra_distance_seconds(a_seconds: float, b_seconds: float) -> float:
     circle_seconds = LX200Ha.SECONDS_PER_CIRCLE
@@ -164,210 +354,10 @@ def _signed_ra_delta_seconds(start_seconds: float, end_seconds: float) -> float:
     return ((end_seconds - start_seconds + half_circle_seconds) % circle_seconds) - half_circle_seconds
 
 
-def _wait_until(predicate, timeout_s: float, error_message: str) -> None:
-    deadline = time.monotonic() + timeout_s
-    while time.monotonic() < deadline:
-        if predicate():
-            return
-        time.sleep(POLL_INTERVAL_S)
-    pytest.fail(error_message)
-
-
-def _wait_ra_close(
-    splitter: SplitterController,
-    target: LX200Ha,
-    tolerance_s: float,
-    timeout_s: float,
-) -> None:
-    target_seconds = target.to_seconds()
-    last_ra = splitter.get_ra().to_seconds()
-
-    def _is_close() -> bool:
-        nonlocal last_ra
-        last_ra = splitter.get_ra().to_seconds()
-        return _ra_distance_seconds(last_ra, target_seconds) <= tolerance_s
-
-    _wait_until(
-        _is_close,
-        timeout_s,
-        (
-            f"RA did not reach target in time: current={LX200Ha.from_seconds(last_ra)} "
-            f"target={target} distance={_ra_distance_seconds(last_ra, target_seconds):.2f}s"
-        ),
-    )
-
-
-def _wait_dec_close(
-    splitter: SplitterController,
-    target: LX200Dec,
-    tolerance_deg: float,
-    timeout_s: float,
-) -> None:
-    target_deg = target.to_degrees()
-    last_dec = splitter.get_dec().to_degrees()
-
-    def _is_close() -> bool:
-        nonlocal last_dec
-        last_dec = splitter.get_dec().to_degrees()
-        return abs(last_dec - target_deg) <= tolerance_deg
-
-    _wait_until(
-        _is_close,
-        timeout_s,
-        (
-            f"DEC did not reach target in time: current={LX200Dec.from_degrees(last_dec)} "
-            f"target={target} distance={abs(last_dec - target_deg):.3f}deg"
-        ),
-    )
-
-
-def _sync_known_position(splitter: SplitterController, ra: LX200Ha, dec: LX200Dec) -> None:
-    splitter.halt_all()
-    _assert_ra_explicitly_stopped(splitter)
-    _assert_dec_explicitly_stopped(splitter)
-    time.sleep(SETTLE_S)
-    splitter.set_target_ra(ra)
-    splitter.set_target_dec(dec)
-    splitter.sync()
-    _wait_ra_close(splitter, ra, SYNC_RA_TOLERANCE_S, 10.0)
-    _wait_dec_close(splitter, dec, SYNC_DEC_TOLERANCE_DEG, 10.0)
-
-
-def _wait_ra_moved(
-    splitter: SplitterController,
-    start_seconds: float,
-    expected_sign: int,
-    min_delta_s: float,
-    timeout_s: float,
-) -> float:
-    last_ra = start_seconds
-    last_delta = 0.0
-    deadline = time.monotonic() + timeout_s
-    while time.monotonic() < deadline:
-        last_ra = splitter.get_ra().to_seconds()
-        last_delta = _signed_ra_delta_seconds(start_seconds, last_ra)
-        if expected_sign > 0 and last_delta >= min_delta_s:
-            return last_delta
-        if expected_sign < 0 and last_delta <= -min_delta_s:
-            return last_delta
-        time.sleep(POLL_INTERVAL_S)
-    pytest.fail(
-        "RA did not move in expected direction: "
-        f"start={LX200Ha.from_seconds(start_seconds)} current={LX200Ha.from_seconds(last_ra)} "
-        f"delta={last_delta:.2f}s expected_sign={expected_sign}"
-    )
-
-
-def _wait_dec_moved(
-    splitter: SplitterController,
-    start_deg: float,
-    expected_sign: int,
-    min_delta_deg: float,
-    timeout_s: float,
-) -> float:
-    last_dec = start_deg
-    last_delta = 0.0
-    deadline = time.monotonic() + timeout_s
-    while time.monotonic() < deadline:
-        last_dec = splitter.get_dec().to_degrees()
-        last_delta = last_dec - start_deg
-        if expected_sign > 0 and last_delta >= min_delta_deg:
-            return last_delta
-        if expected_sign < 0 and last_delta <= -min_delta_deg:
-            return last_delta
-        time.sleep(POLL_INTERVAL_S)
-    pytest.fail(
-        "DEC did not move in expected direction: "
-        f"start={LX200Dec.from_degrees(start_deg)} current={LX200Dec.from_degrees(last_dec)} "
-        f"delta={last_delta:.3f}deg expected_sign={expected_sign}"
-    )
-
-
-def _measure_ra_delta(splitter: SplitterController, duration_s: float) -> float:
-    start = splitter.get_ra().to_seconds()
-    time.sleep(duration_s)
-    end = splitter.get_ra().to_seconds()
-    return _signed_ra_delta_seconds(start, end)
-
-
-def _measure_dec_delta(splitter: SplitterController, duration_s: float) -> float:
-    start = splitter.get_dec().to_degrees()
-    time.sleep(duration_s)
-    end = splitter.get_dec().to_degrees()
-    return end - start
-
-
-def _wait_dec_stopped(splitter: SplitterController, timeout_s: float) -> None:
-    last_status = splitter.get_dec_status()
-
-    def _is_stopped() -> bool:
-        nonlocal last_status
-        last_status = splitter.get_dec_status()
-        return last_status.phase in DEC_STOP_PHASES
-
-    _wait_until(
-        _is_stopped,
-        timeout_s,
-        (
-            "DEC did not stop in time: "
-            f"phase={last_status.phase} target_set={last_status.target_set} "
-            f"speed={last_status.actual_speed_sps:.1f}"
-        ),
-    )
-
-
-def _assert_ra_explicitly_stopped(splitter: SplitterController) -> None:
-    delta = _measure_ra_delta(splitter, RA_STOP_CHECK_WINDOW_S)
-    assert abs(delta) <= RA_STOP_MAX_DELTA_S, (
-        "RA still looks like active manual/goto motion after stop command: "
-        f"delta={delta:.2f}s for {RA_STOP_CHECK_WINDOW_S:.1f}s"
-    )
-
-
-def _assert_dec_explicitly_stopped(splitter: SplitterController) -> None:
-    _wait_dec_stopped(splitter, STOP_CHECK_TIMEOUT_S)
-    delta = _measure_dec_delta(splitter, DEC_STOP_CHECK_WINDOW_S)
-    assert abs(delta) <= DEC_STOP_MAX_DELTA_DEG, (
-        "DEC still changes after stop command: "
-        f"delta={delta:.3f}deg for {DEC_STOP_CHECK_WINDOW_S:.1f}s"
-    )
-
-
-def _wait_slew_finished(
-    splitter: SplitterController,
-    has_ra_target: bool,
-    has_dec_target: bool,
-    timeout_s: float,
-) -> None:
-    last_dec = splitter.get_dec_status()
-
-    def _is_finished() -> bool:
-        nonlocal last_dec
-        ra_done = True
-        dec_done = True
-        if has_ra_target:
-            ra_done = not splitter.is_ra_goto_active()
-        if has_dec_target:
-            last_dec = splitter.get_dec_status()
-            dec_done = (
-                last_dec.phase in DEC_STOP_PHASES
-                and not last_dec.target_set
-            )
-        return ra_done and dec_done
-
-    _wait_until(
-        _is_finished,
-        timeout_s,
-        (
-            "Slew did not finish in time: "
-            f"ra_active={splitter.is_ra_goto_active()} "
-            f"dec_phase={last_dec.phase} dec_target_set={last_dec.target_set}"
-        ),
-    )
 
 
 @pytest.fixture(scope="module")
-def splitter() -> Iterator[SplitterController]:
+def sc() -> Iterator[SplitterController]:
     sw_path = SerialLine.search(SW_PORT_PATTERN)
     sw_serial = SerialLine(sw_path, SW_BAUD, SW_TIMEOUT_S, SW_SERIAL_NAME)
     sw_mount = SkyWatcherMount(sw_serial)
@@ -378,24 +368,24 @@ def splitter() -> Iterator[SplitterController]:
     dec_adapter = TMC2209Adapter(dec_serial)
     dec_lx200 = TMC2209LX200(dec_adapter)
 
-    splitter_lx200 = LX200Splitter(ra=sw_lx200, dec=dec_lx200)
-    splitter_lx200.connect()
-    controller = SplitterController(
-        splitter=splitter_lx200,
+    splitter = LX200Splitter(ra=sw_lx200, dec=dec_lx200)
+    splitter.connect()
+    sc = SplitterController(
+        splitter=splitter,
         ra=sw_lx200,
         dec=dec_lx200,
     )
 
     try:
-        yield controller
+        yield sc
     finally:
         try:
-            controller.halt_all()
+            sc.halt_all()
         except Exception:
             pass
         time.sleep(SETTLE_S)
-        del controller
-        del splitter_lx200
+        del sc
+        del splitter
         del sw_lx200
         del dec_lx200
 
@@ -411,21 +401,21 @@ def splitter() -> Iterator[SplitterController]:
 
 
 @pytest.fixture(autouse=True)
-def _ensure_halted(splitter: SplitterController) -> Iterator[None]:
+def _ensure_halted(sc: SplitterController) -> Iterator[None]:
     try:
-        splitter.halt_all()
+        sc.halt_all()
     except Exception:
         pass
     time.sleep(SETTLE_S)
     yield
     try:
-        splitter.halt_all()
+        sc.halt_all()
     except Exception:
         pass
     time.sleep(SETTLE_S)
 
 
-def test_hw_splitter_sync_ra_dec_multiple_times(splitter: SplitterController) -> None:
+def test_hw_splitter_sync_ra_dec_multiple_times(sc: SplitterController) -> None:
     points = (
         ("11:58:00", "+20*00:00"),
         ("12:00:30", "+35*30:00"),
@@ -436,12 +426,12 @@ def test_hw_splitter_sync_ra_dec_multiple_times(splitter: SplitterController) ->
         target_ra = LX200Ha.from_string(ra_text)
         target_dec = LX200Dec.from_string(dec_text)
 
-        splitter.set_target_ra(target_ra)
-        splitter.set_target_dec(target_dec)
-        splitter.sync()
+        sc.set_target_ra(target_ra)
+        sc.set_target_dec(target_dec)
+        sc.sync()
 
-        _wait_ra_close(splitter, target_ra, SYNC_RA_TOLERANCE_S, 10.0)
-        _wait_dec_close(splitter, target_dec, SYNC_DEC_TOLERANCE_DEG, 10.0)
+        sc._wait_ra_close(target_ra, SYNC_RA_TOLERANCE_S, 10.0)
+        sc._wait_dec_close(target_dec, SYNC_DEC_TOLERANCE_DEG, 10.0)
 
 
 @pytest.mark.parametrize(
@@ -449,110 +439,96 @@ def test_hw_splitter_sync_ra_dec_multiple_times(splitter: SplitterController) ->
     MANUAL_MOVE_CASES,
 )
 def test_hw_splitter_manual_move_all_directions(
-    splitter: SplitterController,
+    sc: SplitterController,
     move_command: str,
     halt_command: str,
     axis: str,
     expected_sign: int,
 ) -> None:
-    _sync_known_position(
-        splitter,
-        LX200Ha.from_string("12:00:00"),
+    sc._sync_known_position(LX200Ha.from_string("12:00:00"),
         LX200Dec.from_string("+35*00:00"),
     )
 
     if axis == "ra":
-        start_value = splitter.get_ra().to_seconds()
+        start_value = sc.get_ra().to_seconds()
     else:
-        start_value = splitter.get_dec().to_degrees()
+        start_value = sc.get_dec().to_degrees()
 
-    getattr(splitter, move_command)()
+    getattr(sc, move_command)()
 
     if axis == "ra":
-        _wait_ra_moved(
-            splitter,
-            start_value,
+        sc._wait_ra_moved(start_value,
             expected_sign=expected_sign,
             min_delta_s=RA_MANUAL_MIN_DELTA_S,
             timeout_s=8.0,
         )
     else:
-        _wait_dec_moved(
-            splitter,
-            start_value,
+        sc._wait_dec_moved(start_value,
             expected_sign=expected_sign,
             min_delta_deg=DEC_MANUAL_MIN_DELTA_DEG,
             timeout_s=8.0,
         )
 
     time.sleep(MANUAL_MOVE_DURATION_S)
-    getattr(splitter, halt_command)()
+    getattr(sc, halt_command)()
 
     if axis == "ra":
-        _assert_ra_explicitly_stopped(splitter)
+        sc._assert_ra_explicitly_stopped()
     else:
-        _assert_dec_explicitly_stopped(splitter)
+        sc._assert_dec_explicitly_stopped()
 
     time.sleep(SETTLE_S)
     if axis == "ra":
-        final_value = splitter.get_ra().to_seconds()
+        final_value = sc.get_ra().to_seconds()
         delta = _signed_ra_delta_seconds(start_value, final_value)
         assert delta * expected_sign > RA_MANUAL_MIN_DELTA_S
     else:
-        final_value = splitter.get_dec().to_degrees()
+        final_value = sc.get_dec().to_degrees()
         delta = final_value - start_value
         assert delta * expected_sign > DEC_MANUAL_MIN_DELTA_DEG
 
 
 @pytest.mark.parametrize(("ra_delta_s", "dec_delta_deg"), SLEW_DIRECTION_CASES)
 def test_hw_splitter_slew_to_target_reaches_goal(
-    splitter: SplitterController,
+    sc: SplitterController,
     ra_delta_s: float,
     dec_delta_deg: float,
 ) -> None:
-    _sync_known_position(
-        splitter,
-        LX200Ha.from_string("12:00:00"),
+    sc._sync_known_position(LX200Ha.from_string("12:00:00"),
         LX200Dec.from_string("+25*00:00"),
     )
 
-    start_ra = splitter.get_ra().to_seconds()
-    start_dec = splitter.get_dec().to_degrees()
+    start_ra = sc.get_ra().to_seconds()
+    start_dec = sc.get_dec().to_degrees()
 
     target_ra = LX200Ha.from_seconds(start_ra + ra_delta_s)
     target_dec = LX200Dec.from_degrees(start_dec + dec_delta_deg)
 
-    splitter.set_slew_to_find()
-    splitter.set_target_ra(target_ra)
-    splitter.set_target_dec(target_dec)
-    splitter.slew()
+    sc.set_slew_to_find()
+    sc.set_target_ra(target_ra)
+    sc.set_target_dec(target_dec)
+    sc.slew()
 
     if ra_delta_s != 0:
-        _wait_ra_moved(
-            splitter,
-            start_ra,
+        sc._wait_ra_moved(start_ra,
             expected_sign=1 if ra_delta_s > 0 else -1,
             min_delta_s=2.0,
             timeout_s=10.0,
         )
     if dec_delta_deg != 0:
-        _wait_dec_moved(
-            splitter,
-            start_dec,
+        sc._wait_dec_moved(start_dec,
             expected_sign=1 if dec_delta_deg > 0 else -1,
             min_delta_deg=0.2,
             timeout_s=10.0,
         )
 
-    _wait_slew_finished(
-        splitter,
-        has_ra_target=ra_delta_s != 0,
+    sc._wait_slew_finished(has_ra_target=ra_delta_s != 0,
         has_dec_target=dec_delta_deg != 0,
         timeout_s=45.0,
     )
 
-    final_ra = splitter.get_ra().to_seconds()
-    final_dec = splitter.get_dec().to_degrees()
+    final_ra = sc.get_ra().to_seconds()
+    final_dec = sc.get_dec().to_degrees()
 
     if ra_delta_s != 0:
         actual_ra_delta = _signed_ra_delta_seconds(start_ra, final_ra)
@@ -567,35 +543,33 @@ def test_hw_splitter_slew_to_target_reaches_goal(
         assert abs(actual_dec_delta) <= abs(dec_delta_deg) + SLEW_REACH_DEC_TOLERANCE_DEG
 
 
-def test_hw_splitter_slew_halt_all_stops_early(splitter: SplitterController) -> None:
-    _sync_known_position(
-        splitter,
-        LX200Ha.from_string("12:00:00"),
+def test_hw_splitter_slew_halt_all_stops_early(sc: SplitterController) -> None:
+    sc._sync_known_position(LX200Ha.from_string("12:00:00"),
         LX200Dec.from_string("+20*00:00"),
     )
 
-    start_ra = splitter.get_ra().to_seconds()
-    start_dec = splitter.get_dec().to_degrees()
+    start_ra = sc.get_ra().to_seconds()
+    start_dec = sc.get_dec().to_degrees()
 
     target_ra = LX200Ha.from_seconds(start_ra + 1200)
     target_dec = LX200Dec.from_degrees(start_dec + 20.0)
 
-    splitter.set_slew_to_find()
-    splitter.set_target_ra(target_ra)
-    splitter.set_target_dec(target_dec)
-    splitter.slew()
+    sc.set_slew_to_find()
+    sc.set_target_ra(target_ra)
+    sc.set_target_dec(target_dec)
+    sc.slew()
 
-    _wait_ra_moved(splitter, start_ra, expected_sign=1, min_delta_s=2.0, timeout_s=10.0)
-    _wait_dec_moved(splitter, start_dec, expected_sign=1, min_delta_deg=0.2, timeout_s=10.0)
+    sc._wait_ra_moved(start_ra, expected_sign=1, min_delta_s=2.0, timeout_s=10.0)
+    sc._wait_dec_moved(start_dec, expected_sign=1, min_delta_deg=0.2, timeout_s=10.0)
 
     time.sleep(1.0)
-    splitter.halt_all()
-    _assert_ra_explicitly_stopped(splitter)
-    _assert_dec_explicitly_stopped(splitter)
+    sc.halt_all()
+    sc._assert_ra_explicitly_stopped()
+    sc._assert_dec_explicitly_stopped()
     time.sleep(SETTLE_S)
 
-    stopped_ra = splitter.get_ra().to_seconds()
-    stopped_dec = splitter.get_dec().to_degrees()
+    stopped_ra = sc.get_ra().to_seconds()
+    stopped_dec = sc.get_dec().to_degrees()
 
     assert _ra_distance_seconds(stopped_ra, target_ra.to_seconds()) > 60.0
     assert abs(stopped_dec - target_dec.to_degrees()) > 2.0
@@ -603,41 +577,37 @@ def test_hw_splitter_slew_halt_all_stops_early(splitter: SplitterController) -> 
 
 @pytest.mark.parametrize(("direction", "pulse_ms", "axis", "expected_sign"), GUIDE_CASES)
 def test_hw_splitter_guiding_pulses_all_directions_vs_tracking(
-    splitter: SplitterController,
+    sc: SplitterController,
     direction: str,
     pulse_ms: int,
     axis: str,
     expected_sign: int,
 ) -> None:
     # TODO: Move shared hardware-measurement helpers into a reusable utility module if more hw suites appear.
-    _sync_known_position(
-        splitter,
-        LX200Ha.from_string("12:00:00"),
+    sc._sync_known_position(LX200Ha.from_string("12:00:00"),
         LX200Dec.from_string("+35*00:00"),
     )
 
     duration_s = pulse_ms / 1000.0 + GUIDE_SETTLE_EXTRA_S
     if axis == "ra":
-        baseline_delta = _measure_ra_delta(splitter, duration_s)
+        baseline_delta = sc._measure_ra_delta(duration_s)
     else:
-        baseline_delta = _measure_dec_delta(splitter, duration_s)
+        baseline_delta = sc._measure_dec_delta(duration_s)
 
-    _sync_known_position(
-        splitter,
-        LX200Ha.from_string("12:00:00"),
+    sc._sync_known_position(LX200Ha.from_string("12:00:00"),
         LX200Dec.from_string("+35*00:00"),
     )
 
     if axis == "ra":
-        start_value = splitter.get_ra().to_seconds()
+        start_value = sc.get_ra().to_seconds()
     else:
-        start_value = splitter.get_dec().to_degrees()
+        start_value = sc.get_dec().to_degrees()
 
-    splitter.guide(direction, pulse_ms)
+    sc.guide(direction, pulse_ms)
     time.sleep(duration_s)
 
     if axis == "ra":
-        current_value = splitter.get_ra().to_seconds()
+        current_value = sc.get_ra().to_seconds()
         guide_delta = _signed_ra_delta_seconds(start_value, current_value)
         assert guide_delta * expected_sign > RA_GUIDE_MARGIN_S, (
             f"RA guide pulse did not move in expected direction: "
@@ -649,7 +619,7 @@ def test_hw_splitter_guiding_pulses_all_directions_vs_tracking(
             f"guided={guide_delta:.2f}s tracking={baseline_delta:.2f}s"
         )
     else:
-        current_value = splitter.get_dec().to_degrees()
+        current_value = sc.get_dec().to_degrees()
         guide_delta = current_value - start_value
         assert guide_delta * expected_sign > DEC_GUIDE_MARGIN_DEG, (
             f"DEC guide pulse did not move in expected direction: "
@@ -661,6 +631,6 @@ def test_hw_splitter_guiding_pulses_all_directions_vs_tracking(
             f"guided={guide_delta:.3f}deg tracking={baseline_delta:.3f}deg"
         )
 
-    splitter.halt_all()
-    _assert_ra_explicitly_stopped(splitter)
-    _assert_dec_explicitly_stopped(splitter)
+    sc.halt_all()
+    sc._assert_ra_explicitly_stopped()
+    sc._assert_dec_explicitly_stopped()
