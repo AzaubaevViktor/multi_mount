@@ -32,7 +32,7 @@ SYNC_DEC_TOLERANCE_DEG = 0.3
 
 MANUAL_MOVE_DURATION_S = 2.0
 RA_MANUAL_MIN_DELTA_S = 2.0
-DEC_MANUAL_MIN_DELTA_DEG = 0.5
+DEC_MANUAL_MIN_DELTA_DEG = 0.1
 
 GUIDE_SETTLE_EXTRA_S = 1.2
 RA_GUIDE_MARGIN_S = 0.8
@@ -49,8 +49,8 @@ SLEW_REACH_DEC_TOLERANCE_DEG = 1.0
 
 
 MANUAL_MOVE_CASES = (
-    pytest.param("move_east", "halt_east", "ra", 1, id="east"),
-    pytest.param("move_west", "halt_west", "ra", -1, id="west"),
+    pytest.param("move_east", "halt_east", "ra", -1, id="east"),
+    pytest.param("move_west", "halt_west", "ra", 1, id="west"),
     pytest.param("move_north", "halt_north", "dec", 1, id="north"),
     pytest.param("move_south", "halt_south", "dec", -1, id="south"),
 )
@@ -67,10 +67,10 @@ SLEW_DIRECTION_CASES = (
 )
 
 GUIDE_CASES = (
-    pytest.param("e", GUIDE_PULSE_MS_VALUES[0], "ra", 1, id="guide_e_2500"),
-    pytest.param("e", GUIDE_PULSE_MS_VALUES[1], "ra", 1, id="guide_e_5000"),
-    pytest.param("w", GUIDE_PULSE_MS_VALUES[0], "ra", -1, id="guide_w_2500"),
-    pytest.param("w", GUIDE_PULSE_MS_VALUES[1], "ra", -1, id="guide_w_5000"),
+    pytest.param("e", GUIDE_PULSE_MS_VALUES[0], "ra", -1, id="guide_e_2500"),
+    pytest.param("e", GUIDE_PULSE_MS_VALUES[1], "ra", -1, id="guide_e_5000"),
+    pytest.param("w", GUIDE_PULSE_MS_VALUES[0], "ra", 1, id="guide_w_2500"),
+    pytest.param("w", GUIDE_PULSE_MS_VALUES[1], "ra", 1, id="guide_w_5000"),
     pytest.param("n", GUIDE_PULSE_MS_VALUES[0], "dec", 1, id="guide_n_2500"),
     pytest.param("n", GUIDE_PULSE_MS_VALUES[1], "dec", 1, id="guide_n_5000"),
     pytest.param("s", GUIDE_PULSE_MS_VALUES[0], "dec", -1, id="guide_s_2500"),

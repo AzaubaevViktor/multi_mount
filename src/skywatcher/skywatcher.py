@@ -330,6 +330,7 @@ class SkyWatcherMount:
     
     def _set_motion(self, new_status: SkyWatcherStatus):
         self.wait_till_stop(do_stop=True)
+        self.logger.info("Set motion mode: %s", new_status)
         self._transact(SkyWatcherCommand.SET_MOTION_MODE, new_status.to_command())
 
     def _set_speed(self, period: int):
