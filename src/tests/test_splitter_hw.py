@@ -146,6 +146,9 @@ class SplitterController:
         response = self._cmd("GD")
         assert isinstance(response, LX200Dec)
         return response
+    
+    def get_telescope_raw_position(self) -> tuple[float, float]:
+        return self._splitter.get_telescope_raw_position()
 
     def is_ra_goto_active(self) -> bool:
         return self.ra._goto_to is not None
@@ -606,53 +609,76 @@ def test_hw_splitter_guiding_pulses_all_directions_vs_tracking(
     axis: str,
     expected_sign: int,
 ) -> None:
-    # TODO: Move shared hardware-measurement helpers into a reusable utility module if more hw suites appear.
     sc.sync_known_position(LX200Ha.from_string("12:00:00"),
         LX200Dec.from_string("+35*00:00"),
     )
 
     duration_s = pulse_ms / 1000.0 + GUIDE_SETTLE_EXTRA_S
-    if axis == "ra":
-        baseline_delta = sc.measure_ra_delta(duration_s)
-    else:
-        baseline_delta = sc.measure_dec_delta(duration_s)
+    baseline_raw_ra_start, baseline_raw_dec_start = sc.get_telescope_raw_position()
+    time.sleep(duration_s)
+    baseline_raw_ra_end, baseline_raw_dec_end = sc.get_telescope_raw_position()
+
+    baseline_rate_ra = _signed_ra_delta_seconds(
+        baseline_raw_ra_start,
+        baseline_raw_ra_end,
+    ) / duration_s
+    baseline_rate_dec = (
+        (baseline_raw_dec_end - baseline_raw_dec_start) / sc.dec.steps_per_degree
+    ) / duration_s
 
     sc.sync_known_position(LX200Ha.from_string("12:00:00"),
         LX200Dec.from_string("+35*00:00"),
     )
 
-    if axis == "ra":
-        start_value = sc.get_ra().to_seconds()
-    else:
-        start_value = sc.get_dec().to_degrees()
+    start_ra = sc.get_ra().to_seconds()
+    start_dec = sc.get_dec().to_degrees()
+    start_raw_ra, start_raw_dec = sc.get_telescope_raw_position()
 
     sc.guide(direction, pulse_ms)
     time.sleep(duration_s)
 
+    current_ra = sc.get_ra().to_seconds()
+    current_dec = sc.get_dec().to_degrees()
+    current_raw_ra, current_raw_dec = sc.get_telescope_raw_position()
+
+    guide_rate_ra = _signed_ra_delta_seconds(start_raw_ra, current_raw_ra) / duration_s
+    guide_rate_dec = ((current_raw_dec - start_raw_dec) / sc.dec.steps_per_degree) / duration_s
+
     if axis == "ra":
-        current_value = sc.get_ra().to_seconds()
-        guide_delta = _signed_ra_delta_seconds(start_value, current_value)
-        assert (guide_delta - baseline_delta) * expected_sign > RA_GUIDE_MARGIN_S, (
+        assert (guide_rate_ra - baseline_rate_ra) * expected_sign > RA_GUIDE_MARGIN_S, (
             f"RA guide pulse did not move in expected direction: "
-            f"direction={direction} pulse_ms={pulse_ms} delta={guide_delta:.2f}s"
+            f"direction={direction} pulse_ms={pulse_ms} raw_rate={guide_rate_ra:.3f}s/s "
+            f"baseline={baseline_rate_ra:.3f}s/s"
         )
-        assert abs(guide_delta) > abs(baseline_delta) + RA_GUIDE_MARGIN_S, (
+        assert abs(guide_rate_ra) > abs(baseline_rate_ra) + RA_GUIDE_MARGIN_S, (
             f"RA guide pulse is too close to plain tracking: "
             f"direction={direction} pulse_ms={pulse_ms} "
-            f"guided={guide_delta:.2f}s tracking={baseline_delta:.2f}s"
+            f"guided={guide_rate_ra:.3f}s/s tracking={baseline_rate_ra:.3f}s/s"
         )
     else:
-        current_value = sc.get_dec().to_degrees()
-        guide_delta = current_value - start_value
-        assert (guide_delta - baseline_delta) * expected_sign > DEC_GUIDE_MARGIN_DEG, (
+        assert (guide_rate_dec - baseline_rate_dec) * expected_sign > DEC_GUIDE_MARGIN_DEG, (
             f"DEC guide pulse did not move in expected direction: "
-            f"direction={direction} pulse_ms={pulse_ms} delta={guide_delta:.3f}deg"
+            f"direction={direction} pulse_ms={pulse_ms} raw_rate={guide_rate_dec:.3f}deg/s "
+            f"baseline={baseline_rate_dec:.3f}deg/s"
         )
-        assert abs(guide_delta) > abs(baseline_delta) + DEC_GUIDE_MARGIN_DEG, (
+        assert abs(guide_rate_dec) > abs(baseline_rate_dec) + DEC_GUIDE_MARGIN_DEG, (
             f"DEC guide pulse is too close to plain tracking: "
             f"direction={direction} pulse_ms={pulse_ms} "
-            f"guided={guide_delta:.3f}deg tracking={baseline_delta:.3f}deg"
+            f"guided={guide_rate_dec:.3f}deg/s tracking={baseline_rate_dec:.3f}deg/s"
         )
+
+    displayed_ra_delta = _signed_ra_delta_seconds(start_ra, current_ra)
+    displayed_dec_delta = current_dec - start_dec
+    assert abs(displayed_ra_delta) < .1, (
+        "Guide pulse changed displayed RA while raw telemetry moved: "
+        f"direction={direction} pulse_ms={pulse_ms} displayed_ra_delta={displayed_ra_delta:.3f}s "
+        f"raw_ra_rate={guide_rate_ra:.3f}s/s"
+    )
+    assert abs(displayed_dec_delta) < .1, (
+        "Guide pulse changed displayed DEC while raw telemetry moved: "
+        f"direction={direction} pulse_ms={pulse_ms} displayed_dec_delta={displayed_dec_delta:.3f}deg "
+        f"raw_dec_rate={guide_rate_dec:.3f}deg/s"
+    )
 
     sc.halt_all()
     sc.assert_ra_explicitly_stopped()

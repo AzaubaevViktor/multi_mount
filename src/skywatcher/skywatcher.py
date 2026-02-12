@@ -1,10 +1,11 @@
 import dataclasses
 from enum import IntEnum, StrEnum
+import functools
 import logging
 from operator import is_
 from socket import LOCAL_PEERCRED
 import time
-from typing import Callable, Self
+from typing import Any, Callable, Self
 from lx200.protocols import LX200Ha
 from serial_wrapper.wrapper import SerialLine
 
@@ -197,21 +198,32 @@ class SkyWatcherMount:
 
         payload_raw = ''.join(payload)
 
-        self.logger.debug("TX %s", payload)
-        response = self._serial.query(payload_raw)
-        self.logger.debug("RX %s", response)
+        count = 3
+        while True:
+            try:
+                self.logger.debug("TX %s", payload)
+                response = self._serial.query(payload_raw)
+                self.logger.debug("RX %s", response)
 
-        if not response.endswith(self._TRAILING):
-            raise SkyWatcherWrongResponce(response)
-        # TODO: add repeat
-        
-        responce_clean = response.removesuffix(self._TRAILING)
+                if not response.endswith(self._TRAILING):
+                    raise SkyWatcherWrongResponce(response)
+                
 
-        if response[0] == self._COMMAND_ERROR_PREFIX:
-            raise SkyWatcherCommandError(response)
-        
-        if response[0] != self._RESPONCE_PREFIX:
-            raise SkyWatcherWrongResponce(response)
+                if response[0] == self._COMMAND_ERROR_PREFIX:
+                    raise SkyWatcherCommandError(response)
+                
+                if response[0] != self._RESPONCE_PREFIX:
+                    raise SkyWatcherWrongResponce(response)
+                
+                responce_clean = response.removesuffix(self._TRAILING)
+                break
+            except SkyWatcherWrongResponce:
+                if not count:
+                    raise 
+
+                self.logger.exception("While quering, %d last", count)
+
+                count -= 1
         
         responce_clean = responce_clean.removeprefix(self._RESPONCE_PREFIX)
         

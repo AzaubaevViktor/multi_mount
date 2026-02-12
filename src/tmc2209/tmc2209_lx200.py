@@ -110,12 +110,12 @@ class TMC2209LX200(LX200Base):
     def stop(self):
         self._adapter.close()
 
-    def _get_position(self) -> int:
+    def get_telescope_raw_position(self) -> tuple[float, float]:
         position = self._adapter.status().position
         new_position = int(position % self.steps_per_rev)
         if new_position != position:
             self._adapter.set_position(new_position)
-        return new_position
+        return 0, new_position
 
     def _steps_from_dec(self, position: LX200Dec) -> int:
         return int(round(position.to_degrees() * self.steps_per_degree % self.steps_per_rev))
@@ -125,7 +125,7 @@ class TMC2209LX200(LX200Base):
         return LX200Dec.from_degrees(degrees)
 
     def get_telescope_dec(self) -> LX200Dec:
-        return self._dec_from_steps(self._get_position())
+        return self._dec_from_steps(int(self.get_telescope_raw_position()[1]))
 
     def sync_telescope_dec(self, position: LX200Dec) -> bool:
         steps = self._steps_from_dec(position)
@@ -137,7 +137,7 @@ class TMC2209LX200(LX200Base):
         return True
 
     def slew_to_dec(self, position: LX200Dec) -> bool:
-        current_position = self._get_position()
+        current_position = int(self.get_telescope_raw_position()[1])
         target_steps = self._steps_from_dec(position)
         delta_steps = target_steps - current_position
 

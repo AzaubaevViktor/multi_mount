@@ -112,6 +112,9 @@ class LX200Base:
     def get_telescope_ra(self) -> LX200Ha:
         raise NotImplementedError()
     
+    def get_telescope_raw_position(self) -> tuple[float, float]:
+        raise NotImplementedError()
+    
     def sync_telescope_ra(self, position: LX200Ha) -> bool:
         raise NotImplementedError()
     

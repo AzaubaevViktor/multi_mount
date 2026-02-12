@@ -31,6 +31,12 @@ class LX200Splitter(LX200Handler):
     def get_telescope_ra(self) -> LX200Ha:
         return self.ra.get_telescope_ra()
     
+    def get_telescope_raw_position(self) -> tuple[float, float]:
+        return (
+            self.ra.get_telescope_raw_position()[0],
+            self.dec.get_telescope_raw_position()[1],
+        )
+    
     def slew_to_ra(self, position: LX200Ha) -> bool:
         return self.ra.slew_to_ra(position)
     

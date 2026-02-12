@@ -158,6 +158,9 @@ class SkyWatcherLX200(LX200Base):
         ra_seconds = int(round(self._ra_seconds)) % LX200Ha.SECONDS_PER_CIRCLE
         return LX200Ha.from_seconds(ra_seconds)
     
+    def get_telescope_raw_position(self) -> tuple[float, float]:
+        return self.mount.get_telesope_seconds(), 0
+    
     def sync_telescope_ra(self, position: LX200Ha) -> bool:
         with self._ra_update_lock:
             self._ra_seconds = position.to_seconds()
