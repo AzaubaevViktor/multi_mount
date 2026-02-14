@@ -48,36 +48,6 @@ SLEW_REACH_RA_TOLERANCE_S = 25.0
 SLEW_REACH_DEC_TOLERANCE_DEG = 1.0
 
 
-MANUAL_MOVE_CASES = (
-    pytest.param("move_east", "halt_east", "ra", -1, id="east"),
-    pytest.param("move_west", "halt_west", "ra", 1, id="west"),
-    pytest.param("move_north", "halt_north", "dec", 1, id="north"),
-    pytest.param("move_south", "halt_south", "dec", -1, id="south"),
-)
-
-SLEW_DIRECTION_CASES = (
-    pytest.param(180.0, 0.0, id="ra_plus"),
-    pytest.param(-180.0, 0.0, id="ra_minus"),
-    pytest.param(0.0, 3.0, id="dec_plus"),
-    pytest.param(0.0, -3.0, id="dec_minus"),
-    pytest.param(180.0, 3.0, id="ra_plus_dec_plus"),
-    pytest.param(180.0, -3.0, id="ra_plus_dec_minus"),
-    pytest.param(-180.0, 3.0, id="ra_minus_dec_plus"),
-    pytest.param(-180.0, -3.0, id="ra_minus_dec_minus"),
-)
-
-GUIDE_CASES = (
-    pytest.param("e", GUIDE_PULSE_MS_VALUES[0], "ra", -1, id="guide_e_2500"),
-    pytest.param("e", GUIDE_PULSE_MS_VALUES[1], "ra", -1, id="guide_e_5000"),
-    pytest.param("w", GUIDE_PULSE_MS_VALUES[0], "ra", 1, id="guide_w_2500"),
-    pytest.param("w", GUIDE_PULSE_MS_VALUES[1], "ra", 1, id="guide_w_5000"),
-    pytest.param("n", GUIDE_PULSE_MS_VALUES[0], "dec", 1, id="guide_n_2500"),
-    pytest.param("n", GUIDE_PULSE_MS_VALUES[1], "dec", 1, id="guide_n_5000"),
-    pytest.param("s", GUIDE_PULSE_MS_VALUES[0], "dec", -1, id="guide_s_2500"),
-    pytest.param("s", GUIDE_PULSE_MS_VALUES[1], "dec", -1, id="guide_s_5000"),
-)
-
-
 class SplitterController:
     def __init__(
         self,
@@ -443,7 +413,12 @@ def test_hw_splitter_sync_ra_dec_multiple_times(sc: SplitterController) -> None:
 
 @pytest.mark.parametrize(
     ("move_command", "halt_command", "axis", "expected_sign"),
-    MANUAL_MOVE_CASES,
+    (
+        pytest.param("move_east", "halt_east", "ra", -1, id="east"),
+        pytest.param("move_west", "halt_west", "ra", 1, id="west"),
+        pytest.param("move_north", "halt_north", "dec", 1, id="north"),
+        pytest.param("move_south", "halt_south", "dec", -1, id="south"),
+    ),
 )
 def test_hw_splitter_manual_move_all_directions(
     sc: SplitterController,
@@ -495,7 +470,19 @@ def test_hw_splitter_manual_move_all_directions(
         assert delta * expected_sign > DEC_MANUAL_MIN_DELTA_DEG
 
 
-@pytest.mark.parametrize(("ra_delta_s", "dec_delta_deg"), SLEW_DIRECTION_CASES)
+@pytest.mark.parametrize(
+    ("ra_delta_s", "dec_delta_deg"),
+    (
+        pytest.param(1000.0, 0.0, id="ra_plus"),  # TODO: Add more variatives at ra/dec
+        pytest.param(-1000.0, 0.0, id="ra_minus"),
+        pytest.param(0.0, 3.0, id="dec_plus"),
+        pytest.param(0.0, -3.0, id="dec_minus"),
+        pytest.param(1000.0, 3.0, id="ra_plus_dec_plus"),
+        pytest.param(1000.0, -3.0, id="ra_plus_dec_minus"),
+        pytest.param(-1000.0, 3.0, id="ra_minus_dec_plus"),
+        pytest.param(-1000.0, -3.0, id="ra_minus_dec_minus"),
+    ),
+)
 def test_hw_splitter_slew_to_target_reaches_goal(
     sc: SplitterController,
     ra_delta_s: float,
@@ -601,7 +588,19 @@ def test_hw_splitter_baseline_delta(
         assert abs(baseline_delta) < .1
 
 
-@pytest.mark.parametrize(("direction", "pulse_ms", "axis", "expected_sign"), GUIDE_CASES)
+@pytest.mark.parametrize(
+    ("direction", "pulse_ms", "axis", "expected_sign"),
+    (
+        pytest.param("e", GUIDE_PULSE_MS_VALUES[0], "ra", -1, id="guide_e_2500"),
+        pytest.param("e", GUIDE_PULSE_MS_VALUES[1], "ra", -1, id="guide_e_5000"),
+        pytest.param("w", GUIDE_PULSE_MS_VALUES[0], "ra", 1, id="guide_w_2500"),
+        pytest.param("w", GUIDE_PULSE_MS_VALUES[1], "ra", 1, id="guide_w_5000"),
+        pytest.param("n", GUIDE_PULSE_MS_VALUES[0], "dec", 1, id="guide_n_2500"),
+        pytest.param("n", GUIDE_PULSE_MS_VALUES[1], "dec", 1, id="guide_n_5000"),
+        pytest.param("s", GUIDE_PULSE_MS_VALUES[0], "dec", -1, id="guide_s_2500"),
+        pytest.param("s", GUIDE_PULSE_MS_VALUES[1], "dec", -1, id="guide_s_5000"),
+    ),
+)
 def test_hw_splitter_guiding_pulses_all_directions_vs_tracking(
     sc: SplitterController,
     direction: str,

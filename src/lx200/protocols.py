@@ -41,27 +41,28 @@ class LX200DecRangeError(LX200DecError):
 
 
 class LX200Ha:
-    __slots__ = ("_hours", "_minutes", "_seconds")
+    __slots__ = ("_total_seconds",)
 
     SECONDS_PER_CIRCLE = 24 * 3600
 
     def __init__(self, hours: int, minutes: int, seconds: float) -> None:
         self._validate_parts(hours, minutes, seconds)
-        self._hours = hours
-        self._minutes = minutes
-        self._seconds = seconds
+        self._total_seconds = (hours * 3600) + (minutes * 60) + seconds
 
     @property
     def hours(self) -> int:
-        return self._hours
+        return int(self._total_seconds // 3600)
 
     @property
     def minutes(self) -> int:
-        return self._minutes
+        remainder = self._total_seconds % 3600
+        return int(remainder // 60)
 
     @property
     def seconds(self) -> float:
-        return self._seconds
+        remainder = self._total_seconds % 3600
+        minutes = int(remainder // 60)
+        return remainder - (minutes * 60)
 
     @classmethod
     def from_string(cls, value: str) -> "LX200Ha":
@@ -101,13 +102,13 @@ class LX200Ha:
         return cls.from_seconds(total_seconds)
 
     def to_seconds(self) -> float:
-        return (self._hours * 3600) + (self._minutes * 60) + self._seconds
+        return self._total_seconds
 
     def to_hours(self) -> float:
         return self.to_seconds() / 3600
 
     def __str__(self) -> str:
-        return f"{self._hours:02d}:{self._minutes:02d}:{self._seconds:02.0f}"
+        return f"{self.hours:02d}:{self.minutes:02d}:{self.seconds:02.0f}"
 
     def __repr__(self) -> str:
         return f"LX200Hours('{self}')"
@@ -118,7 +119,7 @@ class LX200Ha:
             raise LX200HoursRangeError(f"Hours out of range: {hours!r}")
         if minutes < 0 or minutes > 59:
             raise LX200HoursRangeError(f"Minutes out of range: {minutes!r}")
-        if seconds < 0 or seconds > 60:
+        if seconds < 0 or seconds >= 60:
             raise LX200HoursRangeError(f"Seconds out of range: {seconds!r}")
 
 

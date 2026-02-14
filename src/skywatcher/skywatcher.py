@@ -369,9 +369,9 @@ class SkyWatcherMount:
 
         self.set_ra_rate(real_rate, SlewMode.GOTO)
 
-        self.logger.info("Start slewing for %d ticks %s, with highspeed:%s", )
-
         delta_ticks = self._seconds_to_ticks(delta_seconds) % self.ra_steps_360
+
+        self.logger.info("Start slewing for %ds (%d ticks) rate %.2f", delta_seconds, delta_ticks, real_rate)
 
         self._set_target(delta_ticks)
         self._set_target_breaks(min(200, delta_ticks))  # TODO: Check highspeed

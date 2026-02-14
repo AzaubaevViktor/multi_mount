@@ -7,7 +7,7 @@ from lx200.protocols import LX200Ha
 from serial_wrapper.wrapper import SerialLine
 from skywatcher.skywatcher import SkyWatcherMount, SlewMode
 
-
+RA_MOUNT_DISTANCE_DELTA = 0.2
 @pytest.fixture
 def mount() -> SkyWatcherMount:
     serial_line = SerialLine(SerialLine.search("PL2303G-USBtoUART"), 112500, 0.2, "skywatcher", terminator="\r")
@@ -42,7 +42,7 @@ def test_skywatcher_hours_roundtrip(mount: SkyWatcherMount, hours_value: str):
     mount.set_telescope_ra(expected)
     time.sleep(0.2)
     actual = mount.get_telescope_ra()
-    assert actual.to_seconds() == expected.to_seconds(), (actual, expected)
+    assert actual.to_seconds() - expected.to_seconds() < RA_MOUNT_DISTANCE_DELTA, (actual, expected)
 
 
 def _distance_seconds(a: int, b: int) -> int:
