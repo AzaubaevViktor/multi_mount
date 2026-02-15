@@ -1,3 +1,4 @@
+import logging
 import time
 from collections.abc import Iterator
 from typing import Callable
@@ -127,9 +128,25 @@ class SplitterController:
         return self.dec._adapter.status()
 
     def _wait_until(self, predicate: Callable[[], bool], timeout_s: float, error_message: str) -> None:
+        logging.warning(
+            "\n================ POLLING START ================\n"
+            "TIMEOUT: %.1fs\n"
+            "CONDITION: %s\n"
+            "===============================================",
+            timeout_s,
+            error_message,
+        )
+        polling_start = time.monotonic()
         deadline = time.monotonic() + timeout_s
         while time.monotonic() < deadline:
             if predicate():
+                logging.warning(
+                    "\n================ POLLING END ==================\n"
+                    "RESULT: SUCCESS\n"
+                    "ELAPSED: %.2fs\n"
+                    "===============================================",
+                    time.monotonic() - polling_start,
+                )
                 return
             time.sleep(POLL_INTERVAL_S)
         pytest.fail(error_message)
@@ -181,6 +198,14 @@ class SplitterController:
         )
 
     def sync_known_position(self, ra: LX200Ha, dec: LX200Dec) -> None:
+        logging.warning(
+            "\n================ SYNC START ===================\n"
+            "TARGET RA: %s\n"
+            "TARGET DEC: %s\n"
+            "===============================================",
+            ra,
+            dec,
+        )
         self.halt_all()
         self.assert_ra_explicitly_stopped()
         self.assert_dec_explicitly_stopped()
@@ -190,6 +215,14 @@ class SplitterController:
         self.sync()
         self.wait_ra_close(ra, SYNC_RA_TOLERANCE_S, 10.0)
         self.wait_dec_close(dec, SYNC_DEC_TOLERANCE_DEG, 10.0)
+        logging.warning(
+            "\n================ SYNC END =====================\n"
+            "RA: %s\n"
+            "DEC: %s\n"
+            "===============================================",
+            self.get_ra(),
+            self.get_dec(),
+        )
 
     def wait_ra_moved(
         self,
@@ -198,6 +231,20 @@ class SplitterController:
         min_delta_s: float,
         timeout_s: float,
     ) -> float:
+        logging.warning(
+            "\n================ POLLING START ================\n"
+            "WAIT RA MOVED\n"
+            "START: %s\n"
+            "EXPECTED SIGN: %s\n"
+            "MIN DELTA: %.2fs\n"
+            "TIMEOUT: %.1fs\n"
+            "===============================================",
+            LX200Ha.from_seconds(start_seconds),
+            expected_sign,
+            min_delta_s,
+            timeout_s,
+        )
+        polling_start = time.monotonic()
         last_ra = start_seconds
         last_delta = 0.0
         deadline = time.monotonic() + timeout_s
@@ -205,8 +252,30 @@ class SplitterController:
             last_ra = self.get_ra().to_seconds()
             last_delta = _signed_ra_delta_seconds(start_seconds, last_ra)
             if expected_sign > 0 and last_delta >= min_delta_s:
+                logging.warning(
+                    "\n================ POLLING END ==================\n"
+                    "WAIT RA MOVED DONE\n"
+                    "CURRENT: %s\n"
+                    "DELTA: %.2fs\n"
+                    "ELAPSED: %.2fs\n"
+                    "===============================================",
+                    LX200Ha.from_seconds(last_ra),
+                    last_delta,
+                    time.monotonic() - polling_start,
+                )
                 return last_delta
             if expected_sign < 0 and last_delta <= -min_delta_s:
+                logging.warning(
+                    "\n================ POLLING END ==================\n"
+                    "WAIT RA MOVED DONE\n"
+                    "CURRENT: %s\n"
+                    "DELTA: %.2fs\n"
+                    "ELAPSED: %.2fs\n"
+                    "===============================================",
+                    LX200Ha.from_seconds(last_ra),
+                    last_delta,
+                    time.monotonic() - polling_start,
+                )
                 return last_delta
             time.sleep(POLL_INTERVAL_S)
         pytest.fail(
@@ -222,6 +291,20 @@ class SplitterController:
         min_delta_deg: float,
         timeout_s: float,
     ) -> float:
+        logging.warning(
+            "\n================ POLLING START ================\n"
+            "WAIT DEC MOVED\n"
+            "START: %s\n"
+            "EXPECTED SIGN: %s\n"
+            "MIN DELTA: %.3fdeg\n"
+            "TIMEOUT: %.1fs\n"
+            "===============================================",
+            LX200Dec.from_degrees(start_deg),
+            expected_sign,
+            min_delta_deg,
+            timeout_s,
+        )
+        polling_start = time.monotonic()
         last_dec = start_deg
         last_delta = 0.0
         deadline = time.monotonic() + timeout_s
@@ -229,8 +312,30 @@ class SplitterController:
             last_dec = self.get_dec().to_degrees()
             last_delta = last_dec - start_deg
             if expected_sign > 0 and last_delta >= min_delta_deg:
+                logging.warning(
+                    "\n================ POLLING END ==================\n"
+                    "WAIT DEC MOVED DONE\n"
+                    "CURRENT: %s\n"
+                    "DELTA: %.3fdeg\n"
+                    "ELAPSED: %.2fs\n"
+                    "===============================================",
+                    LX200Dec.from_degrees(last_dec),
+                    last_delta,
+                    time.monotonic() - polling_start,
+                )
                 return last_delta
             if expected_sign < 0 and last_delta <= -min_delta_deg:
+                logging.warning(
+                    "\n================ POLLING END ==================\n"
+                    "WAIT DEC MOVED DONE\n"
+                    "CURRENT: %s\n"
+                    "DELTA: %.3fdeg\n"
+                    "ELAPSED: %.2fs\n"
+                    "===============================================",
+                    LX200Dec.from_degrees(last_dec),
+                    last_delta,
+                    time.monotonic() - polling_start,
+                )
                 return last_delta
             time.sleep(POLL_INTERVAL_S)
         pytest.fail(
@@ -333,6 +438,11 @@ def _signed_ra_delta_seconds(start_seconds: float, end_seconds: float) -> float:
 
 @pytest.fixture(scope="module")
 def sc() -> Iterator[SplitterController]:
+    logging.warning(
+        "\n================ FIXTURE START ================\n"
+        "BUILD HW SPLITTER STAND\n"
+        "==============================================="
+    )
     sw_path = SerialLine.search(SW_PORT_PATTERN)
     sw_serial = SerialLine(sw_path, SW_BAUD, SW_TIMEOUT_S, SW_SERIAL_NAME)
     sw_mount = SkyWatcherMount(sw_serial)
@@ -345,6 +455,11 @@ def sc() -> Iterator[SplitterController]:
 
     splitter = LX200Splitter(ra=sw_lx200, dec=dec_lx200)
     splitter.connect()
+    logging.warning(
+        "\n================ FIXTURE READY ================\n"
+        "HW SPLITTER CONNECTED\n"
+        "==============================================="
+    )
     sc = SplitterController(
         splitter=splitter,
         ra=sw_lx200,
@@ -354,6 +469,11 @@ def sc() -> Iterator[SplitterController]:
     try:
         yield sc
     finally:
+        logging.warning(
+            "\n================ FIXTURE STOP =================\n"
+            "STOP HW SPLITTER STAND\n"
+            "==============================================="
+        )
         try:
             sc.halt_all()
         except Exception:
@@ -375,24 +495,54 @@ def sc() -> Iterator[SplitterController]:
             dec_adapter.close()
         except Exception:
             pass
+        logging.warning(
+            "\n================ FIXTURE END ==================\n"
+            "HW SPLITTER STAND RELEASED\n"
+            "==============================================="
+        )
 
 
 @pytest.fixture(autouse=True)
 def _ensure_halted(sc: SplitterController) -> Iterator[None]:
+    logging.warning(
+        "\n================ TEST PREP START ==============\n"
+        "ENSURE BOTH AXES HALTED\n"
+        "==============================================="
+    )
     try:
         sc.halt_all()
     except Exception:
         pass
     time.sleep(SETTLE_S)
+    logging.warning(
+        "\n================ TEST PREP END ================\n"
+        "AXES HALTED BEFORE TEST\n"
+        "==============================================="
+    )
     yield
+    logging.warning(
+        "\n================ TEST CLEANUP START ===========\n"
+        "HALT AFTER TEST\n"
+        "==============================================="
+    )
     try:
         sc.halt_all()
     except Exception:
         pass
     time.sleep(SETTLE_S)
+    logging.warning(
+        "\n================ TEST CLEANUP END =============\n"
+        "HALT AFTER TEST DONE\n"
+        "==============================================="
+    )
 
 
 def test_hw_splitter_sync_ra_dec_multiple_times(sc: SplitterController) -> None:
+    logging.warning(
+        "\n================ TEST START ===================\n"
+        "SYNC RA/DEC MULTIPLE TIMES\n"
+        "==============================================="
+    )
     points = (
         ("11:58:00", "+20*00:00"),
         ("12:00:30", "+35*30:00"),
@@ -400,6 +550,14 @@ def test_hw_splitter_sync_ra_dec_multiple_times(sc: SplitterController) -> None:
     )
 
     for ra_text, dec_text in points:
+        logging.warning(
+            "\n================ SYNC POINT ===================\n"
+            "RA: %s\n"
+            "DEC: %s\n"
+            "===============================================",
+            ra_text,
+            dec_text,
+        )
         target_ra = LX200Ha.from_string(ra_text)
         target_dec = LX200Dec.from_string(dec_text)
 
@@ -409,6 +567,11 @@ def test_hw_splitter_sync_ra_dec_multiple_times(sc: SplitterController) -> None:
 
         sc.wait_ra_close(target_ra, SYNC_RA_TOLERANCE_S, 10.0)
         sc.wait_dec_close(target_dec, SYNC_DEC_TOLERANCE_DEG, 10.0)
+    logging.warning(
+        "\n================ TEST END =====================\n"
+        "SYNC RA/DEC MULTIPLE TIMES COMPLETE\n"
+        "==============================================="
+    )
 
 
 @pytest.mark.parametrize(
@@ -427,6 +590,17 @@ def test_hw_splitter_manual_move_all_directions(
     axis: str,
     expected_sign: int,
 ) -> None:
+    logging.warning(
+        "\n================ TEST START ===================\n"
+        "MANUAL MOVE ALL DIRECTIONS\n"
+        "AXIS: %s\n"
+        "MOVE: %s\n"
+        "HALT: %s\n"
+        "===============================================",
+        axis,
+        move_command,
+        halt_command,
+    )
     sc.sync_known_position(LX200Ha.from_string("12:00:00"),
         LX200Dec.from_string("+35*00:00"),
     )
@@ -436,6 +610,12 @@ def test_hw_splitter_manual_move_all_directions(
     else:
         start_value = sc.get_dec().to_degrees()
 
+    logging.warning(
+        "\n================ MANUAL START =================\n"
+        "COMMAND: %s\n"
+        "===============================================",
+        move_command,
+    )
     getattr(sc, move_command)()
 
     if axis == "ra":
@@ -452,6 +632,12 @@ def test_hw_splitter_manual_move_all_directions(
         )
 
     time.sleep(MANUAL_MOVE_DURATION_S)
+    logging.warning(
+        "\n================ MANUAL HALT ==================\n"
+        "COMMAND: %s\n"
+        "===============================================",
+        halt_command,
+    )
     getattr(sc, halt_command)()
 
     if axis == "ra":
@@ -468,6 +654,11 @@ def test_hw_splitter_manual_move_all_directions(
         final_value = sc.get_dec().to_degrees()
         delta = final_value - start_value
         assert delta * expected_sign > DEC_MANUAL_MIN_DELTA_DEG
+    logging.warning(
+        "\n================ TEST END =====================\n"
+        "MANUAL MOVE ALL DIRECTIONS COMPLETE\n"
+        "==============================================="
+    )
 
 
 @pytest.mark.parametrize(
@@ -488,6 +679,15 @@ def test_hw_splitter_slew_to_target_reaches_goal(
     ra_delta_s: float,
     dec_delta_deg: float,
 ) -> None:
+    logging.warning(
+        "\n================ TEST START ===================\n"
+        "SLEW TO TARGET REACHES GOAL\n"
+        "RA DELTA: %.2fs\n"
+        "DEC DELTA: %.3fdeg\n"
+        "===============================================",
+        ra_delta_s,
+        dec_delta_deg,
+    )
     sc.sync_known_position(LX200Ha.from_string("12:00:00"),
         LX200Dec.from_string("+25*00:00"),
     )
@@ -498,6 +698,14 @@ def test_hw_splitter_slew_to_target_reaches_goal(
     target_ra = LX200Ha.from_seconds(start_ra + ra_delta_s)
     target_dec = LX200Dec.from_degrees(start_dec + dec_delta_deg)
 
+    logging.warning(
+        "\n================ SLEW START ===================\n"
+        "TARGET RA: %s\n"
+        "TARGET DEC: %s\n"
+        "===============================================",
+        target_ra,
+        target_dec,
+    )
     sc.set_slew_to_find()
     sc.set_target_ra(target_ra)
     sc.set_target_dec(target_dec)
@@ -520,6 +728,11 @@ def test_hw_splitter_slew_to_target_reaches_goal(
         has_dec_target=dec_delta_deg != 0,
         timeout_s=45.0,
     )
+    logging.warning(
+        "\n================ SLEW END =====================\n"
+        "SLEW FINISHED, COLLECT FINAL POSITION\n"
+        "==============================================="
+    )
 
     final_ra = sc.get_ra().to_seconds()
     final_dec = sc.get_dec().to_degrees()
@@ -535,9 +748,19 @@ def test_hw_splitter_slew_to_target_reaches_goal(
         assert actual_dec_delta * dec_delta_deg > 0
         assert abs(actual_dec_delta) >= abs(dec_delta_deg) - SLEW_REACH_DEC_TOLERANCE_DEG
         assert abs(actual_dec_delta) <= abs(dec_delta_deg) + SLEW_REACH_DEC_TOLERANCE_DEG
+    logging.warning(
+        "\n================ TEST END =====================\n"
+        "SLEW TO TARGET REACHES GOAL COMPLETE\n"
+        "==============================================="
+    )
 
 
 def test_hw_splitter_slew_halt_all_stops_early(sc: SplitterController) -> None:
+    logging.warning(
+        "\n================ TEST START ===================\n"
+        "SLEW HALT_ALL STOPS EARLY\n"
+        "==============================================="
+    )
     sc.sync_known_position(LX200Ha.from_string("12:00:00"),
         LX200Dec.from_string("+20*00:00"),
     )
@@ -548,6 +771,14 @@ def test_hw_splitter_slew_halt_all_stops_early(sc: SplitterController) -> None:
     target_ra = LX200Ha.from_seconds(start_ra + 1200)
     target_dec = LX200Dec.from_degrees(start_dec + 20.0)
 
+    logging.warning(
+        "\n================ SLEW START ===================\n"
+        "TARGET RA: %s\n"
+        "TARGET DEC: %s\n"
+        "===============================================",
+        target_ra,
+        target_dec,
+    )
     sc.set_slew_to_find()
     sc.set_target_ra(target_ra)
     sc.set_target_dec(target_dec)
@@ -557,16 +788,31 @@ def test_hw_splitter_slew_halt_all_stops_early(sc: SplitterController) -> None:
     sc.wait_dec_moved(start_dec, expected_sign=1, min_delta_deg=0.2, timeout_s=10.0)
 
     time.sleep(1.0)
+    logging.warning(
+        "\n================ HALT START ===================\n"
+        "CALL HALT_ALL DURING SLEW\n"
+        "==============================================="
+    )
     sc.halt_all()
     sc.assert_ra_explicitly_stopped()
     sc.assert_dec_explicitly_stopped()
     time.sleep(SETTLE_S)
+    logging.warning(
+        "\n================ HALT END =====================\n"
+        "AXES STOPPED, CHECK DISTANCE TO TARGET\n"
+        "==============================================="
+    )
 
     stopped_ra = sc.get_ra().to_seconds()
     stopped_dec = sc.get_dec().to_degrees()
 
     assert _ra_distance_seconds(stopped_ra, target_ra.to_seconds()) > 60.0
     assert abs(stopped_dec - target_dec.to_degrees()) > 2.0
+    logging.warning(
+        "\n================ TEST END =====================\n"
+        "SLEW HALT_ALL STOPS EARLY COMPLETE\n"
+        "==============================================="
+    )
 
 
 @pytest.mark.parametrize(("axis"), ("ra", "dec"))
@@ -574,6 +820,13 @@ def test_hw_splitter_baseline_delta(
     sc: SplitterController,
     axis: str,
 ):
+    logging.warning(
+        "\n================ TEST START ===================\n"
+        "BASELINE DELTA\n"
+        "AXIS: %s\n"
+        "===============================================",
+        axis,
+    )
     sc.sync_known_position(LX200Ha.from_string("12:00:00"),
         LX200Dec.from_string("+35*00:00"),
     )
@@ -586,6 +839,11 @@ def test_hw_splitter_baseline_delta(
     else:
         baseline_delta = sc.measure_dec_delta(duration_s)
         assert abs(baseline_delta) < .1
+    logging.warning(
+        "\n================ TEST END =====================\n"
+        "BASELINE DELTA COMPLETE\n"
+        "==============================================="
+    )
 
 
 @pytest.mark.parametrize(
@@ -608,11 +866,28 @@ def test_hw_splitter_guiding_pulses_all_directions_vs_tracking(
     axis: str,
     expected_sign: int,
 ) -> None:
+    logging.warning(
+        "\n================ TEST START ===================\n"
+        "GUIDING PULSES VS TRACKING\n"
+        "DIRECTION: %s\n"
+        "PULSE: %sms\n"
+        "AXIS: %s\n"
+        "===============================================",
+        direction,
+        pulse_ms,
+        axis,
+    )
     sc.sync_known_position(LX200Ha.from_string("12:00:00"),
         LX200Dec.from_string("+35*00:00"),
     )
 
     duration_s = pulse_ms / 1000.0 + GUIDE_SETTLE_EXTRA_S
+    logging.warning(
+        "\n================ GUIDE BASELINE START =========\n"
+        "DURATION: %.2fs\n"
+        "===============================================",
+        duration_s,
+    )
     baseline_raw_ra_start, baseline_raw_dec_start = sc.get_telescope_raw_position()
     time.sleep(duration_s)
     baseline_raw_ra_end, baseline_raw_dec_end = sc.get_telescope_raw_position()
@@ -624,6 +899,14 @@ def test_hw_splitter_guiding_pulses_all_directions_vs_tracking(
     baseline_rate_dec = (
         (baseline_raw_dec_end - baseline_raw_dec_start) / sc.dec.steps_per_degree
     ) / duration_s
+    logging.warning(
+        "\n================ GUIDE BASELINE END ===========\n"
+        "BASELINE RAW RATE RA: %.3fs/s\n"
+        "BASELINE RAW RATE DEC: %.3fdeg/s\n"
+        "===============================================",
+        baseline_rate_ra,
+        baseline_rate_dec,
+    )
 
     sc.sync_known_position(LX200Ha.from_string("12:00:00"),
         LX200Dec.from_string("+35*00:00"),
@@ -633,6 +916,11 @@ def test_hw_splitter_guiding_pulses_all_directions_vs_tracking(
     start_dec = sc.get_dec().to_degrees()
     start_raw_ra, start_raw_dec = sc.get_telescope_raw_position()
 
+    logging.warning(
+        "\n================ GUIDE START ==================\n"
+        "SEND GUIDE PULSE\n"
+        "==============================================="
+    )
     sc.guide(direction, pulse_ms)
     time.sleep(duration_s)
 
@@ -642,6 +930,14 @@ def test_hw_splitter_guiding_pulses_all_directions_vs_tracking(
 
     guide_rate_ra = _signed_ra_delta_seconds(start_raw_ra, current_raw_ra) / duration_s
     guide_rate_dec = ((current_raw_dec - start_raw_dec) / sc.dec.steps_per_degree) / duration_s
+    logging.warning(
+        "\n================ GUIDE RESULT =================\n"
+        "GUIDE RAW RATE RA: %.3fs/s\n"
+        "GUIDE RAW RATE DEC: %.3fdeg/s\n"
+        "===============================================",
+        guide_rate_ra,
+        guide_rate_dec,
+    )
 
     if axis == "ra":
         assert (guide_rate_ra - baseline_rate_ra) * expected_sign > RA_GUIDE_MARGIN_S, (
@@ -679,6 +975,16 @@ def test_hw_splitter_guiding_pulses_all_directions_vs_tracking(
         f"raw_dec_rate={guide_rate_dec:.3f}deg/s"
     )
 
+    logging.warning(
+        "\n================ HALT START ===================\n"
+        "GUIDE FINISHED, HALT ALL\n"
+        "==============================================="
+    )
     sc.halt_all()
     sc.assert_ra_explicitly_stopped()
     sc.assert_dec_explicitly_stopped()
+    logging.warning(
+        "\n================ TEST END =====================\n"
+        "GUIDING PULSES VS TRACKING COMPLETE\n"
+        "==============================================="
+    )

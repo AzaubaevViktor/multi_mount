@@ -178,12 +178,13 @@ class SkyWatcherMount:
         self.ra_steps_worm: int
         self.ra_highspeed_ratio: int
         self._last_tracking_rate = self.STELLAR_SPEED
+        self._last_status_snapshot: tuple[int, bool, bool, SlewMode, Direction, SpeedMode] | None = None
 
         self.is_connected = False
 
     def _transact(self, cmd: SkyWatcherCommand, arg: str | None = None, axis: Axis = Axis.RA) -> str:
         """ All transactions works only with RA """
-        self.logger.info("Send %s(%s) ...", cmd.name, arg if arg is not None else "")
+        self.logger.debug("Send %s(%s) ...", cmd.name, arg if arg is not None else "")
 
         payload = [
             self._LEADING,
@@ -201,9 +202,9 @@ class SkyWatcherMount:
         count = 3
         while True:
             try:
-                self.logger.debug("TX %s", payload)
+                self.logger.debug("TX %r", payload_raw)
                 response = self._serial.query(payload_raw)
-                self.logger.debug("RX %s", response)
+                self.logger.debug("RX %r", response)
 
                 if not response.endswith(self._TRAILING):
                     raise SkyWatcherWrongResponce(response)
@@ -227,7 +228,12 @@ class SkyWatcherMount:
         
         responce_clean = responce_clean.removeprefix(self._RESPONCE_PREFIX)
         
-        self.logger.info("Receive: %s(%s) -> %s", cmd.name, arg if arg is not None else "", responce_clean)
+        self.logger.debug(
+            "Receive: %s(%s) -> %s",
+            cmd.name,
+            arg if arg is not None else "",
+            responce_clean,
+        )
         
         return responce_clean
     
@@ -255,7 +261,39 @@ class SkyWatcherMount:
         status = SkyWatcherStatus.from_bytes(
             self._transact(SkyWatcherCommand.INQUIRE_STATUS).encode('ascii')
         )
-        self.logger.debug("Mount status: %s", status)
+
+        current_snapshot = (
+            status.raw,
+            status.running,
+            status.initialized,
+            status.slew_mode,
+            status.direction,
+            status.speed_mode,
+        )
+        if self._last_status_snapshot is None:
+            self.logger.info("Mount status initial: %s", status)
+        elif current_snapshot != self._last_status_snapshot:
+            previous = self._last_status_snapshot
+            self.logger.info(
+                "Mount status changed: raw %06X -> %06X running %s -> %s initialized %s -> %s "
+                "slew_mode %s -> %s direction %s -> %s speed_mode %s -> %s",
+                previous[0],
+                status.raw,
+                previous[1],
+                status.running,
+                previous[2],
+                status.initialized,
+                previous[3],
+                status.slew_mode,
+                previous[4],
+                status.direction,
+                previous[5],
+                status.speed_mode,
+            )
+        else:
+            self.logger.debug("Mount status poll: %s", status)
+
+        self._last_status_snapshot = current_snapshot
         return status
 
     def connect(self):
@@ -343,6 +381,7 @@ class SkyWatcherMount:
         self._transact(SkyWatcherCommand.SET_BREAK_POINT_INCREMENT, Revu24.from_int(ticks))
 
     def _start_motor(self):
+        self.logger.info("Start motor")
         self._transact(SkyWatcherCommand.START_MOTION)
 
     def _do_wrap_delta_move(self, delta_seconds: float) -> tuple[float, float]:
@@ -379,6 +418,7 @@ class SkyWatcherMount:
         return True
 
     def move_ra(self, rate: float) -> bool:
+        self.logger.info("Move RA request: rate=%s", rate)
         status = self.get_status()
         if status.running and status.slew_mode == SlewMode.GOTO:
             self.logger.warning("Can not slew while GOTO in progress")
@@ -386,14 +426,20 @@ class SkyWatcherMount:
         
         self.set_ra_rate(rate)
         self._start_motor()
+        self.logger.info("Move RA started: rate=%s", rate)
 
         return True
 
     def set_ra_rate(self, rate: float, mode: SlewMode = SlewMode.SLEW):
         """ Rate is multiplier for tracking rate """
-        status = status = self.get_status()
+        status = self.get_status()
         if not (self.MIN_RATE < abs(rate) < self.MAX_RATE):
-            self.logger.warning("Speed rate out of limits: %s %s")
+            self.logger.warning(
+                "Speed rate out of limits: rate=%.3f min=%.3f max=%.3f",
+                rate,
+                self.MIN_RATE,
+                self.MAX_RATE,
+            )
 
         status.slew_mode = mode
         
@@ -418,6 +464,7 @@ class SkyWatcherMount:
         return True
     
     def start_tracking(self, rate: float = 1.) -> bool:
+        self.logger.info("Start tracking request: rate=%s", rate)
         if rate == .0:
             self.gracefully_stop_motor()
             return True
@@ -425,7 +472,9 @@ class SkyWatcherMount:
         self._last_tracking_rate = rate
         self.set_ra_rate(rate)
         self._start_motor()
+        self.logger.info("Start tracking applied: rate=%s", rate)
         return True
 
     def resume_tracking(self) -> bool:
+        self.logger.info("Resume tracking with last rate=%s", self._last_tracking_rate)
         return self.start_tracking(self._last_tracking_rate)

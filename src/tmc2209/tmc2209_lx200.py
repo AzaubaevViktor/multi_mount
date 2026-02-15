@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 import logging
+import threading
+import time
 
 from lx200.base import LX200Base
 from lx200.protocols import LX200Dec
@@ -39,6 +41,7 @@ class TMC2209LX200ConfigError(TMC2209LX200Error):
 
 class TMC2209LX200(LX200Base):
     FAST_PROFILE_DELTA_DEG = 1
+    _TELEMETRY_INTERVAL_S = 1.0
 
     _goto_fast_profile = SpeedProfile(
         microsteps=2, 
@@ -71,6 +74,10 @@ class TMC2209LX200(LX200Base):
         self._microsteps: int = 1
 
         self.logger = logging.getLogger("TMC2209LX200")
+        self._working = True
+        self._is_connected = False
+        self._telemetry_thread = threading.Thread(target=self._do_log_telemetry, name="TMC_DEC_TELEMETRY")
+        self._telemetry_thread.start()
 
     # Microsteps update logic
 
@@ -104,11 +111,47 @@ class TMC2209LX200(LX200Base):
         self.logger.info("Status: %s", status)
 
     def connect(self) -> None:
+        self.logger.info("Connect TMC2209 LX200")
         self._adapter.connect()
         self._initialize()
+        self._is_connected = True
+        self.logger.info("TMC2209 LX200 connected")
 
     def stop(self):
+        self.logger.info("Stop TMC2209 LX200")
+        self._is_connected = False
+        self._working = False
+        if self._telemetry_thread and self._telemetry_thread.is_alive():
+            self._telemetry_thread.join(timeout=self._TELEMETRY_INTERVAL_S * 5)
         self._adapter.close()
+        self.logger.info("TMC2209 LX200 stopped")
+
+    def _do_log_telemetry(self) -> None:
+        telemetry_logger = self.logger.getChild("telemetry")
+        while self._working:
+            if not self._is_connected:
+                time.sleep(self._TELEMETRY_INTERVAL_S)
+                continue
+
+            try:
+                status = self._adapter.status()
+            except Exception:
+                telemetry_logger.exception("While polling DEC telemetry")
+                time.sleep(self._TELEMETRY_INTERVAL_S)
+                continue
+
+            raw_steps = int(status.position)
+            normalized_steps = int(raw_steps % self.steps_per_rev)
+            dec = self._dec_from_steps(normalized_steps)
+            telemetry_logger.info(
+                "DEC=%s raw_steps=%s phase=%s target_set=%s enabled=%s",
+                dec,
+                raw_steps,
+                status.phase,
+                status.target_set,
+                status.enabled,
+            )
+            time.sleep(self._TELEMETRY_INTERVAL_S)
 
     def get_telescope_raw_position(self) -> tuple[float, float]:
         position = self._adapter.status().position
@@ -128,15 +171,20 @@ class TMC2209LX200(LX200Base):
         return self._dec_from_steps(int(self.get_telescope_raw_position()[1]))
 
     def sync_telescope_dec(self, position: LX200Dec) -> bool:
+        self.logger.info("Sync DEC to %s", position)
         steps = self._steps_from_dec(position)
         self._adapter.set_position(steps)
+        self.logger.info("Sync DEC applied: steps=%s", steps)
         return True
 
     def halt_all(self) -> bool:
+        self.logger.info("Halt all DEC movements")
         self._adapter.halt()
+        self.logger.info("Halt all DEC movements done")
         return True
 
     def slew_to_dec(self, position: LX200Dec) -> bool:
+        self.logger.info("Start DEC GOTO to %s", position)
         current_position = int(self.get_telescope_raw_position()[1])
         target_steps = self._steps_from_dec(position)
         delta_steps = target_steps - current_position
@@ -145,11 +193,21 @@ class TMC2209LX200(LX200Base):
         if abs(self._dec_from_steps(abs(delta_steps)).to_degrees()) > self.FAST_PROFILE_DELTA_DEG:
             profile = self._goto_fast_profile
 
+        self.logger.info(
+            "DEC GOTO details: current_steps=%s target_steps=%s delta_steps=%s profile=(microsteps=%s speed=%s accel=%s)",
+            current_position,
+            target_steps,
+            delta_steps,
+            profile.microsteps,
+            profile.speed,
+            profile.accel,
+        )
         self._apply_profile(profile)
         
         self._adapter.set_target(target_steps)
 
         self._adapter.run()
+        self.logger.info("DEC GOTO started: target_steps=%s", target_steps)
         
         return True
 
@@ -163,6 +221,7 @@ class TMC2209LX200(LX200Base):
         return ""
 
     def set_slew_to_find(self) -> bool:
+        self.logger.info("Set slew mode to find")
         return True
 
     def move_east(self) -> bool:
@@ -197,34 +256,48 @@ class TMC2209LX200(LX200Base):
         return False
 
     def guide_north(self) -> bool:
+        self.logger.info("Guide north start")
         self._apply_profile(self._guide_profile)
         self._adapter.set_direction(False)
         self._adapter.run()
+        self.logger.info("Guide north applied")
         return True
 
     def guide_south(self) -> bool:
+        self.logger.info("Guide south start")
         self._apply_profile(self._guide_profile)
         self._adapter.set_direction(True)
         self._adapter.run()
+        self.logger.info("Guide south applied")
         return True
 
     def guide_west(self) -> bool:
         return False
 
     def guide_reset(self) -> bool:
+        self.logger.info("Guide reset")
         return self.halt_all()
 
     def _start_manual_move(
         self,
         direction: bool,
     ) -> bool:
+        self.logger.info("Start manual DEC move: backward=%s", direction)
         self._apply_profile(self._slew_profile)
         self._adapter.set_direction(direction)
-        return self._adapter.run()
+        result = self._adapter.run()
+        self.logger.info("Manual DEC move started: backward=%s running=%s", direction, result)
+        return result
 
     def _apply_profile(
         self, profile: SpeedProfile
     ) -> None:
+        self.logger.info(
+            "Apply profile: microsteps=%s speed=%s accel=%s",
+            profile.microsteps,
+            profile.speed,
+            profile.accel,
+        )
         self._refresh_microsteps(profile.microsteps)
         self._adapter.set_speed_sps(profile.speed)
         self._adapter.set_acceleration_steps_per_ms(profile.accel)

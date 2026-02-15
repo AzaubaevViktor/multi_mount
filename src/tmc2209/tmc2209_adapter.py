@@ -6,8 +6,6 @@ import time
 from lx200.protocols import LX200Dec
 from serial_wrapper.wrapper import SerialLine
 
-logging.getLogger().setLevel(logging.DEBUG)
-
 COMMAND_TERMINATOR = "\n"
 RESPONSE_DELIMITER = ";"
 KEY_VALUE_SEPARATOR = "="
@@ -163,6 +161,7 @@ class TMC2209Adapter:
     def __init__(self, serial: SerialLine) -> None:
         self._serial = serial
         self._log = logging.getLogger("tmc2209.adapter")
+        self._last_status_snapshot: tuple[bool, bool, Phase, bool] | None = None
 
         self._validate_serial()
 
@@ -186,7 +185,47 @@ class TMC2209Adapter:
 
     def status(self) -> TMC2209Status:
         response = self._transact("status")
-        return TMC2209Status.from_response(response)
+        status = TMC2209Status.from_response(response)
+        current_snapshot = (
+            status.initialised,
+            status.enabled,
+            status.phase,
+            status.target_set,
+        )
+
+        if self._last_status_snapshot is None:
+            self._log.info(
+                "Status initial: initialised=%s enabled=%s phase=%s target_set=%s",
+                status.initialised,
+                status.enabled,
+                status.phase,
+                status.target_set,
+            )
+        elif current_snapshot != self._last_status_snapshot:
+            previous = self._last_status_snapshot
+            self._log.info(
+                "Status changed: initialised %s -> %s enabled %s -> %s phase %s -> %s target_set %s -> %s",
+                previous[0],
+                status.initialised,
+                previous[1],
+                status.enabled,
+                previous[2],
+                status.phase,
+                previous[3],
+                status.target_set,
+            )
+        else:
+            self._log.debug(
+                "Status poll: initialised=%s enabled=%s phase=%s target_set=%s position=%s",
+                status.initialised,
+                status.enabled,
+                status.phase,
+                status.target_set,
+                status.position,
+            )
+
+        self._last_status_snapshot = current_snapshot
+        return status
 
     def driver_status(self) -> TMC2209DriverStatus:
         response = self._transact("driver_status")
@@ -208,46 +247,69 @@ class TMC2209Adapter:
         return _require_value(response.values, name)
 
     def set_position(self, position: int) -> int:
+        self._log.info("Set position request: position=%s", position)
         response = self._transact("position", [str(position)])
-        return _parse_int(_require_value(response.values, "position"), "position")
+        response_position = _parse_int(_require_value(response.values, "position"), "position")
+        self._log.info("Set position applied: position=%s", response_position)
+        return response_position
 
     def set_enabled(self, enabled: bool) -> bool:
+        self._log.info("Set enabled request: enabled=%s", enabled)
         value = "1" if enabled else "0"
         response = self._transact("enabled", [value])
-        return _parse_bool(_require_value(response.values, "enabled"), "enabled")
+        is_enabled = _parse_bool(_require_value(response.values, "enabled"), "enabled")
+        self._log.info("Set enabled applied: enabled=%s", is_enabled)
+        return is_enabled
 
     def set_direction(self, direction: bool) -> bool:
+        self._log.info("Set direction request: backward=%s", direction)
         value = "1" if direction else "0"
         response = self._transact("direction", [value])
-        return _parse_bool(_require_value(response.values, "direction"), "direction")
+        is_backward = _parse_bool(_require_value(response.values, "direction"), "direction")
+        self._log.info("Set direction applied: backward=%s", is_backward)
+        return is_backward
 
     def set_speed_sps(self, speed_sps: int) -> float:
         if speed_sps < MIN_SPEED_SPS or speed_sps > MAX_SPEED_SPS:
             raise TMC2209ConfigError(f"speed_sps out of range: {speed_sps!r}")
+        self._log.info("Set speed request: speed_sps=%s", speed_sps)
         response = self._transact("speed", [str(speed_sps)])
-        return _parse_float(_require_value(response.values, "speed"), "speed")
+        applied_speed = _parse_float(_require_value(response.values, "speed"), "speed")
+        self._log.info("Set speed applied: speed_sps=%s", applied_speed)
+        return applied_speed
 
     def set_acceleration_steps_per_ms(self, accel_steps_per_ms: int) -> float:
         if accel_steps_per_ms < MIN_ACCEL_STEPS_PER_MS or accel_steps_per_ms > MAX_ACCEL_STEPS_PER_MS:
             raise TMC2209ConfigError(
                 f"accel_steps_per_ms out of range: {accel_steps_per_ms!r}"
             )
+        self._log.info("Set acceleration request: accel_steps_per_ms=%s", accel_steps_per_ms)
         response = self._transact("acceleration", [str(accel_steps_per_ms)])
-        return _parse_float(_require_value(response.values, "accel"), "accel")
+        applied_acceleration = _parse_float(_require_value(response.values, "accel"), "accel")
+        self._log.info("Set acceleration applied: accel_steps_per_ms=%s", applied_acceleration)
+        return applied_acceleration
 
     def set_target(self, target: int) -> tuple[int, bool]:
+        self._log.info("Set target request: target=%s", target)
         response = self._transact("target", [str(target)])
         target_value = _parse_int(_require_value(response.values, "target"), "target")
         target_set = _parse_bool(_require_value(response.values, "target_set"), "target_set")
+        self._log.info("Set target applied: target=%s target_set=%s", target_value, target_set)
         return target_value, target_set
 
     def run(self) -> bool:
+        self._log.info("Run request")
         response = self._transact("run")
-        return _parse_bool(_require_value(response.values, "running"), "running")
+        is_running = _parse_bool(_require_value(response.values, "running"), "running")
+        self._log.info("Run applied: running=%s", is_running)
+        return is_running
 
     def halt(self) -> bool:
+        self._log.info("Halt request")
         response = self._transact("stop")
-        return _parse_bool(_require_value(response.values, "stopping"), "stopping")
+        is_stopping = _parse_bool(_require_value(response.values, "stopping"), "stopping")
+        self._log.info("Halt applied: stopping=%s", is_stopping)
+        return is_stopping
 
     def _transact(self, command: str, args: list[str] | None = None) -> TMC2209Response:
         payload = command
