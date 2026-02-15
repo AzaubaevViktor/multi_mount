@@ -386,19 +386,20 @@ class SkyWatcherMount:
 
     def _do_wrap_delta_move(self, delta_seconds: float) -> tuple[float, float]:
         if delta_seconds > 12 * 60 * 60:
-            delta_seconds = 24 * 60 * 60 - delta_seconds
-        if delta_seconds < -12 * 60 * 60:
+            delta_seconds -= 24 * 60 * 60
+        elif delta_seconds < -12 * 60 * 60:
             delta_seconds += 24 * 60 * 60
         
-        delta_seconds = abs(delta_seconds)
+        delta_abs_seconds = abs(delta_seconds)
         
-        is_highspeed = delta_seconds > self._LOWSPEED_MARGIN_S
+        is_highspeed = delta_abs_seconds > self._LOWSPEED_MARGIN_S
 
         real_rate = self._HIGHSPEED_RATE if is_highspeed else self._LOWSPEED_RATE
 
-        real_rate *= 1 if delta_seconds > 0 else -1
+        if delta_seconds < 0:
+            real_rate *= -1
 
-        return delta_seconds, real_rate
+        return delta_abs_seconds, real_rate
 
     def get_slew_real_rate(self, delta_seconds: float) -> float:
         return self._do_wrap_delta_move(delta_seconds)[1]
