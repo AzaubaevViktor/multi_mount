@@ -67,7 +67,7 @@ def test_response_empty_value():
 def test_status_from_response():
     response = TMC2209Response.from_line(
         "1;initialised=1;enabled=0;position=12;phase=hold;target=5;"
-        "target_set=1;speed=120.50;actual_speed=118.25;accel=10.00;"
+        "target_set=1;speed=120.50;actual_speed=118.25;accel_per_s=10.00;"
     )
     status = TMC2209Status.from_response(response)
     assert status.initialised is True
@@ -113,7 +113,7 @@ def test_adapter_status_ok():
         {
             "status": (
                 "1;initialised=1;enabled=1;position=0;phase=idle;target=0;"
-                "target_set=0;speed=0.00;actual_speed=0.00;accel=0.00;"
+                "target_set=0;speed=0.00;actual_speed=0.00;accel_per_s=0.00;"
             )
         }
     )

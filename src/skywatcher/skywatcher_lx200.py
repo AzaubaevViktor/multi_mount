@@ -26,6 +26,8 @@ class SkyWatcherLX200(LX200Base):
 
         self._goto_to: LX200Ha | None = None
         self._goto_direction_sign: int = 0
+
+        self._current_track_rate_coef = 1
         
         self._working = True
         self._check_ra_thread = threading.Thread(target=self._do_check_ra, name="SW_RA")
@@ -59,8 +61,9 @@ class SkyWatcherLX200(LX200Base):
                 continue
 
             telemetry_logger.info(
-                "RA=%s running=%s mode=%s direction=%s speed=%s goto_active=%s",
+                "RA=%s raw=%d running=%s mode=%s direction=%s speed=%s goto_active=%s",
                 ra,
+                self.mount.get_telesope_seconds(),
                 status.running,
                 status.slew_mode.name,
                 status.direction.name,
@@ -91,7 +94,7 @@ class SkyWatcherLX200(LX200Base):
 
                 elapsed_s = now - self._last_update_s
 
-                expected_delta_seconds = elapsed_s * (self.mount.STELLAR_SPEED / DEGREES_PER_HOUR)
+                expected_delta_seconds = elapsed_s * (self.mount.STELLAR_SPEED / DEGREES_PER_HOUR) * self._current_track_rate_coef
                 # TODO: Write tests for 23:59:59 -> 00:00:01
                 actual_delta_seconds = (mount_seconds - self._last_mount_seconds) % LX200Ha.SECONDS_PER_CIRCLE
 
@@ -294,10 +297,13 @@ class SkyWatcherLX200(LX200Base):
         return True
     
     def guide_west(self) -> bool:
-        return self.mount.set_ra_rate(2.5)
+        self._current_track_rate_coef = 2.5
+        return self.mount.set_ra_rate(self._current_track_rate_coef)
     
     def guide_east(self) -> bool:
-        return self.mount.set_ra_rate(-0.5)
+        self._current_track_rate_coef = .25
+        return self.mount.set_ra_rate(self._current_track_rate_coef)
     
     def guide_reset(self) -> bool:
+        self._current_track_rate_coef = 1
         return self.mount.resume_tracking()

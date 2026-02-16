@@ -1,9 +1,8 @@
+
 import dataclasses
 from enum import IntEnum, StrEnum
-import functools
 import logging
-from operator import is_
-from socket import LOCAL_PEERCRED
+import threading
 import time
 from typing import Any, Callable, Self
 from lx200.protocols import LX200Ha
@@ -196,9 +195,14 @@ class SkyWatcherMount:
         self.ra_steps_worm: int
         self.ra_highspeed_ratio: int
         self._last_tracking_rate = self.STELLAR_SPEED
+
         self._last_status_snapshot: tuple[int, bool, bool, SlewMode, Direction, SpeedMode] | None = None
 
         self.is_connected = False
+
+        self._mount_seconds_cache = 0
+        self._mount_seconds_cache_update = 0
+        self._mount_seconds_cache_lock = threading.Lock()
 
     def _transact(self, cmd: SkyWatcherCommand, arg: str | None = None, axis: Axis = Axis.RA) -> str:
         """ All transactions works only with RA """
@@ -243,6 +247,8 @@ class SkyWatcherMount:
                 self.logger.exception("While quering, %d last", count)
 
                 count -= 1
+
+                time.sleep(.1)
         
         responce_clean = responce_clean.removeprefix(self._RESPONCE_PREFIX)
         
@@ -331,18 +337,29 @@ class SkyWatcherMount:
     def get_telescope_ra(self):
         return LX200Ha.from_seconds(self.get_telesope_seconds())
     
+    _MOUNT_SECONDS_CACHE_TTL_S = .5
     def get_telesope_seconds(self) -> float:
+        # TODO: Cache for .5s
+        if time.monotonic() - self._mount_seconds_cache_update <= self._MOUNT_SECONDS_CACHE_TTL_S:
+            return self._mount_seconds_cache
+
         data = self._transact(SkyWatcherCommand.INQUIRE_POSITION)
         ticks = (Revu24.from_mount(data) - self._POSITION_OFFSET) % self.ra_steps_360
         # Ticks / Full circle / (24h) -> hours
         seconds = self._ticks_to_seconds(ticks)
+        with self._mount_seconds_cache_lock:
+            self._mount_seconds_cache = seconds
+            self._mount_seconds_cache_update = time.monotonic()
+
         return seconds % (24 * 60 * 60)
     
     def set_telescope_ra(self, position: LX200Ha) -> bool:
         seconds = position.to_seconds()
         ticks = (self._seconds_to_ticks(seconds) + self._POSITION_OFFSET) % self.ra_steps_360
 
-        self._transact(SkyWatcherCommand.SET_AXIS_POSITION, Revu24.from_int(int(ticks)))
+        with self._mount_seconds_cache_lock:
+            self._transact(SkyWatcherCommand.SET_AXIS_POSITION, Revu24.from_int(int(ticks)))
+            self._mount_seconds_cache_update = 0  # Drop cache
 
         return True
     
@@ -393,10 +410,13 @@ class SkyWatcherMount:
             current_status = self.get_status()
 
         current_motion_status = SkyWatcherMotionStatus.from_status(current_status)
+
+        slew_mode_changed = target_status.slew_mode != current_motion_status.slew_mode
+        direction_changed = target_status.direction != current_motion_status.direction
+        speed_mode_changed = target_status.speed_mode != current_motion_status.speed_mode
+
         status_changed = (
-            target_status.slew_mode != current_motion_status.slew_mode
-            or target_status.direction != current_motion_status.direction
-            or target_status.speed_mode != current_motion_status.speed_mode
+            slew_mode_changed or direction_changed or speed_mode_changed
         )
         if not status_changed:
             return current_status
@@ -500,7 +520,7 @@ class SkyWatcherMount:
         )
         period = self._STELLAR_DAY * self.ra_steps_worm / self.ra_steps_360 / abs(rate)
 
-        self.logger.info("Set RA rate: %.1f * %d (highspeed=%s) mode=%s // period=%d", rate, self.ra_highspeed_ratio if is_highspeed else 1, is_highspeed, mode, int(period))
+        self.logger.info("Set RA rate: %.1f * %d (highspeed=%s) mode=%s // period=%d", rate, self.ra_highspeed_ratio if is_highspeed else 1, is_highspeed, mode.name, int(period))
 
         current_status = self._set_motion(target_status)
         self._set_speed(int(period))
