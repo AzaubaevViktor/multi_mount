@@ -118,6 +118,8 @@ class SerialLine:
 
             self.logger.debug("Receive all data from input:\n%s", lines)
 
+        return lines
+
     def close(self):
         self.serial.close()
 

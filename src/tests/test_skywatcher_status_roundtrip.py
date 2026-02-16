@@ -2,6 +2,7 @@ import pytest
 
 from skywatcher.skywatcher import (
     Direction,
+    SkyWatcherMotionStatus,
     SpeedMode,
     SlewMode,
     SkyWatcherStatus,
@@ -47,3 +48,24 @@ def test_status_to_command_encodes_goto_lowspeed_forward() -> None:
     )
 
     assert status.to_command() == "20"
+
+
+def test_motion_status_ignores_runtime_flags() -> None:
+    running_status = SkyWatcherStatus(
+        raw=0x123456,
+        running=True,
+        initialized=True,
+        slew_mode=SlewMode.SLEW,
+        direction=Direction.BACKWARD,
+        speed_mode=SpeedMode.HIGHSPEED,
+    )
+    stopped_status = SkyWatcherStatus(
+        raw=0xABCDEF,
+        running=False,
+        initialized=False,
+        slew_mode=SlewMode.SLEW,
+        direction=Direction.BACKWARD,
+        speed_mode=SpeedMode.HIGHSPEED,
+    )
+
+    assert SkyWatcherMotionStatus.from_status(running_status) == SkyWatcherMotionStatus.from_status(stopped_status)

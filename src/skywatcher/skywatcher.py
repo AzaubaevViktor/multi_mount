@@ -92,6 +92,24 @@ class SkyWatcherStatus:
         )
 
     def to_command(self) -> str:
+        return SkyWatcherMotionStatus.from_status(self).to_command()
+
+
+@dataclasses.dataclass(frozen=True)
+class SkyWatcherMotionStatus:
+    slew_mode: SlewMode
+    direction: Direction
+    speed_mode: SpeedMode
+
+    @classmethod
+    def from_status(cls, status: SkyWatcherStatus) -> "SkyWatcherMotionStatus":
+        return cls(
+            slew_mode=status.slew_mode,
+            direction=status.direction,
+            speed_mode=status.speed_mode,
+        )
+
+    def to_command(self) -> str:
         slew_mode = self.slew_mode
         speed_mode = self.speed_mode
         if slew_mode == SlewMode.SLEW:
@@ -366,10 +384,30 @@ class SkyWatcherMount:
                     self.logger.exception("While executing %r", func)
             time.sleep(poll_interval_s - (time.monotonic() - poll_start))
     
-    def _set_motion(self, new_status: SkyWatcherStatus):
-        self.wait_till_stop(do_stop=True)
-        self.logger.info("Set motion mode: %s", new_status)
-        self._transact(SkyWatcherCommand.SET_MOTION_MODE, new_status.to_command())
+    def _set_motion(
+            self,
+            target_status: SkyWatcherMotionStatus,
+            current_status: SkyWatcherStatus | None = None,
+        ) -> SkyWatcherStatus:
+        if current_status is None:
+            current_status = self.get_status()
+
+        current_motion_status = SkyWatcherMotionStatus.from_status(current_status)
+        status_changed = (
+            target_status.slew_mode != current_motion_status.slew_mode
+            or target_status.direction != current_motion_status.direction
+            or target_status.speed_mode != current_motion_status.speed_mode
+        )
+        if not status_changed:
+            return current_status
+
+        if current_status.running:
+            self.wait_till_stop(do_stop=True)
+            current_status = dataclasses.replace(current_status, running=False)
+
+        self.logger.info("Set motion mode: %s", target_status)
+        self._transact(SkyWatcherCommand.SET_MOTION_MODE, target_status.to_command())
+        return current_status
 
     def _set_speed(self, period: int):
         self._transact(SkyWatcherCommand.SET_STEP_PERIOD, Revu24.from_int(period))
@@ -426,14 +464,16 @@ class SkyWatcherMount:
             return False
         
         self.set_ra_rate(rate)
-        self._start_motor()
         self.logger.info("Move RA started: rate=%s", rate)
 
         return True
 
     def set_ra_rate(self, rate: float, mode: SlewMode = SlewMode.SLEW):
         """ Rate is multiplier for tracking rate """
-        status = self.get_status()
+        if rate == .0:
+            self.gracefully_stop_motor()
+            return True
+
         if not (self.MIN_RATE < abs(rate) < self.MAX_RATE):
             self.logger.warning(
                 "Speed rate out of limits: rate=%.3f min=%.3f max=%.3f",
@@ -442,9 +482,7 @@ class SkyWatcherMount:
                 self.MAX_RATE,
             )
 
-        status.slew_mode = mode
-        
-        status.direction = Direction.FORWARD if rate > 0 else Direction.BACKWARD
+        target_direction = Direction.FORWARD if rate > 0 else Direction.BACKWARD
 
         is_highspeed = False
         if abs(rate) > self._LOWSPEED_RATE:
@@ -453,14 +491,21 @@ class SkyWatcherMount:
             rate *= sign
             is_highspeed = True
 
-        status.speed_mode = SpeedMode.HIGHSPEED if is_highspeed else SpeedMode.LOWSPEED
-        
+        target_speed_mode = SpeedMode.HIGHSPEED if is_highspeed else SpeedMode.LOWSPEED
+
+        target_status = SkyWatcherMotionStatus(
+            slew_mode=mode,
+            direction=target_direction,
+            speed_mode=target_speed_mode,
+        )
         period = self._STELLAR_DAY * self.ra_steps_worm / self.ra_steps_360 / abs(rate)
 
         self.logger.info("Set RA rate: %.1f * %d (highspeed=%s) mode=%s // period=%d", rate, self.ra_highspeed_ratio if is_highspeed else 1, is_highspeed, mode, int(period))
 
-        self._set_motion(status)
+        current_status = self._set_motion(target_status)
         self._set_speed(int(period))
+        if mode == SlewMode.SLEW and not current_status.running:
+            self._start_motor()
         
         return True
     
@@ -472,7 +517,6 @@ class SkyWatcherMount:
 
         self._last_tracking_rate = rate
         self.set_ra_rate(rate)
-        self._start_motor()
         self.logger.info("Start tracking applied: rate=%s", rate)
         return True
 

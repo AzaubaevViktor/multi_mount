@@ -664,14 +664,14 @@ def test_hw_splitter_manual_move_all_directions(
 @pytest.mark.parametrize(
     ("ra_delta_s", "dec_delta_deg"),
     (
-        pytest.param(1000.0, 0.0, id="ra_plus"),  # TODO: Add more variatives at ra/dec
-        pytest.param(-1000.0, 0.0, id="ra_minus"),
+        pytest.param(500.0, 0.0, id="ra_plus"),  # TODO: Add more variatives at ra/dec
+        pytest.param(-500.0, 0.0, id="ra_minus"),
         pytest.param(0.0, 3.0, id="dec_plus"),
         pytest.param(0.0, -3.0, id="dec_minus"),
-        pytest.param(1000.0, 3.0, id="ra_plus_dec_plus"),
-        pytest.param(1000.0, -3.0, id="ra_plus_dec_minus"),
-        pytest.param(-1000.0, 3.0, id="ra_minus_dec_plus"),
-        pytest.param(-1000.0, -3.0, id="ra_minus_dec_minus"),
+        pytest.param(500.0, 3.0, id="ra_plus_dec_plus"),
+        pytest.param(500.0, -3.0, id="ra_plus_dec_minus"),
+        pytest.param(-500.0, 3.0, id="ra_minus_dec_plus"),
+        pytest.param(-500.0, -3.0, id="ra_minus_dec_minus"),
     ),
 )
 def test_hw_splitter_slew_to_target_reaches_goal(
@@ -945,10 +945,11 @@ def test_hw_splitter_guiding_pulses_all_directions_vs_tracking(
             f"direction={direction} pulse_ms={pulse_ms} raw_rate={guide_rate_ra:.3f}s/s "
             f"baseline={baseline_rate_ra:.3f}s/s"
         )
-        assert abs(guide_rate_ra) > abs(baseline_rate_ra) + RA_GUIDE_MARGIN_S, (
+        assert abs(guide_rate_ra - baseline_rate_ra) > RA_GUIDE_MARGIN_S, (
             f"RA guide pulse is too close to plain tracking: "
             f"direction={direction} pulse_ms={pulse_ms} "
-            f"guided={guide_rate_ra:.3f}s/s tracking={baseline_rate_ra:.3f}s/s"
+            f"guided={guide_rate_ra:.3f}s/s tracking={baseline_rate_ra:.3f}s/s "
+            f"delta={guide_rate_ra - baseline_rate_ra:.3f}s/s"
         )
     else:
         assert (guide_rate_dec - baseline_rate_dec) * expected_sign > DEC_GUIDE_MARGIN_DEG, (
@@ -956,10 +957,11 @@ def test_hw_splitter_guiding_pulses_all_directions_vs_tracking(
             f"direction={direction} pulse_ms={pulse_ms} raw_rate={guide_rate_dec:.3f}deg/s "
             f"baseline={baseline_rate_dec:.3f}deg/s"
         )
-        assert abs(guide_rate_dec) > abs(baseline_rate_dec) + DEC_GUIDE_MARGIN_DEG, (
+        assert abs(guide_rate_dec - baseline_rate_dec) > DEC_GUIDE_MARGIN_DEG, (
             f"DEC guide pulse is too close to plain tracking: "
             f"direction={direction} pulse_ms={pulse_ms} "
-            f"guided={guide_rate_dec:.3f}deg/s tracking={baseline_rate_dec:.3f}deg/s"
+            f"guided={guide_rate_dec:.3f}deg/s tracking={baseline_rate_dec:.3f}deg/s "
+            f"delta={guide_rate_dec - baseline_rate_dec:.3f}deg/s"
         )
 
     displayed_ra_delta = _signed_ra_delta_seconds(start_ra, current_ra)

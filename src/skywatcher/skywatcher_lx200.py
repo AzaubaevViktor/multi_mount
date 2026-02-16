@@ -128,67 +128,70 @@ class SkyWatcherLX200(LX200Base):
             _goto_to = self._goto_to  # Prevent race (look at halt_all)
 
             if _goto_to:
-                with self._ra_update_lock:
-                    current_ra = self._ra_seconds
-
-                delta_to_target_seconds = (_goto_to.to_seconds() - current_ra + half_circle_seconds) % circle_seconds - half_circle_seconds
-                delta_to_target_abs_seconds = abs(delta_to_target_seconds)
-
-                if delta_to_target_abs_seconds < self._STOP_GOTO_SECONDS:
-                    logger.info("Stop mount in %s (%s), Δ=%.3fs", LX200Ha.from_seconds(current_ra), _goto_to, delta_to_target_abs_seconds)
-                    self.mount.wait_till_stop(do_stop=True)
-                    logger.info("Mount stop, resume tracking")
-                    self.mount.resume_tracking()
-                    
+                try:
                     with self._ra_update_lock:
-                        _current_ra = self._ra_seconds
-                    _current_ra = LX200Ha.from_seconds(_current_ra)
+                        current_ra = self._ra_seconds
 
-                    logger.info("Finished GOTO to %s in %s with delta: %fs", 
-                                _goto_to, 
-                                _current_ra, 
-                                (_current_ra - _goto_to).to_seconds()
-                                )
-                    
-                    self._goto_to = None
-                else:
-                    logger.debug("Continuing slewing, %.3fs still need to moved", delta_to_target_abs_seconds)
-                    if self.mount.get_status().slew_mode != SlewMode.GOTO:
-                        # start goto
-                        raw_delta_seconds = delta_to_target_seconds
+                    delta_to_target_seconds = (_goto_to.to_seconds() - current_ra + half_circle_seconds) % circle_seconds - half_circle_seconds
+                    delta_to_target_abs_seconds = abs(delta_to_target_seconds)
+
+                    if delta_to_target_abs_seconds < self._STOP_GOTO_SECONDS:
+                        logger.info("Stop mount in %s (%s), Δ=%.3fs", LX200Ha.from_seconds(current_ra), _goto_to, delta_to_target_abs_seconds)
+                        self.mount.wait_till_stop(do_stop=True)
+                        logger.info("Mount stop, resume tracking")
+                        self.mount.resume_tracking()
                         
-                        real_rate = self.mount.get_slew_real_rate(raw_delta_seconds)
-                        # Add sky moving approximation
-                        real_delta_seconds = raw_delta_seconds + abs(raw_delta_seconds) / (self.mount.STELLAR_SPEED / DEGREES_PER_HOUR) / real_rate
-                        if real_delta_seconds < 0:
-                            real_delta_seconds -= self.MAGIC_SECONDS_MINUS_SLEW  # add 6 magic seconds, because of accel/deccel/stop/star
-                        mount_delta_seconds = -real_delta_seconds  # why tf minus here and it works?
-                        real_delta = LX200Ha.from_seconds(mount_delta_seconds)
+                        with self._ra_update_lock:
+                            _current_ra = self._ra_seconds
+                        _current_ra = LX200Ha.from_seconds(_current_ra)
 
-                        
-                        self.mount.slew_to_ra(real_delta)
-                        if raw_delta_seconds > 0:
-                            self._goto_direction_sign = 1
-                        elif raw_delta_seconds < 0:
-                            self._goto_direction_sign = -1
-                        else:
-                            self._goto_direction_sign = 0
-
-                        logger.info("Run GOTO to %s from %s with delta %s (x%f)",
-                                    _goto_to,
-                                    LX200Ha.from_seconds(current_ra),
-                                    real_delta_seconds,
-                                    real_delta_seconds / raw_delta_seconds,
+                        logger.info("Finished GOTO to %s in %s with delta: %fs", 
+                                    _goto_to, 
+                                    _current_ra, 
+                                    (_current_ra - _goto_to).to_seconds()
                                     )
-                    elif self._goto_direction_sign and ((delta_to_target_seconds > 0) ^ (self._goto_direction_sign > 0)):
-                        # Too far away
-                        self.mount.gracefully_stop_motor()
-                        logger.warning("GOTO to %s went too far away (%s) %s, stop motor",
-                                        _goto_to, 
-                                        LX200Ha.from_seconds(current_ra),
-                                        delta_to_target_seconds,
-                                        )
+                        
                         self._goto_to = None
+                    else:
+                        logger.debug("Continuing slewing, %.3fs still need to moved", delta_to_target_abs_seconds)
+                        if self.mount.get_status().slew_mode != SlewMode.GOTO:
+                            # start goto
+                            raw_delta_seconds = delta_to_target_seconds
+                            
+                            real_rate = self.mount.get_slew_real_rate(raw_delta_seconds)
+                            # Add sky moving approximation
+                            real_delta_seconds = raw_delta_seconds + abs(raw_delta_seconds) / (self.mount.STELLAR_SPEED / DEGREES_PER_HOUR) / real_rate
+                            if real_delta_seconds < 0:
+                                real_delta_seconds -= self.MAGIC_SECONDS_MINUS_SLEW  # add 6 magic seconds, because of accel/deccel/stop/star
+                            mount_delta_seconds = -real_delta_seconds  # why tf minus here and it works?
+                            real_delta = LX200Ha.from_seconds(mount_delta_seconds)
+
+                            
+                            self.mount.slew_to_ra(real_delta)
+                            if raw_delta_seconds > 0:
+                                self._goto_direction_sign = 1
+                            elif raw_delta_seconds < 0:
+                                self._goto_direction_sign = -1
+                            else:
+                                self._goto_direction_sign = 0
+
+                            logger.info("Run GOTO to %s from %s with delta %s (x%f)",
+                                        _goto_to,
+                                        LX200Ha.from_seconds(current_ra),
+                                        real_delta_seconds,
+                                        real_delta_seconds / raw_delta_seconds,
+                                        )
+                        elif self._goto_direction_sign and ((delta_to_target_seconds > 0) ^ (self._goto_direction_sign > 0)):
+                            # Too far away
+                            self.mount.gracefully_stop_motor()
+                            logger.warning("GOTO to %s went too far away (%s) %s, stop motor",
+                                            _goto_to, 
+                                            LX200Ha.from_seconds(current_ra),
+                                            delta_to_target_seconds,
+                                            )
+                            self._goto_to = None
+                except Exception:
+                    logger.exception("While processing GOTO to %s", _goto_to)
                         
 
     def __del__(self):
@@ -291,10 +294,10 @@ class SkyWatcherLX200(LX200Base):
         return True
     
     def guide_west(self) -> bool:
-        return self.mount.set_ra_rate(0.5)
+        return self.mount.set_ra_rate(2.5)
     
     def guide_east(self) -> bool:
-        return self.mount.set_ra_rate(1.5)
+        return self.mount.set_ra_rate(-0.5)
     
     def guide_reset(self) -> bool:
-        return self.mount.set_ra_rate(1)
+        return self.mount.resume_tracking()

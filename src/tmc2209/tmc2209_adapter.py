@@ -166,16 +166,27 @@ class TMC2209Adapter:
         self._validate_serial()
 
     def connect(self) -> None:
-        self._serial.connect()
-        self._serial.reset()
-        self._serial.read_all_data()
-        self._log.debug("Wait while ready for ...")
-        start = time.monotonic()
-        while not (ready := self._serial.query(None, timeout=10)):
-            if time.monotonic() - start > 10:
+        ready = None
+        count = 3
+
+        while count:
+            self._serial.connect()
+            self._serial.reset()
+            self._log.info(self._serial.read_all_data())
+            self._log.debug("Wait while ready for ...")
+            start = time.monotonic()
+            while not (ready := self._serial.query(None, timeout=10)):
+                if time.monotonic() - start > 10:
+                    break
+
+            if ready.strip() == "ready":
                 break
 
-        if ready.strip() != "ready":
+            self._serial.close()
+
+            count -= 1
+
+        if not ready or ready.strip() != "ready":
             raise ValueError(f"Device not ready `{ready}`")
         
         self._log.info("Connected")
@@ -285,7 +296,7 @@ class TMC2209Adapter:
             )
         self._log.info("Set acceleration request: accel_steps_per_ms=%s", accel_steps_per_ms)
         response = self._transact("acceleration", [str(accel_steps_per_ms)])
-        applied_acceleration = _parse_float(_require_value(response.values, "accel"), "accel")
+        applied_acceleration = _parse_float(_require_value(response.values, "accel_per_s"), "accel_per_s")
         self._log.info("Set acceleration applied: accel_steps_per_ms=%s", applied_acceleration)
         return applied_acceleration
 

@@ -515,15 +515,6 @@ static const char* getPhaseV2() {
   return PHASE_RUN_V2;
 }
 
-static uint32_t calcStepIntervalUsV2(float speedSps) {
-  if (speedSps <= 0.0f) return 0;
-  float interval = 1000000.0f / speedSps;
-  if (interval < (float)(runV2.pulseWidthUs + 4)) {
-    interval = (float)(runV2.pulseWidthUs + 4);
-  }
-  return (uint32_t)interval;
-}
-
 static void updateMotionStateV2() {
   const uint32_t nowUs = micros();
 
@@ -717,7 +708,7 @@ static void handleLineV2(char* s) {
     const char* errorKey = nullptr;
     if (!setAccelStepsPerUsV2(value, &errorKey)) { respondErrorV2(errorKey ? errorKey : "range"); return; }
     respondStartV2(true);
-    respondKeyValueFloatV2("accel", runV2.accelStepsPerUs * 1000000.0f, 2);
+    respondKeyValueFloatV2("accel_per_s", runV2.accelStepsPerUs * 1000000.0f, 2);
     respondEndV2();
     return;
   }

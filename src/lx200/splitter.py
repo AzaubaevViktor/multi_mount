@@ -132,7 +132,7 @@ class LX200Splitter(LX200Handler):
 
         if self._active_guide_ra:
             self.ra.guide_reset()
-            self._active_guide_ra = True
+            self._active_guide_ra = False
             
         return True
 
