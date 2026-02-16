@@ -61,7 +61,7 @@ class TMC2209LX200(LX200Base):
     _guide_profile = SpeedProfile(
         microsteps=128, 
         speed=1000,
-        accel=10000,
+        accel=0,
     )
 
     def __init__(
