@@ -376,7 +376,21 @@ class SplitterController:
 
     def assert_ra_explicitly_stopped(self) -> None:
         delta = self.measure_ra_delta(RA_STOP_CHECK_WINDOW_S)
-        assert abs(delta) <= RA_STOP_MAX_DELTA_S, (
+        abs_delta = abs(delta)
+        logging.warning(
+            "\n================ ASSERT INPUT =================\n"
+            "CHECK: RA stop drift\n"
+            "delta_s: %.6f\n"
+            "abs_delta_s: %.6f\n"
+            "limit_s: %.6f\n"
+            "expr_abs_delta_le_limit: %s\n"
+            "===============================================",
+            delta,
+            abs_delta,
+            RA_STOP_MAX_DELTA_S,
+            abs_delta <= RA_STOP_MAX_DELTA_S,
+        )
+        assert abs_delta <= RA_STOP_MAX_DELTA_S, (
             "RA still looks like active manual/goto motion after stop command: "
             f"delta={delta:.2f}s for {RA_STOP_CHECK_WINDOW_S:.1f}s"
         )
@@ -384,7 +398,21 @@ class SplitterController:
     def assert_dec_explicitly_stopped(self) -> None:
         self._wait_dec_stopped(STOP_CHECK_TIMEOUT_S)
         delta = self.measure_dec_delta(DEC_STOP_CHECK_WINDOW_S)
-        assert abs(delta) <= DEC_STOP_MAX_DELTA_DEG, (
+        abs_delta = abs(delta)
+        logging.warning(
+            "\n================ ASSERT INPUT =================\n"
+            "CHECK: DEC stop drift\n"
+            "delta_deg: %.6f\n"
+            "abs_delta_deg: %.6f\n"
+            "limit_deg: %.6f\n"
+            "expr_abs_delta_le_limit: %s\n"
+            "===============================================",
+            delta,
+            abs_delta,
+            DEC_STOP_MAX_DELTA_DEG,
+            abs_delta <= DEC_STOP_MAX_DELTA_DEG,
+        )
+        assert abs_delta <= DEC_STOP_MAX_DELTA_DEG, (
             "DEC still changes after stop command: "
             f"delta={delta:.3f}deg for {DEC_STOP_CHECK_WINDOW_S:.1f}s"
         )
@@ -432,9 +460,6 @@ def _signed_ra_delta_seconds(start_seconds: float, end_seconds: float) -> float:
     circle_seconds = LX200Ha.SECONDS_PER_CIRCLE
     half_circle_seconds = circle_seconds / 2
     return ((end_seconds - start_seconds + half_circle_seconds) % circle_seconds) - half_circle_seconds
-
-
-
 
 @pytest.fixture(scope="module")
 def sc() -> Iterator[SplitterController]:
@@ -649,11 +674,49 @@ def test_hw_splitter_manual_move_all_directions(
     if axis == "ra":
         final_value = sc.get_ra().to_seconds()
         delta = _signed_ra_delta_seconds(start_value, final_value)
-        assert delta * expected_sign > RA_MANUAL_MIN_DELTA_S
+        signed_delta = delta * expected_sign
+        logging.warning(
+            "\n================ ASSERT INPUT =================\n"
+            "CHECK: manual RA direction and min delta\n"
+            "delta_s: %.6f\n"
+            "expected_sign: %d\n"
+            "signed_delta_s: %.6f\n"
+            "min_delta_s: %.6f\n"
+            "expr_signed_delta_gt_min: %s\n"
+            "===============================================",
+            delta,
+            expected_sign,
+            signed_delta,
+            RA_MANUAL_MIN_DELTA_S,
+            signed_delta > RA_MANUAL_MIN_DELTA_S,
+        )
+        assert signed_delta > RA_MANUAL_MIN_DELTA_S, (
+            "RA manual move did not reach min delta in expected direction: "
+            f"delta={delta:.2f}s expected_sign={expected_sign}"
+        )
     else:
         final_value = sc.get_dec().to_degrees()
         delta = final_value - start_value
-        assert delta * expected_sign > DEC_MANUAL_MIN_DELTA_DEG
+        signed_delta = delta * expected_sign
+        logging.warning(
+            "\n================ ASSERT INPUT =================\n"
+            "CHECK: manual DEC direction and min delta\n"
+            "delta_deg: %.6f\n"
+            "expected_sign: %d\n"
+            "signed_delta_deg: %.6f\n"
+            "min_delta_deg: %.6f\n"
+            "expr_signed_delta_gt_min: %s\n"
+            "===============================================",
+            delta,
+            expected_sign,
+            signed_delta,
+            DEC_MANUAL_MIN_DELTA_DEG,
+            signed_delta > DEC_MANUAL_MIN_DELTA_DEG,
+        )
+        assert signed_delta > DEC_MANUAL_MIN_DELTA_DEG, (
+            "DEC manual move did not reach min delta in expected direction: "
+            f"delta={delta:.3f}deg expected_sign={expected_sign}"
+        )
     logging.warning(
         "\n================ TEST END =====================\n"
         "MANUAL MOVE ALL DIRECTIONS COMPLETE\n"
@@ -739,15 +802,113 @@ def test_hw_splitter_slew_to_target_reaches_goal(
 
     if ra_delta_s != 0:
         actual_ra_delta = _signed_ra_delta_seconds(start_ra, final_ra)
-        assert actual_ra_delta * ra_delta_s > 0
-        assert abs(actual_ra_delta) >= abs(ra_delta_s) - SLEW_REACH_RA_TOLERANCE_S
-        assert abs(actual_ra_delta) <= abs(ra_delta_s) + SLEW_REACH_RA_TOLERANCE_S
+        ra_direction_product = actual_ra_delta * ra_delta_s
+        expected_ra_abs = abs(ra_delta_s)
+        actual_ra_abs = abs(actual_ra_delta)
+        min_allowed_ra_abs = expected_ra_abs - SLEW_REACH_RA_TOLERANCE_S
+        max_allowed_ra_abs = expected_ra_abs + SLEW_REACH_RA_TOLERANCE_S
+        logging.warning(
+            "\n================ ASSERT INPUT =================\n"
+            "CHECK: slew RA direction\n"
+            "actual_ra_delta_s: %.6f\n"
+            "requested_ra_delta_s: %.6f\n"
+            "direction_product: %.6f\n"
+            "expr_direction_product_gt_0: %s\n"
+            "===============================================",
+            actual_ra_delta,
+            ra_delta_s,
+            ra_direction_product,
+            ra_direction_product > 0,
+        )
+        assert ra_direction_product > 0, (
+            "RA slew moved in wrong direction: "
+            f"actual_ra_delta={actual_ra_delta:.2f}s requested_ra_delta={ra_delta_s:.2f}s"
+        )
+        logging.warning(
+            "\n================ ASSERT INPUT =================\n"
+            "CHECK: slew RA lower bound\n"
+            "actual_abs_delta_s: %.6f\n"
+            "min_allowed_abs_delta_s: %.6f\n"
+            "expr_actual_abs_ge_min_allowed: %s\n"
+            "===============================================",
+            actual_ra_abs,
+            min_allowed_ra_abs,
+            actual_ra_abs >= min_allowed_ra_abs,
+        )
+        assert actual_ra_abs >= min_allowed_ra_abs, (
+            "RA slew undershoot: "
+            f"actual={actual_ra_abs:.2f}s min_allowed={min_allowed_ra_abs:.2f}s"
+        )
+        logging.warning(
+            "\n================ ASSERT INPUT =================\n"
+            "CHECK: slew RA upper bound\n"
+            "actual_abs_delta_s: %.6f\n"
+            "max_allowed_abs_delta_s: %.6f\n"
+            "expr_actual_abs_le_max_allowed: %s\n"
+            "===============================================",
+            actual_ra_abs,
+            max_allowed_ra_abs,
+            actual_ra_abs <= max_allowed_ra_abs,
+        )
+        assert actual_ra_abs <= max_allowed_ra_abs, (
+            "RA slew overshoot: "
+            f"actual={actual_ra_abs:.2f}s max_allowed={max_allowed_ra_abs:.2f}s"
+        )
 
     if dec_delta_deg != 0:
         actual_dec_delta = final_dec - start_dec
-        assert actual_dec_delta * dec_delta_deg > 0
-        assert abs(actual_dec_delta) >= abs(dec_delta_deg) - SLEW_REACH_DEC_TOLERANCE_DEG
-        assert abs(actual_dec_delta) <= abs(dec_delta_deg) + SLEW_REACH_DEC_TOLERANCE_DEG
+        dec_direction_product = actual_dec_delta * dec_delta_deg
+        expected_dec_abs = abs(dec_delta_deg)
+        actual_dec_abs = abs(actual_dec_delta)
+        min_allowed_dec_abs = expected_dec_abs - SLEW_REACH_DEC_TOLERANCE_DEG
+        max_allowed_dec_abs = expected_dec_abs + SLEW_REACH_DEC_TOLERANCE_DEG
+        logging.warning(
+            "\n================ ASSERT INPUT =================\n"
+            "CHECK: slew DEC direction\n"
+            "actual_dec_delta_deg: %.6f\n"
+            "requested_dec_delta_deg: %.6f\n"
+            "direction_product: %.6f\n"
+            "expr_direction_product_gt_0: %s\n"
+            "===============================================",
+            actual_dec_delta,
+            dec_delta_deg,
+            dec_direction_product,
+            dec_direction_product > 0,
+        )
+        assert dec_direction_product > 0, (
+            "DEC slew moved in wrong direction: "
+            f"actual_dec_delta={actual_dec_delta:.3f}deg requested_dec_delta={dec_delta_deg:.3f}deg"
+        )
+        logging.warning(
+            "\n================ ASSERT INPUT =================\n"
+            "CHECK: slew DEC lower bound\n"
+            "actual_abs_delta_deg: %.6f\n"
+            "min_allowed_abs_delta_deg: %.6f\n"
+            "expr_actual_abs_ge_min_allowed: %s\n"
+            "===============================================",
+            actual_dec_abs,
+            min_allowed_dec_abs,
+            actual_dec_abs >= min_allowed_dec_abs,
+        )
+        assert actual_dec_abs >= min_allowed_dec_abs, (
+            "DEC slew undershoot: "
+            f"actual={actual_dec_abs:.3f}deg min_allowed={min_allowed_dec_abs:.3f}deg"
+        )
+        logging.warning(
+            "\n================ ASSERT INPUT =================\n"
+            "CHECK: slew DEC upper bound\n"
+            "actual_abs_delta_deg: %.6f\n"
+            "max_allowed_abs_delta_deg: %.6f\n"
+            "expr_actual_abs_le_max_allowed: %s\n"
+            "===============================================",
+            actual_dec_abs,
+            max_allowed_dec_abs,
+            actual_dec_abs <= max_allowed_dec_abs,
+        )
+        assert actual_dec_abs <= max_allowed_dec_abs, (
+            "DEC slew overshoot: "
+            f"actual={actual_dec_abs:.3f}deg max_allowed={max_allowed_dec_abs:.3f}deg"
+        )
     logging.warning(
         "\n================ TEST END =====================\n"
         "SLEW TO TARGET REACHES GOAL COMPLETE\n"
@@ -806,8 +967,38 @@ def test_hw_splitter_slew_halt_all_stops_early(sc: SplitterController) -> None:
     stopped_ra = sc.get_ra().to_seconds()
     stopped_dec = sc.get_dec().to_degrees()
 
-    assert _ra_distance_seconds(stopped_ra, target_ra.to_seconds()) > 60.0
-    assert abs(stopped_dec - target_dec.to_degrees()) > 2.0
+    remaining_ra_distance = _ra_distance_seconds(stopped_ra, target_ra.to_seconds())
+    remaining_dec_distance = abs(stopped_dec - target_dec.to_degrees())
+    logging.warning(
+        "\n================ ASSERT INPUT =================\n"
+        "CHECK: slew halt RA remains far from target\n"
+        "remaining_ra_distance_s: %.6f\n"
+        "min_remaining_ra_distance_s: %.6f\n"
+        "expr_remaining_gt_min: %s\n"
+        "===============================================",
+        remaining_ra_distance,
+        60.0,
+        remaining_ra_distance > 60.0,
+    )
+    assert remaining_ra_distance > 60.0, (
+        "RA got too close to target after halt_all: "
+        f"remaining_distance={remaining_ra_distance:.2f}s"
+    )
+    logging.warning(
+        "\n================ ASSERT INPUT =================\n"
+        "CHECK: slew halt DEC remains far from target\n"
+        "remaining_dec_distance_deg: %.6f\n"
+        "min_remaining_dec_distance_deg: %.6f\n"
+        "expr_remaining_gt_min: %s\n"
+        "===============================================",
+        remaining_dec_distance,
+        2.0,
+        remaining_dec_distance > 2.0,
+    )
+    assert remaining_dec_distance > 2.0, (
+        "DEC got too close to target after halt_all: "
+        f"remaining_distance={remaining_dec_distance:.3f}deg"
+    )
     logging.warning(
         "\n================ TEST END =====================\n"
         "SLEW HALT_ALL STOPS EARLY COMPLETE\n"
@@ -835,10 +1026,44 @@ def test_hw_splitter_baseline_delta(
 
     if axis == "ra":
         baseline_delta = sc.measure_ra_delta(duration_s)
-        assert abs(baseline_delta) < .1
+        baseline_abs = abs(baseline_delta)
+        logging.warning(
+            "\n================ ASSERT INPUT =================\n"
+            "CHECK: baseline RA drift\n"
+            "baseline_delta_s: %.6f\n"
+            "baseline_abs_s: %.6f\n"
+            "baseline_limit_s: %.6f\n"
+            "expr_baseline_abs_lt_limit: %s\n"
+            "===============================================",
+            baseline_delta,
+            baseline_abs,
+            0.1,
+            baseline_abs < 0.1,
+        )
+        assert baseline_abs < 0.1, (
+            "RA baseline drift is too high: "
+            f"drift={baseline_abs:.3f}s limit=0.1s"
+        )
     else:
         baseline_delta = sc.measure_dec_delta(duration_s)
-        assert abs(baseline_delta) < .1
+        baseline_abs = abs(baseline_delta)
+        logging.warning(
+            "\n================ ASSERT INPUT =================\n"
+            "CHECK: baseline DEC drift\n"
+            "baseline_delta_deg: %.6f\n"
+            "baseline_abs_deg: %.6f\n"
+            "baseline_limit_deg: %.6f\n"
+            "expr_baseline_abs_lt_limit: %s\n"
+            "===============================================",
+            baseline_delta,
+            baseline_abs,
+            0.1,
+            baseline_abs < 0.1,
+        )
+        assert baseline_abs < 0.1, (
+            "DEC baseline drift is too high: "
+            f"drift={baseline_abs:.3f}deg limit=0.1deg"
+        )
     logging.warning(
         "\n================ TEST END =====================\n"
         "BASELINE DELTA COMPLETE\n"
@@ -940,24 +1165,90 @@ def test_hw_splitter_guiding_pulses_all_directions_vs_tracking(
     )
 
     if axis == "ra":
-        assert (guide_rate_ra - baseline_rate_ra) * expected_sign > RA_GUIDE_MARGIN_S, (
+        rate_delta = guide_rate_ra - baseline_rate_ra
+        signed_rate_delta = rate_delta * expected_sign
+        abs_rate_delta = abs(rate_delta)
+        logging.warning(
+            "\n================ ASSERT INPUT =================\n"
+            "CHECK: guide RA direction vs tracking\n"
+            "guide_rate_ra_s_per_s: %.6f\n"
+            "baseline_rate_ra_s_per_s: %.6f\n"
+            "expected_sign: %d\n"
+            "signed_rate_delta_s_per_s: %.6f\n"
+            "margin_s_per_s: %.6f\n"
+            "expr_signed_rate_delta_gt_margin: %s\n"
+            "===============================================",
+            guide_rate_ra,
+            baseline_rate_ra,
+            expected_sign,
+            signed_rate_delta,
+            RA_GUIDE_MARGIN_S,
+            signed_rate_delta > RA_GUIDE_MARGIN_S,
+        )
+        assert signed_rate_delta > RA_GUIDE_MARGIN_S, (
             f"RA guide pulse did not move in expected direction: "
             f"direction={direction} pulse_ms={pulse_ms} raw_rate={guide_rate_ra:.3f}s/s "
             f"baseline={baseline_rate_ra:.3f}s/s"
         )
-        assert abs(guide_rate_ra - baseline_rate_ra) > RA_GUIDE_MARGIN_S, (
+        logging.warning(
+            "\n================ ASSERT INPUT =================\n"
+            "CHECK: guide RA differs from plain tracking\n"
+            "rate_delta_s_per_s: %.6f\n"
+            "abs_rate_delta_s_per_s: %.6f\n"
+            "margin_s_per_s: %.6f\n"
+            "expr_abs_rate_delta_gt_margin: %s\n"
+            "===============================================",
+            rate_delta,
+            abs_rate_delta,
+            RA_GUIDE_MARGIN_S,
+            abs_rate_delta > RA_GUIDE_MARGIN_S,
+        )
+        assert abs_rate_delta > RA_GUIDE_MARGIN_S, (
             f"RA guide pulse is too close to plain tracking: "
             f"direction={direction} pulse_ms={pulse_ms} "
             f"guided={guide_rate_ra:.3f}s/s tracking={baseline_rate_ra:.3f}s/s "
             f"delta={guide_rate_ra - baseline_rate_ra:.3f}s/s"
         )
     else:
-        assert (guide_rate_dec - baseline_rate_dec) * expected_sign > DEC_GUIDE_MARGIN_DEG, (
+        rate_delta = guide_rate_dec - baseline_rate_dec
+        signed_rate_delta = rate_delta * expected_sign
+        abs_rate_delta = abs(rate_delta)
+        logging.warning(
+            "\n================ ASSERT INPUT =================\n"
+            "CHECK: guide DEC direction vs tracking\n"
+            "guide_rate_dec_deg_per_s: %.6f\n"
+            "baseline_rate_dec_deg_per_s: %.6f\n"
+            "expected_sign: %d\n"
+            "signed_rate_delta_deg_per_s: %.6f\n"
+            "margin_deg_per_s: %.6f\n"
+            "expr_signed_rate_delta_gt_margin: %s\n"
+            "===============================================",
+            guide_rate_dec,
+            baseline_rate_dec,
+            expected_sign,
+            signed_rate_delta,
+            DEC_GUIDE_MARGIN_DEG,
+            signed_rate_delta > DEC_GUIDE_MARGIN_DEG,
+        )
+        assert signed_rate_delta > DEC_GUIDE_MARGIN_DEG, (
             f"DEC guide pulse did not move in expected direction: "
             f"direction={direction} pulse_ms={pulse_ms} raw_rate={guide_rate_dec:.3f}deg/s "
             f"baseline={baseline_rate_dec:.3f}deg/s"
         )
-        assert abs(guide_rate_dec - baseline_rate_dec) > DEC_GUIDE_MARGIN_DEG, (
+        logging.warning(
+            "\n================ ASSERT INPUT =================\n"
+            "CHECK: guide DEC differs from plain tracking\n"
+            "rate_delta_deg_per_s: %.6f\n"
+            "abs_rate_delta_deg_per_s: %.6f\n"
+            "margin_deg_per_s: %.6f\n"
+            "expr_abs_rate_delta_gt_margin: %s\n"
+            "===============================================",
+            rate_delta,
+            abs_rate_delta,
+            DEC_GUIDE_MARGIN_DEG,
+            abs_rate_delta > DEC_GUIDE_MARGIN_DEG,
+        )
+        assert abs_rate_delta > DEC_GUIDE_MARGIN_DEG, (
             f"DEC guide pulse is too close to plain tracking: "
             f"direction={direction} pulse_ms={pulse_ms} "
             f"guided={guide_rate_dec:.3f}deg/s tracking={baseline_rate_dec:.3f}deg/s "
@@ -966,12 +1257,40 @@ def test_hw_splitter_guiding_pulses_all_directions_vs_tracking(
 
     displayed_ra_delta = _signed_ra_delta_seconds(start_ra, current_ra)
     displayed_dec_delta = current_dec - start_dec
-    assert abs(displayed_ra_delta) < .1, (
+    displayed_ra_abs = abs(displayed_ra_delta)
+    displayed_dec_abs = abs(displayed_dec_delta)
+    logging.warning(
+        "\n================ ASSERT INPUT =================\n"
+        "CHECK: guide keeps displayed RA stable\n"
+        "displayed_ra_delta_s: %.6f\n"
+        "displayed_ra_abs_s: %.6f\n"
+        "displayed_limit_s: %.6f\n"
+        "expr_displayed_ra_abs_lt_limit: %s\n"
+        "===============================================",
+        displayed_ra_delta,
+        displayed_ra_abs,
+        0.1,
+        displayed_ra_abs < 0.1,
+    )
+    assert displayed_ra_abs < 0.1, (
         "Guide pulse changed displayed RA while raw telemetry moved: "
         f"direction={direction} pulse_ms={pulse_ms} displayed_ra_delta={displayed_ra_delta:.3f}s "
         f"raw_ra_rate={guide_rate_ra:.3f}s/s"
     )
-    assert abs(displayed_dec_delta) < .1, (
+    logging.warning(
+        "\n================ ASSERT INPUT =================\n"
+        "CHECK: guide keeps displayed DEC stable\n"
+        "displayed_dec_delta_deg: %.6f\n"
+        "displayed_dec_abs_deg: %.6f\n"
+        "displayed_limit_deg: %.6f\n"
+        "expr_displayed_dec_abs_lt_limit: %s\n"
+        "===============================================",
+        displayed_dec_delta,
+        displayed_dec_abs,
+        0.1,
+        displayed_dec_abs < 0.1,
+    )
+    assert displayed_dec_abs < 0.1, (
         "Guide pulse changed displayed DEC while raw telemetry moved: "
         f"direction={direction} pulse_ms={pulse_ms} displayed_dec_delta={displayed_dec_delta:.3f}deg "
         f"raw_dec_rate={guide_rate_dec:.3f}deg/s"
