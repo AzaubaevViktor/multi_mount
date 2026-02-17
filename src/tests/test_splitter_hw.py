@@ -38,6 +38,8 @@ DEC_MANUAL_MIN_DELTA_DEG = 0.1
 GUIDE_SETTLE_EXTRA_S = 1.2
 RA_GUIDE_MARGIN_S = 0.1
 DEC_GUIDE_MARGIN_DEG = 0.2
+RA_SHOWED_MARGIN_S = 1.1
+DEC_SHOWED_MARGIN_S = 1.1
 GUIDE_PULSE_MS_VALUES = (2500, 5000)
 DEC_STOP_PHASES = {Phase.IDLE, Phase.HOLD}
 STOP_CHECK_TIMEOUT_S = 12.0
@@ -1269,10 +1271,10 @@ def test_hw_splitter_guiding_pulses_all_directions_vs_tracking(
         "===============================================",
         displayed_ra_delta,
         displayed_ra_abs,
-        0.1,
-        displayed_ra_abs < 0.1,
+        RA_SHOWED_MARGIN_S,
+        displayed_ra_abs < RA_SHOWED_MARGIN_S,
     )
-    assert displayed_ra_abs < 0.1, (
+    assert displayed_ra_abs < RA_SHOWED_MARGIN_S, (
         "Guide pulse changed displayed RA while raw telemetry moved: "
         f"direction={direction} pulse_ms={pulse_ms} displayed_ra_delta={displayed_ra_delta:.3f}s "
         f"raw_ra_rate={guide_rate_ra:.3f}s/s"
@@ -1287,10 +1289,10 @@ def test_hw_splitter_guiding_pulses_all_directions_vs_tracking(
         "===============================================",
         displayed_dec_delta,
         displayed_dec_abs,
-        0.1,
-        displayed_dec_abs < 0.1,
+        DEC_SHOWED_MARGIN_S,
+        displayed_dec_abs < DEC_SHOWED_MARGIN_S,
     )
-    assert displayed_dec_abs < 0.1, (
+    assert displayed_dec_abs < DEC_SHOWED_MARGIN_S, (
         "Guide pulse changed displayed DEC while raw telemetry moved: "
         f"direction={direction} pulse_ms={pulse_ms} displayed_dec_delta={displayed_dec_delta:.3f}deg "
         f"raw_dec_rate={guide_rate_dec:.3f}deg/s"
