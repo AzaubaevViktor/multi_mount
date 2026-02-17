@@ -237,7 +237,6 @@ def test_dec_from_arcseconds(value, expected_text):
     dec = LX200Dec.from_arcseconds(value)
     assert str(dec) == expected_text
     assert dec.to_arcseconds() == pytest.approx(value)
-    assert dec.to_arcsec() == pytest.approx(value)
     assert dec.to_degrees() == pytest.approx(value / 3600)
 
 

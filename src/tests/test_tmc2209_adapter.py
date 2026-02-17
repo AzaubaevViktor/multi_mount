@@ -139,7 +139,7 @@ def test_get_param_normalizes_name():
 def test_set_param_formats_bool():
     serial = _FakeSerialLine({"set stealth=1": "1;stealth=1;"})
     adapter = TMC2209Adapter(serial)
-    assert adapter.set_param("stealth", True) == "1"
+    assert adapter._set_param("stealth", True) == "1"
 
 
 def test_set_speed_sps_range():

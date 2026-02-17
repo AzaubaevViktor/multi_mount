@@ -236,9 +236,6 @@ class LX200Dec(LX200PositionBase):
     def to_arcseconds(self) -> float:
         return self._arcseconds
 
-    def to_arcsec(self) -> float:
-        return self.to_arcseconds()
-
     def __str__(self) -> str:
         rounded_arcseconds = int(round(self._arcseconds))
         if rounded_arcseconds < 0:

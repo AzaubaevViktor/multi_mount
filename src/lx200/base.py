@@ -197,7 +197,7 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
 
         self._position_update_lock = threading.Lock()
         self._mount_position_raw: float = 0
-        self._motor_position_raw: float = 0
+        self._motor_position_raw_: float = 0
         self._last_update_s: float = 0
 
         self._current_track_rate_coef = self._DEFAULT_TRACKING_RATE
@@ -209,6 +209,14 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
         self._compensate_thread.start()
 
         self._goto_to: Any
+
+    @property
+    def _motor_position_raw(self):
+        return self._motor_position_raw_
+    
+    @_motor_position_raw.setter
+    def _motor_position_raw(self, value):
+        self._motor_position_raw_ = value
 
     def _is_motor_connected(self) -> bool:
         raise NotImplementedError()
@@ -272,10 +280,12 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
             with self._position_update_lock:
                 try:
                     motor_position = self._get_motor_raw_position()
+                    self.logger.debug("Motor raw position: %f", motor_position)
+                    now = time.monotonic()
                 except Exception as e:
                     _logger.warning("While get raw position: %s", e)
                     continue
-                
+
                 elapsed_s = now - self._last_update_s
 
                 # TODO: hide Current_track_rate_coef under lock
@@ -286,7 +296,7 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
                 delta = expected_delta_seconds - actual_delta_seconds
 
                 self.logger.debug(
-                    "Calculated delta by %.3fs: %f = (%f = (x%.2f) - %f = (%f - %f)); %f",
+                    "Calculated delta by %.3fs: %.3f = ((%f = (x%.2f)) - %.2f = (%.2f - %.2f)); MNT:%.2f",
                     elapsed_s,
                     delta, 
                     expected_delta_seconds, 
@@ -318,7 +328,10 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
     def stop(self):
         self._working = False
         if self._telemetry_thread and self._telemetry_thread.is_alive():
-            self._telemetry_thread.join(timeout=self._TELEMETRY_INTERVAL_S * 5)
+            try:
+                self._telemetry_thread.join(timeout=self._TELEMETRY_INTERVAL_S * 5)
+            except Exception:
+                self.logger.exception("While finishing telemetry thread")
         if self._compensate_thread and self._compensate_thread.is_alive():
             self._compensate_thread.join(timeout=self._RATE_COMPENSATE_INTERVAL_S * 5)
 

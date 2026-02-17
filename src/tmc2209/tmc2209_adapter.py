@@ -147,6 +147,7 @@ class TMC2209DriverStatus:
 
 
 def steps_from_dec(dec: LX200Dec, microsteps: int) -> int:
+    # TODO: Replace with method from TMC2209Adapter
     _validate_microsteps(microsteps)
 
     steps_per_rev = STEPS_PER_REV * microsteps * GEAR_RATIO_1 * GEAR_RATIO_2
@@ -157,11 +158,20 @@ def steps_from_dec(dec: LX200Dec, microsteps: int) -> int:
     return int(round(dec.to_degrees() * steps_per_degree))
 
 
+class TMC2209LX200Error(Exception):
+    pass
+
+
+class TMC2209LX200ConfigError(TMC2209LX200Error):
+    pass
+
+
 class TMC2209Adapter:
     def __init__(self, serial: SerialLine) -> None:
         self._serial = serial
         self._log = logging.getLogger("tmc2209.adapter")
         self._last_status_snapshot: tuple[bool, bool, Phase, bool] | None = None
+        self._microsteps = 16
 
         self._validate_serial()
 
@@ -227,16 +237,23 @@ class TMC2209Adapter:
             )
         else:
             self._log.debug(
-                "Status poll: initialised=%s enabled=%s phase=%s target_set=%s position=%s",
+                "Status poll: initialised=%s enabled=%s phase=%s target_set=%s position=%s speed=%.3f actual_speed=%.3f accel=%.3f",
                 status.initialised,
                 status.enabled,
                 status.phase,
                 status.target_set,
                 status.position,
+                status.speed_sps,
+                status.actual_speed_sps,
+                status.accel_steps_per_s,
             )
 
         self._last_status_snapshot = current_snapshot
         return status
+    
+    @property
+    def steps_per_rev(self) -> float:
+        return STEPS_PER_REV * self._microsteps * GEAR_RATIO_1 * GEAR_RATIO_2
 
     def driver_status(self) -> TMC2209DriverStatus:
         response = self._transact("driver_status")
@@ -251,11 +268,27 @@ class TMC2209Adapter:
         response = self._transact("get", [name])
         return _require_value(response.values, name)
 
-    def set_param(self, name: str, value: str | int | float | bool) -> str:
+    def _set_param(self, name: str, value: str | int | float | bool) -> str:
         name = _normalize_param_name(name)
         value_str = _format_param_value(value)
         response = self._transact("set", [f"{name}{KEY_VALUE_SEPARATOR}{value_str}"])
         return _require_value(response.values, name)
+    
+    def _refresh_microsteps(self, microsteps: int) -> None:
+        microsteps = self._microsteps
+        if microsteps != self._microsteps:
+            self.set_microsteps(microsteps)
+    
+    def set_microsteps(self, microsteps: int) -> bool:
+        if microsteps not in MICROSTEPS_ALLOWED:
+            raise TMC2209LX200ConfigError(f"microsteps not allowed: {microsteps!r}")
+        
+        if microsteps == self._microsteps:
+            return True
+
+        self._set_param("microsteps", microsteps)
+
+        return True
 
     def set_position(self, position: int) -> int:
         self._log.info("Set position request: position=%s", position)

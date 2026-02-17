@@ -22,8 +22,14 @@ class LX200Splitter(LX200Handler):
 
     def stop(self):
         super().stop()
-        self.ra.stop()
-        self.dec.stop()
+        try:
+            self.ra.stop()
+        except:
+            pass
+        try:
+            self.dec.stop()
+        except:
+            pass
 
     def handle_alignment(self, data: bytes) -> AlignmentMode:
         return AlignmentMode.POLAR

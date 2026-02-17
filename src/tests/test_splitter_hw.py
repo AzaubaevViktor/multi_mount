@@ -131,7 +131,7 @@ class SplitterController:
 
     def _wait_until(self, predicate: Callable[[], bool], timeout_s: float, error_message: str) -> None:
         logging.warning(
-            "\n================ POLLING START ================\n"
+            "\n================ WAIT UNTIL START ================\n"
             "TIMEOUT: %.1fs\n"
             "CONDITION: %s\n"
             "===============================================",
@@ -143,7 +143,7 @@ class SplitterController:
         while time.monotonic() < deadline:
             if predicate():
                 logging.warning(
-                    "\n================ POLLING END ==================\n"
+                    "\n================ WAIT UNTIL END ==================\n"
                     "RESULT: SUCCESS\n"
                     "ELAPSED: %.2fs\n"
                     "===============================================",
@@ -234,7 +234,7 @@ class SplitterController:
         timeout_s: float,
     ) -> float:
         logging.warning(
-            "\n================ POLLING START ================\n"
+            "\n================ WAIT RA MOVED START ================\n"
             "WAIT RA MOVED\n"
             "START: %s\n"
             "EXPECTED SIGN: %s\n"
@@ -255,7 +255,7 @@ class SplitterController:
             last_delta = _signed_ra_delta_seconds(start_seconds, last_ra)
             if expected_sign > 0 and last_delta >= min_delta_s:
                 logging.warning(
-                    "\n================ POLLING END ==================\n"
+                    "\n================ WAIT RA MOVED END ==================\n"
                     "WAIT RA MOVED DONE\n"
                     "CURRENT: %s\n"
                     "DELTA: %.2fs\n"
@@ -268,7 +268,7 @@ class SplitterController:
                 return last_delta
             if expected_sign < 0 and last_delta <= -min_delta_s:
                 logging.warning(
-                    "\n================ POLLING END ==================\n"
+                    "\n================ WAIT RA MOVED END ==================\n"
                     "WAIT RA MOVED DONE\n"
                     "CURRENT: %s\n"
                     "DELTA: %.2fs\n"
@@ -294,7 +294,7 @@ class SplitterController:
         timeout_s: float,
     ) -> float:
         logging.warning(
-            "\n================ POLLING START ================\n"
+            "\n================ WAIT DEC MOVED START ================\n"
             "WAIT DEC MOVED\n"
             "START: %s\n"
             "EXPECTED SIGN: %s\n"
@@ -315,7 +315,7 @@ class SplitterController:
             last_delta = last_dec - start_deg
             if expected_sign > 0 and last_delta >= min_delta_deg:
                 logging.warning(
-                    "\n================ POLLING END ==================\n"
+                    "\n================ WAIT DEC MOVED END ==================\n"
                     "WAIT DEC MOVED DONE\n"
                     "CURRENT: %s\n"
                     "DELTA: %.3fdeg\n"
@@ -328,7 +328,7 @@ class SplitterController:
                 return last_delta
             if expected_sign < 0 and last_delta <= -min_delta_deg:
                 logging.warning(
-                    "\n================ POLLING END ==================\n"
+                    "\n================ WAIT DEC MOVED END ==================\n"
                     "WAIT DEC MOVED DONE\n"
                     "CURRENT: %s\n"
                     "DELTA: %.3fdeg\n"
@@ -380,7 +380,7 @@ class SplitterController:
         delta = self.measure_ra_delta(RA_STOP_CHECK_WINDOW_S)
         abs_delta = abs(delta)
         logging.warning(
-            "\n================ ASSERT INPUT =================\n"
+            "\n================ ASSERT RA STOOPED INPUT =================\n"
             "CHECK: RA stop drift\n"
             "delta_s: %.6f\n"
             "abs_delta_s: %.6f\n"
@@ -402,7 +402,7 @@ class SplitterController:
         delta = self.measure_dec_delta(DEC_STOP_CHECK_WINDOW_S)
         abs_delta = abs(delta)
         logging.warning(
-            "\n================ ASSERT INPUT =================\n"
+            "\n================ ASSERT DEC STOPPED INPUT =================\n"
             "CHECK: DEC stop drift\n"
             "delta_deg: %.6f\n"
             "abs_delta_deg: %.6f\n"
@@ -606,8 +606,8 @@ def test_hw_splitter_sync_ra_dec_multiple_times(sc: SplitterController) -> None:
     (
         pytest.param("move_east", "halt_east", "ra", -1, id="east"),
         pytest.param("move_west", "halt_west", "ra", 1, id="west"),
-        pytest.param("move_north", "halt_north", "dec", 1, id="north"),
-        pytest.param("move_south", "halt_south", "dec", -1, id="south"),
+        pytest.param("move_north", "halt_north", "dec", -1, id="north"),
+        pytest.param("move_south", "halt_south", "dec", 1, id="south"),
     ),
 )
 def test_hw_splitter_manual_move_all_directions(
@@ -1124,12 +1124,12 @@ def test_hw_splitter_guiding_pulses_all_directions_vs_tracking(
         baseline_raw_ra_end,
     ) / duration_s
     baseline_rate_dec = (
-        (baseline_raw_dec_end - baseline_raw_dec_start) / sc.dec.steps_per_degree
+        (baseline_raw_dec_end - baseline_raw_dec_start) / sc.dec.steps_per_arcsec
     ) / duration_s
     logging.warning(
         "\n================ GUIDE BASELINE END ===========\n"
-        "BASELINE RAW RATE RA: %.3fs/s\n"
-        "BASELINE RAW RATE DEC: %.3fdeg/s\n"
+        "BASELINE RAW RATE RA: %.3fpos/s\n"
+        "BASELINE RAW RATE DEC: %.3fpos/s\n"
         "===============================================",
         baseline_rate_ra,
         baseline_rate_dec,
@@ -1149,18 +1149,18 @@ def test_hw_splitter_guiding_pulses_all_directions_vs_tracking(
         "==============================================="
     )
     sc.guide(direction, pulse_ms)
-    time.sleep(duration_s)
+    time.sleep(duration_s * 3)
 
     current_ra = sc.get_ra().to_seconds()
     current_dec = sc.get_dec().to_degrees()
     current_raw_ra, current_raw_dec = sc.get_telescope_raw_position()
 
     guide_rate_ra = _signed_ra_delta_seconds(start_raw_ra, current_raw_ra) / duration_s
-    guide_rate_dec = ((current_raw_dec - start_raw_dec) / sc.dec.steps_per_degree) / duration_s
+    guide_rate_dec = ((current_raw_dec - start_raw_dec) / sc.dec.steps_per_arcsec) / duration_s
     logging.warning(
         "\n================ GUIDE RESULT =================\n"
-        "GUIDE RAW RATE RA: %.3fs/s\n"
-        "GUIDE RAW RATE DEC: %.3fdeg/s\n"
+        "GUIDE RAW RATE RA: %.3fpos/s\n"
+        "GUIDE RAW RATE DEC: %.3fpos/s\n"
         "===============================================",
         guide_rate_ra,
         guide_rate_dec,
