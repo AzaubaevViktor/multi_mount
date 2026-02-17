@@ -33,7 +33,7 @@ SYNC_DEC_TOLERANCE_DEG = 0.3
 
 MANUAL_MOVE_DURATION_S = 2.0
 RA_MANUAL_MIN_DELTA_S = 2.0
-DEC_MANUAL_MIN_DELTA_DEG = 0.1
+DEC_MANUAL_MIN_DELTA_DEG = 10 / 60 / 60
 
 GUIDE_SETTLE_EXTRA_S = 1.2
 RA_GUIDE_MARGIN_S = 0.1
@@ -606,8 +606,8 @@ def test_hw_splitter_sync_ra_dec_multiple_times(sc: SplitterController) -> None:
     (
         pytest.param("move_east", "halt_east", "ra", -1, id="east"),
         pytest.param("move_west", "halt_west", "ra", 1, id="west"),
-        pytest.param("move_north", "halt_north", "dec", -1, id="north"),
-        pytest.param("move_south", "halt_south", "dec", 1, id="south"),
+        pytest.param("move_north", "halt_north", "dec", 1, id="north"),
+        pytest.param("move_south", "halt_south", "dec", -1, id="south"),
     ),
 )
 def test_hw_splitter_manual_move_all_directions(

@@ -278,8 +278,6 @@ class SkyWatcherMount:
         self.ra_steps_360 = Revu24.from_mount(self._transact(SkyWatcherCommand.INQUIRE_CPR))
         self.ra_steps_worm = Revu24.from_mount(self._transact(SkyWatcherCommand.INQUIRE_TIMER_FREQ))
         self.ra_highspeed_ratio = Revu24.from_mount(self._transact(SkyWatcherCommand.INQUIRE_HIGHSPEED_RATIO))
-        # TODO: Make 2-hex-digits revu24
-        # self.ra_highspeed_ratio = Revu24.from_mount(self._transact(SkyWatcherCommand.INQUIRE_HIGHSPEED_RATIO))
 
     def get_status(self) -> SkyWatcherStatus:
         status = SkyWatcherStatus.from_bytes(
