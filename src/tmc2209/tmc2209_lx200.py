@@ -1,10 +1,9 @@
 from dataclasses import dataclass
-import logging
-import threading
 import time
 
-from lx200.base import LX200Base
-from lx200.protocols import LX200Dec
+from lx200.base import LX200DECHandler
+from lx200.protocol import AlignmentMode
+from lx200.protocols import LX200Dec, LX200Ha
 from tmc2209.tmc2209_adapter import (
     GEAR_RATIO_1,
     GEAR_RATIO_2,
@@ -39,9 +38,9 @@ class TMC2209LX200ConfigError(TMC2209LX200Error):
     pass
 
 
-class TMC2209LX200(LX200Base):
+class TMC2209LX200(LX200DECHandler):
     FAST_PROFILE_DELTA_DEG = 1
-    _TELEMETRY_INTERVAL_S = 1.0
+    _DEFAULT_TRACKING_RATE = 0
 
     _goto_fast_profile = SpeedProfile(
         microsteps=2, 
@@ -69,15 +68,29 @@ class TMC2209LX200(LX200Base):
         adapter: TMC2209Adapter,
     ) -> None:
         self._adapter = adapter
-
-        self._dec_steps = 0
         self._microsteps: int = 1
 
-        self.logger = logging.getLogger("TMC2209LX200")
-        self._working = True
         self._is_connected = False
-        self._telemetry_thread = threading.Thread(target=self._do_log_telemetry, name="TMC_DEC_TELEMETRY")
-        self._telemetry_thread.start()
+
+        super().__init__()
+
+    def _is_motor_connected(self) -> bool:
+        return self._is_connected
+
+    def _get_motor_status(self):
+        return self._adapter.status()
+
+    def _get_motor_raw_position(self) -> float:
+        return -self._arcseconds_from_steps(self.get_telescope_raw_position()[1])
+
+    def _get_default_tracking_speed(self) -> float:
+        return GUIDE_ARCSEC_PER_SEC
+
+    def _wrap_mount_position(self, mount_position: float) -> float:
+        return mount_position
+
+    def handle_alignment(self, data: bytes) -> AlignmentMode:
+        return AlignmentMode.POLAR
 
     # Microsteps update logic
 
@@ -115,70 +128,52 @@ class TMC2209LX200(LX200Base):
         self._adapter.connect()
         self._initialize()
         self._is_connected = True
+        self.sync_telescope_dec(LX200Dec.from_degrees(0))
         self.logger.info("TMC2209 LX200 connected")
 
     def stop(self):
         self.logger.info("Stop TMC2209 LX200")
         self._is_connected = False
-        self._working = False
-        if self._telemetry_thread and self._telemetry_thread.is_alive():
-            self._telemetry_thread.join(timeout=self._TELEMETRY_INTERVAL_S * 5)
+        super().stop()
         self._adapter.close()
         self.logger.info("TMC2209 LX200 stopped")
 
-    def _do_log_telemetry(self) -> None:
-        telemetry_logger = self.logger.getChild("telemetry")
-        while self._working:
-            if not self._is_connected:
-                time.sleep(self._TELEMETRY_INTERVAL_S)
-                continue
-
-            try:
-                status = self._adapter.status()
-            except Exception:
-                telemetry_logger.exception("While polling DEC telemetry")
-                time.sleep(self._TELEMETRY_INTERVAL_S)
-                continue
-
-            raw_steps = int(status.position)
-            normalized_steps = int(raw_steps % self.steps_per_rev)
-            dec = self._dec_from_steps(normalized_steps)
-            telemetry_logger.info(
-                "DEC=%s raw_steps=%s phase=%s target_set=%s enabled=%s",
-                dec,
-                raw_steps,
-                status.phase,
-                status.target_set,
-                status.enabled,
-            )
-            time.sleep(self._TELEMETRY_INTERVAL_S)
-
     def get_telescope_raw_position(self) -> tuple[float, float]:
-        position = self._adapter.status().position
-        new_position = int(position % self.steps_per_rev)
-        if new_position != position:
-            self._adapter.set_position(new_position)
-        return 0, new_position
+        return 0, int(self._adapter.status().position)
 
     def _steps_from_dec(self, position: LX200Dec) -> int:
-        return int(round(position.to_degrees() * self.steps_per_degree % self.steps_per_rev))
+        return int(round(position.to_degrees() * self.steps_per_degree))
+
+    def _arcseconds_from_steps(self, steps: int) -> float:
+        return (steps / self.steps_per_degree) * 3600
 
     def _dec_from_steps(self, steps: int) -> LX200Dec:
-        degrees = steps / self.steps_per_degree
-        return LX200Dec.from_degrees(degrees)
+        return LX200Dec.from_arcseconds(self._arcseconds_from_steps(steps))
 
     def get_telescope_dec(self) -> LX200Dec:
-        return self._dec_from_steps(int(self.get_telescope_raw_position()[1]))
+        return LX200Dec.from_arcseconds(self._mount_position_raw)
+
+    def get_telescope_ra(self) -> LX200Ha:
+        return LX200Ha.from_hours(0)
 
     def sync_telescope_dec(self, position: LX200Dec) -> bool:
         self.logger.info("Sync DEC to %s", position)
         steps = self._steps_from_dec(position)
         self._adapter.set_position(steps)
+        with self._position_update_lock:
+            self._mount_position_raw = position.to_arcseconds()
+            self._motor_position_raw = self._get_motor_raw_position()
+            self._last_update_s = time.monotonic()
+        self._current_track_rate_coef = self._DEFAULT_TRACKING_RATE
         self.logger.info("Sync DEC applied: steps=%s", steps)
         return True
 
+    def sync_telescope_ra(self, position: LX200Ha) -> bool:
+        return False
+
     def halt_all(self) -> bool:
         self.logger.info("Halt all DEC movements")
+        self._current_track_rate_coef = self._DEFAULT_TRACKING_RATE
         self._adapter.halt()
         self.logger.info("Halt all DEC movements done")
         return True
@@ -190,7 +185,7 @@ class TMC2209LX200(LX200Base):
         delta_steps = target_steps - current_position
 
         profile = self._goto_slow_profile
-        if abs(self._dec_from_steps(abs(delta_steps)).to_degrees()) > self.FAST_PROFILE_DELTA_DEG:
+        if abs(delta_steps / self.steps_per_degree) > self.FAST_PROFILE_DELTA_DEG:
             profile = self._goto_fast_profile
 
         self.logger.info(
@@ -203,6 +198,7 @@ class TMC2209LX200(LX200Base):
             profile.accel,
         )
         self._apply_profile(profile)
+        self._current_track_rate_coef = self._DEFAULT_TRACKING_RATE
         
         self._adapter.set_target(target_steps)
 
@@ -210,6 +206,9 @@ class TMC2209LX200(LX200Base):
         self.logger.info("DEC GOTO started: target_steps=%s", target_steps)
         
         return True
+
+    def slew_to_ra(self, position: LX200Ha) -> bool:
+        return False
 
     def get_site1_name(self) -> str:
         return "tmc2209"
@@ -228,11 +227,13 @@ class TMC2209LX200(LX200Base):
         return False
 
     def move_north(self) -> bool:
+        self._current_track_rate_coef = self._DEFAULT_TRACKING_RATE
         return self._start_manual_move(
             False,
         )
 
     def move_south(self) -> bool:
+        self._current_track_rate_coef = self._DEFAULT_TRACKING_RATE
         return self._start_manual_move(
             True,
         )
@@ -257,6 +258,7 @@ class TMC2209LX200(LX200Base):
 
     def guide_north(self) -> bool:
         self.logger.info("Guide north start")
+        self._current_track_rate_coef = -1
         self._apply_profile(self._guide_profile)
         self._adapter.set_direction(False)
         self._adapter.run()
@@ -265,6 +267,7 @@ class TMC2209LX200(LX200Base):
 
     def guide_south(self) -> bool:
         self.logger.info("Guide south start")
+        self._current_track_rate_coef = 1
         self._apply_profile(self._guide_profile)
         self._adapter.set_direction(True)
         self._adapter.run()
@@ -276,6 +279,7 @@ class TMC2209LX200(LX200Base):
 
     def guide_reset(self) -> bool:
         self.logger.info("Guide reset")
+        self._current_track_rate_coef = self._DEFAULT_TRACKING_RATE
         return self.halt_all()
 
     def _start_manual_move(

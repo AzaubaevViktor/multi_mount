@@ -251,7 +251,7 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
                 self.POS_CLS.from_raw(current_motor_position),
                 current_motor_position,
                 str(status),
-                self._goto_to is not None,
+                getattr(self, "_goto_to", None) is not None,
             )
 
             time.sleep(self._TELEMETRY_INTERVAL_S)
@@ -278,6 +278,7 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
                 
                 elapsed_s = now - self._last_update_s
 
+                # TODO: hide Current_track_rate_coef under lock
                 expected_delta_seconds = elapsed_s * self._get_default_tracking_speed() * self._current_track_rate_coef
 
                 actual_delta_seconds = self._wrap_mount_position(motor_position - self._motor_position_raw)
@@ -285,10 +286,12 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
                 delta = expected_delta_seconds - actual_delta_seconds
 
                 self.logger.debug(
-                    "Calculated delta by %.3fs: %f = (%f - %f = (%f - %f)); %f",
+                    "Calculated delta by %.3fs: %f = (%f = (x%.2f) - %f = (%f - %f)); %f",
                     elapsed_s,
                     delta, 
-                    expected_delta_seconds, actual_delta_seconds, 
+                    expected_delta_seconds, 
+                    self._current_track_rate_coef,
+                    actual_delta_seconds, 
                     motor_position,
                     self._motor_position_raw,
                     self._mount_position_raw,
@@ -326,6 +329,11 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
 class LX200RAHandler(LX200AxisHandler[LX200Ha]):
     POS_CLS = LX200Ha
     AXIS_NAME = "Ra"
+
+
+class LX200DECHandler(LX200AxisHandler[LX200Dec]):
+    POS_CLS = LX200Dec
+    AXIS_NAME = "Dec"
 
 
 class LX200Handler(LX200Base):
