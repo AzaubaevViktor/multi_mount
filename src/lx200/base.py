@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass
 from enum import StrEnum
 import logging
@@ -9,7 +8,7 @@ from typing import Any
 
 
 from .protocol import AlignmentMode
-from lx200.protocols import LX200Ha, LX200Dec
+from lx200.protocols import LX200Ha, LX200Dec, LX200PositionBase
 
 
 class LX200Commands(StrEnum):
@@ -180,6 +179,153 @@ class LX200Base:
     
     def guide_reset(self) -> bool:
         raise NotImplementedError()
+
+
+class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
+    AXIS_NAME: str
+    POS_CLS: type[_POS_CLS]
+
+    _TELEMETRY_INTERVAL_S = 1.0
+    _RATE_COMPENSATE_INTERVAL_S = .5
+
+    _DEFAULT_TRACKING_RATE: float
+    _POSITION_DELTA_ACCEPTED_RATE_S = .1
+
+    def __init__(self) -> None:
+        self.logger = logging.getLogger(type(self).__name__)
+        self._working = True
+
+        self._position_update_lock = threading.Lock()
+        self._mount_position_raw: float = 0
+        self._motor_position_raw: float = 0
+        self._last_update_s: float = 0
+
+        self._current_track_rate_coef = self._DEFAULT_TRACKING_RATE
+
+        self._telemetry_thread = threading.Thread(target=self._do_log_telemetry, name=f"{type(self).__name__}_telemetry")
+        self._telemetry_thread.start()
+
+        self._compensate_thread = threading.Thread(target=self._compensate_tracking_rate, name=f"{type(self).__name__}_compensate")
+        self._compensate_thread.start()
+
+        self._goto_to: Any
+
+    def _is_motor_connected(self) -> bool:
+        raise NotImplementedError()
+
+    def _get_motor_status(self) -> Any:
+        raise NotImplementedError()
+    
+    def _get_motor_raw_position(self) -> float:
+        raise NotImplementedError()
+    
+    def _get_default_tracking_speed(self) -> float:
+        raise NotImplementedError()
+    
+    def _wrap_mount_position(self, mount_position: float) -> float:
+        raise NotImplementedError()
+
+    def _do_log_telemetry(self):
+        _logger = self.logger.getChild("telemetry")
+        while self._working:
+            if not self._is_motor_connected():
+                time.sleep(self._TELEMETRY_INTERVAL_S)
+                continue
+
+            try:
+                status = self._get_motor_status()
+            except Exception:
+                _logger.exception("While polling telemetry")
+                time.sleep(self._TELEMETRY_INTERVAL_S)
+                continue
+
+            with self._position_update_lock:
+                current_mount_position = self._mount_position_raw
+                current_motor_position = self._motor_position_raw
+
+            _logger.info(
+                "%s: MNT(%s raw=%d) MTR(%s raw=%s) status=%s goto_active=%s",
+                self.AXIS_NAME,
+                self.POS_CLS.from_raw(current_mount_position),  
+                current_mount_position,
+                self.POS_CLS.from_raw(current_motor_position),
+                current_motor_position,
+                str(status),
+                self._goto_to is not None,
+            )
+
+            time.sleep(self._TELEMETRY_INTERVAL_S)
+
+    def _compensate_tracking_rate(self):
+        _logger = self.logger.getChild("compensate")
+        while self._working:
+            if not self._is_motor_connected():
+                time.sleep(self._RATE_COMPENSATE_INTERVAL_S)
+                continue
+
+            now = time.monotonic()
+            sleep_time = self._RATE_COMPENSATE_INTERVAL_S - (now - self._last_update_s)
+
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+
+            with self._position_update_lock:
+                try:
+                    motor_position = self._get_motor_raw_position()
+                except Exception as e:
+                    _logger.warning("While get raw position: %s", e)
+                    continue
+                
+                elapsed_s = now - self._last_update_s
+
+                expected_delta_seconds = elapsed_s * self._get_default_tracking_speed() * self._current_track_rate_coef
+
+                actual_delta_seconds = self._wrap_mount_position(motor_position - self._motor_position_raw)
+
+                delta = expected_delta_seconds - actual_delta_seconds
+
+                self.logger.debug(
+                    "Calculated delta by %.3fs: %f = (%f - %f = (%f - %f)); %f",
+                    elapsed_s,
+                    delta, 
+                    expected_delta_seconds, actual_delta_seconds, 
+                    motor_position,
+                    self._motor_position_raw,
+                    self._mount_position_raw,
+                )
+                
+                if abs(delta) < self._POSITION_DELTA_ACCEPTED_RATE_S * elapsed_s:
+                    delta = 0
+
+                new_mount_position = self._wrap_mount_position(self._mount_position_raw + delta)
+
+                self.logger.info(
+                    "Update mount position: %s -> %s (%.2f -> %.2f)",
+                    self.POS_CLS.from_raw(self._mount_position_raw),
+                    self.POS_CLS.from_raw(new_mount_position),
+                    self._mount_position_raw, 
+                    new_mount_position,
+                )
+
+                self._mount_position_raw = new_mount_position
+
+                self._motor_position_raw = motor_position
+                self._last_update_s = now
+
+    def stop(self):
+        self._working = False
+        if self._telemetry_thread and self._telemetry_thread.is_alive():
+            self._telemetry_thread.join(timeout=self._TELEMETRY_INTERVAL_S * 5)
+        if self._compensate_thread and self._compensate_thread.is_alive():
+            self._compensate_thread.join(timeout=self._RATE_COMPENSATE_INTERVAL_S * 5)
+
+    def __del__(self):
+        self.stop()
+
+
+class LX200RAHandler(LX200AxisHandler[LX200Ha]):
+    POS_CLS = LX200Ha
+    AXIS_NAME = "Ra"
 
 
 class LX200Handler(LX200Base):

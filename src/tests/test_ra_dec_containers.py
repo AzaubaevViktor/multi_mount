@@ -132,6 +132,19 @@ def test_hours_repr():
 @pytest.mark.parametrize(
     "value, expected",
     [
+        (59.9, "00:01:00"),
+        (3599.9, "01:00:00"),
+        (86399.9, "00:00:00"),
+    ],
+)
+def test_hours_rounding_for_components(value, expected):
+    hours = LX200Ha.from_seconds(value)
+    assert str(hours) == expected
+
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [
         ("+00*00:00", ("+", 0, 0, 0)),
         ("-12*34:56", ("-", 12, 34, 56)),
         ("+12*34:56", ("+", 12, 34, 56)),
@@ -211,6 +224,35 @@ def test_dec_to_degrees_negative():
     assert dec.to_degrees() == pytest.approx(-1.5)
 
 
+@pytest.mark.parametrize(
+    "value, expected_text",
+    [
+        (59.9, "+00*01:00"),
+        (-59.9, "-00*01:00"),
+        (3599.9, "+01*00:00"),
+        (-3599.9, "-01*00:00"),
+    ],
+)
+def test_dec_from_arcseconds(value, expected_text):
+    dec = LX200Dec.from_arcseconds(value)
+    assert str(dec) == expected_text
+    assert dec.to_arcseconds() == pytest.approx(value)
+    assert dec.to_arcsec() == pytest.approx(value)
+    assert dec.to_degrees() == pytest.approx(value / 3600)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        90 * 3600 + 0.1,
+        -(90 * 3600 + 0.1),
+    ],
+)
+def test_dec_from_arcseconds_invalid(value):
+    with pytest.raises(LX200DecRangeError):
+        LX200Dec.from_arcseconds(value)
+
+
 def test_dec_repr():
     dec = LX200Dec("+", 5, 6, 7)
     assert repr(dec) == "LX200Dec('+05*06:07')"
@@ -235,3 +277,4 @@ def test_dec_roundtrip_random_degrees(arcseconds):
         value = str(LX200Dec.from_degrees(degrees))
         roundtrip = LX200Dec.from_string(value)
         assert roundtrip.to_degrees() == pytest.approx(degrees, abs=1./3600), total_arcseconds
+
