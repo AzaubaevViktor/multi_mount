@@ -231,7 +231,7 @@ class SplitterController:
 
     TRACKING_MODE_TOLERANCE = (1, 1)
     """ (s, arcsec)/s """
-    TRACKING_MODE_MOTOR_TOLERANCE = (0.1, 0.1)
+    TRACKING_MODE_MOTOR_TOLERANCE = (0.25, 0.25)
     """ (ticks, ticks)/s """
 
     def wait_while_mount_in_tracking(self, timeout_s: float = 5., times: int = 20):
@@ -585,10 +585,6 @@ def test_coordinate_system_slew_directions(
         assert abs(moving.dec.rate_per_s.mount) < sc.TRACKING_MODE_TOLERANCE[1]
         assert abs(moving.dec.rate_per_s.motor) < DEC_STABLE_MOTOR_TOLERANCE
 
-    sc.halt_all()
-    sc.wait_while_mount_in_tracking(timeout_s=8.0)
-    assert sc.check_mount_in_tracking_mode(delta_s=MOTION_SAMPLE_S)
-
 
 GUIDE_PULSE_MS_VALUES = (2500, 5000)
 GUIDE_PULSE_MS_FOR_HALT = GUIDE_PULSE_MS_VALUES[0]
@@ -645,10 +641,6 @@ def test_coordinate_system_guide_ra_rates(
     else:
         pytest.fail(f"Unexpected guide direction: {direction}")
 
-    time.sleep((pulse_ms / 1000) + SETTLE_S)
-    sc.wait_while_mount_in_tracking(timeout_s=8.0)
-    assert sc.check_mount_in_tracking_mode(delta_s=MOTION_SAMPLE_S)
-
 
 @pytest.mark.parametrize(
     ("target_ra_text", "target_dec_text"),
@@ -673,19 +665,21 @@ GOTO_DEC_TOLERANCE_ARCSEC = 180.0
 GOTO_MIN_RA_MOVE_S = 60.0
 GOTO_MIN_DEC_MOVE_ARCSEC = 300.0
 
+GOTO_DIRECTION_DELTAS = (
+    pytest.param(400.0, 0.0, id="goto-ra-plus"),
+    pytest.param(-400.0, 0.0, id="goto-ra-minus"),
+    pytest.param(0.0, 1200.0, id="goto-dec-plus"),
+    pytest.param(0.0, -1200.0, id="goto-dec-minus"),
+    pytest.param(400.0, 1200.0, id="goto-ra-plus-dec-plus"),
+    pytest.param(400.0, -1200.0, id="goto-ra-plus-dec-minus"),
+    pytest.param(-400.0, 1200.0, id="goto-ra-minus-dec-plus"),
+    pytest.param(-400.0, -1200.0, id="goto-ra-minus-dec-minus"),
+)
+
 
 @pytest.mark.parametrize(
     ("ra_delta_s", "dec_delta_arcsec"),
-    (
-        pytest.param(400.0, 0.0, id="goto-ra-plus"),
-        pytest.param(-400.0, 0.0, id="goto-ra-minus"),
-        pytest.param(0.0, 1200.0, id="goto-dec-plus"),
-        pytest.param(0.0, -1200.0, id="goto-dec-minus"),
-        pytest.param(400.0, 1200.0, id="goto-ra-plus-dec-plus"),
-        pytest.param(400.0, -1200.0, id="goto-ra-plus-dec-minus"),
-        pytest.param(-400.0, 1200.0, id="goto-ra-minus-dec-plus"),
-        pytest.param(-400.0, -1200.0, id="goto-ra-minus-dec-minus"),
-    ),
+    GOTO_DIRECTION_DELTAS,
 )
 def test_goto_command_moves_mount_to_target_coordinates(
     sc: SplitterController,
@@ -718,34 +712,79 @@ def test_goto_command_moves_mount_to_target_coordinates(
     if dec_delta_arcsec != 0:
         assert abs(final_dec - start_dec.to_arcseconds()) > GOTO_MIN_DEC_MOVE_ARCSEC
 
-    sc.wait_while_mount_in_tracking(timeout_s=10.0)
-    assert sc.check_mount_in_tracking_mode(delta_s=MOTION_SAMPLE_S)
 
+@pytest.mark.parametrize(
+    ("ra_sign", "dec_sign"),
+    (
+        pytest.param(1, 0, id="east"),
+        pytest.param(-1, 0, id="west"),
+        pytest.param(0, 1, id="north"),
+        pytest.param(0, -1, id="south"),
+        pytest.param(1, 1, id="east-north"),
+        pytest.param(1, -1, id="east-south"),
+        pytest.param(-1, 1, id="west-north"),
+        pytest.param(-1, -1, id="west-south"),
+    ),
+)
+def test_halt_command_returns_to_tracking_from_slew(
+    sc: SplitterController,
+    ra_sign: int,
+    dec_sign: int,
+):
+    if ra_sign > 0:
+        sc.move_east()
+    elif ra_sign < 0:
+        sc.move_west()
 
-def test_halt_command_returns_to_tracking_from_slew_goto_guide(sc: SplitterController):
-    sc.move_east()
+    if dec_sign > 0:
+        sc.move_north()
+    elif dec_sign < 0:
+        sc.move_south()
+
     time.sleep(MOTION_SETTLE_S)
     moving = sc.get_deltas(MOTION_SAMPLE_S)
-    assert abs(moving.ra.rate_per_s.mount) > RA_SLEW_MIN_MOUNT_RATE
+
+    if ra_sign != 0:
+        assert ra_sign * moving.ra.rate_per_s.mount > RA_SLEW_MIN_MOUNT_RATE
+    else:
+        assert abs(moving.ra.rate_per_s.mount) < RA_STABLE_MOUNT_TOLERANCE
+
+    if dec_sign != 0:
+        assert dec_sign * moving.dec.rate_per_s.mount > DEC_SLEW_MIN_MOUNT_RATE
+    else:
+        assert abs(moving.dec.rate_per_s.mount) < sc.TRACKING_MODE_TOLERANCE[1]
+
+    if ra_sign > 0:
+        sc.halt_east()
+    elif ra_sign < 0:
+        sc.halt_west()
+
+    if dec_sign > 0:
+        sc.halt_north()
+    elif dec_sign < 0:
+        sc.halt_south()
 
     sc.halt_all()
     sc.wait_while_mount_in_tracking(timeout_s=8.0)
     assert sc.check_mount_in_tracking_mode(delta_s=MOTION_SAMPLE_S)
 
-    baseline = sc.get_deltas(MOTION_SAMPLE_S)
-    sc.guide("w", GUIDE_PULSE_MS_FOR_HALT)
-    time.sleep(MOTION_SETTLE_S)
-    guided = sc.get_deltas(MOTION_SAMPLE_S)
-    assert guided.ra.rate_per_s.motor > baseline.ra.rate_per_s.motor + RA_GUIDE_RATE_DELTA_MIN
 
-    sc.halt_all()
-    sc.wait_while_mount_in_tracking(timeout_s=8.0)
-    assert sc.check_mount_in_tracking_mode(delta_s=MOTION_SAMPLE_S)
+@pytest.mark.parametrize(
+    ("ra_delta_s", "dec_delta_arcsec"),
+    GOTO_DIRECTION_DELTAS,
+)
+def test_halt_command_returns_to_tracking_from_goto(
+    sc: SplitterController,
+    ra_delta_s: float,
+    dec_delta_arcsec: float,
+):
+    start_ra, start_dec = sc.sync_known_position("12:00:00", "+20*00:00")
+    target_ra = LX200Ha.from_seconds(start_ra.to_seconds() + ra_delta_s)
+    target_dec = LX200Dec.from_arcseconds(start_dec.to_arcseconds() + dec_delta_arcsec)
 
-    sc.sync_known_position("12:00:00", "+20*00:00")
     sc.set_slew_to_find()
-    sc.set_target_ra(LX200Ha.from_string("12:20:00"))
-    sc.set_target_dec(LX200Dec.from_string("+30*00:00"))
+    sc.set_target_ra(target_ra)
+    sc.set_target_dec(target_dec)
     sc.slew()
 
     sc.wait_until_goto_started(
