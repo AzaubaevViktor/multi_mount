@@ -4,11 +4,11 @@ import logging
 import time
 
 import pytest
-from lx200.base import LX200Dec, LX200Handler
+from lx200.base import LX200Dec
 from lx200.protocols import LX200Ha
 from lx200.splitter import LX200Splitter
 from serial_wrapper.wrapper import SerialLine
-from skywatcher.skywatcher import Axis, SkyWatcherMount
+from skywatcher.skywatcher import SkyWatcherMount
 from skywatcher.skywatcher_lx200 import SkyWatcherLX200
 from tmc2209.tmc2209_adapter import TMC2209Adapter
 from tmc2209.tmc2209_lx200 import TMC2209LX200
@@ -109,6 +109,40 @@ class SplitterController:
         response = self._cmd("GD")
         assert isinstance(response, LX200Dec)
         return response
+
+    def _ra_distance_seconds(self, a_seconds: float, b_seconds: float) -> float:
+        circle_seconds = LX200Ha.SECONDS_PER_CIRCLE
+        delta = abs(a_seconds - b_seconds)
+        return min(delta, circle_seconds - delta)
+
+    def _reach_target(
+        self,
+        target_ra: LX200Ha,
+        target_dec: LX200Dec,
+        ra_tolerance_s: float,
+        dec_tolerance_arcsec: float,
+    ) -> bool:
+        current_ra = self.get_ra().to_seconds()
+        current_dec = self.get_dec().to_arcseconds()
+        return (
+            self._ra_distance_seconds(current_ra, target_ra.to_seconds()) <= ra_tolerance_s
+            and abs(current_dec - target_dec.to_arcseconds()) <= dec_tolerance_arcsec
+        )
+
+    def _sync_known_position(self, ra_text: str, dec_text: str) -> tuple[LX200Ha, LX200Dec]:
+        target_ra = LX200Ha.from_string(ra_text)
+        target_dec = LX200Dec.from_string(dec_text)
+        self.set_target_ra(target_ra)
+        self.set_target_dec(target_dec)
+        self.sync()
+
+        synced_ra = self.get_ra().to_seconds()
+        synced_dec = self.get_dec().to_arcseconds()
+
+        assert self._ra_distance_seconds(synced_ra, target_ra.to_seconds()) <= SYNC_RA_TOLERANCE_S
+        assert abs(synced_dec - target_dec.to_arcseconds()) <= SYNC_DEC_TOLERANCE_ARCSEC
+
+        return target_ra, target_dec
     
     # Raw data from mounts
 
@@ -131,21 +165,18 @@ class SplitterController:
                 self.logger.debug("Position locks aquired by %.3fs", time.monotonic() - start)
                 yield
 
-    def get_deltas(self, delay_s: float) -> Deltas:
+    def _capture_deltas_state(self):
         with self._with_position_locks():
-            real_start = time.monotonic()
-            start_mount = self._get_mount_position()
-            start_motor = self._get_motor_position()
-            start_tracking_rates = self._get_tracking_rates()
+            return (
+                time.monotonic(),
+                self._get_mount_position(),
+                self._get_motor_position(),
+                self._get_tracking_rates(),
+            )
 
-        time.sleep(delay_s)
-
-        with self._with_position_locks():
-            real_end = time.monotonic()
-            end_mount = self._get_mount_position()
-            end_motor = self._get_motor_position()
-            end_tracking_rates = self._get_tracking_rates()
-
+    def _build_deltas(self, start_state, end_state) -> Deltas:
+        real_start, start_mount, start_motor, start_tracking_rates = start_state
+        real_end, end_mount, end_motor, _end_tracking_rates = end_state
         real_delay_s = real_end - real_start
 
         return Deltas(
@@ -190,6 +221,22 @@ class SplitterController:
                 tracking_rate_tick_per_s=start_tracking_rates[1],
             ),
         )
+
+    def get_deltas(self, delay_s: float) -> Deltas:
+        with self.with_get_deltas() as deltas_items:
+            time.sleep(delay_s)
+        assert len(deltas_items) == 1
+        return deltas_items[0]
+
+    @contextmanager
+    def with_get_deltas(self):
+        deltas_items: list[Deltas] = []
+        start_state = self._capture_deltas_state()
+        try:
+            yield deltas_items
+        finally:
+            end_state = self._capture_deltas_state()
+            deltas_items.append(self._build_deltas(start_state, end_state))
 
     # WAITS AND CHECKS
 
@@ -254,6 +301,138 @@ class SplitterController:
 
         return True
 
+    def wait_until_target_reached(
+        self,
+        target_ra: LX200Ha,
+        target_dec: LX200Dec,
+        ra_tolerance_s: float,
+        dec_tolerance_arcsec: float,
+        timeout_s: float,
+        poll_interval_s: float,
+    ) -> bool:
+        self.logger.warning(
+            "\n==== WAIT UNTIL TARGET REACHED ====\n"
+            "TARGET RA: %s\n"
+            "TARGET DEC: %s\n"
+            "RA TOLERANCE: %.3fs\n"
+            "DEC TOLERANCE: %.3f arcsec\n"
+            "TIMEOUT: %.3fs\n",
+            target_ra,
+            target_dec,
+            ra_tolerance_s,
+            dec_tolerance_arcsec,
+            timeout_s,
+        )
+
+        target_ra_seconds = target_ra.to_seconds()
+        target_dec_arcsec = target_dec.to_arcseconds()
+
+        start = time.monotonic()
+        last_ra_seconds = target_ra_seconds
+        last_dec_arcsec = target_dec_arcsec
+        last_ra_distance = 0.0
+        last_dec_distance = 0.0
+        while True:
+            last_ra_seconds = self.get_ra().to_seconds()
+            last_dec_arcsec = self.get_dec().to_arcseconds()
+            last_ra_distance = self._ra_distance_seconds(last_ra_seconds, target_ra_seconds)
+            last_dec_distance = abs(last_dec_arcsec - target_dec_arcsec)
+
+            if (last_ra_distance <= ra_tolerance_s) and (last_dec_distance <= dec_tolerance_arcsec):
+                self.logger.warning(
+                    "\n==== TARGET REACHED ====\n"
+                    "AFTER: %.3fs\n"
+                    "RA DISTANCE: %.3fs\n"
+                    "DEC DISTANCE: %.3f arcsec\n",
+                    time.monotonic() - start,
+                    last_ra_distance,
+                    last_dec_distance,
+                )
+                return True
+
+            if time.monotonic() - start > timeout_s:
+                break
+
+            time.sleep(poll_interval_s)
+
+        self.logger.warning(
+            "\n==== TARGET NOT REACHED ====\n"
+            "AFTER: %.3fs\n"
+            "LAST RA: %s\n"
+            "LAST DEC: %s\n"
+            "RA DISTANCE: %.3fs (limit %.3fs)\n"
+            "DEC DISTANCE: %.3f arcsec (limit %.3f arcsec)\n",
+            time.monotonic() - start,
+            LX200Ha.from_seconds(last_ra_seconds),
+            LX200Dec.from_arcseconds(last_dec_arcsec),
+            last_ra_distance,
+            ra_tolerance_s,
+            last_dec_distance,
+            dec_tolerance_arcsec,
+        )
+
+        pytest.fail(
+            "GOTO did not reach target in time: "
+            f"target_ra={target_ra} current_ra={LX200Ha.from_seconds(last_ra_seconds)} "
+            f"target_dec={target_dec} current_dec={LX200Dec.from_arcseconds(last_dec_arcsec)} "
+            f"ra_distance={last_ra_distance:.3f}s dec_distance={last_dec_distance:.3f}arcsec"
+        )
+
+    def wait_until_goto_started(
+        self,
+        timeout_s: float,
+        sample_s: float,
+        ra_min_mount_rate: float,
+        dec_min_mount_rate: float,
+    ) -> bool:
+        self.logger.warning(
+            "\n==== WAIT UNTIL GOTO STARTED ====\n"
+            "TIMEOUT: %.3fs\n"
+            "SAMPLE: %.3fs\n"
+            "RA MIN RATE: %.3f\n"
+            "DEC MIN RATE: %.3f\n",
+            timeout_s,
+            sample_s,
+            ra_min_mount_rate,
+            dec_min_mount_rate,
+        )
+
+        start = time.monotonic()
+        last_slewing: Deltas | None = None
+        while True:
+            slewing = self.get_deltas(sample_s)
+            last_slewing = slewing
+            if (
+                abs(slewing.ra.rate_per_s.mount) > ra_min_mount_rate
+                or abs(slewing.dec.rate_per_s.mount) > dec_min_mount_rate
+            ):
+                self.logger.warning(
+                    "\n==== GOTO STARTED ====\n"
+                    "AFTER: %.3fs\n"
+                    "RA RATE: %.5f\n"
+                    "DEC RATE: %.5f\n",
+                    time.monotonic() - start,
+                    slewing.ra.rate_per_s.mount,
+                    slewing.dec.rate_per_s.mount,
+                )
+                self.logger.debug("%s", slewing)
+                return True
+
+            if time.monotonic() - start > timeout_s:
+                break
+
+        self.logger.warning(
+            "\n==== GOTO NOT STARTED ====\n"
+            "AFTER: %.3fs\n"
+            "LAST DELTAS: %s\n",
+            time.monotonic() - start,
+            last_slewing,
+        )
+        pytest.fail("GOTO did not start movement before HALT check")
+
+
+SYNC_RA_TOLERANCE_S = 8.0
+SYNC_DEC_TOLERANCE_ARCSEC = 120.0
 
 fixture_logger = logging.getLogger("fixtures")
 
@@ -353,3 +532,237 @@ def _ensure_halted(sc: SplitterController):
 
 def test_mount_in_tracking_mode_by_default(sc: SplitterController):
     assert sc.check_mount_in_tracking_mode(delta_s=5.)
+
+
+MOTION_SETTLE_S = 0.6
+MOTION_SAMPLE_S = 2.0
+
+RA_SLEW_MIN_MOUNT_RATE = 0.2
+DEC_SLEW_MIN_MOUNT_RATE = 1.0
+RA_MANUAL_EXTRA_MOTOR_RATE = 0.5
+DEC_MANUAL_EXTRA_MOTOR_RATE = 2.0
+RA_STABLE_MOUNT_TOLERANCE = 0.25
+RA_STABLE_MOTOR_TOLERANCE = 0.4
+DEC_STABLE_MOTOR_TOLERANCE = 0.6
+
+
+@pytest.mark.parametrize(
+    ("ra_sign", "dec_sign"),
+    (
+        pytest.param(1, 0, id="east"),
+        pytest.param(-1, 0, id="west"),
+        pytest.param(0, 1, id="north"),
+        pytest.param(0, -1, id="south"),
+        pytest.param(1, 1, id="east-north"),
+        pytest.param(1, -1, id="east-south"),
+        pytest.param(-1, 1, id="west-north"),
+        pytest.param(-1, -1, id="west-south"),
+    ),
+)
+def test_coordinate_system_slew_directions(
+    sc: SplitterController,
+    ra_sign: int,
+    dec_sign: int,
+):
+    baseline = sc.get_deltas(MOTION_SAMPLE_S)
+
+    if ra_sign > 0:
+        sc.move_east()
+    elif ra_sign < 0:
+        sc.move_west()
+
+    if dec_sign > 0:
+        sc.move_north()
+    elif dec_sign < 0:
+        sc.move_south()
+
+    time.sleep(MOTION_SETTLE_S)
+    moving = sc.get_deltas(MOTION_SAMPLE_S)
+
+    if ra_sign != 0:
+        assert ra_sign * moving.ra.rate_per_s.mount > RA_SLEW_MIN_MOUNT_RATE
+        assert abs(moving.ra.rate_per_s.motor) > abs(baseline.ra.rate_per_s.motor) + RA_MANUAL_EXTRA_MOTOR_RATE
+    else:
+        assert abs(moving.ra.rate_per_s.mount) < RA_STABLE_MOUNT_TOLERANCE
+        assert abs(moving.ra.rate_per_s.motor - moving.ra.tracking_rate_tick_per_s) < RA_STABLE_MOTOR_TOLERANCE
+
+    if dec_sign != 0:
+        assert dec_sign * moving.dec.rate_per_s.mount > DEC_SLEW_MIN_MOUNT_RATE
+        assert abs(moving.dec.rate_per_s.motor) > abs(baseline.dec.rate_per_s.motor) + DEC_MANUAL_EXTRA_MOTOR_RATE
+    else:
+        assert abs(moving.dec.rate_per_s.mount) < sc.TRACKING_MODE_TOLERANCE[1]
+        assert abs(moving.dec.rate_per_s.motor) < DEC_STABLE_MOTOR_TOLERANCE
+
+    sc.halt_all()
+    sc.wait_while_mount_in_tracking(timeout_s=8.0)
+    assert sc.check_mount_in_tracking_mode(delta_s=MOTION_SAMPLE_S)
+
+
+GUIDE_PULSE_MS_VALUES = (2500, 5000)
+GUIDE_PULSE_MS_FOR_HALT = GUIDE_PULSE_MS_VALUES[0]
+
+RA_GUIDE_RATE_DELTA_MIN = 0.15
+RA_GUIDE_MOUNT_TOLERANCE = 0.25
+RA_GUIDE_DIRECTIONS = {"e", "w"}
+DEC_GUIDE_MIN_MOTOR_RATE = 10.0
+DEC_GUIDE_MOUNT_TOLERANCE = 2.0
+DEC_GUIDE_DIRECTIONS = {"n", "s"}
+
+
+@pytest.mark.parametrize(
+    "pulse_ms",
+    (
+        pytest.param(GUIDE_PULSE_MS_VALUES[0], id="pulse-2500ms"),
+        pytest.param(GUIDE_PULSE_MS_VALUES[1], id="pulse-5000ms"),
+    ),
+)
+@pytest.mark.parametrize(
+    ("direction", "expected_sign"),
+    (
+        pytest.param("e", -1, id="guide-east"),
+        pytest.param("w", 1, id="guide-west"),
+        pytest.param("n", 1, id="guide-north"),
+        pytest.param("s", -1, id="guide-south"),
+    ),
+)
+def test_coordinate_system_guide_ra_rates(
+    sc: SplitterController,
+    pulse_ms: int,
+    direction: str,
+    expected_sign: int,
+):
+    baseline = sc.get_deltas(MOTION_SAMPLE_S)
+
+    with sc.with_get_deltas() as guided_items:
+        sc.guide(direction, pulse_ms)
+        time.sleep(MOTION_SETTLE_S + MOTION_SAMPLE_S)
+
+    assert len(guided_items) == 1
+    guided = guided_items[0]
+
+    if direction in RA_GUIDE_DIRECTIONS:
+        ra_rate_delta = guided.ra.rate_per_s.motor - baseline.ra.rate_per_s.motor
+        assert expected_sign * ra_rate_delta > RA_GUIDE_RATE_DELTA_MIN
+        assert abs(guided.ra.rate_per_s.mount) < RA_GUIDE_MOUNT_TOLERANCE
+        assert abs(guided.dec.rate_per_s.mount) < sc.TRACKING_MODE_TOLERANCE[1]
+        assert abs(guided.dec.rate_per_s.motor) < DEC_STABLE_MOTOR_TOLERANCE
+    elif direction in DEC_GUIDE_DIRECTIONS:
+        assert expected_sign * guided.dec.rate_per_s.motor > DEC_GUIDE_MIN_MOTOR_RATE
+        assert abs(guided.dec.rate_per_s.mount) < DEC_GUIDE_MOUNT_TOLERANCE
+        assert abs(guided.ra.rate_per_s.mount) < RA_STABLE_MOUNT_TOLERANCE
+    else:
+        pytest.fail(f"Unexpected guide direction: {direction}")
+
+    time.sleep((pulse_ms / 1000) + SETTLE_S)
+    sc.wait_while_mount_in_tracking(timeout_s=8.0)
+    assert sc.check_mount_in_tracking_mode(delta_s=MOTION_SAMPLE_S)
+
+
+@pytest.mark.parametrize(
+    ("target_ra_text", "target_dec_text"),
+    (
+        pytest.param("11:58:00", "+20*00:00", id="sync-ra-11h58m-dec-20d"),
+        pytest.param("12:12:34", "+23*15:20", id="sync-ra-12h12m34s-dec-23d15m20s"),
+        pytest.param("12:40:10", "+35*30:00", id="sync-ra-12h40m10s-dec-35d30m"),
+    ),
+)
+def test_sync_command_updates_mount_coordinates(
+    sc: SplitterController,
+    target_ra_text: str,
+    target_dec_text: str,
+):
+    sc._sync_known_position(target_ra_text, target_dec_text)
+
+
+GOTO_TIMEOUT_S = 70.0
+GOTO_POLL_INTERVAL_S = 0.5
+GOTO_RA_TOLERANCE_S = 30.0
+GOTO_DEC_TOLERANCE_ARCSEC = 180.0
+GOTO_MIN_RA_MOVE_S = 60.0
+GOTO_MIN_DEC_MOVE_ARCSEC = 300.0
+
+
+@pytest.mark.parametrize(
+    ("ra_delta_s", "dec_delta_arcsec"),
+    (
+        pytest.param(400.0, 0.0, id="goto-ra-plus"),
+        pytest.param(-400.0, 0.0, id="goto-ra-minus"),
+        pytest.param(0.0, 1200.0, id="goto-dec-plus"),
+        pytest.param(0.0, -1200.0, id="goto-dec-minus"),
+        pytest.param(400.0, 1200.0, id="goto-ra-plus-dec-plus"),
+        pytest.param(400.0, -1200.0, id="goto-ra-plus-dec-minus"),
+        pytest.param(-400.0, 1200.0, id="goto-ra-minus-dec-plus"),
+        pytest.param(-400.0, -1200.0, id="goto-ra-minus-dec-minus"),
+    ),
+)
+def test_goto_command_moves_mount_to_target_coordinates(
+    sc: SplitterController,
+    ra_delta_s: float,
+    dec_delta_arcsec: float,
+):
+    start_ra, start_dec = sc._sync_known_position("12:00:00", "+20*00:00")
+    target_ra = LX200Ha.from_seconds(start_ra.to_seconds() + ra_delta_s)
+    target_dec = LX200Dec.from_arcseconds(start_dec.to_arcseconds() + dec_delta_arcsec)
+
+    sc.set_slew_to_find()
+    sc.set_target_ra(target_ra)
+    sc.set_target_dec(target_dec)
+    sc.slew()
+
+    sc.wait_until_target_reached(
+        target_ra=target_ra,
+        target_dec=target_dec,
+        ra_tolerance_s=GOTO_RA_TOLERANCE_S,
+        dec_tolerance_arcsec=GOTO_DEC_TOLERANCE_ARCSEC,
+        timeout_s=GOTO_TIMEOUT_S,
+        poll_interval_s=GOTO_POLL_INTERVAL_S,
+    )
+
+    final_ra = sc.get_ra().to_seconds()
+    final_dec = sc.get_dec().to_arcseconds()
+
+    if ra_delta_s != 0:
+        assert sc._ra_distance_seconds(final_ra, start_ra.to_seconds()) > GOTO_MIN_RA_MOVE_S
+    if dec_delta_arcsec != 0:
+        assert abs(final_dec - start_dec.to_arcseconds()) > GOTO_MIN_DEC_MOVE_ARCSEC
+
+    sc.wait_while_mount_in_tracking(timeout_s=10.0)
+    assert sc.check_mount_in_tracking_mode(delta_s=MOTION_SAMPLE_S)
+
+
+def test_halt_command_returns_to_tracking_from_slew_goto_guide(sc: SplitterController):
+    sc.move_east()
+    time.sleep(MOTION_SETTLE_S)
+    moving = sc.get_deltas(MOTION_SAMPLE_S)
+    assert abs(moving.ra.rate_per_s.mount) > RA_SLEW_MIN_MOUNT_RATE
+
+    sc.halt_all()
+    sc.wait_while_mount_in_tracking(timeout_s=8.0)
+    assert sc.check_mount_in_tracking_mode(delta_s=MOTION_SAMPLE_S)
+
+    baseline = sc.get_deltas(MOTION_SAMPLE_S)
+    sc.guide("w", GUIDE_PULSE_MS_FOR_HALT)
+    time.sleep(MOTION_SETTLE_S)
+    guided = sc.get_deltas(MOTION_SAMPLE_S)
+    assert guided.ra.rate_per_s.motor > baseline.ra.rate_per_s.motor + RA_GUIDE_RATE_DELTA_MIN
+
+    sc.halt_all()
+    sc.wait_while_mount_in_tracking(timeout_s=8.0)
+    assert sc.check_mount_in_tracking_mode(delta_s=MOTION_SAMPLE_S)
+
+    sc._sync_known_position("12:00:00", "+20*00:00")
+    sc.set_slew_to_find()
+    sc.set_target_ra(LX200Ha.from_string("12:20:00"))
+    sc.set_target_dec(LX200Dec.from_string("+30*00:00"))
+    sc.slew()
+
+    sc.wait_until_goto_started(
+        timeout_s=15.0,
+        sample_s=MOTION_SAMPLE_S,
+        ra_min_mount_rate=RA_SLEW_MIN_MOUNT_RATE,
+        dec_min_mount_rate=DEC_SLEW_MIN_MOUNT_RATE,
+    )
+
+    sc.halt_all()
+    sc.wait_while_mount_in_tracking(timeout_s=10.0)
+    assert sc.check_mount_in_tracking_mode(delta_s=MOTION_SAMPLE_S)

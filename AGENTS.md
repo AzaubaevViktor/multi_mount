@@ -30,3 +30,4 @@
 - Try to generalize common rules from recent edits
 - Prefer concise, context-local names over repeating prefixes in enums/types when the module already scopes them.
 - Make zero usage explicit with named constants and store allowed option sets as set-like constants.
+- If helper logic uses one class API/state, implement it as a method of that class from the start, not as a module-level function.
