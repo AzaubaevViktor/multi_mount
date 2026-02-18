@@ -110,26 +110,13 @@ class SplitterController:
         assert isinstance(response, LX200Dec)
         return response
 
-    def _ra_distance_seconds(self, a_seconds: float, b_seconds: float) -> float:
+    @staticmethod
+    def ra_distance_seconds(a_seconds: float, b_seconds: float) -> float:
         circle_seconds = LX200Ha.SECONDS_PER_CIRCLE
         delta = abs(a_seconds - b_seconds)
         return min(delta, circle_seconds - delta)
 
-    def _reach_target(
-        self,
-        target_ra: LX200Ha,
-        target_dec: LX200Dec,
-        ra_tolerance_s: float,
-        dec_tolerance_arcsec: float,
-    ) -> bool:
-        current_ra = self.get_ra().to_seconds()
-        current_dec = self.get_dec().to_arcseconds()
-        return (
-            self._ra_distance_seconds(current_ra, target_ra.to_seconds()) <= ra_tolerance_s
-            and abs(current_dec - target_dec.to_arcseconds()) <= dec_tolerance_arcsec
-        )
-
-    def _sync_known_position(self, ra_text: str, dec_text: str) -> tuple[LX200Ha, LX200Dec]:
+    def sync_known_position(self, ra_text: str, dec_text: str) -> tuple[LX200Ha, LX200Dec]:
         target_ra = LX200Ha.from_string(ra_text)
         target_dec = LX200Dec.from_string(dec_text)
         self.set_target_ra(target_ra)
@@ -139,7 +126,7 @@ class SplitterController:
         synced_ra = self.get_ra().to_seconds()
         synced_dec = self.get_dec().to_arcseconds()
 
-        assert self._ra_distance_seconds(synced_ra, target_ra.to_seconds()) <= SYNC_RA_TOLERANCE_S
+        assert self.ra_distance_seconds(synced_ra, target_ra.to_seconds()) <= SYNC_RA_TOLERANCE_S
         assert abs(synced_dec - target_dec.to_arcseconds()) <= SYNC_DEC_TOLERANCE_ARCSEC
 
         return target_ra, target_dec
@@ -340,7 +327,7 @@ class SplitterController:
         while True:
             last_ra_seconds = self.get_ra().to_seconds()
             last_dec_arcsec = self.get_dec().to_arcseconds()
-            last_ra_distance = self._ra_distance_seconds(last_ra_seconds, target_ra_seconds)
+            last_ra_distance = self.ra_distance_seconds(last_ra_seconds, target_ra_seconds)
             last_dec_distance = abs(last_dec_arcsec - target_dec_arcsec)
 
             if (last_ra_distance <= ra_tolerance_s) and (last_dec_distance <= dec_tolerance_arcsec):
@@ -676,7 +663,7 @@ def test_sync_command_updates_mount_coordinates(
     target_ra_text: str,
     target_dec_text: str,
 ):
-    sc._sync_known_position(target_ra_text, target_dec_text)
+    sc.sync_known_position(target_ra_text, target_dec_text)
 
 
 GOTO_TIMEOUT_S = 70.0
@@ -705,7 +692,7 @@ def test_goto_command_moves_mount_to_target_coordinates(
     ra_delta_s: float,
     dec_delta_arcsec: float,
 ):
-    start_ra, start_dec = sc._sync_known_position("12:00:00", "+20*00:00")
+    start_ra, start_dec = sc.sync_known_position("12:00:00", "+20*00:00")
     target_ra = LX200Ha.from_seconds(start_ra.to_seconds() + ra_delta_s)
     target_dec = LX200Dec.from_arcseconds(start_dec.to_arcseconds() + dec_delta_arcsec)
 
@@ -727,7 +714,7 @@ def test_goto_command_moves_mount_to_target_coordinates(
     final_dec = sc.get_dec().to_arcseconds()
 
     if ra_delta_s != 0:
-        assert sc._ra_distance_seconds(final_ra, start_ra.to_seconds()) > GOTO_MIN_RA_MOVE_S
+        assert sc.ra_distance_seconds(final_ra, start_ra.to_seconds()) > GOTO_MIN_RA_MOVE_S
     if dec_delta_arcsec != 0:
         assert abs(final_dec - start_dec.to_arcseconds()) > GOTO_MIN_DEC_MOVE_ARCSEC
 
@@ -755,7 +742,7 @@ def test_halt_command_returns_to_tracking_from_slew_goto_guide(sc: SplitterContr
     sc.wait_while_mount_in_tracking(timeout_s=8.0)
     assert sc.check_mount_in_tracking_mode(delta_s=MOTION_SAMPLE_S)
 
-    sc._sync_known_position("12:00:00", "+20*00:00")
+    sc.sync_known_position("12:00:00", "+20*00:00")
     sc.set_slew_to_find()
     sc.set_target_ra(LX200Ha.from_string("12:20:00"))
     sc.set_target_dec(LX200Dec.from_string("+30*00:00"))
