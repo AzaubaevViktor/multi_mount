@@ -24,6 +24,15 @@ FM Controls Current position
 | North slew                     | 1       | ↑        | const    | > ~0     | ↑         | 0         |
 | South slew                     | 1       | ↑        | const    | < ~0     | ↓         | 0         |
 
+RA: `00:00:00` .. `23:59:59`
+DEC: `-90*00:00` .. `90*00:00`
+
+Mount shoud be in tracking mode by default
+SYNC command should update mount coordinate
+GOTO command should move mount to target coordinates
+HALT command must resume mount to tracking mode from SLEW / GOTO / GUIDE (?)
+
+
 
 ## TODO
 - ✅ Remove AI-generated slop
