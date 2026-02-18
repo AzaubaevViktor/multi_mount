@@ -185,7 +185,7 @@ class SkyWatcherLX200(LX200RAHandler):
         return True
 
     def move_east(self) -> bool:
-        return self._start_manual_move(self._manual_slew_rate)
+        return self._start_manual_move(-self._manual_slew_rate)
 
     def move_north(self) -> bool:
         return False
@@ -194,7 +194,7 @@ class SkyWatcherLX200(LX200RAHandler):
         return False
 
     def move_west(self) -> bool:
-        return self._start_manual_move(-self._manual_slew_rate)
+        return self._start_manual_move(self._manual_slew_rate)
 
     def halt_east(self) -> bool:
         return self._stop_manual_move()
