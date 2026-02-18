@@ -226,7 +226,9 @@ class SplitterController:
         with self.with_get_deltas() as deltas_items:
             time.sleep(delay_s)
         assert len(deltas_items) == 1
-        return deltas_items[0]
+        delta = deltas_items[0]
+        self.logger.debug("Deltas: %s", delta)
+        return delta
 
     @contextmanager
     def with_get_deltas(self):
