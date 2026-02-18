@@ -233,6 +233,7 @@ class SkyWatcherMount:
                 
 
                 if response[0] == self._COMMAND_ERROR_PREFIX:
+                    # TODO: Add error names from doc
                     raise SkyWatcherCommandError(response)
                 
                 if response[0] != self._RESPONCE_PREFIX:

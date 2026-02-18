@@ -8,6 +8,23 @@ by https://github.com/indilib/indi/blob/master/drivers/telescope/skywatcherAPIMo
 FM --DEC--> LX200Adapter --LX200--> Arduino --> TMC2209 --> Motor --> Mount dec
 FM Controls Current position
 
+## Coordinate system
+| Case | RA Rate | RA Ticks | RA mount | Dec Rate | Dec Ticks |  Dec mount |
+|---|---|---|---|---|---|---|
+| Mount didn't track, keep still | 0 | const | ⬆ | 0 | const  | const |
+| Mount base track | 1 | ↑ == T | const | 0 | const | const |
+| SLEW / GOTO |
+| East slew | -800 | ⬇⬇ | ⬆⬆ | 0 | const | const | 
+| West slew | 800 | ⬆⬆ | ⬇⬇ | 0 | const | const |
+| North slew | 1 | ↑ | const | > 0 | ⬆⬆ | ⬆⬆ |
+| South slew | 1 | ↑ | const | < 0 | ⬇⬇ | ⬇⬇ |
+| GUIDE |
+| East guide | 0..1 | ↑ < T | const | 0 | const | const |
+| West guide | > 1 | ↑ > T | const | 0 | const | const |
+| North slew | 1 | ↑ | const | > ~0 | ↑ | 0 |
+| South slew | 1 | ↑ | const | < ~0 | ↓ | 0 |
+
+
 ## TODO
 - ✅ Remove AI-generated slop
 - INDI
