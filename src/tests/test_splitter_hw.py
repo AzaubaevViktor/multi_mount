@@ -129,14 +129,14 @@ class SplitterController:
     def get_dec_status(self) -> TMC2209Status:
         return self.dec._adapter.status()
 
-    def _wait_until(self, predicate: Callable[[], bool], timeout_s: float, error_message: str) -> None:
+    def _wait_until(self, predicate: Callable[[], bool], timeout_s: float, error_message: str, what: str) -> None:
         logging.warning(
             "\n================ WAIT UNTIL START ================\n"
             "TIMEOUT: %.1fs\n"
             "CONDITION: %s\n"
             "===============================================",
             timeout_s,
-            error_message,
+            what,
         )
         polling_start = time.monotonic()
         deadline = time.monotonic() + timeout_s
@@ -174,12 +174,13 @@ class SplitterController:
                 f"RA did not reach target in time: current={LX200Ha.from_seconds(last_ra)} "
                 f"target={target} distance={_ra_distance_seconds(last_ra, target_seconds):.2f}s"
             ),
+            f"RA close to target {target}±{tolerance_s:.3f}s"
         )
 
     def wait_dec_close(
         self,
         target: LX200Dec,
-        tolerance_deg: float,
+        tolerance_deg: float,  # TODO: Change to arcsec
         timeout_s: float,
     ) -> None:
         target_deg = target.to_degrees()
@@ -197,6 +198,7 @@ class SplitterController:
                 f"DEC did not reach target in time: current={LX200Dec.from_degrees(last_dec)} "
                 f"target={target} distance={abs(last_dec - target_deg):.3f}deg"
             ),
+            f"DEC close to target {target}±{tolerance_deg:.3f}s"
         )
 
     def sync_known_position(self, ra: LX200Ha, dec: LX200Dec) -> None:
@@ -253,20 +255,7 @@ class SplitterController:
         while time.monotonic() < deadline:
             last_ra = self.get_ra().to_seconds()
             last_delta = _signed_ra_delta_seconds(start_seconds, last_ra)
-            if expected_sign > 0 and last_delta >= min_delta_s:
-                logging.warning(
-                    "\n================ WAIT RA MOVED END ==================\n"
-                    "WAIT RA MOVED DONE\n"
-                    "CURRENT: %s\n"
-                    "DELTA: %.2fs\n"
-                    "ELAPSED: %.2fs\n"
-                    "===============================================",
-                    LX200Ha.from_seconds(last_ra),
-                    last_delta,
-                    time.monotonic() - polling_start,
-                )
-                return last_delta
-            if expected_sign < 0 and last_delta <= -min_delta_s:
+            if (expected_sign > 0 and last_delta >= min_delta_s) or (expected_sign < 0 and last_delta <= -min_delta_s):
                 logging.warning(
                     "\n================ WAIT RA MOVED END ==================\n"
                     "WAIT RA MOVED DONE\n"
@@ -313,20 +302,7 @@ class SplitterController:
         while time.monotonic() < deadline:
             last_dec = self.get_dec().to_degrees()
             last_delta = last_dec - start_deg
-            if expected_sign > 0 and last_delta >= min_delta_deg:
-                logging.warning(
-                    "\n================ WAIT DEC MOVED END ==================\n"
-                    "WAIT DEC MOVED DONE\n"
-                    "CURRENT: %s\n"
-                    "DELTA: %.3fdeg\n"
-                    "ELAPSED: %.2fs\n"
-                    "===============================================",
-                    LX200Dec.from_degrees(last_dec),
-                    last_delta,
-                    time.monotonic() - polling_start,
-                )
-                return last_delta
-            if expected_sign < 0 and last_delta <= -min_delta_deg:
+            if (expected_sign > 0 and last_delta >= min_delta_deg) or (expected_sign < 0 and last_delta <= -min_delta_deg):
                 logging.warning(
                     "\n================ WAIT DEC MOVED END ==================\n"
                     "WAIT DEC MOVED DONE\n"
@@ -374,9 +350,11 @@ class SplitterController:
                 f"phase={last_status.phase} target_set={last_status.target_set} "
                 f"speed={last_status.actual_speed_sps:.1f}"
             ),
+            "Wait DEC stopped (phase)"
         )
 
     def assert_ra_explicitly_stopped(self) -> None:
+        # TODO: Add _wait_ra_tracked
         delta = self.measure_ra_delta(RA_STOP_CHECK_WINDOW_S)
         abs_delta = abs(delta)
         logging.warning(
@@ -449,6 +427,7 @@ class SplitterController:
                 f"ra_active={self.is_ra_goto_active()} "
                 f"dec_phase={last_dec.phase} dec_target_set={last_dec.target_set}"
             ),
+            "RA and DEC stop slewing"
         )
 
 
@@ -462,6 +441,7 @@ def _signed_ra_delta_seconds(start_seconds: float, end_seconds: float) -> float:
     circle_seconds = LX200Ha.SECONDS_PER_CIRCLE
     half_circle_seconds = circle_seconds / 2
     return ((end_seconds - start_seconds + half_circle_seconds) % circle_seconds) - half_circle_seconds
+
 
 @pytest.fixture(scope="module")
 def sc() -> Iterator[SplitterController]:
@@ -604,8 +584,8 @@ def test_hw_splitter_sync_ra_dec_multiple_times(sc: SplitterController) -> None:
 @pytest.mark.parametrize(
     ("move_command", "halt_command", "axis", "expected_sign"),
     (
-        pytest.param("move_east", "halt_east", "ra", -1, id="east"),
-        pytest.param("move_west", "halt_west", "ra", 1, id="west"),
+        pytest.param("move_east", "halt_east", "ra", 1, id="east"),
+        pytest.param("move_west", "halt_west", "ra", -1, id="west"),
         pytest.param("move_north", "halt_north", "dec", 1, id="north"),
         pytest.param("move_south", "halt_south", "dec", -1, id="south"),
     ),
@@ -727,22 +707,24 @@ def test_hw_splitter_manual_move_all_directions(
 
 
 @pytest.mark.parametrize(
-    ("ra_delta_s", "dec_delta_deg"),
+    ("ra_delta_s", "ra_sign", "dec_delta_deg", "dec_sign"),
     (
-        pytest.param(500.0, 0.0, id="ra_plus"),  # TODO: Add more variatives at ra/dec
-        pytest.param(-500.0, 0.0, id="ra_minus"),
-        pytest.param(0.0, 3.0, id="dec_plus"),
-        pytest.param(0.0, -3.0, id="dec_minus"),
-        pytest.param(500.0, 3.0, id="ra_plus_dec_plus"),
-        pytest.param(500.0, -3.0, id="ra_plus_dec_minus"),
-        pytest.param(-500.0, 3.0, id="ra_minus_dec_plus"),
-        pytest.param(-500.0, -3.0, id="ra_minus_dec_minus"),
+        pytest.param(500.0, -1,  0.0,  0, id="ra_plus"),  # TODO: Add more variatives at ra/dec
+        pytest.param(-500.0, 1,  0.0,  0, id="ra_minus"),
+        pytest.param(0.0,    0,  3.0,  1, id="dec_plus"),
+        pytest.param(0.0,    0, -3.0, -1, id="dec_minus"),
+        pytest.param(500.0, -1,  3.0,  1, id="ra_plus_dec_plus"),
+        pytest.param(500.0, -1, -3.0, -1, id="ra_plus_dec_minus"),
+        pytest.param(-500.0, 1,  3.0,  1, id="ra_minus_dec_plus"),
+        pytest.param(-500.0, 1, -3.0, -1, id="ra_minus_dec_minus"),
     ),
 )
 def test_hw_splitter_slew_to_target_reaches_goal(
     sc: SplitterController,
     ra_delta_s: float,
+    ra_sign: int,
     dec_delta_deg: float,
+    dec_sign: int,
 ) -> None:
     logging.warning(
         "\n================ TEST START ===================\n"
@@ -778,13 +760,13 @@ def test_hw_splitter_slew_to_target_reaches_goal(
 
     if ra_delta_s != 0:
         sc.wait_ra_moved(start_ra,
-            expected_sign=1 if ra_delta_s > 0 else -1,
+            expected_sign=ra_sign,
             min_delta_s=2.0,
             timeout_s=10.0,
         )
     if dec_delta_deg != 0:
         sc.wait_dec_moved(start_dec,
-            expected_sign=1 if dec_delta_deg > 0 else -1,
+            expected_sign=dec_sign,
             min_delta_deg=0.2,
             timeout_s=10.0,
         )
@@ -804,7 +786,7 @@ def test_hw_splitter_slew_to_target_reaches_goal(
 
     if ra_delta_s != 0:
         actual_ra_delta = _signed_ra_delta_seconds(start_ra, final_ra)
-        ra_direction_product = actual_ra_delta * ra_delta_s
+        ra_direction_product = actual_ra_delta * ra_delta_s * ra_sign
         expected_ra_abs = abs(ra_delta_s)
         actual_ra_abs = abs(actual_ra_delta)
         min_allowed_ra_abs = expected_ra_abs - SLEW_REACH_RA_TOLERANCE_S
@@ -859,7 +841,7 @@ def test_hw_splitter_slew_to_target_reaches_goal(
 
     if dec_delta_deg != 0:
         actual_dec_delta = final_dec - start_dec
-        dec_direction_product = actual_dec_delta * dec_delta_deg
+        dec_direction_product = actual_dec_delta * dec_delta_deg * dec_sign
         expected_dec_abs = abs(dec_delta_deg)
         actual_dec_abs = abs(actual_dec_delta)
         min_allowed_dec_abs = expected_dec_abs - SLEW_REACH_DEC_TOLERANCE_DEG
@@ -1027,6 +1009,7 @@ def test_hw_splitter_baseline_delta(
     duration_s = 5
 
     if axis == "ra":
+        # TODO: Add motor delta measured
         baseline_delta = sc.measure_ra_delta(duration_s)
         baseline_abs = abs(baseline_delta)
         logging.warning(
