@@ -1,6 +1,8 @@
 import re
 from typing import Self
 
+# TODO: Move all values info classes
+
 SIGN_VALUES = {"+", "-"}
 SIGN_CHARS = "+-"
 
@@ -210,6 +212,7 @@ class LX200Dec(LX200PositionBase):
 
     @classmethod
     def from_arcseconds(cls, total_arcseconds: float) -> Self:
+        # TODO: Add MIN_DEC_DEGREES = -90
         max_arcseconds = MAX_DEC_DEGREES * SECONDS_PER_DEGREE
         if abs(total_arcseconds) > max_arcseconds:
             raise LX200DecRangeError(f"Arcseconds out of range: {total_arcseconds!r}")

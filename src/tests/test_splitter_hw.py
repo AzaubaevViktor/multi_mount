@@ -121,7 +121,7 @@ class SplitterController:
         return response
     
     def get_telescope_raw_position(self) -> tuple[float, float]:
-        return self._splitter.get_telescope_raw_position()
+        return self._splitter.motor_position()
 
     def is_ra_goto_active(self) -> bool:
         return self.ra._goto_to is not None

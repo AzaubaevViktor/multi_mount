@@ -111,7 +111,7 @@ class LX200Base:
     def get_telescope_ra(self) -> LX200Ha:
         raise NotImplementedError()
     
-    def get_telescope_raw_position(self) -> tuple[float, float]:
+    def motor_position(self) -> tuple[float, float]:
         raise NotImplementedError()
     
     def sync_telescope_ra(self, position: LX200Ha) -> bool:
@@ -291,7 +291,7 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
                 # TODO: hide Current_track_rate_coef under lock
                 expected_delta_seconds = elapsed_s * self._get_default_tracking_speed() * self._current_track_rate_coef
 
-                actual_delta_seconds = self._motor_position_raw - motor_position
+                actual_delta_seconds = motor_position - self._motor_position_raw
 
                 delta = expected_delta_seconds - actual_delta_seconds
 

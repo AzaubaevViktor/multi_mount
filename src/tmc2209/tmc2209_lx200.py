@@ -69,7 +69,7 @@ class TMC2209LX200(LX200DECHandler):
         return self._adapter.status()
 
     def _get_motor_raw_position(self) -> float:
-        return self.get_telescope_raw_position()[1]
+        return self.motor_position()[1]
 
     def _get_default_tracking_speed(self) -> float:
         return self._guide_profile.speed
@@ -115,7 +115,7 @@ class TMC2209LX200(LX200DECHandler):
         self._adapter.close()
         self.logger.info("TMC2209 LX200 stopped")
 
-    def get_telescope_raw_position(self) -> tuple[float, float]:
+    def motor_position(self) -> tuple[float, float]:
         return 0, int(self._arcseconds_from_steps(self._adapter.status().position))
 
     def _steps_from_dec(self, position: LX200Dec) -> int:
@@ -154,7 +154,7 @@ class TMC2209LX200(LX200DECHandler):
 
     def slew_to_dec(self, position: LX200Dec) -> bool:
         self.logger.info("Start DEC GOTO to %s", position)
-        current_position = int(self.get_telescope_raw_position()[1])
+        current_position = int(self.motor_position()[1])
         target_steps = self._steps_from_dec(position)
         delta_steps = target_steps - current_position
 

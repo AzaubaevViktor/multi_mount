@@ -37,7 +37,7 @@ class SkyWatcherLX200(LX200RAHandler):
         return self.mount.get_status()
     
     def _get_motor_raw_position(self) -> float:
-        return self.get_telescope_raw_position()[0]
+        return self.motor_position()[0]
     
     def _get_default_tracking_speed(self) -> float:
         return self.mount.STELLAR_SPEED / DEGREES_PER_HOUR
@@ -146,7 +146,7 @@ class SkyWatcherLX200(LX200RAHandler):
         ra_seconds = int(round(self._mount_position_raw)) % LX200Ha.SECONDS_PER_CIRCLE
         return LX200Ha.from_seconds(ra_seconds)
     
-    def get_telescope_raw_position(self) -> tuple[float, float]:
+    def motor_position(self) -> tuple[float, float]:
         return self.mount.get_telesope_seconds(), 0
     
     def sync_telescope_ra(self, position: LX200Ha) -> bool:
