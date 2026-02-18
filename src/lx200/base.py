@@ -312,13 +312,16 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
 
                 new_mount_position = self._wrap_mount_position(self._mount_position_raw + delta)
 
-                self.logger.info(
-                    "Update mount position: %s -> %s (%.2f -> %.2f)",
-                    self.POS_CLS.from_raw(self._mount_position_raw),
-                    self.POS_CLS.from_raw(new_mount_position),
-                    self._mount_position_raw, 
-                    new_mount_position,
-                )
+                try:
+                    self.logger.info(
+                        "Update mount position: %s -> %s (%.2f -> %.2f)",
+                        self.POS_CLS.from_raw(self._mount_position_raw),
+                        self.POS_CLS.from_raw(new_mount_position),
+                        self._mount_position_raw, 
+                        new_mount_position,
+                    )
+                except:
+                    _logger.exception("While log")
 
                 self._mount_position_raw = new_mount_position
 

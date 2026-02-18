@@ -34,17 +34,17 @@ class TMC2209LX200(LX200DECHandler):
     _goto_fast_profile = SpeedProfile(
         microsteps=16, 
         speed=5000,
-        accel=10,
+        accel=1000,
     )
     _goto_slow_profile = SpeedProfile(
         microsteps=16, 
         speed=1000,
-        accel=1,
+        accel=1000,
     )
     _slew_profile = SpeedProfile(
         microsteps=16, 
         speed=1000,
-        accel=2,
+        accel=1000,
     )
     _guide_profile = SpeedProfile(
         microsteps=16, 
@@ -75,7 +75,7 @@ class TMC2209LX200(LX200DECHandler):
         return self._guide_profile.speed
 
     def _wrap_mount_position(self, mount_position: float) -> float:
-        return mount_position % self._adapter.steps_per_rev
+        return (mount_position + self._adapter.steps_per_rev / 2) % self._adapter.steps_per_rev - self._adapter.steps_per_rev / 2
 
     def handle_alignment(self, data: bytes) -> AlignmentMode:
         return AlignmentMode.POLAR
@@ -200,12 +200,12 @@ class TMC2209LX200(LX200DECHandler):
 
     def move_north(self) -> bool:
         return self._start_manual_move(
-            False,
+            True,
         )
 
     def move_south(self) -> bool:
         return self._start_manual_move(
-            True,
+            False,
         )
 
     def move_west(self) -> bool:
@@ -229,7 +229,7 @@ class TMC2209LX200(LX200DECHandler):
     def guide_north(self) -> bool:
         self.logger.info("Guide north start")
         self._apply_profile(self._guide_profile)
-        self._adapter.set_direction(False)
+        self._adapter.set_direction(True)
         with self._position_update_lock:
             self._adapter.run()
             self._current_track_rate_coef = 1
@@ -239,7 +239,7 @@ class TMC2209LX200(LX200DECHandler):
     def guide_south(self) -> bool:
         self.logger.info("Guide south start")
         self._apply_profile(self._guide_profile)
-        self._adapter.set_direction(True)
+        self._adapter.set_direction(False)
         with self._position_update_lock:
             self._adapter.run()
             self._current_track_rate_coef = -1

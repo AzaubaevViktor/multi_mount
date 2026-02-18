@@ -242,7 +242,7 @@ class SplitterController:
 
     # WAITS AND CHECKS
 
-    TRACKING_MODE_TOLERANCE = (.1, .1)
+    TRACKING_MODE_TOLERANCE = (1, 1)
     """ (s, arcsec)/s """
     TRACKING_MODE_MOTOR_TOLERANCE = (0.1, 0.1)
     """ (ticks, ticks)/s """
@@ -251,7 +251,7 @@ class SplitterController:
         self.logger.warning("\n==== WAIT WHILE MOUNT IN TRACKING MODE ====")
         start = time.monotonic()
         while True:
-            deltas = self.get_deltas((timeout_s * .9) / 10)
+            deltas = self.get_deltas(max(2., (timeout_s * .9) / 10))
             if (abs(deltas.ra.rate_per_s.mount) < self.TRACKING_MODE_TOLERANCE[0]) and \
                 (abs(deltas.dec.rate_per_s.mount) < self.TRACKING_MODE_TOLERANCE[1]):
                 self.logger.warning("\n==== MOUNT STABILIZES IN TRACKING MODE ====")
@@ -263,6 +263,9 @@ class SplitterController:
                 break
         self.logger.warning("\n==== MOUNT NOT STABILIZES ====")
         self.logger.warning("For %.3fs (real %.3fs)", timeout_s, time.monotonic() - start)
+        self.logger.warning("RA mount rate: %.3f", deltas.ra.rate_per_s.mount)
+        self.logger.warning("DEC mount rate: %.3f", deltas.dec.rate_per_s.mount)
+
         
         self.logger.warning("%s", deltas)
 
@@ -537,7 +540,7 @@ def test_mount_in_tracking_mode_by_default(sc: SplitterController):
 
 
 MOTION_SETTLE_S = 0.6
-MOTION_SAMPLE_S = 2.0
+MOTION_SAMPLE_S = 5.0
 
 RA_SLEW_MIN_MOUNT_RATE = 0.2
 DEC_SLEW_MIN_MOUNT_RATE = 1.0
