@@ -197,7 +197,7 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
 
         self._position_update_lock = threading.Lock()
         self._mount_position_raw: float = 0
-        self._motor_position_raw_: float = 0
+        self._motor_position_raw: float = 0
         self._last_update_s: float = 0
 
         self._current_track_rate_coef = self._DEFAULT_TRACKING_RATE
@@ -209,14 +209,6 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
         self._compensate_thread.start()
 
         self._goto_to: Any
-
-    @property
-    def _motor_position_raw(self):
-        return self._motor_position_raw_
-    
-    @_motor_position_raw.setter
-    def _motor_position_raw(self, value):
-        self._motor_position_raw_ = value
 
     def _is_motor_connected(self) -> bool:
         raise NotImplementedError()
