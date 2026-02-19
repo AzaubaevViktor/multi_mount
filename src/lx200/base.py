@@ -280,9 +280,10 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
 
                 elapsed_s = now - self._last_update_s
 
-                # TODO: hide Current_track_rate_coef under lock
+                # TODO: hide Current_track_rate_coef under lock in other places
                 expected_delta_seconds = elapsed_s * self._get_default_tracking_speed() * self._current_track_rate_coef
 
+                # TODO: Add _wrap_motor_position
                 actual_delta_seconds = motor_position - self._motor_position_raw
 
                 delta = expected_delta_seconds - actual_delta_seconds

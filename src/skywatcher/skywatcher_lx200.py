@@ -65,7 +65,7 @@ class SkyWatcherLX200(LX200RAHandler):
                     with self._position_update_lock:
                         current_ra = self._mount_position_raw
 
-                    delta_to_target_seconds = (current_ra - _goto_to.to_seconds() + half_circle_seconds) % circle_seconds - half_circle_seconds
+                    delta_to_target_seconds = (_goto_to.to_seconds() - current_ra + half_circle_seconds) % circle_seconds - half_circle_seconds
                     delta_to_target_abs_seconds = abs(delta_to_target_seconds)
 
                     if delta_to_target_abs_seconds < self._STOP_GOTO_SECONDS:
@@ -99,7 +99,6 @@ class SkyWatcherLX200(LX200RAHandler):
                             mount_delta_seconds = -real_delta_seconds  # why tf minus here and it works?
                             real_delta = LX200Ha.from_seconds(mount_delta_seconds)
 
-                            
                             self.mount.slew_to_ra(real_delta)
                             if raw_delta_seconds > 0:
                                 self._goto_direction_sign = 1

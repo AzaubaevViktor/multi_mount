@@ -75,7 +75,11 @@ class TMC2209LX200(LX200DECHandler):
         return self._guide_profile.speed
 
     def _wrap_mount_position(self, mount_position: float) -> float:
-        return (mount_position + self._adapter.steps_per_rev / 2) % self._adapter.steps_per_rev - self._adapter.steps_per_rev / 2
+        # TODO: Wrap around mount position
+        return mount_position
+    
+    def _wrap_steps(self, motor_position: float) -> float:
+        return (motor_position + self._adapter.steps_per_rev / 2) % self._adapter.steps_per_rev - self._adapter.steps_per_rev / 2
 
     def handle_alignment(self, data: bytes) -> AlignmentMode:
         return AlignmentMode.POLAR
@@ -154,27 +158,33 @@ class TMC2209LX200(LX200DECHandler):
 
     def slew_to_dec(self, position: LX200Dec) -> bool:
         self.logger.info("Start DEC GOTO to %s", position)
-        current_position = int(self.motor_position()[1])
-        target_steps = self._steps_from_dec(position)
-        delta_steps = target_steps - current_position
+        # with self._position_update_lock: ???
+
+        current_mount_position_arcs = int(self._mount_position_raw)
+        target_position_arcsec = int(position.to_arcseconds())
+        delta_arcs = target_position_arcsec - current_mount_position_arcs
+        delta_steps = self._steps_from_dec(LX200Dec.from_arcseconds(delta_arcs))
 
         profile = self._goto_slow_profile
-        if abs(delta_steps / self.steps_per_arcsec) > self.FAST_PROFILE_DELTA_ARCSEC:
+        if abs(delta_arcs) > self.FAST_PROFILE_DELTA_ARCSEC:
             profile = self._goto_fast_profile
 
+        target_steps = round(self._wrap_steps(self._steps_from_dec(LX200Dec.from_arcseconds(self._get_motor_raw_position())) + delta_steps))
+
         self.logger.info(
-            "DEC GOTO details: current_steps=%s target_steps=%s delta_steps=%s profile=(microsteps=%s speed=%s accel=%s)",
-            current_position,
+            "DEC GOTO details: current_motor_arcs=%s target_steps=%s delta_steps=%s profile=(microsteps=%s speed=%s accel=%s)",
+            current_mount_position_arcs,
             target_steps,
             delta_steps,
             profile.microsteps,
             profile.speed,
             profile.accel,
         )
-        self._apply_profile(profile)
+        self._apply_profile(profile)  # After this we change position...
         with self._position_update_lock:
             self._current_track_rate_coef = self._DEFAULT_TRACKING_RATE
         
+        # TODO: slew_delta instead set_target
         self._adapter.set_target(target_steps)
 
         self._adapter.run()
