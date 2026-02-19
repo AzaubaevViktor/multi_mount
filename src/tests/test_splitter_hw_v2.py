@@ -430,7 +430,7 @@ fixture_logger = logging.getLogger("fixtures")
 
 SW_PORT_PATTERN = "PL2303G"
 SW_BAUD = 115200
-SW_TIMEOUT_S = 0.05
+SW_TIMEOUT_S = 0.2
 SW_SERIAL_NAME = "sw"
 
 DEC_PORT_PATTERN = "tty.usbserial"
@@ -522,20 +522,43 @@ def _ensure_halted(sc: SplitterController):
     sc.wait_while_mount_in_tracking(timeout_s=5.)
 
 
+@pytest.mark.parametrize(
+    ("target_ra_text", "target_dec_text"),
+    (
+        pytest.param("11:58:00", "+20*00:00", id="sync-ra-11h58m-dec-20d"),
+        pytest.param("12:12:34", "+23*15:20", id="sync-ra-12h12m34s-dec-23d15m20s"),
+        pytest.param("12:40:10", "+35*30:00", id="sync-ra-12h40m10s-dec-35d30m"),
+    ),
+)
+def test_sync_command_updates_mount_coordinates(
+    sc: SplitterController,
+    target_ra_text: str,
+    target_dec_text: str,
+):
+    sc.sync_known_position(target_ra_text, target_dec_text)
+
+
 def test_mount_in_tracking_mode_by_default(sc: SplitterController):
     assert sc.check_mount_in_tracking_mode(delta_s=5.)
 
 
-MOTION_SETTLE_S = 0.6
-MOTION_SAMPLE_S = 5.0
+GOTO_TIMEOUT_S = 70.0
+GOTO_POLL_INTERVAL_S = 0.5
+GOTO_RA_TOLERANCE_S = 30.0
+GOTO_DEC_TOLERANCE_ARCSEC = 180.0
+GOTO_MIN_RA_MOVE_S = 60.0
+GOTO_MIN_DEC_MOVE_ARCSEC = 300.0
 
-RA_SLEW_MIN_MOUNT_RATE = 0.2
-DEC_SLEW_MIN_MOUNT_RATE = 1.0
-RA_MANUAL_EXTRA_MOTOR_RATE = 0.5
-DEC_MANUAL_EXTRA_MOTOR_RATE = 2.0
-RA_STABLE_MOUNT_TOLERANCE = 0.25
-RA_STABLE_MOTOR_TOLERANCE = 0.4
-DEC_STABLE_MOTOR_TOLERANCE = 0.6
+GOTO_DIRECTION_DELTAS = (
+    pytest.param(400.0, 0.0, id="goto-ra-plus"),
+    pytest.param(-400.0, 0.0, id="goto-ra-minus"),
+    pytest.param(0.0, 1200.0, id="goto-dec-plus"),
+    pytest.param(0.0, -1200.0, id="goto-dec-minus"),
+    pytest.param(400.0, 1200.0, id="goto-ra-plus-dec-plus"),
+    pytest.param(400.0, -1200.0, id="goto-ra-plus-dec-minus"),
+    pytest.param(-400.0, 1200.0, id="goto-ra-minus-dec-plus"),
+    pytest.param(-400.0, -1200.0, id="goto-ra-minus-dec-minus"),
+)
 
 
 @pytest.mark.parametrize(
@@ -586,97 +609,6 @@ def test_coordinate_system_slew_directions(
         assert abs(moving.dec.rate_per_s.motor) < DEC_STABLE_MOTOR_TOLERANCE
 
 
-GUIDE_PULSE_MS_VALUES = (2500, 5000)
-GUIDE_PULSE_MS_FOR_HALT = GUIDE_PULSE_MS_VALUES[0]
-
-RA_GUIDE_RATE_DELTA_MIN = 0.15
-RA_GUIDE_MOUNT_TOLERANCE = 0.25
-RA_GUIDE_DIRECTIONS = {"e", "w"}
-DEC_GUIDE_MIN_MOTOR_RATE = 10.0
-DEC_GUIDE_MOUNT_TOLERANCE = 2.0
-DEC_GUIDE_DIRECTIONS = {"n", "s"}
-
-
-@pytest.mark.parametrize(
-    "pulse_ms",
-    (
-        pytest.param(GUIDE_PULSE_MS_VALUES[0], id="pulse-2500ms"),
-        pytest.param(GUIDE_PULSE_MS_VALUES[1], id="pulse-5000ms"),
-    ),
-)
-@pytest.mark.parametrize(
-    ("direction", "expected_sign"),
-    (
-        pytest.param("e", -1, id="guide-east"),
-        pytest.param("w", 1, id="guide-west"),
-        pytest.param("n", 1, id="guide-north"),
-        pytest.param("s", -1, id="guide-south"),
-    ),
-)
-def test_coordinate_system_guide_ra_rates(
-    sc: SplitterController,
-    pulse_ms: int,
-    direction: str,
-    expected_sign: int,
-):
-    baseline = sc.get_deltas(MOTION_SAMPLE_S)
-
-    with sc.with_get_deltas() as guided_items:
-        sc.guide(direction, pulse_ms)
-        time.sleep(MOTION_SETTLE_S + MOTION_SAMPLE_S)
-
-    assert len(guided_items) == 1
-    guided = guided_items[0]
-
-    if direction in RA_GUIDE_DIRECTIONS:
-        ra_rate_delta = guided.ra.rate_per_s.motor - baseline.ra.rate_per_s.motor
-        assert expected_sign * ra_rate_delta > RA_GUIDE_RATE_DELTA_MIN
-        assert abs(guided.ra.rate_per_s.mount) < RA_GUIDE_MOUNT_TOLERANCE
-        assert abs(guided.dec.rate_per_s.mount) < sc.TRACKING_MODE_TOLERANCE[1]
-        assert abs(guided.dec.rate_per_s.motor) < DEC_STABLE_MOTOR_TOLERANCE
-    elif direction in DEC_GUIDE_DIRECTIONS:
-        assert expected_sign * guided.dec.rate_per_s.motor > DEC_GUIDE_MIN_MOTOR_RATE
-        assert abs(guided.dec.rate_per_s.mount) < DEC_GUIDE_MOUNT_TOLERANCE
-        assert abs(guided.ra.rate_per_s.mount) < RA_STABLE_MOUNT_TOLERANCE
-    else:
-        pytest.fail(f"Unexpected guide direction: {direction}")
-
-
-@pytest.mark.parametrize(
-    ("target_ra_text", "target_dec_text"),
-    (
-        pytest.param("11:58:00", "+20*00:00", id="sync-ra-11h58m-dec-20d"),
-        pytest.param("12:12:34", "+23*15:20", id="sync-ra-12h12m34s-dec-23d15m20s"),
-        pytest.param("12:40:10", "+35*30:00", id="sync-ra-12h40m10s-dec-35d30m"),
-    ),
-)
-def test_sync_command_updates_mount_coordinates(
-    sc: SplitterController,
-    target_ra_text: str,
-    target_dec_text: str,
-):
-    sc.sync_known_position(target_ra_text, target_dec_text)
-
-
-GOTO_TIMEOUT_S = 70.0
-GOTO_POLL_INTERVAL_S = 0.5
-GOTO_RA_TOLERANCE_S = 30.0
-GOTO_DEC_TOLERANCE_ARCSEC = 180.0
-GOTO_MIN_RA_MOVE_S = 60.0
-GOTO_MIN_DEC_MOVE_ARCSEC = 300.0
-
-GOTO_DIRECTION_DELTAS = (
-    pytest.param(400.0, 0.0, id="goto-ra-plus"),
-    pytest.param(-400.0, 0.0, id="goto-ra-minus"),
-    pytest.param(0.0, 1200.0, id="goto-dec-plus"),
-    pytest.param(0.0, -1200.0, id="goto-dec-minus"),
-    pytest.param(400.0, 1200.0, id="goto-ra-plus-dec-plus"),
-    pytest.param(400.0, -1200.0, id="goto-ra-plus-dec-minus"),
-    pytest.param(-400.0, 1200.0, id="goto-ra-minus-dec-plus"),
-    pytest.param(-400.0, -1200.0, id="goto-ra-minus-dec-minus"),
-)
-
-
 @pytest.mark.parametrize(
     ("ra_delta_s", "dec_delta_arcsec"),
     GOTO_DIRECTION_DELTAS,
@@ -711,6 +643,18 @@ def test_goto_command_moves_mount_to_target_coordinates(
         assert sc.ra_distance_seconds(final_ra, start_ra.to_seconds()) > GOTO_MIN_RA_MOVE_S
     if dec_delta_arcsec != 0:
         assert abs(final_dec - start_dec.to_arcseconds()) > GOTO_MIN_DEC_MOVE_ARCSEC
+
+
+MOTION_SETTLE_S = 0.6
+MOTION_SAMPLE_S = 5.0
+
+RA_SLEW_MIN_MOUNT_RATE = 0.2
+DEC_SLEW_MIN_MOUNT_RATE = 1.0
+RA_MANUAL_EXTRA_MOTOR_RATE = 0.5
+DEC_MANUAL_EXTRA_MOTOR_RATE = 2.0
+RA_STABLE_MOUNT_TOLERANCE = 0.25
+RA_STABLE_MOTOR_TOLERANCE = 0.4
+DEC_STABLE_MOTOR_TOLERANCE = 0.6
 
 
 @pytest.mark.parametrize(
@@ -797,3 +741,60 @@ def test_halt_command_returns_to_tracking_from_goto(
     sc.halt_all()
     sc.wait_while_mount_in_tracking(timeout_s=10.0)
     assert sc.check_mount_in_tracking_mode(delta_s=MOTION_SAMPLE_S)
+
+
+GUIDE_PULSE_MS_VALUES = (2500, 5000)
+GUIDE_PULSE_MS_FOR_HALT = GUIDE_PULSE_MS_VALUES[0]
+
+RA_GUIDE_RATE_DELTA_MIN = 0.15
+RA_GUIDE_MOUNT_TOLERANCE = 0.25
+RA_GUIDE_DIRECTIONS = {"e", "w"}
+DEC_GUIDE_MIN_MOTOR_RATE = 10.0
+DEC_GUIDE_MOUNT_TOLERANCE = 2.0
+DEC_GUIDE_DIRECTIONS = {"n", "s"}
+
+
+@pytest.mark.parametrize(
+    "pulse_ms",
+    (
+        pytest.param(GUIDE_PULSE_MS_VALUES[0], id="pulse-2500ms"),
+        pytest.param(GUIDE_PULSE_MS_VALUES[1], id="pulse-5000ms"),
+    ),
+)
+@pytest.mark.parametrize(
+    ("direction", "expected_sign"),
+    (
+        pytest.param("e", -1, id="guide-east"),
+        pytest.param("w", 1, id="guide-west"),
+        pytest.param("n", 1, id="guide-north"),
+        pytest.param("s", -1, id="guide-south"),
+    ),
+)
+def test_coordinate_system_guide_ra_rates(
+    sc: SplitterController,
+    pulse_ms: int,
+    direction: str,
+    expected_sign: int,
+):
+    baseline = sc.get_deltas(MOTION_SAMPLE_S)
+
+    with sc.with_get_deltas() as guided_items:
+        sc.guide(direction, pulse_ms)
+        time.sleep(MOTION_SETTLE_S + MOTION_SAMPLE_S)
+
+    assert len(guided_items) == 1
+    guided = guided_items[0]
+
+    if direction in RA_GUIDE_DIRECTIONS:
+        ra_rate_delta = guided.ra.rate_per_s.motor - baseline.ra.rate_per_s.motor
+        assert expected_sign * ra_rate_delta > RA_GUIDE_RATE_DELTA_MIN
+        assert abs(guided.ra.rate_per_s.mount) < RA_GUIDE_MOUNT_TOLERANCE
+        assert abs(guided.dec.rate_per_s.mount) < sc.TRACKING_MODE_TOLERANCE[1]
+        assert abs(guided.dec.rate_per_s.motor) < DEC_STABLE_MOTOR_TOLERANCE
+    elif direction in DEC_GUIDE_DIRECTIONS:
+        assert expected_sign * guided.dec.rate_per_s.motor > DEC_GUIDE_MIN_MOTOR_RATE
+        assert abs(guided.dec.rate_per_s.mount) < DEC_GUIDE_MOUNT_TOLERANCE
+        assert abs(guided.ra.rate_per_s.mount) < RA_STABLE_MOUNT_TOLERANCE
+    else:
+        pytest.fail(f"Unexpected guide direction: {direction}")
+
