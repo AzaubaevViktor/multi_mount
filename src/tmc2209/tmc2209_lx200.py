@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 import time
-from turtle import pos
 
 from lx200.base import LX200DECHandler
 from lx200.protocol import AlignmentMode

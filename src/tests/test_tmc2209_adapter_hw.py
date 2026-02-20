@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 import time
 
 import pytest
@@ -23,7 +24,7 @@ POSITION_TOLERANCE = 200
 
 
 @pytest.fixture
-def adapter() -> TMC2209Adapter:
+def adapter() -> Iterator[TMC2209Adapter]:
     port = SerialLine.search(DEVICE_PATTERN)
     serial_line = SerialLine(
         port,

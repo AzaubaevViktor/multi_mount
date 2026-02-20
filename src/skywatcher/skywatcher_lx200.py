@@ -3,7 +3,7 @@ import time
 
 from lx200.base import LX200RAHandler
 from lx200.protocols import LX200Ha
-from .skywatcher import SkyWatcherMount, SkyWatcherStatus, SkyWatcherWrongResponce, SlewMode
+from .skywatcher import SkyWatcherMount, SkyWatcherStatus, SlewMode
 
 
 DEGREES_PER_HOUR = 15
