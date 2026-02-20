@@ -59,24 +59,31 @@ def _ensure_idle(mount: SkyWatcherMount) -> None:
 @contextmanager
 def _measure_ra_shift(
     mount: SkyWatcherMount,
+    measure_s: float = 5, 
+    wait_mount_full_speed_s: int = 1,
 ) -> Iterator[list[tuple[int, int, float]]]:
     _ensure_idle(mount)
     mid_ra_seconds = 12 * 3600
     mount.set_telescope_ra(LX200Ha.from_seconds(mid_ra_seconds))
-    time.sleep(0.2)
-
-    start_seconds = mount.get_telescope_ra().to_seconds()
-
-    start_time = time.monotonic()
+    
+    start_time = None
+    
     measurements: list[tuple[int, int, float]] = []
     try:
         yield measurements
+        time.sleep(wait_mount_full_speed_s)
+        start_seconds = mount.get_telescope_ra().to_seconds()
+        start_time = time.monotonic()
+        
+        time.sleep(measure_s)
     finally:
         end_seconds = mount.get_telescope_ra().to_seconds()
-        elapsed = time.monotonic() - start_time
+        if start_time:
+            elapsed = time.monotonic() - start_time
+            measurements.append((start_seconds, end_seconds, elapsed))
+
         mount.gracefully_stop_motor()
         mount.wait_till_stop()
-        measurements.append((start_seconds, end_seconds, elapsed))
 
 
 def _assert_speed_and_direction(
@@ -102,9 +109,18 @@ def _assert_speed_and_direction(
         f"delta={delta} elapsed={elapsed:.2f}s"
     )
 
-
-def test_slew_to_ra_moves_mount(mount: SkyWatcherMount):
-    slew_delta_seconds = 240
+@pytest.mark.parametrize('delta', (
+        240, 
+        -240,
+        10,
+        -10,
+        800,
+        -800,
+        500,
+        -500,
+))
+def test_slew_to_ra_moves_mount(mount: SkyWatcherMount, delta):
+    slew_delta_seconds = delta
     timeout_s = 15
     target_tolerance_seconds = 5
 
@@ -152,13 +168,11 @@ def test_move_ra_rejects_goto_in_progress(mount: SkyWatcherMount) -> None:
 def test_move_ra_speed_and_direction(mount: SkyWatcherMount, rate: float) -> None:
     duration_s = 4.0
 
-    assert mount.move_ra(rate) is True
-    time.sleep(1)  # Wait while motor get to full speed
-
     with _measure_ra_shift(
         mount,
+        measure_s=duration_s
     ) as measurements:
-        time.sleep(duration_s)
+        assert mount.move_ra(rate) is True
 
     assert len(measurements) == 1
     start_seconds, end_seconds, elapsed = measurements[0]
@@ -173,13 +187,13 @@ def test_start_tracking_speed_and_direction(mount: SkyWatcherMount, trackspeed: 
     speed_value = trackspeed
     expected_rate = abs(speed_value)
 
-    assert mount.start_tracking(speed_value) is True
     time.sleep(1)  # Wait while motor get to full speed
 
     with _measure_ra_shift(
         mount,
+        measure_s=duration_s
     ) as measurements:
-        time.sleep(duration_s)
+        assert mount.start_tracking(speed_value) is True
 
     assert len(measurements) == 1
     start_seconds, end_seconds, elapsed = measurements[0]
