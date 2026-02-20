@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 import logging
 import queue
+from re import A
 import threading
 import time
 from typing import Any
@@ -187,6 +188,7 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
 
     _TELEMETRY_INTERVAL_S = 1.0
     _RATE_COMPENSATE_INTERVAL_S = .5
+    COMPENSATE_MOTOR_SIGN: int  # Is this really the best way for RA/DEC?
 
     _DEFAULT_TRACKING_RATE: float
     _POSITION_DELTA_ACCEPTED_RATE_S = .1
@@ -286,6 +288,8 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
                 # TODO: Add _wrap_motor_position
                 actual_delta_seconds = motor_position - self._motor_position_raw
 
+                actual_delta_seconds *= self.COMPENSATE_MOTOR_SIGN
+
                 delta = expected_delta_seconds - actual_delta_seconds
 
                 self.logger.debug(
@@ -338,11 +342,13 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
 class LX200RAHandler(LX200AxisHandler[LX200Ha]):
     POS_CLS = LX200Ha
     AXIS_NAME = "Ra"
+    COMPENSATE_MOTOR_SIGN = 1
 
 
 class LX200DECHandler(LX200AxisHandler[LX200Dec]):
     POS_CLS = LX200Dec
     AXIS_NAME = "Dec"
+    COMPENSATE_MOTOR_SIGN = -1
 
 
 class LX200Handler(LX200Base):

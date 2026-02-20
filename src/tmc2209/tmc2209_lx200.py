@@ -188,6 +188,10 @@ class TMC2209LX200(LX200DECHandler):
             self._current_track_rate_coef = self._DEFAULT_TRACKING_RATE
         
         self._adapter.slew_delta(delta_steps)
+        if delta_steps > 0:
+            self._adapter.set_direction(False)
+        else:
+            self._adapter.set_direction(True)
 
         self._adapter.run()
         self.logger.info("DEC GOTO started: delta_steps=%s", delta_steps)
@@ -212,12 +216,12 @@ class TMC2209LX200(LX200DECHandler):
 
     def move_north(self) -> bool:
         return self._start_manual_move(
-            True,
+            False,
         )
 
     def move_south(self) -> bool:
         return self._start_manual_move(
-            False,
+            True,
         )
 
     def move_west(self) -> bool:
@@ -241,7 +245,7 @@ class TMC2209LX200(LX200DECHandler):
     def guide_north(self) -> bool:
         self.logger.info("Guide north start")
         self._apply_profile(self._guide_profile)
-        self._adapter.set_direction(True)
+        self._adapter.set_direction(False)
         with self._position_update_lock:
             self._adapter.run()
             self._current_track_rate_coef = 1
@@ -251,7 +255,7 @@ class TMC2209LX200(LX200DECHandler):
     def guide_south(self) -> bool:
         self.logger.info("Guide south start")
         self._apply_profile(self._guide_profile)
-        self._adapter.set_direction(False)
+        self._adapter.set_direction(True)
         with self._position_update_lock:
             self._adapter.run()
             self._current_track_rate_coef = -1

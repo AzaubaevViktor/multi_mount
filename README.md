@@ -14,7 +14,7 @@ FM Controls Current position
 | Mount didn't track, keep still | 0       | const    | ↑        | 0        | const     | const     |
 | Mount base track               | 1       | ↑ == T   | const    | 0        | const     | const     |
 | **SLEW / GOTO**                |         |          |          |          |           |           |
-| East slew                      | -800    | ↑↑       | ↑↑       | 0        | const     | const     |
+| East slew                      | -800    | ↓↓       | ↑↑       | 0        | const     | const     |
 | West slew                      | 800     | ↑↑       | ↓↓       | 0        | const     | const     |
 | North slew                     | 1       | ↑        | const    | > 0      | ↑↑        | ↑↑        |
 | South slew                     | 1       | ↑        | const    | < 0      | ↓↓        | ↓↓        |
@@ -58,7 +58,15 @@ HALT command must resume mount to tracking mode from SLEW / GOTO / GUIDE (?)
     - ✅ Control motor
     - ✅ Control with LX200
 - Combine
-    - Tests for LX200 protocol
+    - ✅ Tests for LX200 protocol
     - ✅ Send RA to SkyWatcher
     - ✅ Send DEC to Arduino
-    
+- Check with INDI
+    - Sync
+    - Slew
+    - GOTO
+    - Guide
+- Long tests
+    - Sync -> GOTO -> (halt?) -> Check
+    - Sync -> Slew -> (halt?) -> Check
+- Connect with mount

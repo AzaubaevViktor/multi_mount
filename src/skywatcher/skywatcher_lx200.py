@@ -94,8 +94,8 @@ class SkyWatcherLX200(LX200RAHandler):
                             real_rate = self.mount.get_slew_real_rate(raw_delta_seconds)
                             # Add sky moving approximation
                             real_delta_seconds = raw_delta_seconds + abs(raw_delta_seconds) / (self.mount.STELLAR_SPEED / DEGREES_PER_HOUR) / real_rate
-                            if real_delta_seconds > 0:
-                                real_delta_seconds += self.MAGIC_SECONDS_MINUS_SLEW  # add 6 magic seconds, because of accel/deccel/stop/star
+                            if real_delta_seconds < 0:
+                                real_delta_seconds -= self.MAGIC_SECONDS_MINUS_SLEW  # add 6 magic seconds, because of accel/deccel/stop/star
                             mount_delta_seconds = -real_delta_seconds  # why tf minus here and it works?
                             real_delta = LX200Ha.from_seconds(mount_delta_seconds)
 

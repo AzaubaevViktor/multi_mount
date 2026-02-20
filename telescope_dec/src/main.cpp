@@ -491,7 +491,7 @@ static bool setAccelStepsPerUsV2(long accel, const char** errorKey) {
 }
 
 static void setDeltaV2(long delta) {
-  runV2.target += delta;
+  runV2.target = stepPosition + delta;
   runV2.hasTarget = true;
 }
 
