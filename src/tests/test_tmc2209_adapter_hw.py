@@ -37,7 +37,6 @@ def adapter() -> TMC2209Adapter:
 
     try:
         adapter.set_enabled(True)
-        _prepare_adapter(adapter, 0)
         yield adapter
     finally:
         try:
@@ -48,10 +47,11 @@ def adapter() -> TMC2209Adapter:
         adapter.close()
 
 
-def _prepare_adapter(adapter: TMC2209Adapter, position: int) -> None:
+@pytest.fixture(autouse=True)
+def _prepare_adapter(adapter: TMC2209Adapter) -> None:
     adapter.halt()
     _wait_for_stop(adapter, STOP_TIMEOUT_S, POLL_INTERVAL_S)
-    adapter.set_position(position)
+    adapter.set_position(0)
     adapter.slew_delta(0)
 
 
@@ -113,9 +113,10 @@ def test_hw_set_position(adapter: TMC2209Adapter) -> None:
 
 
 @pytest.mark.parametrize("target", [TARGET_STEPS, -TARGET_STEPS])
-def test_hw_move_to_target_both_directions(adapter: TMC2209Adapter, target: int) -> None:
-    _prepare_adapter(adapter, 0)
-
+def test_hw_move_to_target_both_directions(
+    adapter: TMC2209Adapter,
+    target: int,
+) -> None:
     start_position = adapter.status().position
     adapter.set_speed_sps(TARGET_SPEED_SPS)
     delta, returned_target, target_set = adapter.slew_delta(target)
@@ -144,10 +145,10 @@ def test_hw_move_to_target_both_directions(adapter: TMC2209Adapter, target: int)
     ],
 )
 def test_hw_run_speed_and_direction(
-    adapter: TMC2209Adapter, speed_sps: int, direction: bool
+    adapter: TMC2209Adapter,
+    speed_sps: int,
+    direction: bool,
 ) -> None:
-    _prepare_adapter(adapter, 0)
-
     adapter.set_speed_sps(speed_sps)
     adapter.set_direction(direction)
     assert adapter.run() is True
@@ -168,9 +169,9 @@ def test_hw_run_speed_and_direction(
     _wait_for_stop(adapter, STOP_TIMEOUT_S, POLL_INTERVAL_S)
 
 
-def test_hw_stop_during_run(adapter: TMC2209Adapter) -> None:
-    _prepare_adapter(adapter, 0)
-
+def test_hw_stop_during_run(
+    adapter: TMC2209Adapter,
+) -> None:
     adapter.set_speed_sps(STOP_SPEED_SPS)
     adapter.set_direction(False)
     assert adapter.run() is True
@@ -189,8 +190,6 @@ def test_hw_stop_during_run(adapter: TMC2209Adapter) -> None:
 
 
 def test_hw_stop_during_target_move(adapter: TMC2209Adapter) -> None:
-
-
     delta = 10000
     target = TARGET_STEPS
     adapter.set_speed_sps(STOP_SPEED_SPS)
