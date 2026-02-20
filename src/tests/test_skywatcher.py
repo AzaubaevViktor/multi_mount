@@ -1,3 +1,5 @@
+from collections.abc import Iterator
+from contextlib import contextmanager
 import logging
 import time
 
@@ -9,7 +11,7 @@ from skywatcher.skywatcher import SkyWatcherMount, SlewMode
 
 RA_MOUNT_DISTANCE_DELTA = 0.2
 @pytest.fixture
-def mount() -> SkyWatcherMount:
+def mount() -> Iterator[SkyWatcherMount]:
     serial_line = SerialLine(SerialLine.search("PL2303G-USBtoUART"), 112500, 0.2, "skywatcher", terminator="\r")
     mount = SkyWatcherMount(serial_line)
     mount.connect()
@@ -50,35 +52,31 @@ def _distance_seconds(a: int, b: int) -> int:
     return min(delta, 24 * 3600 - delta)
 
 
-def _ensure_idle(mount: SkyWatcherMount, timeout_s: float) -> None:
-    mount.wait_till_stop(timeout_s=timeout_s, do_stop=True)
+def _ensure_idle(mount: SkyWatcherMount) -> None:
+    mount.wait_till_stop(do_stop=True)
 
 
+@contextmanager
 def _measure_ra_shift(
     mount: SkyWatcherMount,
-    start_motion,
-    duration_s: float,
-    timeout_s: float,
-) -> tuple[int, int, float]:
-    _ensure_idle(mount, timeout_s)
+) -> Iterator[list[tuple[int, int, float]]]:
+    _ensure_idle(mount)
     mid_ra_seconds = 12 * 3600
     mount.set_telescope_ra(LX200Ha.from_seconds(mid_ra_seconds))
     time.sleep(0.2)
 
     start_seconds = mount.get_telescope_ra().to_seconds()
-    assert start_motion() is True
-
-    time.sleep(1)  # Wait while motor get to full speed
 
     start_time = time.monotonic()
-    time.sleep(duration_s)
-    end_seconds = mount.get_telescope_ra().to_seconds()
-    elapsed = time.monotonic() - start_time
-
-    mount.gracefully_stop_motor()
-    mount.wait_till_stop(timeout_s=timeout_s)
-
-    return start_seconds, end_seconds, elapsed
+    measurements: list[tuple[int, int, float]] = []
+    try:
+        yield measurements
+    finally:
+        end_seconds = mount.get_telescope_ra().to_seconds()
+        elapsed = time.monotonic() - start_time
+        mount.gracefully_stop_motor()
+        mount.wait_till_stop()
+        measurements.append((start_seconds, end_seconds, elapsed))
 
 
 def _assert_speed_and_direction(
@@ -153,14 +151,17 @@ def test_move_ra_rejects_goto_in_progress(mount: SkyWatcherMount) -> None:
 @pytest.mark.parametrize("rate", [100.0, 1.0, -1.0, -100.0])
 def test_move_ra_speed_and_direction(mount: SkyWatcherMount, rate: float) -> None:
     duration_s = 4.0
-    timeout_s = 5.0
 
-    start_seconds, end_seconds, elapsed = _measure_ra_shift(
+    assert mount.move_ra(rate) is True
+    time.sleep(1)  # Wait while motor get to full speed
+
+    with _measure_ra_shift(
         mount,
-        lambda: mount.move_ra(rate),
-        duration_s,
-        timeout_s,
-    )
+    ) as measurements:
+        time.sleep(duration_s)
+
+    assert len(measurements) == 1
+    start_seconds, end_seconds, elapsed = measurements[0]
 
     _assert_speed_and_direction(start_seconds, end_seconds, elapsed, abs(rate), rate)
 
@@ -168,17 +169,20 @@ def test_move_ra_speed_and_direction(mount: SkyWatcherMount, rate: float) -> Non
 @pytest.mark.parametrize("trackspeed", [10.0, 1.0, -1.0, -10.0])
 def test_start_tracking_speed_and_direction(mount: SkyWatcherMount, trackspeed: float) -> None:
     duration_s = 4.0
-    timeout_s = 5.0
 
     speed_value = trackspeed
     expected_rate = abs(speed_value)
 
-    start_seconds, end_seconds, elapsed = _measure_ra_shift(
+    assert mount.start_tracking(speed_value) is True
+    time.sleep(1)  # Wait while motor get to full speed
+
+    with _measure_ra_shift(
         mount,
-        lambda: mount.start_tracking(speed_value),
-        duration_s,
-        timeout_s,
-    )
+    ) as measurements:
+        time.sleep(duration_s)
+
+    assert len(measurements) == 1
+    start_seconds, end_seconds, elapsed = measurements[0]
 
     _assert_speed_and_direction(start_seconds, end_seconds, elapsed, expected_rate, trackspeed * mount.STELLAR_SPEED)
 
