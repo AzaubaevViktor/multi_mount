@@ -1,24 +1,6 @@
 import re
 from typing import Self
 
-# TODO: Move all values info classes
-
-SIGN_VALUES = {"+", "-"}
-SIGN_CHARS = "+-"
-
-MINUTES_PER_DEGREE = 60
-SECONDS_PER_DEGREE = 60 * MINUTES_PER_DEGREE
-MAX_DEC_DEGREES = 90
-
-APOSTROPHE = ":"
-UNICODE_APOSTROPHE = ":"
-WHOLE_UNIT_TOLERANCE = 1e-9
-
-HOURS_PATTERN = re.compile(r"^(\d{2}):(\d{2}):(\d{2})$")
-DEC_PATTERN = re.compile(rf"^([{SIGN_CHARS}])(\d{{2}})\*(\d{{2}})[{APOSTROPHE}{UNICODE_APOSTROPHE}](\d{{2}})$")
-
-
-
 class LX200HoursError(ValueError):
     pass
 
@@ -63,6 +45,7 @@ class LX200Ha(LX200PositionBase):
     __slots__ = ("_total_seconds",)
 
     SECONDS_PER_CIRCLE = 24 * 3600
+    HOURS_PATTERN = re.compile(r"^(\d{2}):(\d{2}):(\d{2})$")
 
     def __init__(self, hours: int, minutes: int, seconds: float) -> None:
         self._validate_parts(hours, minutes, seconds)
@@ -86,7 +69,7 @@ class LX200Ha(LX200PositionBase):
 
     @classmethod
     def from_string(cls, s: str) -> Self:
-        match = HOURS_PATTERN.match(s)
+        match = cls.HOURS_PATTERN.match(s)
         if not match:
             raise LX200HoursFormatError(f"Invalid HH:MM:SS format: {s!r}")
 
@@ -154,11 +137,26 @@ class LX200Ha(LX200PositionBase):
 class LX200Dec(LX200PositionBase):
     __slots__ = ("_arcseconds",)
 
+    SIGN_VALUES = {"+", "-"}
+    SIGN_CHARS = "+-"
+
+    MINUTES_PER_DEGREE = 60
+    SECONDS_PER_DEGREE = 60 * MINUTES_PER_DEGREE
+    MAX_DEGREES = 90
+    MIN_DEGREES = -90
+
+    APOSTROPHE = ":"
+    UNICODE_APOSTROPHE = ":"
+
+    DEC_PATTERN = re.compile(
+        rf"^([{SIGN_CHARS}])(\d{{2}})\*(\d{{2}})[{APOSTROPHE}{UNICODE_APOSTROPHE}](\d{{2}})$"
+    )
+
     def __init__(self, sign: str, degrees: int, minutes: int, arcseconds: float) -> None:
         self._validate_parts(sign, degrees, minutes, arcseconds)
         total_arcseconds = (
-            (degrees * SECONDS_PER_DEGREE)
-            + (minutes * MINUTES_PER_DEGREE)
+            (degrees * self.SECONDS_PER_DEGREE)
+            + (minutes * self.MINUTES_PER_DEGREE)
             + arcseconds
         )
         if sign == "-":
@@ -174,28 +172,28 @@ class LX200Dec(LX200PositionBase):
         arcseconds = self._arcseconds
         if arcseconds < 0:
             arcseconds = -arcseconds
-        return int(arcseconds // SECONDS_PER_DEGREE)
+        return int(arcseconds // self.SECONDS_PER_DEGREE)
 
     @property
     def minutes(self) -> int:
         arcseconds = self._arcseconds
         if arcseconds < 0:
             arcseconds = -arcseconds
-        remainder = arcseconds % SECONDS_PER_DEGREE
-        return int(remainder // MINUTES_PER_DEGREE)
+        remainder = arcseconds % self.SECONDS_PER_DEGREE
+        return int(remainder // self.MINUTES_PER_DEGREE)
 
     @property
     def seconds(self) -> float:
         arcseconds = self._arcseconds
         if arcseconds < 0:
             arcseconds = -arcseconds
-        remainder = arcseconds % SECONDS_PER_DEGREE
-        minutes = int(remainder // MINUTES_PER_DEGREE)
-        return remainder - (minutes * MINUTES_PER_DEGREE)
+        remainder = arcseconds % self.SECONDS_PER_DEGREE
+        minutes = int(remainder // self.MINUTES_PER_DEGREE)
+        return remainder - (minutes * self.MINUTES_PER_DEGREE)
 
     @classmethod
     def from_string(cls, s: str) -> Self:
-        match = DEC_PATTERN.match(s)
+        match = cls.DEC_PATTERN.match(s)
         if not match:
             raise LX200DecFormatError(f"Invalid sDD*MM:SS format: {s!r}")
 
@@ -207,22 +205,22 @@ class LX200Dec(LX200PositionBase):
 
     @classmethod
     def from_degrees(cls, total_degrees: float) -> Self:
-        total_arcseconds = total_degrees * SECONDS_PER_DEGREE
+        total_arcseconds = total_degrees * cls.SECONDS_PER_DEGREE
         return cls.from_arcseconds(total_arcseconds)
 
     @classmethod
     def from_arcseconds(cls, total_arcseconds: float) -> Self:
-        # TODO: Add MIN_DEC_DEGREES = -90
-        max_arcseconds = MAX_DEC_DEGREES * SECONDS_PER_DEGREE
-        if abs(total_arcseconds) > max_arcseconds:
-            raise LX200DecRangeError(f"Arcseconds out of range: {total_arcseconds!r}")
+        max_arcseconds = cls.MAX_DEGREES * cls.SECONDS_PER_DEGREE
+        min_arcseconds = cls.MIN_DEGREES * cls.SECONDS_PER_DEGREE
+        if total_arcseconds > max_arcseconds or total_arcseconds < min_arcseconds:
+            raise LX200DecRangeError(f"Arcseconds out of range: {min_arcseconds}.. {total_arcseconds!r} .. {max_arcseconds}")
 
         sign = "-" if total_arcseconds < 0 else "+"
         abs_arcseconds = abs(total_arcseconds)
-        degrees = int(abs_arcseconds // SECONDS_PER_DEGREE)
-        remainder = abs_arcseconds - (degrees * SECONDS_PER_DEGREE)
-        minutes = int(remainder // MINUTES_PER_DEGREE)
-        arcseconds = remainder - (minutes * MINUTES_PER_DEGREE)
+        degrees = int(abs_arcseconds // cls.SECONDS_PER_DEGREE)
+        remainder = abs_arcseconds - (degrees * cls.SECONDS_PER_DEGREE)
+        minutes = int(remainder // cls.MINUTES_PER_DEGREE)
+        arcseconds = remainder - (minutes * cls.MINUTES_PER_DEGREE)
 
         if degrees == 0 and minutes == 0 and arcseconds == 0:
             sign = "+"
@@ -234,7 +232,7 @@ class LX200Dec(LX200PositionBase):
         return cls.from_arcseconds(raw_position)
 
     def to_degrees(self) -> float:
-        return self._arcseconds / SECONDS_PER_DEGREE
+        return self._arcseconds / self.SECONDS_PER_DEGREE
 
     def to_arcseconds(self) -> float:
         return self._arcseconds
@@ -247,29 +245,29 @@ class LX200Dec(LX200PositionBase):
         else:
             sign = "+"
 
-        degrees = rounded_arcseconds // SECONDS_PER_DEGREE
-        remainder = rounded_arcseconds - (degrees * SECONDS_PER_DEGREE)
-        minutes = remainder // MINUTES_PER_DEGREE
-        seconds = remainder - (minutes * MINUTES_PER_DEGREE)
+        degrees = rounded_arcseconds // self.SECONDS_PER_DEGREE
+        remainder = rounded_arcseconds - (degrees * self.SECONDS_PER_DEGREE)
+        minutes = remainder // self.MINUTES_PER_DEGREE
+        seconds = remainder - (minutes * self.MINUTES_PER_DEGREE)
         if rounded_arcseconds == 0:
             sign = "+"
 
         return (
-            f"{sign}{degrees:02d}*{minutes:02d}{APOSTROPHE}{seconds:02d}"
+            f"{sign}{degrees:02d}*{minutes:02d}{self.APOSTROPHE}{seconds:02d}"
         )
 
     def __repr__(self) -> str:
         return f"LX200Dec('{self}')"
 
-    @staticmethod
-    def _validate_parts(sign: str, degrees: int, minutes: int, arcseconds: float) -> None:
-        if sign not in SIGN_VALUES:
+    @classmethod
+    def _validate_parts(cls, sign: str, degrees: int, minutes: int, arcseconds: float) -> None:
+        if sign not in cls.SIGN_VALUES:
             raise LX200DecRangeError(f"Sign out of range: {sign!r}")
-        if degrees < 0 or degrees > 90:
+        if degrees < 0 or degrees > cls.MAX_DEGREES:
             raise LX200DecRangeError(f"Degrees out of range: {degrees!r}")
         if minutes < 0 or minutes > 59:
             raise LX200DecRangeError(f"Minutes out of range: {minutes!r}")
         if arcseconds < 0 or arcseconds >= 60:
             raise LX200DecRangeError(f"Arcseconds out of range: {arcseconds!r}")
-        if degrees == 90 and (minutes != 0 or arcseconds != 0):
+        if degrees == cls.MAX_DEGREES and (minutes != 0 or arcseconds != 0):
             raise LX200DecRangeError(f"Degrees out of range: {degrees!r}")
