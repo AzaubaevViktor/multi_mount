@@ -99,7 +99,7 @@ class SkyWatcherLX200(LX200RAHandler):
                             mount_delta_seconds = -real_delta_seconds  # why tf minus here and it works?
                             real_delta = LX200Ha.from_seconds(mount_delta_seconds)
 
-                            self.mount.slew_to_ra(real_delta)
+                            self.mount.slew_delta(real_delta)
                             if raw_delta_seconds > 0:
                                 self._goto_direction_sign = 1
                             elif raw_delta_seconds < 0:

@@ -460,9 +460,8 @@ class SkyWatcherMount:
 
     def get_slew_real_rate(self, delta_seconds: float) -> float:
         return self._do_wrap_delta_move(delta_seconds)[1]
-    
-    # TODO: rename: slew_delta instead slew_to_ra
-    def slew_to_ra(self, delta: LX200Ha) -> bool:
+
+    def slew_delta(self, delta: LX200Ha) -> bool:
         delta_seconds, real_rate = self._do_wrap_delta_move(delta.to_seconds())
 
         self.set_ra_rate(real_rate, SlewMode.GOTO)
