@@ -192,7 +192,6 @@ def test_hw_stop_during_run(
 
 def test_hw_stop_during_target_move(adapter: TMC2209Adapter) -> None:
     delta = 10000
-    target = TARGET_STEPS
     adapter.set_speed_sps(STOP_SPEED_SPS)
     adapter.slew_delta(delta)
     assert adapter.run() is True
@@ -204,6 +203,6 @@ def test_hw_stop_during_target_move(adapter: TMC2209Adapter) -> None:
     assert adapter.halt() is True
     stopped_status = _wait_for_stop(adapter, STOP_TIMEOUT_S, POLL_INTERVAL_S)
 
-    assert stopped_status.position != target
-    assert stopped_status.target == target
+    assert stopped_status.position < delta
+    assert stopped_status.target == delta
     assert stopped_status.target_set is True
