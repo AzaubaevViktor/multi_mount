@@ -4,7 +4,7 @@ from enum import IntEnum, StrEnum
 import logging
 import threading
 import time
-from typing import Any, Callable, Self
+from typing import Callable, Self
 from lx200.protocols import LX200Ha
 from serial_wrapper.wrapper import SerialLine
 
@@ -336,9 +336,8 @@ class SkyWatcherMount:
     def get_telescope_ra(self):
         return LX200Ha.from_seconds(self.get_telesope_seconds())
     
-    _MOUNT_SECONDS_CACHE_TTL_S = .5
+    _MOUNT_SECONDS_CACHE_TTL_S = .25
     def get_telesope_seconds(self) -> float:
-        # TODO: Cache for .5s
         if time.monotonic() - self._mount_seconds_cache_update <= self._MOUNT_SECONDS_CACHE_TTL_S:
             return self._mount_seconds_cache
 
