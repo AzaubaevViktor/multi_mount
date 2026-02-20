@@ -31,3 +31,17 @@
 - Prefer concise, context-local names over repeating prefixes in enums/types when the module already scopes them.
 - Make zero usage explicit with named constants and store allowed option sets as set-like constants.
 - If helper logic uses one class API/state, implement it as a method of that class from the start, not as a module-level function.
+
+## Behavior corrections
+- For repetitive scenario checks, default to parameterized tests and cover the full combination space that follows from requirements.
+- If behavior belongs to one controller/domain object, keep orchestration and helper logic inside that object and avoid scattered module helpers.
+- Prefer explicit domain wait methods over generic predicate-based waiting helpers.
+- Every wait method should log start, success, and failure states with key measured values and elapsed time.
+- Design context managers as boundary/capture tools; timing and business actions should be controlled by code inside the context.
+- Build high-level measurement helpers by composing lower-level primitives instead of duplicating timing/capture logic.
+- Use the minimal data carrier needed for temporary flow; avoid extra wrapper structures when a simple structure is enough.
+- Move utility math used mainly by one class into that class to keep related logic cohesive.
+- Keep constants close to the code section where they are used; avoid centralized constant blocks when scope is local.
+- Apply structural refactors consistently across all call sites in the same change.
+- Expand directional/mode-based motion tests to include both single-axis and combined-axis behaviors when relevant.
+- For pulse/rate-dependent behavior, test multiple representative durations instead of a single fixed value.
