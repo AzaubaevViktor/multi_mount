@@ -16,7 +16,8 @@ POLL_INTERVAL_S = 0.2
 STOP_TIMEOUT_S = 8.0
 TARGET_TIMEOUT_S = 20.0
 
-TARGET_STEPS = 20000
+SET_POSITION_STEPS = 20000
+MOVE_DELTA_STEPS = 20000
 RUN_SPEED_SPS = (600, 1200, 2400)
 TARGET_SPEED_SPS = 2500
 STOP_SPEED_SPS = 2000
@@ -106,32 +107,53 @@ def _wait_for_motion(
 
 
 def test_hw_set_position(adapter: TMC2209Adapter) -> None:
-    position = TARGET_STEPS
-    assert adapter.set_position(position) == position
+    position_steps = SET_POSITION_STEPS
+    assert adapter.set_position(position_steps) == position_steps
 
     status = adapter.status()
-    assert status.position == position
+    assert status.position == position_steps
 
 
-@pytest.mark.parametrize("target", [TARGET_STEPS, -TARGET_STEPS])
-def test_hw_move_to_target_both_directions(
+@pytest.mark.parametrize("delta_steps", [MOVE_DELTA_STEPS, 0, -MOVE_DELTA_STEPS])
+def test_hw_slew_delta_moves_both_directions(
     adapter: TMC2209Adapter,
-    target: int,
+    delta_steps: int,
 ) -> None:
     start_position = adapter.status().position
     adapter.set_speed_sps(TARGET_SPEED_SPS)
-    delta, returned_target, target_set = adapter.slew_delta(target)
-    assert delta == target
-    assert start_position + delta == returned_target 
+    applied_delta, returned_target, target_set = adapter.slew_delta(delta_steps)
+    assert applied_delta == delta_steps
+    assert start_position + applied_delta == returned_target
     assert target_set is True
     assert adapter.run() is True
 
-    direction_sign = 1 if target > 0 else -1
-    _wait_for_motion(adapter, 0, direction_sign, 5.0, POLL_INTERVAL_S)
+    direction_sign = 1 if delta_steps > 0 else -1
+    if delta_steps:
+        _wait_for_motion(adapter, 0, direction_sign, 5.0, POLL_INTERVAL_S)
 
     final_status = _wait_for_target(adapter, TARGET_TIMEOUT_S, POLL_INTERVAL_S)
-    assert abs(final_status.position - target) <= POSITION_TOLERANCE
+    assert abs(final_status.position - delta_steps) <= POSITION_TOLERANCE
     assert final_status.target_set is False
+
+
+def test_hw_slew_delta_zero_sets_and_clears_target(adapter: TMC2209Adapter) -> None:
+    delta_steps = 0
+    start_position = adapter.status().position
+    adapter.set_speed_sps(TARGET_SPEED_SPS)
+
+    applied_delta, returned_target, target_set = adapter.slew_delta(delta_steps)
+    assert applied_delta == delta_steps
+    assert start_position + applied_delta == returned_target
+    assert target_set is True
+
+    status_before_run = adapter.status()
+    assert status_before_run.target_set is True
+
+    assert adapter.run() is True
+
+    final_status = _wait_for_target(adapter, TARGET_TIMEOUT_S, POLL_INTERVAL_S)
+    assert final_status.target_set is False
+    assert abs(final_status.position - start_position) <= POSITION_TOLERANCE
 
 
 @pytest.mark.parametrize(

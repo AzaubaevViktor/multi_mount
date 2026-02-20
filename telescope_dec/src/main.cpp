@@ -534,7 +534,7 @@ static void updateMotionStateV2() {
     return;
   }
 
-  if (runV2.hasTarget) {
+  if (runV2.running && runV2.hasTarget) {
     const long delta = runV2.target - getPosition();
     if (delta == 0) {
       completeTargetV2();
@@ -718,9 +718,9 @@ static void handleLineV2(char* s) {
     long value = 0;
     if (!a || !parseLongV2(a, &value)) { respondErrorV2("bad_value"); return; }
     setDeltaV2(value);
-    if (runV2.target == getPosition()) {
-      completeTargetV2();
-    }
+    // if (runV2.target == getPosition()) {
+    //   completeTargetV2();
+    // }
     respondStartV2(true);
     respondKeyValueLongV2("delta", value);
     respondKeyValueLongV2("target", runV2.target);
@@ -866,7 +866,7 @@ void serviceStepperv2() {
   stepPosition += runV2.dir ? STEP_NEGATIVE : STEP_POSITIVE;
 
   // Target completion check (same logic as before)
-  if (runV2.hasTarget) {
+  if (runV2.running && runV2.hasTarget) {
     const long pos = getPosition();
     if ((runV2.dir && pos <= runV2.target) || (!runV2.dir && pos >= runV2.target)) {
       setPosition(runV2.target);
