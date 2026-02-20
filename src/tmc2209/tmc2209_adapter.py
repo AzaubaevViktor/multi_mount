@@ -333,13 +333,14 @@ class TMC2209Adapter:
         self._log.info("Set acceleration applied: accel_steps_per_ms=%s", applied_acceleration)
         return applied_acceleration
 
-    def set_target(self, target: int) -> tuple[int, bool]:
-        self._log.info("Set target request: target=%s", target)
-        response = self._transact("target", [str(target)])
+    def slew_delta(self, delta_steps: int) -> tuple[int, int, bool]:
+        self._log.info("Set target request: delta_steps=%s", delta_steps)
+        response = self._transact("delta", [str(delta_steps)])
+        delta_value = _parse_int(_require_value(response.values, "delta"), "delta")
         target_value = _parse_int(_require_value(response.values, "target"), "target")
         target_set = _parse_bool(_require_value(response.values, "target_set"), "target_set")
-        self._log.info("Set target applied: target=%s target_set=%s", target_value, target_set)
-        return target_value, target_set
+        self._log.info("Set target applied: delta=%d target=%s target_set=%s", delta_value, target_value, target_set)
+        return delta_value, target_value, target_set
 
     def run(self) -> bool:
         self._log.info("Run request")

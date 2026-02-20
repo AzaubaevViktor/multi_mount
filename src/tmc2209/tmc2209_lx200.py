@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import time
+from turtle import pos
 
 from lx200.base import LX200DECHandler
 from lx200.protocol import AlignmentMode
@@ -123,7 +124,10 @@ class TMC2209LX200(LX200DECHandler):
         return 0, int(self._arcseconds_from_steps(self._adapter.status().position))
 
     def _steps_from_dec(self, position: LX200Dec) -> int:
-        return int(round(position.to_arcseconds() * self.steps_per_arcsec))
+        return self._steps_from_arcsec(position.to_arcseconds())
+    
+    def _steps_from_arcsec(self, arcsecs: float) -> int:
+        return int(round(arcsecs * self.steps_per_arcsec))
 
     def _arcseconds_from_steps(self, steps: int) -> float:
         return (steps / self.steps_per_arcsec)
@@ -162,33 +166,32 @@ class TMC2209LX200(LX200DECHandler):
 
         current_mount_position_arcs = int(self._mount_position_raw)
         target_position_arcsec = int(position.to_arcseconds())
-        delta_arcs = target_position_arcsec - current_mount_position_arcs
-        delta_steps = self._steps_from_dec(LX200Dec.from_arcseconds(delta_arcs))
+        delta_arcsec = target_position_arcsec - current_mount_position_arcs
 
         profile = self._goto_slow_profile
-        if abs(delta_arcs) > self.FAST_PROFILE_DELTA_ARCSEC:
+        if abs(delta_arcsec) > self.FAST_PROFILE_DELTA_ARCSEC:
             profile = self._goto_fast_profile
 
-        target_steps = round(self._wrap_steps(self._steps_from_dec(LX200Dec.from_arcseconds(self._get_motor_raw_position())) + delta_steps))
+        self._apply_profile(profile)  # XXX: After this position and steps per rev will be changed
+
+        delta_steps = round(self._wrap_steps(self._steps_from_arcsec(delta_arcsec)))
 
         self.logger.info(
-            "DEC GOTO details: current_motor_arcs=%s target_steps=%s delta_steps=%s profile=(microsteps=%s speed=%s accel=%s)",
-            current_mount_position_arcs,
-            target_steps,
-            delta_steps,
+            "DEC GOTO details: %s -> %s (%das -> %das); delta=%sas (%s steps); profile=(microsteps=%s speed=%s accel=%s)",
+            LX200Dec.from_arcseconds(current_mount_position_arcs), position,
+            current_mount_position_arcs, target_position_arcsec,
+            delta_arcsec, delta_steps,
             profile.microsteps,
             profile.speed,
             profile.accel,
         )
-        self._apply_profile(profile)  # After this we change position...
         with self._position_update_lock:
             self._current_track_rate_coef = self._DEFAULT_TRACKING_RATE
         
-        # TODO: slew_delta instead set_target
-        self._adapter.set_target(target_steps)
+        self._adapter.slew_delta(delta_steps)
 
         self._adapter.run()
-        self.logger.info("DEC GOTO started: target_steps=%s", target_steps)
+        self.logger.info("DEC GOTO started: delta_steps=%s", delta_steps)
         
         return True
 

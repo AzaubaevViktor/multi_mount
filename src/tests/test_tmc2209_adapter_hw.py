@@ -52,7 +52,7 @@ def _prepare_adapter(adapter: TMC2209Adapter, position: int) -> None:
     adapter.halt()
     _wait_for_stop(adapter, STOP_TIMEOUT_S, POLL_INTERVAL_S)
     adapter.set_position(position)
-    adapter.set_target(position)
+    adapter.slew_delta(0)
 
 
 def _wait_for_stop(
@@ -116,9 +116,11 @@ def test_hw_set_position(adapter: TMC2209Adapter) -> None:
 def test_hw_move_to_target_both_directions(adapter: TMC2209Adapter, target: int) -> None:
     _prepare_adapter(adapter, 0)
 
+    start_position = adapter.status().position
     adapter.set_speed_sps(TARGET_SPEED_SPS)
-    returned_target, target_set = adapter.set_target(target)
-    assert returned_target == target
+    delta, returned_target, target_set = adapter.slew_delta(target)
+    assert delta == target
+    assert start_position + delta == returned_target 
     assert target_set is True
     assert adapter.run() is True
 
@@ -187,11 +189,12 @@ def test_hw_stop_during_run(adapter: TMC2209Adapter) -> None:
 
 
 def test_hw_stop_during_target_move(adapter: TMC2209Adapter) -> None:
-    _prepare_adapter(adapter, 0)
 
-    target = TARGET_STEPS + 10000
+
+    delta = 10000
+    target = TARGET_STEPS
     adapter.set_speed_sps(STOP_SPEED_SPS)
-    adapter.set_target(target)
+    adapter.slew_delta(delta)
     assert adapter.run() is True
 
     _wait_for_motion(adapter, 0, 1, 5.0, POLL_INTERVAL_S)

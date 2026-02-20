@@ -490,8 +490,8 @@ static bool setAccelStepsPerUsV2(long accel, const char** errorKey) {
   return true;
 }
 
-static void setTargetV2(long target) {
-  runV2.target = target;
+static void setDeltaV2(long delta) {
+  runV2.target += delta;
   runV2.hasTarget = true;
 }
 
@@ -713,15 +713,16 @@ static void handleLineV2(char* s) {
     return;
   }
 
-  if (!strcmp(cmd, "target")) {
+  if (!strcmp(cmd, "delta")) {
     char* a = strtok(nullptr, " \t");
     long value = 0;
     if (!a || !parseLongV2(a, &value)) { respondErrorV2("bad_value"); return; }
-    setTargetV2(value);
+    setDeltaV2(value);
     if (runV2.target == getPosition()) {
       completeTargetV2();
     }
     respondStartV2(true);
+    respondKeyValueLongV2("delta", value);
     respondKeyValueLongV2("target", runV2.target);
     respondKeyValueBoolV2("target_set", runV2.hasTarget);
     respondEndV2();
