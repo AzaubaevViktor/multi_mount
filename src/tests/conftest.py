@@ -17,6 +17,8 @@ DEFAULT_LOG_LEVEL = logging.INFO
 PLUGIN_NAME = "multi_mount_pytest_session_logging"
 HANDLER_NAME_PREFIX = "multi_mount_pytest_logging"
 SAFE_NODEID_CHARS = frozenset("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-")
+LIFECYCLE_LOGGER_NAME = "pytest.lifecycle"
+SESSION_NODEID = "<session>"
 
 
 class PytestSessionLoggingError(Exception):
@@ -154,6 +156,7 @@ class SessionLogsManager:
 
 class SessionLogsPlugin:
     def __init__(self, config: pytest.Config) -> None:
+        self._logger = logging.getLogger(LIFECYCLE_LOGGER_NAME)
         self._logs_manager = SessionLogsManager(config)
         self._logs_manager.start()
 
@@ -165,10 +168,59 @@ class SessionLogsPlugin:
     ):
         del nextitem
         self._logs_manager.start_test(item.nodeid)
+        self._logger.info("TEST START: %s", item.nodeid)
         try:
             yield
         finally:
+            self._logger.info("TEST FINISH: %s", item.nodeid)
             self._logs_manager.finish_test()
+
+    @pytest.hookimpl(hookwrapper=True)
+    def pytest_fixture_setup(
+        self,
+        fixturedef: Any,
+        request: Any,
+    ):
+        fixture_scope = fixturedef.scope
+        fixture_name = fixturedef.argname
+        nodeid = self._resolve_nodeid(request)
+        self._logger.info(
+            "FIXTURE START [%s]: %s (request: %s)",
+            fixture_scope,
+            fixture_name,
+            nodeid,
+        )
+        outcome = yield
+        if outcome.excinfo is not None:
+            self._logger.error(
+                "FIXTURE SETUP FAILED [%s]: %s (request: %s)",
+                fixture_scope,
+                fixture_name,
+                nodeid,
+                exc_info=outcome.excinfo,
+            )
+
+    def pytest_fixture_post_finalizer(
+        self,
+        fixturedef: Any,
+        request: Any,
+    ) -> None:
+        self._logger.info(
+            "FIXTURE FINISH [%s]: %s (request: %s)",
+            fixturedef.scope,
+            fixturedef.argname,
+            self._resolve_nodeid(request),
+        )
+
+    def _resolve_nodeid(self, request: Any) -> str:
+        node = getattr(request, "node", None)
+        if node is None:
+            return SESSION_NODEID
+
+        nodeid = str(getattr(node, "nodeid", "")).strip()
+        if not nodeid:
+            return SESSION_NODEID
+        return nodeid
 
     def pytest_report_header(self) -> str:
         return f"pytest logs dir: {self._logs_manager.session_dir}"

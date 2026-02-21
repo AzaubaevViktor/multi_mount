@@ -251,7 +251,7 @@ class TMC2209LX200(LX200DECHandler):
         self._adapter.set_direction(False)
         with self._position_update_lock:
             self._adapter.run()
-            self._current_track_rate_coef = 1
+            self._current_track_rate_coef = -1
         self.logger.info("Guide north applied")
         return True
 
@@ -262,7 +262,7 @@ class TMC2209LX200(LX200DECHandler):
         self._adapter.set_direction(True)
         with self._position_update_lock:
             self._adapter.run()
-            self._current_track_rate_coef = -1
+            self._current_track_rate_coef = 1
         self.logger.info("Guide south applied")
         return True
 
