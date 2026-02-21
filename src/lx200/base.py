@@ -495,6 +495,7 @@ class LX200Handler(LX200Base):
                 guide_task = self._guide_queue.get(timeout=timeout)
             except queue.Empty:
                 if current_guide_direction:
+                    # TODO: Show real guide time
                     self.guide_reset()
                     stop_guide = time.monotonic() + DEFAULT_WAIT_TIMEOUT
                     current_guide_direction = None
