@@ -46,7 +46,7 @@ class SkyWatcherLX200(LX200RAHandler):
         return mount_position % LX200Ha.SECONDS_PER_CIRCLE
 
     # TODO: Understand wtf and fix it
-    MAGIC_SECONDS_MINUS_SLEW = 10
+    MAGIC_SECONDS_MINUS_SLEW = 3
 
     def _check_goto(self):
         logger = self.logger.getChild("goto")
@@ -184,7 +184,7 @@ class SkyWatcherLX200(LX200RAHandler):
         return True
 
     def move_east(self) -> bool:
-        return self._start_manual_move(-self._manual_slew_rate)
+        return self._start_manual_move(self._manual_slew_rate)
 
     def move_north(self) -> bool:
         return False
@@ -193,7 +193,7 @@ class SkyWatcherLX200(LX200RAHandler):
         return False
 
     def move_west(self) -> bool:
-        return self._start_manual_move(self._manual_slew_rate)
+        return self._start_manual_move(-self._manual_slew_rate)
 
     def halt_east(self) -> bool:
         return self._stop_manual_move()
@@ -219,11 +219,11 @@ class SkyWatcherLX200(LX200RAHandler):
         return True
     
     def _guide_west(self) -> bool:
-        self._current_track_rate_coef = 2.5
+        self._current_track_rate_coef = 0.25
         return self.mount.set_ra_rate(self._current_track_rate_coef)
     
     def _guide_east(self) -> bool:
-        self._current_track_rate_coef = .25
+        self._current_track_rate_coef = 2.5
         return self.mount.set_ra_rate(self._current_track_rate_coef)
     
     def _guide_reset(self) -> bool:
