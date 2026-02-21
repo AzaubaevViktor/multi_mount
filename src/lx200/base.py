@@ -478,6 +478,7 @@ class LX200Handler(LX200Base):
         self._guide_thread.start()
 
     def _do_guide(self):
+        # TODO: Guide RA and DEC separately
         DEFAULT_WAIT_TIMEOUT = 1
         stop_guide = time.monotonic() + DEFAULT_WAIT_TIMEOUT
         current_guide_direction: str | None = None

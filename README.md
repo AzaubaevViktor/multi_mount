@@ -3,10 +3,13 @@ Connect DIY lx200-like servo mount based on arduino and SynScan RA-only mount (S
 
 ## Scheme
 INDI --LX200--> FrankenMount 
-FM --RA--> SkyWatcherAdapter --SynScan?--> SkyWatcher 2i
+
+FM --RA--> SkyWatcherAdapter --SynScan--> SkyWatcher 2i
 by https://github.com/indilib/indi/blob/master/drivers/telescope/skywatcherAPIMount.cpp
-FM --DEC--> LX200Adapter --LX200--> Arduino --> TMC2209 --> Motor --> Mount dec
-FM Controls Current position
+
+FM --DEC--> LX200Adapter --LX200--> Arduino --> TMC2209 --> Motor --> Mount dec throught gears
+
+FM Controls Current position and movements
 
 ## Coordinate system
 | Case                           | RA Rate | RA Ticks | RA mount | Dec Rate | Dec Ticks | Dec mount |
@@ -32,9 +35,7 @@ SYNC command should update mount coordinate
 GOTO command should move mount to target coordinates
 HALT command must resume mount to tracking mode from SLEW / GOTO / GUIDE (?)
 
-
-
-## TODO
+## Already here
 - ✅ Remove AI-generated slop
 - INDI
     - ✅ Connect with LX200
@@ -51,7 +52,7 @@ HALT command must resume mount to tracking mode from SLEW / GOTO / GUIDE (?)
     - ✅ Read position
     - ✅ Slew to position
     - ✅  Sideral tracking
-    - 💪 Guiding
+    - ✅ Guiding
     - ✅ Tracking model
 - Arduino-based dec mount
     - ✅ Connect Arduino to motor
@@ -62,15 +63,44 @@ HALT command must resume mount to tracking mode from SLEW / GOTO / GUIDE (?)
     - ✅ Send RA to SkyWatcher
     - ✅ Send DEC to Arduino
 - Check with INDI
-    - Sync
-    - Slew
-    - GOTO
-    - Guide
+    - ✅ Sync
+    - ✅ Slew
+    - ✅ GOTO
+    - 💪 Guide
+
+
+## TODO
+- Place on mount
+    - Board scheme
+    - Board
+        - Status lights
+        - Reset button
+        - Voltage measure
+    - 
+- Fixes
+    - Find correct ratio for DEC
 - Long tests
     - Sync -> GOTO -> (halt?) -> Check
     - Sync -> Slew -> (halt?) -> Check
-- Connect with mount
-    - Board
+- Edge cases
+    - DEC more 90 -> RA + 12
 - Security
     - Watchdog
     - Stop after signals
+- Fixes
+    - RA motor stop sometimes
+    - Slow reaction to manual slew
+- Status interface
+    - LX200: raw + commands + answers
+        - coordinates get/sync/slew
+        - aux
+        - guiding
+    - Splitter?
+    - RA/DEC:
+        - mount position, speed, tracking rate, moving rate
+        - motor position, speed, tracking rate, moving rate
+            - RA: some parameters
+            - DEC: speed, actual speed, accel, ...
+        - voltages
+        - correction thread: delta, expected, real motor
+        - guiding thread: last X timings, movavg
