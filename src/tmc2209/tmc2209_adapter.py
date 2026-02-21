@@ -18,7 +18,7 @@ DEGREES_PER_REV = 360.0
 # Placeholder values; adjust when real mechanics are known.
 STEPS_PER_REV = 200  # Steps per motor rev
 GEAR_RATIO_1 = 44 / 26  # 2 gears
-GEAR_RATIO_2 = 31  # approx
+GEAR_RATIO_2 = 117.4145  # mount second rev ratio
 
 MICROSTEPS_ALLOWED = {1, 2, 4, 8, 16, 32, 64, 128, 256}
 
