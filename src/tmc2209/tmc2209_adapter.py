@@ -260,6 +260,7 @@ class TMC2209Adapter:
                 status.speed_sps,
                 status.actual_speed_sps,
                 status.accel_steps_per_s,
+                # TODO: Add desired speed
             )
 
         self._last_status_snapshot = current_snapshot
