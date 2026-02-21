@@ -240,10 +240,10 @@ class TMC2209LX200(LX200DECHandler):
     def halt_west(self) -> bool:
         return False
 
-    def guide_east(self) -> bool:
+    def _guide_east(self) -> bool:
         return False
 
-    def guide_north(self) -> bool:
+    def _guide_north(self) -> bool:
         self.logger.info("Guide north start")
         # TODO: Extract shared free-ride guide start sequence for north/south.
         self._apply_profile(self._guide_profile)
@@ -255,7 +255,7 @@ class TMC2209LX200(LX200DECHandler):
         self.logger.info("Guide north applied")
         return True
 
-    def guide_south(self) -> bool:
+    def _guide_south(self) -> bool:
         self.logger.info("Guide south start")
         self._apply_profile(self._guide_profile)
         self._adapter.set_free_ride_mode()
@@ -266,10 +266,10 @@ class TMC2209LX200(LX200DECHandler):
         self.logger.info("Guide south applied")
         return True
 
-    def guide_west(self) -> bool:
+    def _guide_west(self) -> bool:
         return False
 
-    def guide_reset(self) -> bool:
+    def _guide_reset(self) -> bool:
         self.logger.info("Guide reset")
         with self._position_update_lock:
             result = self.halt_all()

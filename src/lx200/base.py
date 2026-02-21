@@ -5,7 +5,7 @@ import queue
 from re import A
 import threading
 import time
-from typing import Any
+from typing import Any, Callable
 
 
 from .protocol import AlignmentMode
@@ -82,6 +82,12 @@ _logger = logging.getLogger("lx200")
 class GuideTask:
     direction: str
     ms: int
+
+
+class GuideStatus(StrEnum):
+    NONE = "none"
+    ACTIVE = "active"
+    STOPPED = "stopped"
 
 
 
@@ -203,6 +209,7 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
         self._last_update_s: float = 0
 
         self._current_track_rate_coef = self._DEFAULT_TRACKING_RATE
+        self._guide_status = GuideStatus.NONE
 
         self._telemetry_thread = threading.Thread(target=self._do_log_telemetry, name=f"{type(self).__name__}_telemetry")
         self._telemetry_thread.start()
@@ -226,6 +233,81 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
     
     def _wrap_mount_position(self, mount_position: float) -> float:
         raise NotImplementedError()
+    
+    def _guide_east(self) -> bool:
+        raise NotImplementedError()
+    
+    def _guide_north(self) -> bool:
+        raise NotImplementedError()
+    
+    def _guide_south(self) -> bool:
+        raise NotImplementedError()
+    
+    def _guide_west(self) -> bool:
+        raise NotImplementedError()
+    
+    def _guide_reset(self) -> bool:
+        raise NotImplementedError()
+    
+    def _run_guide_with_status(
+        self,
+        action: str,
+        target_status: GuideStatus,
+        callback: Callable[[], bool],
+    ) -> bool:
+        with self._position_update_lock:
+            previous_status = self._guide_status
+            self._guide_status = target_status
+            self.logger.info(
+                "Guide status %s -> %s (%s)",
+                previous_status,
+                self._guide_status,
+                action,
+            )
+            result = callback()
+            if not result:
+                self._guide_status = previous_status
+                self.logger.warning(
+                    "Guide action %s failed, rollback status to %s",
+                    action,
+                    previous_status,
+                )
+            return result
+    
+    def guide_east(self) -> bool:
+        return self._run_guide_with_status(
+            action="guide_east",
+            target_status=GuideStatus.ACTIVE,
+            callback=self._guide_east,
+        )
+    
+    def guide_north(self) -> bool:
+        return self._run_guide_with_status(
+            action="guide_north",
+            target_status=GuideStatus.ACTIVE,
+            callback=self._guide_north,
+        )
+    
+    def guide_south(self) -> bool:
+        return self._run_guide_with_status(
+            action="guide_south",
+            target_status=GuideStatus.ACTIVE,
+            callback=self._guide_south,
+        )
+    
+    def guide_west(self) -> bool:
+        return self._run_guide_with_status(
+            action="guide_west",
+            target_status=GuideStatus.ACTIVE,
+            callback=self._guide_west,
+        )
+    
+    def guide_reset(self) -> bool:
+        return self._run_guide_with_status(
+            action="guide_reset",
+            target_status=GuideStatus.STOPPED,
+            callback=self._guide_reset,
+        )
 
     def _do_log_telemetry(self):
         _logger = self.logger.getChild("telemetry")
@@ -284,6 +366,30 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
                 except Exception as e:
                     _logger.warning("While get raw position: %s", e)
                     continue
+                
+                if self._guide_status == GuideStatus.ACTIVE:
+                    self.logger.debug(
+                        "Skip tracking compensation: guide_status=%s",
+                        self._guide_status,
+                    )
+                    self._last_update_s = now
+                    continue
+                
+                if self._guide_status == GuideStatus.STOPPED:
+                    self.logger.debug(
+                        "Sync tracking state after guide stop: motor_raw %.2f -> %.2f",
+                        self._motor_position_raw,
+                        motor_position,
+                    )
+                    self._motor_position_raw = motor_position
+                    self._last_update_s = now
+                    self._guide_status = GuideStatus.NONE
+                    continue
+                
+                self.logger.debug(
+                    "Compensate tracking rate: guide_status=%s",
+                    self._guide_status,
+                )
 
                 elapsed_s = now - self._last_update_s
 

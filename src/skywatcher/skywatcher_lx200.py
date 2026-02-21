@@ -218,14 +218,14 @@ class SkyWatcherLX200(LX200RAHandler):
         self.logger.info("Manual RA move stopped")
         return True
     
-    def guide_west(self) -> bool:
+    def _guide_west(self) -> bool:
         self._current_track_rate_coef = 2.5
         return self.mount.set_ra_rate(self._current_track_rate_coef)
     
-    def guide_east(self) -> bool:
+    def _guide_east(self) -> bool:
         self._current_track_rate_coef = .25
         return self.mount.set_ra_rate(self._current_track_rate_coef)
     
-    def guide_reset(self) -> bool:
+    def _guide_reset(self) -> bool:
         self._current_track_rate_coef = 1
         return self.mount.resume_tracking()
