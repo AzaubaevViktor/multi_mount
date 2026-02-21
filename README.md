@@ -70,3 +70,7 @@ HALT command must resume mount to tracking mode from SLEW / GOTO / GUIDE (?)
     - Sync -> GOTO -> (halt?) -> Check
     - Sync -> Slew -> (halt?) -> Check
 - Connect with mount
+    - Board
+- Security
+    - Watchdog
+    - Stop after signals
