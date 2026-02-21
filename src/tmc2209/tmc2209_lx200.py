@@ -186,7 +186,8 @@ class TMC2209LX200(LX200DECHandler):
         )
         with self._position_update_lock:
             self._current_track_rate_coef = self._DEFAULT_TRACKING_RATE
-        
+
+        self._adapter.set_target_mode()
         self._adapter.slew_delta(delta_steps)
         if delta_steps > 0:
             self._adapter.set_direction(False)
@@ -244,7 +245,9 @@ class TMC2209LX200(LX200DECHandler):
 
     def guide_north(self) -> bool:
         self.logger.info("Guide north start")
+        # TODO: Extract shared free-ride guide start sequence for north/south.
         self._apply_profile(self._guide_profile)
+        self._adapter.set_free_ride_mode()
         self._adapter.set_direction(False)
         with self._position_update_lock:
             self._adapter.run()
@@ -255,6 +258,7 @@ class TMC2209LX200(LX200DECHandler):
     def guide_south(self) -> bool:
         self.logger.info("Guide south start")
         self._apply_profile(self._guide_profile)
+        self._adapter.set_free_ride_mode()
         self._adapter.set_direction(True)
         with self._position_update_lock:
             self._adapter.run()
@@ -278,6 +282,7 @@ class TMC2209LX200(LX200DECHandler):
     ) -> bool:
         self.logger.info("Start manual DEC move: backward=%s", direction)
         self._apply_profile(self._slew_profile)
+        self._adapter.set_free_ride_mode()
         self._adapter.set_direction(direction)
         with self._position_update_lock:
             result = self._adapter.run()

@@ -38,6 +38,7 @@ struct RunnerV2 {
   bool running = false;
   bool stopRequested = false;
   bool hasTarget = false;
+  bool freeRideMode = false;
   long target = 0;
   float speedSps = 500.0f;
   float actualSpeedSps = 0.0f;
@@ -85,6 +86,8 @@ static const char* const PHASE_HOLD_V2 = "hold";
 static const char* const PHASE_ACCEL_V2 = "acceleration";
 static const char* const PHASE_RUN_V2 = "running";
 static const char* const PHASE_DECEL_V2 = "deceleration";
+static const char* const MODE_TARGET_V2 = "target";
+static const char* const MODE_FREE_RIDE_V2 = "free_ride";
 
 // ---------- V2 formatting ----------
 static const uint8_t HEX_WIDTH = 8;
@@ -515,6 +518,10 @@ static const char* getPhaseV2() {
   return PHASE_RUN_V2;
 }
 
+static const char* getModeV2() {
+  return runV2.freeRideMode ? MODE_FREE_RIDE_V2 : MODE_TARGET_V2;
+}
+
 static void updateMotionStateV2() {
   const uint32_t nowUs = micros();
 
@@ -534,7 +541,7 @@ static void updateMotionStateV2() {
     return;
   }
 
-  if (runV2.running && runV2.hasTarget) {
+  if (runV2.running && runV2.hasTarget && !runV2.freeRideMode) {
     const long delta = runV2.target - getPosition();
     if (delta == 0) {
       completeTargetV2();
@@ -550,7 +557,7 @@ static void updateMotionStateV2() {
     desired = runV2.speedSps;
   }
 
-  if (runV2.hasTarget && desired > 0.0f && runV2.accelStepsPerUs > 0.0f) {
+  if (runV2.hasTarget && !runV2.freeRideMode && desired > 0.0f && runV2.accelStepsPerUs > 0.0f) {
     const long delta = runV2.target - getPosition();
     const float accelSps2 = runV2.accelStepsPerUs * 1000000.0f;
     const float stoppingDistance = (runV2.actualSpeedSps * runV2.actualSpeedSps) / (2.0f * accelSps2);
@@ -596,6 +603,7 @@ static void handleLineV2(char* s) {
     respondStartV2(true);
     respondKeyValueBoolV2("initialised", v2Initialized);
     respondKeyValueBoolV2("enabled", runV2.enabled);
+    respondKeyValueStrV2("mode", getModeV2());
     respondKeyValueLongV2("position", getPosition());
     respondKeyValueStrV2("phase", getPhaseV2());
     respondKeyValueLongV2("target", runV2.target);
@@ -725,6 +733,24 @@ static void handleLineV2(char* s) {
     respondKeyValueLongV2("delta", value);
     respondKeyValueLongV2("target", runV2.target);
     respondKeyValueBoolV2("target_set", runV2.hasTarget);
+    respondEndV2();
+    return;
+  }
+
+  if (!strcmp(cmd, "mode")) {
+    char* a = strtok(nullptr, " \t");
+    if (!a) { respondErrorV2("bad_value"); return; }
+    if (strtok(nullptr, " \t")) { respondErrorV2("single_param"); return; }
+    if (!strcmp(a, MODE_FREE_RIDE_V2)) {
+      runV2.freeRideMode = true;
+    } else if (!strcmp(a, MODE_TARGET_V2)) {
+      runV2.freeRideMode = false;
+    } else {
+      respondErrorV2("bad_value");
+      return;
+    }
+    respondStartV2(true);
+    respondKeyValueStrV2("mode", getModeV2());
     respondEndV2();
     return;
   }
@@ -866,7 +892,7 @@ void serviceStepperv2() {
   stepPosition += runV2.dir ? STEP_NEGATIVE : STEP_POSITIVE;
 
   // Target completion check (same logic as before)
-  if (runV2.running && runV2.hasTarget) {
+  if (runV2.running && runV2.hasTarget && !runV2.freeRideMode) {
     const long pos = getPosition();
     if ((runV2.dir && pos <= runV2.target) || (!runV2.dir && pos >= runV2.target)) {
       setPosition(runV2.target);

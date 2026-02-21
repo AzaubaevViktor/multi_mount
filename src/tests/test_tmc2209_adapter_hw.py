@@ -53,6 +53,7 @@ def adapter() -> Iterator[TMC2209Adapter]:
 def _prepare_adapter(adapter: TMC2209Adapter) -> None:
     adapter.halt()
     _wait_for_stop(adapter, STOP_TIMEOUT_S, POLL_INTERVAL_S)
+    adapter.set_target_mode()
     adapter.set_position(0)
     adapter.slew_delta(0)
 
@@ -119,6 +120,7 @@ def test_hw_slew_delta_moves_both_directions(
     adapter: TMC2209Adapter,
     delta_steps: int,
 ) -> None:
+    adapter.set_target_mode()
     start_position = adapter.status().position
     adapter.set_speed_sps(TARGET_SPEED_SPS)
     applied_delta, returned_target, target_set = adapter.slew_delta(delta_steps)
@@ -138,6 +140,7 @@ def test_hw_slew_delta_moves_both_directions(
 
 def test_hw_slew_delta_zero_sets_and_clears_target(adapter: TMC2209Adapter) -> None:
     delta_steps = 0
+    adapter.set_target_mode()
     start_position = adapter.status().position
     adapter.set_speed_sps(TARGET_SPEED_SPS)
 
@@ -172,6 +175,7 @@ def test_hw_run_speed_and_direction(
     speed_sps: int,
     direction: bool,
 ) -> None:
+    adapter.set_free_ride_mode()
     adapter.set_speed_sps(speed_sps)
     adapter.set_direction(direction)
     assert adapter.run() is True
@@ -195,6 +199,7 @@ def test_hw_run_speed_and_direction(
 def test_hw_stop_during_run(
     adapter: TMC2209Adapter,
 ) -> None:
+    adapter.set_free_ride_mode()
     adapter.set_speed_sps(STOP_SPEED_SPS)
     adapter.set_direction(False)
     assert adapter.run() is True
@@ -214,6 +219,7 @@ def test_hw_stop_during_run(
 
 def test_hw_stop_during_target_move(adapter: TMC2209Adapter) -> None:
     delta = 10000
+    adapter.set_target_mode()
     adapter.set_speed_sps(STOP_SPEED_SPS)
     adapter.slew_delta(delta)
     assert adapter.run() is True

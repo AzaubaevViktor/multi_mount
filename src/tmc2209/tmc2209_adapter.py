@@ -31,7 +31,13 @@ class Phase(StrEnum):
     DECELERATION = "deceleration"
 
 
+class Mode(StrEnum):
+    TARGET = "target"
+    FREE_RIDE = "free_ride"
+
+
 PHASE_BY_VALUE = {phase.value: phase for phase in Phase}
+MODE_BY_VALUE = {mode.value: mode for mode in Mode}
 BOOL_VALUES = {"0", "1"}
 
 MIN_SPEED_SPS = 0
@@ -101,6 +107,7 @@ class TMC2209Response:
 class TMC2209Status:
     initialised: bool
     enabled: bool
+    mode: Mode
     position: int
     phase: Phase
     target: int
@@ -116,10 +123,12 @@ class TMC2209Status:
         phase = PHASE_BY_VALUE.get(phase_raw)
         if phase is None:
             raise TMC2209ProtocolError(f"unexpected phase: {phase_raw!r}")
+        mode = _parse_mode(values.get("mode", Mode.TARGET.value), "mode")
 
         return cls(
             initialised=_parse_bool(_require_value(values, "initialised"), "initialised"),
             enabled=_parse_bool(_require_value(values, "enabled"), "enabled"),
+            mode=mode,
             position=_parse_int(_require_value(values, "position"), "position"),
             phase=phase,
             target=_parse_int(_require_value(values, "target"), "target"),
@@ -170,7 +179,7 @@ class TMC2209Adapter:
     def __init__(self, serial: SerialLine) -> None:
         self._serial = serial
         self._log = logging.getLogger("tmc2209.adapter")
-        self._last_status_snapshot: tuple[bool, bool, Phase, bool] | None = None
+        self._last_status_snapshot: tuple[bool, bool, Mode, Phase, bool] | None = None
         self._microsteps = 16
 
         self._validate_serial()
@@ -210,36 +219,41 @@ class TMC2209Adapter:
         current_snapshot = (
             status.initialised,
             status.enabled,
+            status.mode,
             status.phase,
             status.target_set,
         )
 
         if self._last_status_snapshot is None:
             self._log.info(
-                "Status initial: initialised=%s enabled=%s phase=%s target_set=%s",
+                "Status initial: initialised=%s enabled=%s mode=%s phase=%s target_set=%s",
                 status.initialised,
                 status.enabled,
+                status.mode,
                 status.phase,
                 status.target_set,
             )
         elif current_snapshot != self._last_status_snapshot:
             previous = self._last_status_snapshot
             self._log.info(
-                "Status changed: initialised %s -> %s enabled %s -> %s phase %s -> %s target_set %s -> %s",
+                "Status changed: initialised %s -> %s enabled %s -> %s mode %s -> %s phase %s -> %s target_set %s -> %s",
                 previous[0],
                 status.initialised,
                 previous[1],
                 status.enabled,
                 previous[2],
-                status.phase,
+                status.mode,
                 previous[3],
+                status.phase,
+                previous[4],
                 status.target_set,
             )
         else:
             self._log.debug(
-                "Status poll: initialised=%s enabled=%s phase=%s target_set=%s position=%s speed=%.3f actual_speed=%.3f accel=%.3f",
+                "Status poll: initialised=%s enabled=%s mode=%s phase=%s target_set=%s position=%s speed=%.3f actual_speed=%.3f accel=%.3f",
                 status.initialised,
                 status.enabled,
+                status.mode,
                 status.phase,
                 status.target_set,
                 status.position,
@@ -312,6 +326,23 @@ class TMC2209Adapter:
         is_backward = _parse_bool(_require_value(response.values, "direction"), "direction")
         self._log.info("Set direction applied: backward=%s", is_backward)
         return is_backward
+
+    def set_mode(self, mode: Mode | str) -> Mode:
+        mode_value = str(mode)
+        normalized_mode = MODE_BY_VALUE.get(mode_value)
+        if normalized_mode is None:
+            raise TMC2209ConfigError(f"mode must be one of {tuple(MODE_BY_VALUE)}: {mode!r}")
+        self._log.info("Set mode request: mode=%s", normalized_mode)
+        response = self._transact("mode", [normalized_mode.value])
+        applied_mode = _parse_mode(_require_value(response.values, "mode"), "mode")
+        self._log.info("Set mode applied: mode=%s", applied_mode)
+        return applied_mode
+
+    def set_target_mode(self) -> Mode:
+        return self.set_mode(Mode.TARGET)
+
+    def set_free_ride_mode(self) -> Mode:
+        return self.set_mode(Mode.FREE_RIDE)
 
     def set_speed_sps(self, speed_sps: int) -> float:
         if speed_sps < MIN_SPEED_SPS or speed_sps > MAX_SPEED_SPS:
@@ -406,6 +437,13 @@ def _parse_bool(value: str, label: str) -> bool:
     if value not in BOOL_VALUES:
         raise TMC2209ProtocolError(f"{label} must be 0 or 1: {value!r}")
     return value == "1"
+
+
+def _parse_mode(value: str, label: str) -> Mode:
+    mode = MODE_BY_VALUE.get(value)
+    if mode is None:
+        raise TMC2209ProtocolError(f"{label} must be one of {tuple(MODE_BY_VALUE)}: {value!r}")
+    return mode
 
 
 def _parse_int(value: str, label: str) -> int:
