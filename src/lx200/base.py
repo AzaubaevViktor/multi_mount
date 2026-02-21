@@ -197,7 +197,7 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
         self.logger = logging.getLogger(type(self).__name__)
         self._working = True
 
-        self._position_update_lock = threading.Lock()
+        self._position_update_lock = threading.RLock()
         self._mount_position_raw: float = 0
         self._motor_position_raw: float = 0
         self._last_update_s: float = 0
@@ -241,12 +241,16 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
                 time.sleep(self._TELEMETRY_INTERVAL_S)
                 continue
 
-            with self._position_update_lock:
-                current_mount_position = self._mount_position_raw
-                current_motor_position = self._motor_position_raw
+            consistent = self._position_update_lock.acquire(timeout=.1)
+
+            current_mount_position = self._mount_position_raw
+            current_motor_position = self._motor_position_raw
+
+            if consistent:
+                self._position_update_lock.release()
 
             _logger.info(
-                "%s: MNT(%s raw=%d) MTR(%s raw=%s) status=%s goto_active=%s",
+                "%s: MNT(%s raw=%d) MTR(%s raw=%s) status=%s goto_active=%s consistent=%s",
                 self.AXIS_NAME,
                 self.POS_CLS.from_raw(current_mount_position),  
                 current_mount_position,
@@ -254,6 +258,7 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
                 current_motor_position,
                 str(status),
                 getattr(self, "_goto_to", None) is not None,
+                consistent,
             )
 
             time.sleep(self._TELEMETRY_INTERVAL_S)
