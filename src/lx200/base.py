@@ -59,6 +59,7 @@ class LX200Commands(StrEnum):
     SET_HIGHEST_ELEVATION = "So"
 
     SET_SLEW_TO_FIND = "RM"
+    # TODO: Add RG, RS, RC
 
     GUIDE = "Mg"
 
@@ -467,7 +468,7 @@ class LX200Handler(LX200Base):
         self._target_ra: LX200Ha = LX200Ha.from_hours(0)
         self._target_dec: LX200Dec = LX200Dec.from_degrees(0)
 
-        self._manual_move_direction: MoveDirection | None = None
+        self._manual_move_directions: list[MoveDirection] = []
 
         self._is_connected = False
 
@@ -550,44 +551,48 @@ class LX200Handler(LX200Base):
 
             case LX200Commands.MOVE_EAST, _:
                 if self.move_east():
-                    self._manual_move_direction = MoveDirection.EAST
+                    if MoveDirection.EAST not in self._manual_move_directions:
+                        self._manual_move_directions.append(MoveDirection.EAST)
                 result = None
             case LX200Commands.MOVE_NORTH, _:
                 if self.move_north():
-                    self._manual_move_direction = MoveDirection.NORTH
+                    if MoveDirection.NORTH not in self._manual_move_directions:
+                        self._manual_move_directions.append(MoveDirection.NORTH)
                 result = None
             case LX200Commands.MOVE_SOUTH, _:
                 if self.move_south():
-                    self._manual_move_direction = MoveDirection.SOUTH
+                    if MoveDirection.SOUTH not in self._manual_move_directions:
+                        self._manual_move_directions.append(MoveDirection.SOUTH)
                 result = None
             case LX200Commands.MOVE_WEST, _:
                 if self.move_west():
-                    self._manual_move_direction = MoveDirection.WEST
+                    if MoveDirection.WEST not in self._manual_move_directions:
+                        self._manual_move_directions.append(MoveDirection.WEST)
                 result = None
 
             case LX200Commands.HALT_ALL, _:
                 self.halt_all()
-                self._manual_move_direction = None
+                self._manual_move_directions.clear()
                 result = None
             case LX200Commands.HALT_EAST, _:
-                if self._manual_move_direction == MoveDirection.EAST:
+                if MoveDirection.EAST in self._manual_move_directions:
                     self.halt_east()
-                    self._manual_move_direction = None
+                    self._manual_move_directions.remove(MoveDirection.EAST)
                 result = None
             case LX200Commands.HALT_NORTH, _:
-                if self._manual_move_direction == MoveDirection.NORTH:
+                if MoveDirection.NORTH in self._manual_move_directions:
                     self.halt_north()
-                    self._manual_move_direction = None
+                    self._manual_move_directions.remove(MoveDirection.NORTH)
                 result = None
             case LX200Commands.HALT_SOUTH, _:
-                if self._manual_move_direction == MoveDirection.SOUTH:
+                if MoveDirection.SOUTH in self._manual_move_directions:
                     self.halt_south()
-                    self._manual_move_direction = None
+                    self._manual_move_directions.remove(MoveDirection.SOUTH)
                 result = None
             case LX200Commands.HALT_WEST, _:
-                if self._manual_move_direction == MoveDirection.WEST:
+                if MoveDirection.WEST in self._manual_move_directions:
                     self.halt_west()
-                    self._manual_move_direction = None
+                    self._manual_move_directions.remove(MoveDirection.WEST)
                 result = None
 
             case LX200Commands.GET_CALENDAR_FORMAT, _:
