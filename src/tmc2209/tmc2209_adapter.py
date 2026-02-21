@@ -16,9 +16,9 @@ HEX_PREFIX = "0x"
 DEGREES_PER_REV = 360.0
 
 # Placeholder values; adjust when real mechanics are known.
-STEPS_PER_REV = 200
-GEAR_RATIO_1 = 1.5
-GEAR_RATIO_2 = 300
+STEPS_PER_REV = 200  # Steps per motor rev
+GEAR_RATIO_1 = 44 / 26  # 2 gears
+GEAR_RATIO_2 = 31  # approx
 
 MICROSTEPS_ALLOWED = {1, 2, 4, 8, 16, 32, 64, 128, 256}
 
@@ -153,18 +153,6 @@ class TMC2209DriverStatus:
             drv_status=_parse_hex(_require_value(values, "drv_status"), "drv_status"),
             sg_result=_parse_int(_require_value(values, "sg_result"), "sg_result"),
         )
-
-
-def steps_from_dec(dec: LX200Dec, microsteps: int) -> int:
-    # TODO: Replace with method from TMC2209Adapter
-    _validate_microsteps(microsteps)
-
-    steps_per_rev = STEPS_PER_REV * microsteps * GEAR_RATIO_1 * GEAR_RATIO_2
-    if steps_per_rev <= 0:
-        raise TMC2209ConfigError("steps per revolution must be positive")
-
-    steps_per_degree = steps_per_rev / DEGREES_PER_REV
-    return int(round(dec.to_degrees() * steps_per_degree))
 
 
 class TMC2209LX200Error(Exception):
