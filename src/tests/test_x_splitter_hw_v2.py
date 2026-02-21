@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 from dataclasses import dataclass
 import logging
+import threading
 import time
 
 import pytest
@@ -147,10 +148,35 @@ class SplitterController:
     def _with_position_locks(self):
         self.logger.debug("Wait for position locks...")
         start = time.monotonic()
-        with self.ra._position_update_lock:
-            with self.dec._position_update_lock:
-                self.logger.debug("Position locks aquired by %.3fs", time.monotonic() - start)
+        count = 0
+        while True:
+            count += 1
+            if count % 10 == 0:
+                self.logger.warning("Try to get locks for %d times!", count)
+            if count >= 1000:
+                raise RuntimeError("Too much lock tryies: %d", count)
+            
+            locks: list[threading.Lock] = []
+            try:
+                if self.ra._position_update_lock.acquire(timeout=.1):
+                    locks.append(self.ra._position_update_lock)
+                else:
+                    continue
+
+                if self.dec._position_update_lock.acquire(timeout=.1):
+                    locks.append(self.dec._position_update_lock)
+                else:
+                    continue
+            
+                self.logger.debug("Position locks aquired by %.3fs with %d try", time.monotonic() - start, count)
+
                 yield
+
+                break
+            finally:
+                for lock in locks:
+                    lock.release()  
+            
 
     def _capture_deltas_state(self):
         with self._with_position_locks():
