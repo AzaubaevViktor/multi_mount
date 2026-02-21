@@ -102,6 +102,8 @@ class TMC2209LX200(LX200DECHandler):
     def _initialize(self) -> None:
         status = self._adapter.status()
         self._apply_profile(self._slew_profile)
+        self._adapter._set_param("irun", 1200)
+        self._adapter._set_param("ihold", 200)
         self.logger.info("Status: %s", status)
 
     def connect(self) -> None:
