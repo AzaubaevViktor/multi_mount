@@ -14,7 +14,7 @@
 
 // ---------- Pins ----------
 static const uint8_t STEP_PIN = 7;
-static const uint8_t DIR_PIN  = 3;
+static const uint8_t DIR_PIN  = 4;
 static const uint8_t EN_PIN   = 12;   // Enable pin to driver
 static const bool    EN_ACTIVE_LOW = true;
 
