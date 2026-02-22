@@ -77,7 +77,10 @@ HALT command must resume mount to tracking mode from SLEW / GOTO / GUIDE (?)
         - Status lights
         - Reset button
         - Voltage measure
-    - 
+    - 3d printed case for board
+- Motor-mount connection
+    - Reprint gears with better axis and free rotation
+    - Reprint middle-plate with more fixation and hole for polarscope
 - Fixes
     - Find correct ratio for DEC
 - Long tests
