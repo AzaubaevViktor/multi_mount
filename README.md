@@ -71,7 +71,8 @@ HALT command must resume mount to tracking mode from SLEW / GOTO / GUIDE (?)
 
 ## TODO
 - Place on mount
-    - Board scheme
+    - ✅ Board scheme
+    - Optimise traces
     - Board
         - Status lights
         - Reset button
