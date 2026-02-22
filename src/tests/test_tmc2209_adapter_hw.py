@@ -36,6 +36,8 @@ def adapter() -> Iterator[TMC2209Adapter]:
     )
     adapter = TMC2209Adapter(serial_line)
     adapter.connect()
+    adapter._set_param('irun', 1200)
+    adapter._set_param('ihold', 1200)
 
     try:
         adapter.set_enabled(True)
@@ -207,7 +209,7 @@ def test_hw_stop_during_run(
     moving_status = _wait_for_motion(adapter, 0, 1, 5.0, POLL_INTERVAL_S)
     assert moving_status.position != 0
 
-    time.sleep(1)
+    time.sleep(3)
 
     assert adapter.halt() is True
     stopped_status = _wait_for_stop(adapter, STOP_TIMEOUT_S, POLL_INTERVAL_S)
@@ -226,7 +228,7 @@ def test_hw_stop_during_target_move(adapter: TMC2209Adapter) -> None:
 
     _wait_for_motion(adapter, 0, 1, 5.0, POLL_INTERVAL_S)
 
-    time.sleep(1)
+    time.sleep(3)
 
     assert adapter.halt() is True
     stopped_status = _wait_for_stop(adapter, STOP_TIMEOUT_S, POLL_INTERVAL_S)
