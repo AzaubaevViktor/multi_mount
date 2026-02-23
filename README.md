@@ -82,6 +82,7 @@ HALT command must resume mount to tracking mode from SLEW / GOTO / GUIDE (?)
     - ✅ Board scheme
     - ✅ Optimise traces
     - Board
+        - ✅ Solder
         - Status lights
         - Reset button
         - Voltage measure
