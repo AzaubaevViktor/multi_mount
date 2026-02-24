@@ -14,6 +14,7 @@ class SpeedProfile:
     microsteps: int
     speed: int
     accel: int
+    name: str
 
 
 GOTO_DELTA_ARCSEC_THRESHOLD = 5.0
@@ -34,21 +35,25 @@ class TMC2209LX200(LX200DECHandler):
         microsteps=16, 
         speed=5000,
         accel=1000,
+        name="goto_fast",
     )
     _goto_slow_profile = SpeedProfile(
         microsteps=16, 
         speed=1000,
         accel=1000,
+        name="goto_slow",
     )
     _slew_profile = SpeedProfile(
         microsteps=16, 
         speed=1000,
         accel=1000,
+        name="slew",
     )
     _guide_profile = SpeedProfile(
         microsteps=16, 
         speed=100,
         accel=1000,
+        name="guide",
     )
 
     def __init__(
@@ -56,6 +61,7 @@ class TMC2209LX200(LX200DECHandler):
         adapter: TMC2209Adapter,
     ) -> None:
         self._adapter = adapter
+        self._current_profile: SpeedProfile | None = None
 
         self._is_connected = False
 
@@ -90,7 +96,8 @@ class TMC2209LX200(LX200DECHandler):
         self._apply_profile(self._guide_profile, custom_rate=rate)
         self._adapter.set_free_ride_mode()
         self._adapter.set_direction(rate > 0)
-        self._adapter.run()
+        if rate != 0:
+            self._adapter.run()
         self.logger.info("Tracking applied")
 
     def handle_alignment(self, data: bytes) -> AlignmentMode:
@@ -248,12 +255,26 @@ class TMC2209LX200(LX200DECHandler):
     def _apply_profile(
         self, profile: SpeedProfile, custom_rate: float = 1
     ) -> None:
-        self.logger.info(
-            "Apply profile: microsteps=%s speed=%s accel=%s",
-            profile.microsteps,
-            profile.speed,
-            profile.accel,
-        )
-        self._set_microsteps(profile.microsteps)
-        self._adapter.set_acceleration_steps_per_ms(profile.accel)
-        self._adapter.set_speed_sps(int(profile.speed * custom_rate))
+        new_speed = int(profile.speed * custom_rate)
+        if new_speed == 0:
+            self.logger.info("Stop motor")
+            self._adapter.halt()
+            return
+
+        if self._current_profile is not profile:
+            self.logger.info(
+                "Apply profile %s: microsteps=%s speed=%s x %.3f accel=%s",
+                profile.name,
+                profile.microsteps,
+                profile.speed, custom_rate, 
+                profile.accel,
+            )
+            self._set_microsteps(profile.microsteps)
+            self._adapter.set_acceleration_steps_per_ms(profile.accel)
+        else:
+            self.logger.info(
+                "Update profile %s speed: speed=%s x %.3f",
+                profile.name,
+                profile.speed, custom_rate
+            )
+            self._adapter.set_speed_sps(new_speed)
