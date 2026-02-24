@@ -537,7 +537,3 @@ class SkyWatcherMount:
         self.set_ra_rate(rate)
         self.logger.info("Start tracking applied: rate=%s", rate)
         return True
-
-    def resume_tracking(self) -> bool:
-        self.logger.info("Resume tracking with last rate=%s", self._last_tracking_rate)
-        return self.start_tracking(self._last_tracking_rate)

@@ -20,7 +20,6 @@ from tmc2209.tmc2209_adapter import (
     _parse_float,
     _parse_hex,
     _parse_int,
-    steps_from_dec,
 )
 
 
@@ -163,7 +162,7 @@ def test_set_acceleration_range():
 def test_steps_from_dec_roundtrip():
     dec = LX200Dec.from_degrees(10.0)
     microsteps = max(MICROSTEPS_ALLOWED)
-    steps = steps_from_dec(dec, microsteps)
+    steps = TMC2209Adapter.steps_from_dec(dec, microsteps)
     expected = int(
         round(
             dec.to_degrees()

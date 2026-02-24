@@ -141,8 +141,8 @@ class SplitterController:
         return self.ra._mount_position_raw, self.dec._mount_position_raw
     
     def _get_tracking_rates(self):
-        return self.ra._get_default_tracking_speed() * self.ra._current_track_rate_coef, \
-                self.dec._get_default_tracking_speed() * self.dec._current_track_rate_coef
+        return self.ra._get_default_tracking_speed() * self.ra._current_track_rate, \
+                self.dec._get_default_tracking_speed() * self.dec._current_track_rate
     
     @contextmanager
     def _with_position_locks(self):

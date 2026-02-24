@@ -27,6 +27,7 @@ class SkyWatcherLX200(LX200RAHandler):
         self._goto_to: LX200Ha | None = None  # TODO: Refactor to float
         self._goto_direction_sign: int = 0
         self._check_goto_thread = threading.Thread(target=self._check_goto, name="SW_GOTO")
+        self._last_check_goto: float = 0
 
         self._check_goto_thread.start()
 
@@ -44,6 +45,15 @@ class SkyWatcherLX200(LX200RAHandler):
     
     def _wrap_mount_position(self, mount_position: float) -> float:
         return mount_position % LX200Ha.SECONDS_PER_CIRCLE
+    
+    def _set_tracking_rate(self, rate: float):
+        self.mount.start_tracking(rate)
+    
+    def _halt_motion(self):
+        self.logger.info("Stop motion")
+        self._goto_to = None
+        self.mount.wait_till_stop(do_stop=True)
+        self.logger.info("RA motion stopped")
 
     # TODO: Understand wtf and fix it
     MAGIC_SECONDS_MINUS_SLEW = 3
@@ -57,6 +67,9 @@ class SkyWatcherLX200(LX200RAHandler):
             if not self.mount.is_connected:
                 time.sleep(self._GOTO_CHECK_INTERVAL_S)
                 continue
+            
+            if (delay := self._GOTO_CHECK_INTERVAL_S - (time.monotonic() - self._last_check_goto)) > 0:
+                time.sleep(delay)
 
             _goto_to = self._goto_to  # Prevent race (look at halt_all)
 
@@ -70,9 +83,7 @@ class SkyWatcherLX200(LX200RAHandler):
 
                     if delta_to_target_abs_seconds < self._STOP_GOTO_SECONDS:
                         logger.info("Stop mount in %s (%s), Δ=%.3fs", LX200Ha.from_seconds(current_ra), _goto_to, delta_to_target_abs_seconds)
-                        self.mount.wait_till_stop(do_stop=True)
-                        logger.info("Mount stop, resume tracking")
-                        self.mount.resume_tracking()
+                        self.halt_motion()
                         
                         with self._position_update_lock:
                             _current_ra = self._mount_position_raw
@@ -93,7 +104,7 @@ class SkyWatcherLX200(LX200RAHandler):
                             
                             real_rate = self.mount.get_slew_real_rate(raw_delta_seconds)
                             # Add sky moving approximation
-                            real_delta_seconds = raw_delta_seconds + abs(raw_delta_seconds) / (self.mount.STELLAR_SPEED / DEGREES_PER_HOUR) / real_rate
+                            real_delta_seconds = raw_delta_seconds + abs(raw_delta_seconds) / self._get_default_tracking_speed() / real_rate
                             if real_delta_seconds < 0:
                                 real_delta_seconds -= self.MAGIC_SECONDS_MINUS_SLEW  # add 6 magic seconds, because of accel/deccel/stop/star
                             mount_delta_seconds = -real_delta_seconds  # why tf minus here and it works?
@@ -115,7 +126,7 @@ class SkyWatcherLX200(LX200RAHandler):
                                         )
                         elif self._goto_direction_sign and ((delta_to_target_seconds > 0) ^ (self._goto_direction_sign > 0)):
                             # Too far away
-                            self.mount.gracefully_stop_motor()
+                            self.halt_motion()
                             logger.warning("GOTO to %s went too far away (%s) %s, stop motor",
                                             _goto_to, 
                                             LX200Ha.from_seconds(current_ra),
@@ -124,8 +135,11 @@ class SkyWatcherLX200(LX200RAHandler):
                             self._goto_to = None
                 except Exception:
                     logger.exception("While processing GOTO to %s", _goto_to)
+
+            self._last_check_goto = time.monotonic()
     
     def stop(self):
+        self.halt_motion()
         self._working = False
         super().stop()
         if self._check_goto_thread and self._check_goto_thread.is_alive():
@@ -138,7 +152,7 @@ class SkyWatcherLX200(LX200RAHandler):
 
         self.sync_telescope_ra(LX200Ha.from_hours(0))
 
-        self.mount.start_tracking()
+        self.mount.start_tracking(self.DEFAULT_TRACKING_RATE)
         self.logger.info("SkyWatcher LX200 connected")
 
     def get_telescope_ra(self) -> LX200Ha:
@@ -156,15 +170,7 @@ class SkyWatcherLX200(LX200RAHandler):
             self._motor_position_raw = self.mount.get_telesope_seconds()
             self._last_update_s = time.monotonic()
         return True
-    
-    def halt_all(self) -> bool:
-        self.logger.info("Halt all RA movements")
-        self._goto_to = None
-        self.mount.wait_till_stop(do_stop=True)
-        self.mount.resume_tracking()
-        self.logger.info("Halt all RA movements done")
-        return True
-    
+
     def slew_to_ra(self, position: LX200Ha) -> bool:
         self.logger.info("Queue GOTO RA to %s", position)
         self._goto_to = position
@@ -184,7 +190,7 @@ class SkyWatcherLX200(LX200RAHandler):
         return True
 
     def move_east(self) -> bool:
-        return self._start_manual_move(self._manual_slew_rate)
+        return self.mount.move_ra(self._manual_slew_rate)
 
     def move_north(self) -> bool:
         return False
@@ -193,39 +199,4 @@ class SkyWatcherLX200(LX200RAHandler):
         return False
 
     def move_west(self) -> bool:
-        return self._start_manual_move(-self._manual_slew_rate)
-
-    def halt_east(self) -> bool:
-        return self._stop_manual_move()
-
-    def halt_north(self) -> bool:
-        return False
-
-    def halt_south(self) -> bool:
-        return False
-
-    def halt_west(self) -> bool:
-        return self._stop_manual_move()
-
-    def _start_manual_move(self, rate: float) -> bool:
-        self.logger.info("Start manual RA move: rate=%s", rate)
-        return self.mount.move_ra(rate)
-
-    def _stop_manual_move(self) -> bool:
-        self.logger.info("Stop manual RA move")
-        self.mount.wait_till_stop(do_stop=True)
-        self.mount.resume_tracking()
-        self.logger.info("Manual RA move stopped")
-        return True
-    
-    def _guide_west(self) -> bool:
-        self._current_track_rate_coef = 0.25
-        return self.mount.set_ra_rate(self._current_track_rate_coef)
-    
-    def _guide_east(self) -> bool:
-        self._current_track_rate_coef = 2.5
-        return self.mount.set_ra_rate(self._current_track_rate_coef)
-    
-    def _guide_reset(self) -> bool:
-        self._current_track_rate_coef = 1
-        return self.mount.resume_tracking()
+        return self.mount.move_ra(-self._manual_slew_rate)

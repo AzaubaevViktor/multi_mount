@@ -142,18 +142,18 @@ class LX200Splitter(LX200Handler):
             
         return True
 
-    def guide_east(self) -> bool:
+    def guide_east(self, ms: int):
         self._active_guide_ra = True
-        return self.ra.guide_east()
+        self.ra.guide_east(ms)
 
-    def guide_north(self) -> bool:
+    def guide_north(self, ms: int):
         self._active_guide_dec = True
-        return self.dec.guide_north()
+        self.dec.guide_north(ms)
 
-    def guide_south(self) -> bool:
+    def guide_south(self, ms: int):
         self._active_guide_dec = True
-        return self.dec.guide_south()
+        self.dec.guide_south(ms)
 
-    def guide_west(self) -> bool:
+    def guide_west(self, ms: int):
         self._active_guide_ra = True
-        return self.ra.guide_west()
+        self.ra.guide_west(ms)

@@ -28,7 +28,6 @@ GUIDE_ARCSEC_PER_SEC = 0.5
 
 class TMC2209LX200(LX200DECHandler):
     FAST_PROFILE_DELTA_ARCSEC = 1 * 60 * 60
-    _DEFAULT_TRACKING_RATE = 0
 
     # TODO: Fix microsteps
     _goto_fast_profile = SpeedProfile(
@@ -49,7 +48,7 @@ class TMC2209LX200(LX200DECHandler):
     _guide_profile = SpeedProfile(
         microsteps=16, 
         speed=100,
-        accel=0,
+        accel=1000,
     )
 
     def __init__(
@@ -72,7 +71,7 @@ class TMC2209LX200(LX200DECHandler):
         return self.motor_position()[1]
 
     def _get_default_tracking_speed(self) -> float:
-        return self._guide_profile.speed
+        return self._arcseconds_from_steps(self._guide_profile.speed)
 
     def _wrap_mount_position(self, mount_position: float) -> float:
         # TODO: Wrap around mount position
@@ -80,6 +79,19 @@ class TMC2209LX200(LX200DECHandler):
     
     def _wrap_steps(self, motor_position: float) -> float:
         return (motor_position + self._adapter.steps_per_rev / 2) % self._adapter.steps_per_rev - self._adapter.steps_per_rev / 2
+    
+    def _halt_motion(self):
+        self.logger.info("Halt all DEC movements")
+        self._adapter.halt()
+        self.logger.info("Halt all DEC movements done")
+
+    def _set_tracking_rate(self, rate: float):
+        self.logger.info("Tracking start")
+        self._apply_profile(self._guide_profile, custom_rate=rate)
+        self._adapter.set_free_ride_mode()
+        self._adapter.set_direction(rate > 0)
+        self._adapter.run()
+        self.logger.info("Tracking applied")
 
     def handle_alignment(self, data: bytes) -> AlignmentMode:
         return AlignmentMode.POLAR
@@ -92,6 +104,7 @@ class TMC2209LX200(LX200DECHandler):
     
     def _set_microsteps(self, microsteps: int):
         with self._position_update_lock:
+            # TODO: Set microsteps changes speed in arduino
             self._adapter.set_microsteps(microsteps)
 
             # Reset position when microsteps changed
@@ -112,6 +125,7 @@ class TMC2209LX200(LX200DECHandler):
         self._initialize()
         self._is_connected = True
         self.sync_telescope_dec(LX200Dec.from_arcseconds(0))
+        self.resume_tracking()
         self.logger.info("TMC2209 LX200 connected")
 
     def stop(self):
@@ -145,21 +159,12 @@ class TMC2209LX200(LX200DECHandler):
             self._mount_position_raw = position.to_arcseconds()
             self._motor_position_raw = self._arcseconds_from_steps(steps)
             self._last_update_s = time.monotonic()
-            self._current_track_rate_coef = self._DEFAULT_TRACKING_RATE
 
         self.logger.info("Sync DEC applied: steps=%s position=%s", steps, position)
         return True
 
     def sync_telescope_ra(self, position: LX200Ha) -> bool:
         return False
-
-    def halt_all(self) -> bool:
-        self.logger.info("Halt all DEC movements")
-        with self._position_update_lock:
-            self._current_track_rate_coef = self._DEFAULT_TRACKING_RATE
-            self._adapter.halt()
-        self.logger.info("Halt all DEC movements done")
-        return True
 
     def slew_to_dec(self, position: LX200Dec) -> bool:
         self.logger.info("Start DEC GOTO to %s", position)
@@ -186,8 +191,6 @@ class TMC2209LX200(LX200DECHandler):
             profile.speed,
             profile.accel,
         )
-        with self._position_update_lock:
-            self._current_track_rate_coef = self._DEFAULT_TRACKING_RATE
 
         self._adapter.set_target_mode()
         self._adapter.slew_delta(delta_steps)
@@ -230,54 +233,6 @@ class TMC2209LX200(LX200DECHandler):
     def move_west(self) -> bool:
         return False
 
-    def halt_east(self) -> bool:
-        return False
-
-    def halt_north(self) -> bool:
-        return self.halt_all()
-
-    def halt_south(self) -> bool:
-        return self.halt_all()
-
-    def halt_west(self) -> bool:
-        return False
-
-    def _guide_east(self) -> bool:
-        return False
-
-    def _guide_north(self) -> bool:
-        self.logger.info("Guide north start")
-        # TODO: Extract shared free-ride guide start sequence for north/south.
-        self._apply_profile(self._guide_profile)
-        self._adapter.set_free_ride_mode()
-        self._adapter.set_direction(False)
-        with self._position_update_lock:
-            self._adapter.run()
-            self._current_track_rate_coef = -1
-        self.logger.info("Guide north applied")
-        return True
-
-    def _guide_south(self) -> bool:
-        self.logger.info("Guide south start")
-        self._apply_profile(self._guide_profile)
-        self._adapter.set_free_ride_mode()
-        self._adapter.set_direction(True)
-        with self._position_update_lock:
-            self._adapter.run()
-            self._current_track_rate_coef = 1
-        self.logger.info("Guide south applied")
-        return True
-
-    def _guide_west(self) -> bool:
-        return False
-
-    def _guide_reset(self) -> bool:
-        self.logger.info("Guide reset")
-        with self._position_update_lock:
-            result = self.halt_all()
-            self._current_track_rate_coef = self._DEFAULT_TRACKING_RATE
-        return result
-
     def _start_manual_move(
         self,
         direction: bool,
@@ -286,14 +241,12 @@ class TMC2209LX200(LX200DECHandler):
         self._apply_profile(self._slew_profile)
         self._adapter.set_free_ride_mode()
         self._adapter.set_direction(direction)
-        with self._position_update_lock:
-            result = self._adapter.run()
-            self._current_track_rate_coef = self._DEFAULT_TRACKING_RATE
+        result = self._adapter.run()
         self.logger.info("Manual DEC move started: backward=%s running=%s", direction, result)
         return result
 
     def _apply_profile(
-        self, profile: SpeedProfile
+        self, profile: SpeedProfile, custom_rate: float = 1
     ) -> None:
         self.logger.info(
             "Apply profile: microsteps=%s speed=%s accel=%s",
@@ -302,5 +255,5 @@ class TMC2209LX200(LX200DECHandler):
             profile.accel,
         )
         self._set_microsteps(profile.microsteps)
-        self._adapter.set_speed_sps(profile.speed)
         self._adapter.set_acceleration_steps_per_ms(profile.accel)
+        self._adapter.set_speed_sps(int(profile.speed * custom_rate))

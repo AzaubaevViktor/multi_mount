@@ -2,16 +2,15 @@ from dataclasses import dataclass
 from enum import StrEnum
 import logging
 import queue
-from re import A
 import threading
 import time
-from typing import Any, Callable
-
+from typing import Any
 
 from .protocol import AlignmentMode
 from lx200.protocols import LX200Ha, LX200Dec, LX200PositionBase
 
 
+# TODO: Add output verification, LX200 can work strange when output is incorrect
 class LX200Commands(StrEnum):
     GET_TELECOPE_RA = "GR"
     SET_TELESCOPE_RA = "Sr"
@@ -81,15 +80,8 @@ _logger = logging.getLogger("lx200")
 
 @dataclass
 class GuideTask:
-    direction: str
+    direction: MoveDirection
     ms: int
-
-
-class GuideStatus(StrEnum):
-    NONE = "none"
-    ACTIVE = "active"
-    STOPPED = "stopped"
-
 
 
 class LX200Base:
@@ -173,31 +165,36 @@ class LX200Base:
         raise NotImplementedError()
     
     # Guiding: increase / decrease current tracking rate and returns it when its ok
-    def guide_east(self) -> bool:
+    def guide_east(self, ms: int) -> None:
         raise NotImplementedError()
     
-    def guide_north(self) -> bool:
+    def guide_north(self, ms: int) -> None:
         raise NotImplementedError()
     
-    def guide_south(self) -> bool:
+    def guide_south(self, ms: int) -> None:
         raise NotImplementedError()
     
-    def guide_west(self) -> bool:
+    def guide_west(self, ms: int) -> None:
         raise NotImplementedError()
     
-    def guide_reset(self) -> bool:
+    def guide_reset(self) -> None:
         raise NotImplementedError()
 
 
 class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
     AXIS_NAME: str
+    DIRECTIONS: tuple[MoveDirection, ...]
     POS_CLS: type[_POS_CLS]
 
     _TELEMETRY_INTERVAL_S = 1.0
     _RATE_COMPENSATE_INTERVAL_S = .5
     COMPENSATE_MOTOR_SIGN: int  # Is this really the best way for RA/DEC?
 
-    _DEFAULT_TRACKING_RATE: float
+    MIN_TRACKING_RATE: float
+    DEFAULT_TRACKING_RATE: float
+    MAX_TRACKING_RATE: float
+    DEFAULT_GUIDE_INTERVAL_MS: int = 4000
+
     _POSITION_DELTA_ACCEPTED_RATE_S = .1
 
     def __init__(self) -> None:
@@ -209,8 +206,10 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
         self._motor_position_raw: float = 0
         self._last_update_s: float = 0
 
-        self._current_track_rate_coef = self._DEFAULT_TRACKING_RATE
-        self._guide_status = GuideStatus.NONE
+        self._current_track_rate: float = self.DEFAULT_TRACKING_RATE
+        self._last_tracking_rate: float = self.DEFAULT_TRACKING_RATE
+        self._guide_interval: int = self.DEFAULT_GUIDE_INTERVAL_MS
+        self._guide_queue: queue.Queue[GuideTask] = queue.Queue()
 
         self._telemetry_thread = threading.Thread(target=self._do_log_telemetry, name=f"{type(self).__name__}_telemetry")
         self._telemetry_thread.start()
@@ -235,80 +234,76 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
     def _wrap_mount_position(self, mount_position: float) -> float:
         raise NotImplementedError()
     
-    def _guide_east(self) -> bool:
+    def _set_tracking_rate(self, rate: float) -> None:
         raise NotImplementedError()
+
+    def set_tracking_rate(self, rate: float) -> None:
+        self._last_tracking_rate = self._current_track_rate
+        self._set_tracking_rate(self._current_track_rate)
+        self._current_track_rate = rate
     
-    def _guide_north(self) -> bool:
+    def resume_tracking(self) -> None:
+        # TODO: Move resume_tracking logic here
+        self.set_tracking_rate(self._last_tracking_rate)
+
+    def _halt_motion(self) -> None:
         raise NotImplementedError()
+
+    # TODO: Move _current_tracking_rate here
+    # TODO: Move _last_tracking_rate here
     
-    def _guide_south(self) -> bool:
-        raise NotImplementedError()
-    
-    def _guide_west(self) -> bool:
-        raise NotImplementedError()
-    
-    def _guide_reset(self) -> bool:
-        raise NotImplementedError()
-    
-    def _run_guide_with_status(
-        self,
-        action: str,
-        target_status: GuideStatus,
-        callback: Callable[[], bool],
-    ) -> bool:
-        with self._position_update_lock:
-            previous_status = self._guide_status
-            self._guide_status = target_status
-            self.logger.info(
-                "Guide status %s -> %s (%s)",
-                previous_status,
-                self._guide_status,
-                action,
-            )
-            result = callback()
-            if not result:
-                self._guide_status = previous_status
-                self.logger.warning(
-                    "Guide action %s failed, rollback status to %s",
-                    action,
-                    previous_status,
-                )
-            return result
-    
-    def guide_east(self) -> bool:
-        return self._run_guide_with_status(
-            action="guide_east",
-            target_status=GuideStatus.ACTIVE,
-            callback=self._guide_east,
-        )
-    
-    def guide_north(self) -> bool:
-        return self._run_guide_with_status(
-            action="guide_north",
-            target_status=GuideStatus.ACTIVE,
-            callback=self._guide_north,
-        )
-    
-    def guide_south(self) -> bool:
-        return self._run_guide_with_status(
-            action="guide_south",
-            target_status=GuideStatus.ACTIVE,
-            callback=self._guide_south,
-        )
-    
-    def guide_west(self) -> bool:
-        return self._run_guide_with_status(
-            action="guide_west",
-            target_status=GuideStatus.ACTIVE,
-            callback=self._guide_west,
-        )
-    
-    def guide_reset(self) -> bool:
-        return self._run_guide_with_status(
-            action="guide_reset",
-            target_status=GuideStatus.STOPPED,
-            callback=self._guide_reset,
-        )
+    def guide_east(self, ms: int) -> None:
+        self._guide_queue.put(GuideTask(
+            direction=MoveDirection.EAST, ms=ms,
+        ))
+
+    def guide_north(self, ms: int) -> None:
+        self._guide_queue.put(GuideTask(
+            direction=MoveDirection.NORTH, ms=ms,
+        ))
+
+    def guide_south(self, ms: int) -> None:
+        self._guide_queue.put(GuideTask(
+            direction=MoveDirection.SOUTH, ms=ms,
+        ))
+
+    def guide_west(self, ms: int) -> None:
+        self._guide_queue.put(GuideTask(
+            direction=MoveDirection.WEST, ms=ms,
+        ))
+
+    def halt_all(self):
+        self.halt_motion()
+
+    def halt_motion(self) -> None:
+        # TODO: Replace all custom halt and halt_all with _halt_motion
+        self._last_tracking_rate = self.DEFAULT_TRACKING_RATE
+        self._halt_motion()
+        self.resume_tracking()
+
+    def halt_east(self) -> bool:
+        if MoveDirection.EAST in self.DIRECTIONS:
+            self.halt_motion()
+            return True
+        return False
+
+    def halt_north(self) -> bool:
+        if MoveDirection.NORTH in self.DIRECTIONS:
+            self.halt_motion()
+            return True
+        return False
+
+    def halt_south(self) -> bool:
+        if MoveDirection.SOUTH in self.DIRECTIONS:
+            self.halt_motion()
+            return True
+        return False
+
+    def halt_west(self) -> bool:
+        if MoveDirection.WEST in self.DIRECTIONS:
+            self.halt_motion()
+            return True
+        return False
 
     def _do_log_telemetry(self):
         _logger = self.logger.getChild("telemetry")
@@ -367,35 +362,10 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
                 except Exception as e:
                     _logger.warning("While get raw position: %s", e)
                     continue
-                
-                if self._guide_status == GuideStatus.ACTIVE:
-                    self.logger.debug(
-                        "Skip tracking compensation: guide_status=%s",
-                        self._guide_status,
-                    )
-                    self._last_update_s = now
-                    continue
-                
-                if self._guide_status == GuideStatus.STOPPED:
-                    self.logger.debug(
-                        "Sync tracking state after guide stop: motor_raw %.2f -> %.2f",
-                        self._motor_position_raw,
-                        motor_position,
-                    )
-                    self._motor_position_raw = motor_position
-                    self._last_update_s = now
-                    self._guide_status = GuideStatus.NONE
-                    continue
-                
-                self.logger.debug(
-                    "Compensate tracking rate: guide_status=%s",
-                    self._guide_status,
-                )
 
                 elapsed_s = now - self._last_update_s
 
-                # TODO: hide Current_track_rate_coef under lock in other places
-                expected_delta_seconds = elapsed_s * self._get_default_tracking_speed() * self._current_track_rate_coef
+                expected_delta_seconds = elapsed_s * self._get_default_tracking_speed() * self._current_track_rate
 
                 # TODO: Add _wrap_motor_position
                 actual_delta_seconds = motor_position - self._motor_position_raw
@@ -405,14 +375,11 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
                 delta = expected_delta_seconds - actual_delta_seconds
 
                 self.logger.debug(
-                    "Calculated delta by %.3fs: %.3f = ((%f = (x%.2f)) - %.2f = (%.2f - %.2f)); MNT:%.2f",
+                    "Calculated delta by %.3fs: %.3f = exp=%.3f = (%.3fs * (%.3fs/s x%.3f)) - act=%.3f = (%.3f - %.3f); MNT: %.3f",
                     elapsed_s,
                     delta, 
-                    expected_delta_seconds, 
-                    self._current_track_rate_coef,
-                    actual_delta_seconds, 
-                    motor_position,
-                    self._motor_position_raw,
+                    expected_delta_seconds, elapsed_s, self._get_default_tracking_speed(), self._current_track_rate,
+                    actual_delta_seconds, motor_position,  self._motor_position_raw,
                     self._mount_position_raw,
                 )
                 
@@ -437,6 +404,24 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
                 self._motor_position_raw = motor_position
                 self._last_update_s = now
 
+            # Update guide
+            while not self._guide_queue.empty() and (guide_task := self._guide_queue.get_nowait()):
+                if guide_task.direction not in self.DIRECTIONS:
+                    continue
+
+                match guide_task.direction:
+                    case MoveDirection.EAST | MoveDirection.SOUTH:
+                        new_tracking_rate = (self.MAX_TRACKING_RATE - self.DEFAULT_TRACKING_RATE) * guide_task.ms / self._guide_interval + self.DEFAULT_TRACKING_RATE
+                    case MoveDirection.WEST | MoveDirection.NORTH:
+                        new_tracking_rate = (self.DEFAULT_TRACKING_RATE - self.MIN_TRACKING_RATE) * guide_task.ms / self._guide_interval + self.DEFAULT_TRACKING_RATE
+                    case _:
+                        _logger.warning("Wrong direction: %s", guide_task.direction)
+                        continue
+                
+                self.logger.debug("Found applyable guide task: %s -> rate: %.3f", guide_task, new_tracking_rate)
+                
+                self.set_tracking_rate(new_tracking_rate)
+
     def stop(self):
         self._working = False
         if self._telemetry_thread and self._telemetry_thread.is_alive():
@@ -454,13 +439,25 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
 class LX200RAHandler(LX200AxisHandler[LX200Ha]):
     POS_CLS = LX200Ha
     AXIS_NAME = "Ra"
+    DIRECTIONS = (MoveDirection.EAST, MoveDirection.SOUTH)
     COMPENSATE_MOTOR_SIGN = 1
+
+    MIN_TRACKING_RATE = 0
+    DEFAULT_TRACKING_RATE = 1
+    MAX_TRACKING_RATE = 2
+    DEFAULT_GUIDE_INTERVAL_MS = 4000
 
 
 class LX200DECHandler(LX200AxisHandler[LX200Dec]):
     POS_CLS = LX200Dec
     AXIS_NAME = "Dec"
+    DIRECTIONS = (MoveDirection.WEST, MoveDirection.NORTH)
     COMPENSATE_MOTOR_SIGN = -1
+
+    MIN_TRACKING_RATE = -1
+    DEFAULT_TRACKING_RATE = 0
+    MAX_TRACKING_RATE = 1
+    DEFAULT_GUIDE_INTERVAL_MS = 4000
 
 
 class LX200Handler(LX200Base):
@@ -472,55 +469,6 @@ class LX200Handler(LX200Base):
 
         self._is_connected = False
 
-        self._guide_queue: queue.Queue[GuideTask] = queue.Queue()
-        self._guide_thread = threading.Thread(target=self._do_guide, name="GuideHelper")
-        self._thread_work = True
-        self._guide_thread.start()
-
-    def _do_guide(self):
-        # TODO: Guide RA and DEC separately
-        DEFAULT_WAIT_TIMEOUT = 1
-        stop_guide = time.monotonic() + DEFAULT_WAIT_TIMEOUT
-        current_guide_direction: str | None = None
-
-        while self._thread_work:
-            if not self._is_connected:
-                time.sleep(.1)
-                continue
-
-            timeout = stop_guide - time.monotonic()
-            if timeout < 0:
-                timeout = 0
-            
-            try:
-                guide_task = self._guide_queue.get(timeout=timeout)
-            except queue.Empty:
-                if current_guide_direction:
-                    # TODO: Show real guide time
-                    self.guide_reset()
-                    stop_guide = time.monotonic() + DEFAULT_WAIT_TIMEOUT
-                    current_guide_direction = None
-                continue
-
-            if current_guide_direction is not None and \
-                current_guide_direction != guide_task.direction:
-                self.guide_reset()
-
-            match guide_task.direction:
-                case 'w':
-                    self.guide_west()
-                case 'e':
-                    self.guide_east()
-                case 'n':
-                    self.guide_north()
-                case 's':
-                    self.guide_south()
-                case _:
-                    raise RuntimeError(f"Wrong guide direction: {guide_task.direction}")
-                
-            stop_guide = time.monotonic() + guide_task.ms / 1000.
-            current_guide_direction = guide_task.direction
-        
     def connect(self) -> None:
         self._is_connected = True
     
@@ -633,16 +581,19 @@ class LX200Handler(LX200Base):
                 direction = data[0]
                 ms = int(data[1:])
 
-                guide_task = GuideTask(direction, ms)
-
                 match direction:
-                    case 'w' | 'e' | 'n' | 's':
-                        self._guide_queue.put(guide_task)
+                    case 'w': 
+                        self.guide_west(ms)
+                    case 'e':
+                        self.guide_east(ms)
+                    case 'n':
+                        self.guide_north(ms)
+                    case 's':
+                        self.guide_south(ms)
                     case _:
                         raise RuntimeError(f"Wrong guide direction: {direction}")
                 
                 result = None
-
             case LX200Commands.GET_DISTANCE, _:
                 result = self.get_distance()
             case _:
@@ -671,5 +622,3 @@ class LX200Handler(LX200Base):
 
     def stop(self):
         self._thread_work = False
-        if self._guide_thread and self._guide_thread.is_alive():
-            self._guide_thread.join()
