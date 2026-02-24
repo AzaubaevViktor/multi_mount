@@ -239,7 +239,7 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
 
     def set_tracking_rate(self, rate: float) -> None:
         self._last_tracking_rate = self._current_track_rate
-        self._set_tracking_rate(self._current_track_rate)
+        self._set_tracking_rate(rate)
         self._current_track_rate = rate
     
     def resume_tracking(self) -> None:

@@ -278,3 +278,5 @@ class TMC2209LX200(LX200DECHandler):
                 profile.speed, custom_rate
             )
             self._adapter.set_speed_sps(new_speed)
+        
+        self._current_profile = profile

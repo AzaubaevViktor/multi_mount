@@ -265,35 +265,6 @@ class TMC2209Adapter:
     def full_status(self) -> TMC2209DriverStatus:
         response = self._transact("full_status")
         return TMC2209DriverStatus.from_response(response)
-    
-    def wait_till_stop(
-            self,
-            timeout_s: float | None = None,
-            do_stop: bool = True,
-    ) -> None:
-        if timeout_s is not None and timeout_s <= 0:
-            raise ValueError("timeout_s must be positive")
-        
-        if do_stop:
-            self.halt()
-        
-        if timeout_s is not None:
-            deadline = time.monotonic() + timeout_s
-        else:
-            deadline = None
-
-        poll_interval_s = 0.2
-
-        while True:
-            if self.status().phase not in (Phase.HOLD, Phase.IDLE):
-                return
-            if deadline is not None:
-                if time.monotonic() > deadline:
-                    raise TimeoutError(f"Slew did not finish within {timeout_s}s")
-
-            poll_start = time.monotonic()
-
-            time.sleep(poll_interval_s - (time.monotonic() - poll_start))
 
     def get_param(self, name: str) -> str:
         name = _normalize_param_name(name)
