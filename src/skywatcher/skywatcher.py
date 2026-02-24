@@ -325,6 +325,7 @@ class SkyWatcherMount:
         self.is_connected = True
 
     def disconnect(self):
+        self.is_connected = False
         self._serial.close()
 
     def _ticks_to_seconds(self, ticks: int) -> float:
@@ -397,7 +398,8 @@ class SkyWatcherMount:
                     func(self)
                 except Exception:
                     self.logger.exception("While executing %r", func)
-            time.sleep(poll_interval_s - (time.monotonic() - poll_start))
+            if (delta := poll_interval_s - (time.monotonic() - poll_start)) > 0:
+                time.sleep(delta)
     
     def _set_motion(
             self,

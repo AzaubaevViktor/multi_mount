@@ -278,7 +278,6 @@ class TMC2209Adapter:
         return _require_value(response.values, name)
     
     def _refresh_microsteps(self, microsteps: int) -> None:
-        microsteps = self._microsteps
         if microsteps != self._microsteps:
             self.set_microsteps(microsteps)
     
@@ -290,6 +289,7 @@ class TMC2209Adapter:
             return True
 
         self._set_param("microsteps", microsteps)
+        self._microsteps = microsteps
 
         return True
 
