@@ -824,3 +824,7 @@ def test_coordinate_system_guide_ra_rates(
     else:
         pytest.fail(f"Unexpected guide direction: {direction}")
 
+
+# TODO: Test for guide - guide - guide (need to store last tracking rate after time)
+# TODO: Test for guide - slew - tracking (need to store last tracking guide rate)
+# TODO: Test for guide - goto - tracking (need to store last tracking guide rate)
