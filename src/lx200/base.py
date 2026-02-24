@@ -176,9 +176,6 @@ class LX200Base:
     
     def guide_west(self, ms: int) -> None:
         raise NotImplementedError()
-    
-    def guide_reset(self) -> None:
-        raise NotImplementedError()
 
 
 class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
@@ -343,6 +340,8 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
 
     def _compensate_tracking_rate(self):
         _logger = self.logger.getChild("compensate")
+        self._last_update_s = time.monotonic()
+
         while self._working:
             if not self._is_motor_connected():
                 time.sleep(self._RATE_COMPENSATE_INTERVAL_S)
@@ -621,4 +620,4 @@ class LX200Handler(LX200Base):
         return result
 
     def stop(self):
-        self._thread_work = False
+        pass

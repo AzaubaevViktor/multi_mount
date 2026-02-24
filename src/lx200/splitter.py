@@ -130,17 +130,6 @@ class LX200Splitter(LX200Handler):
             self.logger.exception("While set DEC slew rate")
             ok = False
         return ok
-    
-    def guide_reset(self) -> bool:
-        if self._active_guide_dec:
-            self.dec.guide_reset()
-            self._active_guide_dec = False
-
-        if self._active_guide_ra:
-            self.ra.guide_reset()
-            self._active_guide_ra = False
-            
-        return True
 
     def guide_east(self, ms: int):
         self._active_guide_ra = True
