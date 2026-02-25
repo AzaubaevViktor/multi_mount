@@ -45,13 +45,13 @@
 ### L3. Axis Controller (RA/DEC)
 
 Зона ответственности:
-- Осевой домен в `sec/arcsec` (или эквивалентных mount units).
+- Осевой домен в `sec/arcsec` (или эквивалентных axis units).
 - State machine оси.
 - Политика guide/tracking/manual/goto/halt.
 - Формирование `motion intent` для L4 (что сделать), но не как именно в raw units.
 
 Должен уметь:
-- `sync`, `tracking`, `manual move`, `goto`, `guide`, `halt_all`.
+- `sync`, `tracking`, `manual move`, `goto`, `guide`, `halt_X`, `halt_all`.
 - Поддерживать persistent guide-offset до явного сброса `halt_all`.
 - Возвращать понятный результат операций для L2.
 
@@ -81,10 +81,11 @@ class AxisHwDriver(Protocol):
 
 `HwSnapshot` минимум:
 - `running: bool`
-- `mode: HwMode` (`rate` / `target`)
+- `direction_raw` (`+1` / `0` / `-1`)
+- `phase` (`idle` / `halt` / `acceleration` / `running` / `deceleration`)
+- `profile` (`stop` / `tracking` / `slow` / `fast`) — speed and accel
 - `position_raw: int`
 - `target_raw: int | None`
-- `error: str | None`
 
 ---
 
@@ -95,6 +96,7 @@ class AxisHwDriver(Protocol):
 - `base_tracking_rate: float`
 - `guide_offset_rate: float`
 - `effective_tracking_rate = base_tracking_rate + guide_offset_rate`
+- `tracking_rate_before_motion: float | None`
 - `manual_rate: float | None`
 - `goto_target_axis: AxisPos | None`
 - `last_mount_pos_axis: AxisPos`
@@ -102,6 +104,8 @@ class AxisHwDriver(Protocol):
 
 Важно:
 - `guide_offset_rate` сохраняется после guide-команд.
+- Вход в `MANUAL`/`GOTO` не должен менять tracking-rate сам по себе.
+- При выходе из `MANUAL`/`GOTO` восстанавливается `tracking_rate_before_motion`.
 - Сброс `guide_offset_rate` выполняется только через `halt_all`.
 
 ---
@@ -122,6 +126,7 @@ class AxisHwDriver(Protocol):
 - `set_tracking_base(rate)`
 - `guide(direction, ms)`
 - `move_manual(direction)`
+- `manual_stop`
 - `slew_to(target)`
 - `goto_tick` (периодический polling L4)
 - `halt_all`
@@ -140,12 +145,13 @@ class AxisHwDriver(Protocol):
 | `set_tracking_base(rate)` | `MANUAL/GOTO` | только сохранить новый base, применить позже | нет немедленного вызова | без смены |
 | `guide(dir, ms)` | `TRACKING` | пересчитать `guide_offset_rate` | `run_tracking_axis(base+offset)` | `TRACKING` |
 | `guide(dir, ms)` | `MANUAL/GOTO` | пересчитать `guide_offset_rate`, отложить применение | нет немедленного вызова | без смены |
-| `move_manual(dir)` | `TRACKING` | выбрать знак и manual-rate | `run_manual_axis(manual_signed_rate)` | `MANUAL` |
-| `move_manual(dir)` | `GOTO` | отменить goto, перейти в ручное | `stop(graceful=True)`, `run_manual_axis(manual_signed_rate)` | `MANUAL` |
-| `slew_to(target)` | `TRACKING/MANUAL` | сохранить target | если `MANUAL`: `stop(graceful=True)`; затем `run_goto_axis(target)` | `GOTO` |
-| `goto_tick` (target reached) | `GOTO` | завершить goto | `run_tracking_axis(base+offset)` | `TRACKING` |
+| `move_manual(dir)` | `TRACKING` | `tracking_rate_before_motion = base+offset`, выбрать знак и manual-rate | `run_manual_axis(manual_signed_rate)` | `MANUAL` |
+| `move_manual(dir)` | `GOTO` | отменить goto, сохранить previous tracking-rate, перейти в ручное | `stop(graceful=True)`, `run_manual_axis(manual_signed_rate)` | `MANUAL` |
+| `manual_stop` | `MANUAL` | завершить manual, восстановить previous tracking-rate | `run_tracking_axis(tracking_rate_before_motion or (base+offset))` | `TRACKING` |
+| `slew_to(target)` | `TRACKING/MANUAL` | сохранить target; при входе из `TRACKING` сохранить previous tracking-rate | если `MANUAL`: `stop(graceful=True)`; затем `run_goto_axis(target)` | `GOTO` |
+| `goto_tick` (target reached) | `GOTO` | завершить goto, восстановить previous tracking-rate | `run_tracking_axis(tracking_rate_before_motion or (base+offset))` | `TRACKING` |
 | `goto_tick` (timeout/overshoot/error) | `GOTO` | аварийное завершение | `stop(graceful=True)` | `FAULT` или `TRACKING` по политике |
-| `halt_all` | `TRACKING/MANUAL/GOTO/FAULT` | `guide_offset_rate = 0`, отмена goto/manual | `stop(graceful=True)`, `run_tracking_axis(base_tracking_rate)` | `TRACKING` |
+| `halt_all` | `TRACKING/MANUAL/GOTO/FAULT` | policy-команда: отмена goto/manual; optional `guide_offset_rate = 0` | `stop(graceful=True)`, `run_tracking_axis(base_tracking_rate)` | `TRACKING` |
 | `hw_error` | любой connected | лог + блокировка оси | `stop(graceful=False)` | `FAULT` |
 
 ---
@@ -162,10 +168,10 @@ class AxisHwDriver(Protocol):
 ### 2) Manual движение
 
 1. `L2 -> L3.move_manual(direction)`
-2. `L3` вычисляет signed rate по направлению.
+2. `L3` сохраняет previous tracking-rate (`tracking_rate_before_motion`), вычисляет signed rate.
 3. `L3 -> L4.run_manual_axis(manual_signed_rate)`
 4. Ось в `MANUAL`
-5. `L2 -> L3.halt_all()` для выхода обратно в tracking.
+5. `L2 -> L3.manual_stop()` (или эквивалент halt-direction) и восстановление сохранённого tracking-rate.
 
 ### 3) GOTO
 
@@ -173,7 +179,7 @@ class AxisHwDriver(Protocol):
 2. `L3` передаёт target оси.
 3. `L3 -> L4.run_goto_axis(target)` (конверсия и fast/slow профиль внутри L4)
 4. `L3` переходит в `GOTO`, запускает `goto_tick` polling.
-5. По достижению цели: `L3 -> L4.run_tracking_axis(base+offset)`, переход в `TRACKING`.
+5. По достижению цели: `L3 -> L4.run_tracking_axis(previous_tracking_rate)`, переход в `TRACKING`.
 
 ### 4) Guide с persistent offset
 
