@@ -3,7 +3,7 @@ from enum import StrEnum
 import logging
 import time
 
-from lx200.protocols import LX200Dec
+from lx200.protocols import Dec
 from serial_wrapper.wrapper import SerialLine
 
 COMMAND_TERMINATOR = "\n"

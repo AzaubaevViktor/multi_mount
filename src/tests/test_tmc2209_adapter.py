@@ -1,6 +1,6 @@
 import pytest
 
-from lx200.protocols import LX200Dec
+from lx200.protocols import Dec
 from tmc2209.tmc2209_adapter import (
     DEGREES_PER_REV,
     GEAR_RATIO_1,
@@ -160,7 +160,7 @@ def test_set_acceleration_range():
 
 
 def test_steps_from_dec_roundtrip():
-    dec = LX200Dec.from_degrees(10.0)
+    dec = Dec.from_degrees(10.0)
     microsteps = max(MICROSTEPS_ALLOWED)
     steps = TMC2209Adapter.steps_from_dec(dec, microsteps)
     expected = int(
@@ -177,20 +177,20 @@ def test_steps_from_dec_roundtrip():
 
 
 def test_steps_from_dec_negative():
-    dec = LX200Dec.from_degrees(-10.0)
+    dec = Dec.from_degrees(-10.0)
     microsteps = min(MICROSTEPS_ALLOWED)
     steps = steps_from_dec(dec, microsteps)
     assert steps < 0
 
 
 def test_steps_from_dec_invalid_microsteps():
-    dec = LX200Dec.from_degrees(1.0)
+    dec = Dec.from_degrees(1.0)
     with pytest.raises(TMC2209ConfigError):
         steps_from_dec(dec, 3)
 
 
 def test_steps_from_dec_invalid_steps_per_rev(monkeypatch):
-    dec = LX200Dec.from_degrees(1.0)
+    dec = Dec.from_degrees(1.0)
     monkeypatch.setattr("tmc2209.tmc2209_adapter.STEPS_PER_REV", 0)
     with pytest.raises(TMC2209ConfigError):
         steps_from_dec(dec, min(MICROSTEPS_ALLOWED))

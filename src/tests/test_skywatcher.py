@@ -5,7 +5,7 @@ import time
 
 import pytest
 
-from lx200.protocols import LX200Ha
+from lx200.protocols import Ha
 from serial_wrapper.wrapper import SerialLine
 from skywatcher.skywatcher import SkyWatcherMount, SlewMode
 
@@ -40,7 +40,7 @@ def mount() -> Iterator[SkyWatcherMount]:
     ],
 )
 def test_skywatcher_hours_roundtrip(mount: SkyWatcherMount, hours_value: str):
-    expected = LX200Ha.from_string(hours_value)
+    expected = Ha.from_string(hours_value)
     mount.set_telescope_ra(expected)
     time.sleep(0.2)
     actual = mount.get_telescope_ra()
@@ -64,7 +64,7 @@ def _measure_ra_shift(
 ) -> Iterator[list[tuple[int, int, float]]]:
     _ensure_idle(mount)
     mid_ra_seconds = 12 * 3600
-    mount.set_telescope_ra(LX200Ha.from_seconds(mid_ra_seconds))
+    mount.set_telescope_ra(Ha.from_seconds(mid_ra_seconds))
     
     start_time = None
     
@@ -124,12 +124,12 @@ def test_slew_to_ra_moves_mount(mount: SkyWatcherMount, delta):
     timeout_s = 15
     target_tolerance_seconds = 5
 
-    mount.set_telescope_ra(LX200Ha.from_seconds(0))
+    mount.set_telescope_ra(Ha.from_seconds(0))
 
     current = mount.get_telescope_ra()
     target_seconds = (current.to_seconds() + slew_delta_seconds) % (24 * 3600)
-    target = LX200Ha.from_seconds(target_seconds)
-    delta = LX200Ha.from_seconds(slew_delta_seconds)
+    target = Ha.from_seconds(target_seconds)
+    delta = Ha.from_seconds(slew_delta_seconds)
 
     assert mount.slew_delta(delta) is True
 
@@ -146,7 +146,7 @@ def test_slew_to_ra_moves_mount(mount: SkyWatcherMount, delta):
 
 
 def test_move_ra_rejects_goto_in_progress(mount: SkyWatcherMount) -> None:
-    delta = LX200Ha.from_seconds(1800)
+    delta = Ha.from_seconds(1800)
 
     assert mount.slew_delta(delta) is True
 

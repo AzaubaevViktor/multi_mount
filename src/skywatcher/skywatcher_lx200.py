@@ -2,7 +2,7 @@ import threading
 import time
 
 from lx200.base import LX200RAHandler
-from lx200.protocols import LX200Ha
+from lx200.protocols import Ha
 from .skywatcher import SkyWatcherMount, SkyWatcherStatus, SlewMode
 
 
@@ -24,7 +24,7 @@ class SkyWatcherLX200(LX200RAHandler):
 
         self._manual_slew_rate = self.mount.MAX_RATE
 
-        self._goto_to: LX200Ha | None = None  # TODO: Refactor to float
+        self._goto_to: Ha | None = None  # TODO: Refactor to float
         self._goto_direction_sign: int = 0
         self._check_goto_thread = threading.Thread(target=self._check_goto, name="SW_GOTO")
         self._last_check_goto: float = 0
@@ -44,7 +44,7 @@ class SkyWatcherLX200(LX200RAHandler):
         return self.mount.STELLAR_SPEED / DEGREES_PER_HOUR
     
     def _wrap_mount_position(self, mount_position: float) -> float:
-        return mount_position % LX200Ha.SECONDS_PER_CIRCLE
+        return mount_position % Ha.SECONDS_PER_CIRCLE
     
     def _set_tracking_rate(self, rate: float):
         self.mount.start_tracking(rate)
@@ -60,7 +60,7 @@ class SkyWatcherLX200(LX200RAHandler):
 
     def _check_goto(self):
         logger = self.logger.getChild("goto")
-        circle_seconds = LX200Ha.SECONDS_PER_CIRCLE
+        circle_seconds = Ha.SECONDS_PER_CIRCLE
         half_circle_seconds = circle_seconds / 2
 
         while self._working:
@@ -82,12 +82,12 @@ class SkyWatcherLX200(LX200RAHandler):
                     delta_to_target_abs_seconds = abs(delta_to_target_seconds)
 
                     if delta_to_target_abs_seconds < self._STOP_GOTO_SECONDS:
-                        logger.info("Stop mount in %s (%s), Δ=%.3fs", LX200Ha.from_seconds(current_ra), _goto_to, delta_to_target_abs_seconds)
+                        logger.info("Stop mount in %s (%s), Δ=%.3fs", Ha.from_seconds(current_ra), _goto_to, delta_to_target_abs_seconds)
                         self.halt_motion()
                         
                         with self._position_update_lock:
                             _current_ra = self._mount_position_raw
-                        _current_ra = LX200Ha.from_seconds(_current_ra)
+                        _current_ra = Ha.from_seconds(_current_ra)
 
                         logger.info("Finished GOTO to %s in %s with delta: %fs", 
                                     _goto_to, 
@@ -108,7 +108,7 @@ class SkyWatcherLX200(LX200RAHandler):
                             if real_delta_seconds < 0:
                                 real_delta_seconds -= self.MAGIC_SECONDS_MINUS_SLEW  # add 6 magic seconds, because of accel/deccel/stop/star
                             mount_delta_seconds = -real_delta_seconds  # why tf minus here and it works?
-                            real_delta = LX200Ha.from_seconds(mount_delta_seconds)
+                            real_delta = Ha.from_seconds(mount_delta_seconds)
 
                             self.mount.slew_delta(real_delta)
                             if raw_delta_seconds > 0:
@@ -120,7 +120,7 @@ class SkyWatcherLX200(LX200RAHandler):
 
                             logger.info("Run GOTO to %s from %s with delta %s (x%f)",
                                         _goto_to,
-                                        LX200Ha.from_seconds(current_ra),
+                                        Ha.from_seconds(current_ra),
                                         real_delta_seconds,
                                         real_delta_seconds / raw_delta_seconds,
                                         )
@@ -129,7 +129,7 @@ class SkyWatcherLX200(LX200RAHandler):
                             self.halt_motion()
                             logger.warning("GOTO to %s went too far away (%s) %s, stop motor",
                                             _goto_to, 
-                                            LX200Ha.from_seconds(current_ra),
+                                            Ha.from_seconds(current_ra),
                                             delta_to_target_seconds,
                                             )
                             self._goto_to = None
@@ -150,19 +150,19 @@ class SkyWatcherLX200(LX200RAHandler):
         self.logger.info("Connect SkyWatcher LX200")
         self.mount.connect()
 
-        self.sync_telescope_ra(LX200Ha.from_hours(0))
+        self.sync_telescope_ra(Ha.from_hours(0))
 
         self.mount.start_tracking(self.DEFAULT_TRACKING_RATE)
         self.logger.info("SkyWatcher LX200 connected")
 
-    def get_telescope_ra(self) -> LX200Ha:
-        ra_seconds = int(round(self._mount_position_raw)) % LX200Ha.SECONDS_PER_CIRCLE
-        return LX200Ha.from_seconds(ra_seconds)
+    def get_telescope_ra(self) -> Ha:
+        ra_seconds = int(round(self._mount_position_raw)) % Ha.SECONDS_PER_CIRCLE
+        return Ha.from_seconds(ra_seconds)
     
     def motor_position(self) -> tuple[float, float]:
         return self.mount.get_telesope_seconds(), 0
     
-    def sync_telescope_ra(self, position: LX200Ha) -> bool:
+    def sync_telescope_ra(self, position: Ha) -> bool:
         self.logger.info("Sync RA to %s", position)
         with self._position_update_lock:
             self._mount_position_raw = position.to_seconds()
@@ -171,7 +171,7 @@ class SkyWatcherLX200(LX200RAHandler):
             self._last_update_s = time.monotonic()
         return True
 
-    def slew_to_ra(self, position: LX200Ha) -> bool:
+    def slew_to_ra(self, position: Ha) -> bool:
         self.logger.info("Queue GOTO RA to %s", position)
         self._goto_to = position
         return True

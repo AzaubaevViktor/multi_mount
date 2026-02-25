@@ -5,7 +5,7 @@ import logging
 import threading
 import time
 from typing import Callable, Self
-from lx200.protocols import LX200Ha
+from lx200.protocols import Ha
 from serial_wrapper.wrapper import SerialLine
 
 
@@ -335,7 +335,7 @@ class SkyWatcherMount:
         return int(seconds / (24 * 60 * 60) * self.ra_steps_360)
 
     def get_telescope_ra(self):
-        return LX200Ha.from_seconds(self.get_telesope_seconds())
+        return Ha.from_seconds(self.get_telesope_seconds())
     
     _MOUNT_SECONDS_CACHE_TTL_S = .25
     def get_telesope_seconds(self) -> float:
@@ -352,7 +352,7 @@ class SkyWatcherMount:
 
         return seconds % (24 * 60 * 60)
     
-    def set_telescope_ra(self, position: LX200Ha) -> bool:
+    def set_telescope_ra(self, position: Ha) -> bool:
         seconds = position.to_seconds()
         ticks = (self._seconds_to_ticks(seconds) + self._POSITION_OFFSET) % self.ra_steps_360
 
@@ -462,7 +462,7 @@ class SkyWatcherMount:
     def get_slew_real_rate(self, delta_seconds: float) -> float:
         return self._do_wrap_delta_move(delta_seconds)[1]
 
-    def slew_delta(self, delta: LX200Ha) -> bool:
+    def slew_delta(self, delta: Ha) -> bool:
         delta_seconds, real_rate = self._do_wrap_delta_move(delta.to_seconds())
 
         self.set_ra_rate(real_rate, SlewMode.GOTO)

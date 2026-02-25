@@ -3,7 +3,7 @@ import time
 
 from lx200.base import LX200DECHandler
 from lx200.protocol import AlignmentMode
-from lx200.protocols import LX200Dec, LX200Ha
+from lx200.protocols import Dec, Ha
 from tmc2209.tmc2209_adapter import (
     TMC2209Adapter,
 )
@@ -131,7 +131,7 @@ class TMC2209LX200(LX200DECHandler):
         self._adapter.connect()
         self._initialize()
         self._is_connected = True
-        self.sync_telescope_dec(LX200Dec.from_arcseconds(0))
+        self.sync_telescope_dec(Dec.from_arcseconds(0))
         self.resume_tracking()
         self.logger.info("TMC2209 LX200 connected")
 
@@ -146,7 +146,7 @@ class TMC2209LX200(LX200DECHandler):
     def motor_position(self) -> tuple[float, float]:
         return 0, int(self._arcseconds_from_steps(self._adapter.status().position))
 
-    def _steps_from_dec(self, position: LX200Dec) -> int:
+    def _steps_from_dec(self, position: Dec) -> int:
         return self._steps_from_arcsec(position.to_arcseconds())
     
     def _steps_from_arcsec(self, arcsecs: float) -> int:
@@ -155,10 +155,10 @@ class TMC2209LX200(LX200DECHandler):
     def _arcseconds_from_steps(self, steps: int) -> float:
         return (steps / self.steps_per_arcsec)
 
-    def get_telescope_dec(self) -> LX200Dec:
-        return LX200Dec.from_arcseconds(self._mount_position_raw)
+    def get_telescope_dec(self) -> Dec:
+        return Dec.from_arcseconds(self._mount_position_raw)
 
-    def sync_telescope_dec(self, position: LX200Dec) -> bool:
+    def sync_telescope_dec(self, position: Dec) -> bool:
         self.logger.info("Sync DEC to %s", position)
         steps = self._steps_from_dec(position)
         with self._position_update_lock:
@@ -171,10 +171,10 @@ class TMC2209LX200(LX200DECHandler):
         self.logger.info("Sync DEC applied: steps=%s position=%s", steps, position)
         return True
 
-    def sync_telescope_ra(self, position: LX200Ha) -> bool:
+    def sync_telescope_ra(self, position: Ha) -> bool:
         return False
 
-    def slew_to_dec(self, position: LX200Dec) -> bool:
+    def slew_to_dec(self, position: Dec) -> bool:
         self.logger.info("Start DEC GOTO to %s", position)
         # with self._position_update_lock: ???
 
@@ -192,7 +192,7 @@ class TMC2209LX200(LX200DECHandler):
 
         self.logger.info(
             "DEC GOTO details: %s -> %s (%das -> %das); delta=%sas (%s steps); profile=(microsteps=%s speed=%s accel=%s)",
-            LX200Dec.from_arcseconds(current_mount_position_arcs), position,
+            Dec.from_arcseconds(current_mount_position_arcs), position,
             current_mount_position_arcs, target_position_arcsec,
             delta_arcsec, delta_steps,
             profile.microsteps,

@@ -5,8 +5,8 @@ import threading
 import time
 
 import pytest
-from lx200.base import LX200Dec
-from lx200.protocols import LX200Ha
+from lx200.base import Dec
+from lx200.protocols import Ha
 from lx200.splitter import LX200Splitter
 from serial_wrapper.wrapper import SerialLine
 from skywatcher.skywatcher import SkyWatcherMount
@@ -56,10 +56,10 @@ class SplitterController:
     def _cmd(self, command: str):
         return self._splitter.handle(command)
 
-    def set_target_ra(self, value: LX200Ha) -> None:
+    def set_target_ra(self, value: Ha) -> None:
         assert self._cmd(f"Sr{value}") is True
 
-    def set_target_dec(self, value: LX200Dec) -> None:
+    def set_target_dec(self, value: Dec) -> None:
         assert self._cmd(f"Sd{value}") is True
 
     def sync(self) -> None:
@@ -101,25 +101,25 @@ class SplitterController:
     def guide(self, direction: str, ms: int) -> None:
         assert self._cmd(f"Mg{direction}{ms}") is None
 
-    def get_ra(self) -> LX200Ha:
+    def get_ra(self) -> Ha:
         response = self._cmd("GR")
-        assert isinstance(response, LX200Ha)
+        assert isinstance(response, Ha)
         return response
 
-    def get_dec(self) -> LX200Dec:
+    def get_dec(self) -> Dec:
         response = self._cmd("GD")
-        assert isinstance(response, LX200Dec)
+        assert isinstance(response, Dec)
         return response
 
     @staticmethod
     def ra_distance_seconds(a_seconds: float, b_seconds: float) -> float:
-        circle_seconds = LX200Ha.SECONDS_PER_CIRCLE
+        circle_seconds = Ha.SECONDS_PER_CIRCLE
         delta = abs(a_seconds - b_seconds)
         return min(delta, circle_seconds - delta)
 
-    def sync_known_position(self, ra_text: str, dec_text: str) -> tuple[LX200Ha, LX200Dec]:
-        target_ra = LX200Ha.from_string(ra_text)
-        target_dec = LX200Dec.from_string(dec_text)
+    def sync_known_position(self, ra_text: str, dec_text: str) -> tuple[Ha, Dec]:
+        target_ra = Ha.from_string(ra_text)
+        target_dec = Dec.from_string(dec_text)
         self.set_target_ra(target_ra)
         self.set_target_dec(target_dec)
         self.sync()
@@ -321,8 +321,8 @@ class SplitterController:
 
     def wait_until_target_reached(
         self,
-        target_ra: LX200Ha,
-        target_dec: LX200Dec,
+        target_ra: Ha,
+        target_dec: Dec,
         ra_tolerance_s: float,
         dec_tolerance_arcsec: float,
         timeout_s: float,
@@ -381,8 +381,8 @@ class SplitterController:
             "RA DISTANCE: %.3fs (limit %.3fs)\n"
             "DEC DISTANCE: %.3f arcsec (limit %.3f arcsec)\n",
             time.monotonic() - start,
-            LX200Ha.from_seconds(last_ra_seconds),
-            LX200Dec.from_arcseconds(last_dec_arcsec),
+            Ha.from_seconds(last_ra_seconds),
+            Dec.from_arcseconds(last_dec_arcsec),
             last_ra_distance,
             ra_tolerance_s,
             last_dec_distance,
@@ -391,8 +391,8 @@ class SplitterController:
 
         pytest.fail(
             "GOTO did not reach target in time: "
-            f"target_ra={target_ra} current_ra={LX200Ha.from_seconds(last_ra_seconds)} "
-            f"target_dec={target_dec} current_dec={LX200Dec.from_arcseconds(last_dec_arcsec)} "
+            f"target_ra={target_ra} current_ra={Ha.from_seconds(last_ra_seconds)} "
+            f"target_dec={target_dec} current_dec={Dec.from_arcseconds(last_dec_arcsec)} "
             f"ra_distance={last_ra_distance:.3f}s dec_distance={last_dec_distance:.3f}arcsec"
         )
 
@@ -645,8 +645,8 @@ def test_goto_command_moves_mount_to_target_coordinates(
     dec_delta_arcsec: float,
 ):
     start_ra, start_dec = sc.sync_known_position("12:00:00", "+20*00:00")
-    target_ra = LX200Ha.from_seconds(start_ra.to_seconds() + ra_delta_s)
-    target_dec = LX200Dec.from_arcseconds(start_dec.to_arcseconds() + dec_delta_arcsec)
+    target_ra = Ha.from_seconds(start_ra.to_seconds() + ra_delta_s)
+    target_dec = Dec.from_arcseconds(start_dec.to_arcseconds() + dec_delta_arcsec)
 
     sc.set_slew_to_find()
     sc.set_target_ra(target_ra)
@@ -749,8 +749,8 @@ def test_halt_command_returns_to_tracking_from_goto(
     dec_delta_arcsec: float,
 ):
     start_ra, start_dec = sc.sync_known_position("12:00:00", "+20*00:00")
-    target_ra = LX200Ha.from_seconds(start_ra.to_seconds() + ra_delta_s)
-    target_dec = LX200Dec.from_arcseconds(start_dec.to_arcseconds() + dec_delta_arcsec)
+    target_ra = Ha.from_seconds(start_ra.to_seconds() + ra_delta_s)
+    target_dec = Dec.from_arcseconds(start_dec.to_arcseconds() + dec_delta_arcsec)
 
     sc.set_slew_to_find()
     sc.set_target_ra(target_ra)

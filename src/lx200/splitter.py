@@ -1,7 +1,7 @@
 import logging
 from lx200.base import LX200Base, LX200Handler
 from lx200.protocol import AlignmentMode
-from lx200.protocols import LX200Dec, LX200Ha
+from lx200.protocols import Dec, Ha
 
 
 class LX200Splitter(LX200Handler):
@@ -34,7 +34,7 @@ class LX200Splitter(LX200Handler):
     def handle_alignment(self, data: bytes) -> AlignmentMode:
         return AlignmentMode.POLAR
     
-    def get_telescope_ra(self) -> LX200Ha:
+    def get_telescope_ra(self) -> Ha:
         return self.ra.get_telescope_ra()
     
     def motor_position(self) -> tuple[float, float]:
@@ -43,19 +43,19 @@ class LX200Splitter(LX200Handler):
             self.dec.motor_position()[1],
         )
     
-    def slew_to_ra(self, position: LX200Ha) -> bool:
+    def slew_to_ra(self, position: Ha) -> bool:
         return self.ra.slew_to_ra(position)
     
-    def slew_to_dec(self, position: LX200Dec) -> bool:
+    def slew_to_dec(self, position: Dec) -> bool:
         return self.dec.slew_to_dec(position)
 
-    def sync_telescope_ra(self, position: LX200Ha) -> bool:
+    def sync_telescope_ra(self, position: Ha) -> bool:
         return self.ra.sync_telescope_ra(position)
     
-    def get_telescope_dec(self) -> LX200Dec:
+    def get_telescope_dec(self) -> Dec:
         return self.dec.get_telescope_dec()
     
-    def sync_telescope_dec(self, position: LX200Dec) -> bool:
+    def sync_telescope_dec(self, position: Dec) -> bool:
         return self.dec.sync_telescope_dec(position)
     
     def get_site1_name(self) -> str:

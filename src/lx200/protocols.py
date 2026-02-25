@@ -1,31 +1,31 @@
 import re
 from typing import Self
 
-class LX200HoursError(ValueError):
+class HaError(ValueError):
     pass
 
 
-class LX200HoursFormatError(LX200HoursError):
+class HaFormatError(HaError):
     pass
 
 
-class LX200HoursRangeError(LX200HoursError):
+class HaRangeError(HaError):
     pass
 
 
-class LX200DecError(ValueError):
+class DecError(ValueError):
     pass
 
 
-class LX200DecFormatError(LX200DecError):
+class DecFormatError(DecError):
     pass
 
 
-class LX200DecRangeError(LX200DecError):
+class DecRangeError(DecError):
     pass
 
 
-class LX200PositionBase:
+class AxisPos:
     @classmethod
     def from_raw(cls, raw_position: float) -> Self:
         raise NotImplementedError()
@@ -37,11 +37,15 @@ class LX200PositionBase:
     def from_string(cls, s: str) -> Self:
         raise NotImplementedError()
     
+    @classmethod
+    def from_seconds(cls, total_seconds: float) -> Self:
+        raise NotImplemented()
+    
     def __str__(self) -> str:
         raise NotImplementedError()
 
 
-class LX200Ha(LX200PositionBase):
+class Ha(AxisPos):
     __slots__ = ("_total_seconds",)
 
     SECONDS_PER_CIRCLE = 24 * 3600
@@ -71,7 +75,7 @@ class LX200Ha(LX200PositionBase):
     def from_string(cls, s: str) -> Self:
         match = cls.HOURS_PATTERN.match(s)
         if not match:
-            raise LX200HoursFormatError(f"Invalid HH:MM:SS format: {s!r}")
+            raise HaFormatError(f"Invalid HH:MM:SS format: {s!r}")
 
         hours = int(match.group(1))
         minutes = int(match.group(2))
@@ -97,11 +101,11 @@ class LX200Ha(LX200PositionBase):
     def from_raw(cls, raw_position: float) -> Self:
         return cls.from_seconds(raw_position)
     
-    def __sub__(self, b: LX200Ha):
-        return LX200Ha.from_hours(self.to_hours() - b.to_hours())
+    def __sub__(self, b: Ha):
+        return Ha.from_hours(self.to_hours() - b.to_hours())
     
     def __neg__(self):
-        return LX200Ha.from_hours(-self.to_hours())
+        return Ha.from_hours(-self.to_hours())
 
     @classmethod
     def from_hours(cls, total_hours: float) -> Self:
@@ -123,18 +127,18 @@ class LX200Ha(LX200PositionBase):
     @staticmethod
     def _validate_parts(hours: int, minutes: int, seconds: float) -> None:
         if hours < 0 or hours > 23:
-            raise LX200HoursRangeError(f"Hours out of range: {hours!r}")
+            raise HaRangeError(f"Hours out of range: {hours!r}")
         if minutes < 0 or minutes > 59:
-            raise LX200HoursRangeError(f"Minutes out of range: {minutes!r}")
+            raise HaRangeError(f"Minutes out of range: {minutes!r}")
         if seconds < 0 or seconds >= 60:
-            raise LX200HoursRangeError(f"Seconds out of range: {seconds!r}")
+            raise HaRangeError(f"Seconds out of range: {seconds!r}")
 
     def _rounded_total_seconds(self) -> int:
         rounded_total_seconds = int(round(self._total_seconds))
         return rounded_total_seconds % self.SECONDS_PER_CIRCLE
 
 
-class LX200Dec(LX200PositionBase):
+class Dec(AxisPos):
     __slots__ = ("_arcseconds",)
 
     SIGN_VALUES = {"+", "-"}
@@ -195,7 +199,7 @@ class LX200Dec(LX200PositionBase):
     def from_string(cls, s: str) -> Self:
         match = cls.DEC_PATTERN.match(s)
         if not match:
-            raise LX200DecFormatError(f"Invalid sDD*MM:SS format: {s!r}")
+            raise DecFormatError(f"Invalid sDD*MM:SS format: {s!r}")
 
         sign = match.group(1)
         degrees = int(match.group(2))
@@ -213,7 +217,7 @@ class LX200Dec(LX200PositionBase):
         max_arcseconds = cls.MAX_DEGREES * cls.SECONDS_PER_DEGREE
         min_arcseconds = cls.MIN_DEGREES * cls.SECONDS_PER_DEGREE
         if total_arcseconds > max_arcseconds or total_arcseconds < min_arcseconds:
-            raise LX200DecRangeError(f"Arcseconds out of range: {min_arcseconds}.. {total_arcseconds!r} .. {max_arcseconds}")
+            raise DecRangeError(f"Arcseconds out of range: {min_arcseconds}.. {total_arcseconds!r} .. {max_arcseconds}")
 
         sign = "-" if total_arcseconds < 0 else "+"
         abs_arcseconds = abs(total_arcseconds)
@@ -262,12 +266,12 @@ class LX200Dec(LX200PositionBase):
     @classmethod
     def _validate_parts(cls, sign: str, degrees: int, minutes: int, arcseconds: float) -> None:
         if sign not in cls.SIGN_VALUES:
-            raise LX200DecRangeError(f"Sign out of range: {sign!r}")
+            raise DecRangeError(f"Sign out of range: {sign!r}")
         if degrees < 0 or degrees > cls.MAX_DEGREES:
-            raise LX200DecRangeError(f"Degrees out of range: {degrees!r}")
+            raise DecRangeError(f"Degrees out of range: {degrees!r}")
         if minutes < 0 or minutes > 59:
-            raise LX200DecRangeError(f"Minutes out of range: {minutes!r}")
+            raise DecRangeError(f"Minutes out of range: {minutes!r}")
         if arcseconds < 0 or arcseconds >= 60:
-            raise LX200DecRangeError(f"Arcseconds out of range: {arcseconds!r}")
+            raise DecRangeError(f"Arcseconds out of range: {arcseconds!r}")
         if degrees == cls.MAX_DEGREES and (minutes != 0 or arcseconds != 0):
-            raise LX200DecRangeError(f"Degrees out of range: {degrees!r}")
+            raise DecRangeError(f"Degrees out of range: {degrees!r}")

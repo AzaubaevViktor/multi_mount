@@ -7,7 +7,7 @@ import time
 from typing import Any
 
 from .protocol import AlignmentMode
-from lx200.protocols import LX200Ha, LX200Dec, LX200PositionBase
+from lx200.protocols import Ha, Dec, AxisPos
 
 
 # TODO: Add output verification, LX200 can work strange when output is incorrect
@@ -108,25 +108,25 @@ class LX200Base:
         return "60.0"
     
     # Telecope control
-    def get_telescope_ra(self) -> LX200Ha:
+    def get_telescope_ra(self) -> Ha:
         raise NotImplementedError()
     
     def motor_position(self) -> tuple[float, float]:
         raise NotImplementedError()
     
-    def sync_telescope_ra(self, position: LX200Ha) -> bool:
+    def sync_telescope_ra(self, position: Ha) -> bool:
         raise NotImplementedError()
     
-    def get_telescope_dec(self) -> LX200Dec:
+    def get_telescope_dec(self) -> Dec:
         raise NotImplementedError()
     
-    def sync_telescope_dec(self, position: LX200Dec) -> bool:
+    def sync_telescope_dec(self, position: Dec) -> bool:
         raise NotImplementedError()
     
-    def slew_to_ra(self, position: LX200Ha) -> bool:
+    def slew_to_ra(self, position: Ha) -> bool:
         raise NotImplementedError()
     
-    def slew_to_dec(self, position: LX200Dec) -> bool:
+    def slew_to_dec(self, position: Dec) -> bool:
         raise NotImplementedError()
 
     def set_slew_to_find(self) -> bool:
@@ -178,7 +178,7 @@ class LX200Base:
         raise NotImplementedError()
 
 
-class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
+class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
     AXIS_NAME: str
     DIRECTIONS: tuple[MoveDirection, ...]
     POS_CLS: type[_POS_CLS]
@@ -435,8 +435,8 @@ class LX200AxisHandler[_POS_CLS: LX200PositionBase](LX200Base):
         self.stop()
 
 
-class LX200RAHandler(LX200AxisHandler[LX200Ha]):
-    POS_CLS = LX200Ha
+class LX200RAHandler(LX200AxisHandler[Ha]):
+    POS_CLS = Ha
     AXIS_NAME = "Ra"
     DIRECTIONS = (MoveDirection.EAST, MoveDirection.SOUTH)
     COMPENSATE_MOTOR_SIGN = 1
@@ -447,8 +447,8 @@ class LX200RAHandler(LX200AxisHandler[LX200Ha]):
     DEFAULT_GUIDE_INTERVAL_MS = 4000
 
 
-class LX200DECHandler(LX200AxisHandler[LX200Dec]):
-    POS_CLS = LX200Dec
+class LX200DECHandler(LX200AxisHandler[Dec]):
+    POS_CLS = Dec
     AXIS_NAME = "Dec"
     DIRECTIONS = (MoveDirection.WEST, MoveDirection.NORTH)
     COMPENSATE_MOTOR_SIGN = -1
@@ -461,8 +461,8 @@ class LX200DECHandler(LX200AxisHandler[LX200Dec]):
 
 class LX200Handler(LX200Base):
     def __init__(self) -> None:
-        self._target_ra: LX200Ha = LX200Ha.from_hours(0)
-        self._target_dec: LX200Dec = LX200Dec.from_degrees(0)
+        self._target_ra: Ha = Ha.from_hours(0)
+        self._target_dec: Dec = Dec.from_degrees(0)
 
         self._manual_move_directions: list[MoveDirection] = []
 
@@ -478,13 +478,13 @@ class LX200Handler(LX200Base):
             case LX200Commands.GET_TELECOPE_RA, _:
                 result = self.get_telescope_ra()
             case LX200Commands.SET_TELESCOPE_RA, position:
-                self._target_ra = LX200Ha.from_string(position)
+                self._target_ra = Ha.from_string(position)
                 result = True
 
             case LX200Commands.GET_TELESCOPE_DEC, _:
                 result = self.get_telescope_dec()
             case LX200Commands.SET_TELESCOPE_DEC, position:
-                self._target_dec = LX200Dec.from_string(position)
+                self._target_dec = Dec.from_string(position)
                 result = True
 
             case LX200Commands.SYNC, _:
