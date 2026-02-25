@@ -84,7 +84,8 @@ class AxisHwDriver(Protocol):
 - `direction_raw` (`+1` / `0` / `-1`)
 - `phase` (`idle` / `halt` / `acceleration` / `running` / `deceleration`)
 - `profile` (`stop` / `tracking` / `slow` / `fast`) — speed and accel
-- `position_raw: int`
+- `motor_position: int` — raw motor position
+- `position: int` — position in sec/arces
 - `target_raw: int | None`
 
 ---
@@ -99,8 +100,8 @@ class AxisHwDriver(Protocol):
 - `tracking_rate_before_motion: float | None`
 - `manual_rate: float | None`
 - `goto_target_axis: AxisPos | None`
-- `last_mount_pos_axis: AxisPos`
-- `last_motor_pos_raw: int`
+- `mount_position: AxisPos`
+- `motor_position: int` — sec/arcsec
 
 Важно:
 - `guide_offset_rate` сохраняется после guide-команд.
