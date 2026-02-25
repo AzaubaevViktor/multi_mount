@@ -421,7 +421,13 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
                 
                 self.logger.debug("Found applyable guide task: %s -> rate: %.3f", guide_task, new_tracking_rate)
                 try:
-                    self.set_tracking_rate(new_tracking_rate)
+                    with self._position_update_lock:
+                        # TODO: In future, we should change tracking rate (and make any rate changes) here
+                        self.set_tracking_rate(new_tracking_rate)
+                        # Manual update position after changing speed
+                        self._motor_position_raw = self._get_motor_raw_position()
+                        self._last_update_s = time.monotonic()
+                        self.logger.debug("Update last read motor position after guiding apply: %.3f", self._motor_position_raw)
                 except Exception:
                     self.logger.exception(
                         "While applying guide task on %s: %s -> rate=%.3f",
