@@ -115,6 +115,9 @@ class Ha(AxisPos):
     def to_seconds(self) -> float:
         return self._total_seconds
 
+    def to_raw(self) -> float:
+        return self.to_seconds()
+
     def to_hours(self) -> float:
         return self.to_seconds() / 3600
 
@@ -240,6 +243,9 @@ class Dec(AxisPos):
 
     def to_arcseconds(self) -> float:
         return self._arcseconds
+
+    def to_raw(self) -> float:
+        return self.to_arcseconds()
 
     def __str__(self) -> str:
         rounded_arcseconds = int(round(self._arcseconds))

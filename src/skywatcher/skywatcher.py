@@ -332,7 +332,7 @@ class SkyWatcherMount:
         return ticks / self.ra_steps_360 * 24 * 60 * 60
     
     def _seconds_to_ticks(self, seconds: float) -> int:
-        return int(seconds / (24 * 60 * 60) * self.ra_steps_360)
+        return int(round(seconds / (24 * 60 * 60) * self.ra_steps_360))
 
     def get_telescope_ra(self):
         return Ha.from_seconds(self.get_telesope_seconds())
