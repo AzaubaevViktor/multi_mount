@@ -127,6 +127,7 @@ class AxisHwDriver(Protocol):
 - `set_tracking_base(rate)`
 - `guide(direction, ms)`
 - `move_manual(direction)`
+- `halt_X(direction)`
 - `manual_stop`
 - `slew_to(target)`
 - `goto_tick` (периодический polling L4)
@@ -148,6 +149,9 @@ class AxisHwDriver(Protocol):
 | `guide(dir, ms)` | `MANUAL/GOTO` | пересчитать `guide_offset_rate`, отложить применение | нет немедленного вызова | без смены |
 | `move_manual(dir)` | `TRACKING` | `tracking_rate_before_motion = base+offset`, выбрать знак и manual-rate | `run_manual_axis(manual_signed_rate)` | `MANUAL` |
 | `move_manual(dir)` | `GOTO` | отменить goto, сохранить previous tracking-rate, перейти в ручное | `stop(graceful=True)`, `run_manual_axis(manual_signed_rate)` | `MANUAL` |
+| `halt_X(dir)` | `TRACKING` | no-op (останавливать нечего) | нет вызова | `TRACKING` |
+| `halt_X(dir)` | `MANUAL` | остановить manual для активной оси/направления и восстановить previous tracking-rate; `effective_tracking_rate` не менять | `run_tracking_axis(tracking_rate_before_motion or (base+offset))` | `TRACKING` |
+| `halt_X(dir)` | `GOTO` | прервать goto и восстановить previous tracking-rate; `effective_tracking_rate` не менять | `stop(graceful=True)`, `run_tracking_axis(tracking_rate_before_motion or (base+offset))` | `TRACKING` |
 | `manual_stop` | `MANUAL` | завершить manual, восстановить previous tracking-rate | `run_tracking_axis(tracking_rate_before_motion or (base+offset))` | `TRACKING` |
 | `slew_to(target)` | `TRACKING/MANUAL` | сохранить target; при входе из `TRACKING` сохранить previous tracking-rate | если `MANUAL`: `stop(graceful=True)`; затем `run_goto_axis(target)` | `GOTO` |
 | `goto_tick` (target reached) | `GOTO` | завершить goto, восстановить previous tracking-rate | `run_tracking_axis(tracking_rate_before_motion or (base+offset))` | `TRACKING` |
@@ -172,7 +176,8 @@ class AxisHwDriver(Protocol):
 2. `L3` сохраняет previous tracking-rate (`tracking_rate_before_motion`), вычисляет signed rate.
 3. `L3 -> L4.run_manual_axis(manual_signed_rate)`
 4. Ось в `MANUAL`
-5. `L2 -> L3.manual_stop()` (или эквивалент halt-direction) и восстановление сохранённого tracking-rate.
+5. `L2 -> L3.halt_X(direction)` и восстановление сохранённого tracking-rate.
+6. `halt_X` не меняет `effective_tracking_rate`; он только завершает текущее движение.
 
 ### 3) GOTO
 
@@ -189,6 +194,69 @@ class AxisHwDriver(Protocol):
 3. Если state=`TRACKING`: сразу `L4.run_tracking_axis(base+offset)`.
 4. Если state=`MANUAL/GOTO`: offset сохраняется и применится при возврате в `TRACKING`.
 5. Сброс только через `halt_all`.
+
+---
+
+## Общий Код Статуса
+
+Единая структура статуса нужна для:
+- `L4 -> L3`: нормализованный hardware snapshot.
+- `L3 -> L2`: нормализованный осевой статус.
+- `L2 -> L1`: агрегированный статус монтировки.
+
+Рекомендуемые модели:
+
+```python
+@dataclass(frozen=True)
+class AxisStatusCommon:
+    axis: Literal["ra", "dec"]
+    connected: bool
+    state: AxisState                   # DISCONNECTED/TRACKING/MANUAL/GOTO/FAULT
+    running: bool
+    motion: Literal["idle", "tracking", "manual", "goto", "fault"]
+    effective_tracking_rate: float
+    tracking_rate_before_motion: float | None
+    guide_offset_rate: float
+    mount_position: float              # sec for RA, arcsec for DEC
+    motor_position_raw: int
+    direction_sign: int                # -1 / 0 / +1
+    phase: str                         # idle/hold/acceleration/running/deceleration
+    profile: str                       # tracking/manual/goto_fast/goto_slow/stop
+    target_position: float | None
+    error: str | None
+    raw: dict[str, Any]                # оригинальный статус железки
+
+@dataclass(frozen=True)
+class MountStatusCommon:
+    ra: AxisStatusCommon
+    dec: AxisStatusCommon
+    connected: bool
+    slewing: bool
+    guiding_active: bool
+    faulted: bool
+```
+
+### Маппинг из текущих железок
+
+SkyWatcher (`SkyWatcherStatus`):
+- `running <- status.running`
+- `direction_sign <- +1 if FORWARD else -1`
+- `phase <- "running" if running else "hold"` (детального accel/decel нет в протоколе)
+- `profile <- "goto"` если `slew_mode=GOTO`, иначе `"tracking/manual"` по состоянию L3
+- `raw <- {"raw": ..., "slew_mode": ..., "speed_mode": ..., ...}`
+
+TMC2209 (`TMC2209Status`):
+- `running <- phase not in {"idle", "hold"}`
+- `phase <- status.phase`
+- `profile <- выводится из L3-команды + L4 профиля`
+- `target_position <- из target (raw -> axis units)`
+- `raw <- {"mode": ..., "target_set": ..., "speed": ..., "actual_speed": ..., ...}`
+
+### Инварианты статуса
+
+- `halt_X` не меняет `effective_tracking_rate`.
+- `halt_X` должен менять только `motion/state` и флаг `running`.
+- `halt_all` может иметь policy-сброс (`guide_offset_rate = 0`) и это должно быть явно отражено в статусе.
 
 ---
 
