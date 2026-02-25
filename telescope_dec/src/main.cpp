@@ -10,6 +10,8 @@
 #include <Arduino.h>
 #include <AltSoftSerial.h>
 #include <TMCStepper.h>
+#include <limits.h>
+#include <math.h>
 #include <stdio.h>
 
 // ---------- Pins ----------
@@ -17,6 +19,17 @@ static const uint8_t STEP_PIN = 7;
 static const uint8_t DIR_PIN  = 4;
 static const uint8_t EN_PIN   = 12;   // Enable pin to driver
 static const bool    EN_ACTIVE_LOW = true;
+
+static const uint8_t POWER_LED_PIN = 11;
+static const uint8_t POWER_SENSE_PIN = A1;
+
+static const uint8_t STEP_RGB_RED_PIN = 3;
+static const uint8_t STEP_RGB_GREEN_PIN = 5;
+static const uint8_t STEP_RGB_BLUE_PIN = 6;
+
+static const uint8_t MODE_LED_RED_PIN = A5;
+static const uint8_t MODE_LED_GREEN_PIN = A6;  // Change to A4
+static const uint8_t MODE_LED_BLUE_PIN = A7;  // Change to A4
 
 static const uint8_t TMC_RX_PIN = 8;
 static const uint8_t TMC_TX_PIN = 9;
@@ -27,6 +40,17 @@ static const uint32_t TMC_BAUD = 9600;
 static const float R_SENSE = 0.11f;
 // Address depends on MS1/MS2 (CFG pins) strapping; often 0b00 if both low.
 static const uint8_t DRIVER_ADDRESS = 0b00;
+
+static const float ADC_INTERNAL_VREF = 1.1f;
+static const float POWER_DIVIDER_RATIO = 11.0f;       // Vin = Vadc * ratio
+static const float POWER_SOLID_THRESHOLD_V = 12.0f;
+static const float POWER_EXP_BASE_V = 10.0f;
+static const uint16_t POWER_BLINK_BASE_MS = 250;
+static const uint32_t POWER_SAMPLE_INTERVAL_MS = 200;
+
+static const uint16_t STEP_COLOR_LUT_SIZE = 256;
+static const uint8_t STEP_COLOR_GREEN_SHIFT = 85;     // 120 degrees for 256-step LUT
+static const uint8_t STEP_COLOR_BLUE_SHIFT = 170;     // 240 degrees for 256-step LUT
 
 AltSoftSerial TMCSerial(TMC_RX_PIN, TMC_TX_PIN);
 TMC2209Stepper driver(&TMCSerial, R_SENSE, DRIVER_ADDRESS);
@@ -88,6 +112,33 @@ static const char* const PHASE_RUN_V2 = "running";
 static const char* const PHASE_DECEL_V2 = "deceleration";
 static const char* const MODE_TARGET_V2 = "target";
 static const char* const MODE_FREE_RIDE_V2 = "free_ride";
+
+enum MotionPhaseCodeV2 : uint8_t {
+  MOTION_PHASE_IDLE_V2 = 0,
+  MOTION_PHASE_HOLD_V2,
+  MOTION_PHASE_ACCEL_V2,
+  MOTION_PHASE_RUN_V2,
+  MOTION_PHASE_DECEL_V2
+};
+
+struct LedStateV2 {
+  float supplyVoltageV = 0.0f;
+  uint16_t powerBlinkHalfPeriodMs = 0;
+  bool powerLedOn = true;
+  uint32_t powerLastSampleMs = 0;
+  uint32_t powerLastToggleMs = 0;
+  long lastStepForColor = LONG_MIN;
+  uint16_t microsteps = 16;
+  uint32_t stepColorCycle = 200UL * 16UL;
+} ledStateV2;
+
+static uint8_t stepColorLutV2[STEP_COLOR_LUT_SIZE];
+
+static MotionPhaseCodeV2 getPhaseCodeV2();
+static void buildStepColorLutV2();
+static void runStartupLedSequenceV2();
+static void serviceLedsV2();
+static void samplePowerVoltageV2(uint32_t nowMs);
 
 // ---------- V2 formatting ----------
 static const uint8_t HEX_WIDTH = 8;
@@ -173,6 +224,169 @@ static inline void outFlushLineV2() {
   outAppendCharV2('\n');
 }
 
+static inline void clearStatusLedsV2() {
+  digitalWrite(POWER_LED_PIN, LOW);
+  analogWrite(STEP_RGB_RED_PIN, 0);
+  analogWrite(STEP_RGB_GREEN_PIN, 0);
+  analogWrite(STEP_RGB_BLUE_PIN, 0);
+  digitalWrite(MODE_LED_RED_PIN, LOW);
+  digitalWrite(MODE_LED_GREEN_PIN, LOW);
+  digitalWrite(MODE_LED_BLUE_PIN, LOW);
+}
+
+static inline void writeStartupLedV2(uint8_t pin, bool on) {
+  const uint8_t level = on ? 255 : 0;
+  if (pin == STEP_RGB_RED_PIN || pin == STEP_RGB_GREEN_PIN || pin == STEP_RGB_BLUE_PIN) {
+    analogWrite(pin, level);
+    return;
+  }
+  digitalWrite(pin, on ? HIGH : LOW);
+}
+
+static void buildStepColorLutV2() {
+  for (uint16_t i = 0; i < STEP_COLOR_LUT_SIZE; i++) {
+    const float phase = (2.0f * PI * (float)i) / (float)STEP_COLOR_LUT_SIZE;
+    const float normalized = 0.5f + (0.5f * sinf(phase));
+    stepColorLutV2[i] = (uint8_t)(normalized * 100.0f + 0.5f);
+  }
+}
+
+static void runStartupLedSequenceV2() {
+  static const uint8_t LED_PINS[] = {
+    POWER_LED_PIN,
+    STEP_RGB_RED_PIN,
+    STEP_RGB_GREEN_PIN,
+    STEP_RGB_BLUE_PIN,
+    MODE_LED_RED_PIN,
+    MODE_LED_GREEN_PIN,
+    MODE_LED_BLUE_PIN
+  };
+
+  clearStatusLedsV2();
+  for (uint8_t i = 0; i < (sizeof(LED_PINS) / sizeof(LED_PINS[0])); i++) {
+    writeStartupLedV2(LED_PINS[i], true);
+    delay(70);
+    writeStartupLedV2(LED_PINS[i], false);
+    delay(35);
+  }
+}
+
+static float readSupplyVoltageV2() {
+  uint32_t sum = 0;
+  static const uint8_t SAMPLE_COUNT = 4;
+  for (uint8_t i = 0; i < SAMPLE_COUNT; i++) {
+    sum += (uint32_t)analogRead(POWER_SENSE_PIN);
+  }
+  Serial.println(sum);
+  const float raw = (float)sum / (float)SAMPLE_COUNT;
+  const float adcV = (raw * ADC_INTERNAL_VREF) / 1023.0f;
+  return adcV * POWER_DIVIDER_RATIO;
+}
+
+static uint16_t calcPowerBlinkHalfPeriodMsV2(float voltageV) {
+  if (voltageV >= POWER_SOLID_THRESHOLD_V) return 0;
+
+  const float exponent = voltageV - POWER_EXP_BASE_V;
+  float period = (float)POWER_BLINK_BASE_MS * powf(2.0f, exponent);
+  if (period < 35.0f) period = 35.0f;
+  if (period > 2000.0f) period = 2000.0f;
+  return (uint16_t)(period + 0.5f);
+}
+
+static void samplePowerVoltageV2(uint32_t nowMs) {
+  if (ledStateV2.powerLastSampleMs != 0 &&
+      (uint32_t)(nowMs - ledStateV2.powerLastSampleMs) < POWER_SAMPLE_INTERVAL_MS) {
+    return;
+  }
+
+  ledStateV2.powerLastSampleMs = nowMs;
+  ledStateV2.supplyVoltageV = readSupplyVoltageV2();
+
+  const uint16_t nextPeriod = calcPowerBlinkHalfPeriodMsV2(ledStateV2.supplyVoltageV);
+  if (nextPeriod != ledStateV2.powerBlinkHalfPeriodMs) {
+    ledStateV2.powerBlinkHalfPeriodMs = nextPeriod;
+    ledStateV2.powerLastToggleMs = nowMs;
+    ledStateV2.powerLedOn = true;
+  }
+}
+
+static void updatePowerLedV2(uint32_t nowMs) {
+  if (ledStateV2.powerBlinkHalfPeriodMs == 0) {
+    ledStateV2.powerLedOn = true;
+    digitalWrite(POWER_LED_PIN, HIGH);
+    return;
+  }
+
+  if ((uint32_t)(nowMs - ledStateV2.powerLastToggleMs) >= ledStateV2.powerBlinkHalfPeriodMs) {
+    ledStateV2.powerLastToggleMs = nowMs;
+    ledStateV2.powerLedOn = !ledStateV2.powerLedOn;
+  }
+
+  digitalWrite(POWER_LED_PIN, ledStateV2.powerLedOn ? HIGH : LOW);
+}
+
+static inline uint32_t positiveModuloV2(long value, uint32_t modulo) {
+  if (modulo == 0U) return 0U;
+  const long rem = value % (long)modulo;
+  return (uint32_t)(rem < 0 ? rem + (long)modulo : rem);
+}
+
+static void updateStepColorLedsV2() {
+  const long position = getPosition();
+  if (position == ledStateV2.lastStepForColor) return;
+  ledStateV2.lastStepForColor = position;
+
+  if (ledStateV2.stepColorCycle == 0U) ledStateV2.stepColorCycle = 200U;
+  const uint32_t wrapped = positiveModuloV2(position, ledStateV2.stepColorCycle);
+  const uint8_t idx = (uint8_t)((wrapped * STEP_COLOR_LUT_SIZE) / ledStateV2.stepColorCycle);
+
+  analogWrite(STEP_RGB_RED_PIN, stepColorLutV2[idx]);
+  analogWrite(STEP_RGB_GREEN_PIN, stepColorLutV2[(uint8_t)(idx + STEP_COLOR_GREEN_SHIFT)]);
+  analogWrite(STEP_RGB_BLUE_PIN, stepColorLutV2[(uint8_t)(idx + STEP_COLOR_BLUE_SHIFT)]);
+}
+
+static void updateModeLedsV2() {
+  const MotionPhaseCodeV2 phase = getPhaseCodeV2();
+  bool red = false;
+  bool green = false;
+  bool blue = false;
+
+  switch (phase) {
+    case MOTION_PHASE_IDLE_V2:
+      blue = true;
+      break;
+    case MOTION_PHASE_HOLD_V2:
+      red = true;
+      break;
+    case MOTION_PHASE_ACCEL_V2:
+      red = true;
+      green = true;
+      break;
+    case MOTION_PHASE_DECEL_V2:
+      red = true;
+      blue = true;
+      break;
+    case MOTION_PHASE_RUN_V2:
+      green = true;
+      if (runV2.freeRideMode) {
+        blue = true;
+      }
+      break;
+  }
+
+  digitalWrite(MODE_LED_RED_PIN, red ? HIGH : LOW);
+  digitalWrite(MODE_LED_GREEN_PIN, green ? HIGH : LOW);
+  digitalWrite(MODE_LED_BLUE_PIN, blue ? HIGH : LOW);
+}
+
+static void serviceLedsV2() {
+  const uint32_t nowMs = millis();
+  samplePowerVoltageV2(nowMs);
+  updatePowerLedV2(nowMs);
+  updateStepColorLedsV2();
+  updateModeLedsV2();
+}
+
 void setup() {
   Serial.begin(115200);
   Serial.setTimeout(0);
@@ -181,14 +395,31 @@ void setup() {
   pinMode(STEP_PIN, OUTPUT);
   pinMode(DIR_PIN, OUTPUT);
   pinMode(EN_PIN, OUTPUT);
+  pinMode(POWER_LED_PIN, OUTPUT);
+  pinMode(STEP_RGB_RED_PIN, OUTPUT);
+  pinMode(STEP_RGB_GREEN_PIN, OUTPUT);
+  pinMode(STEP_RGB_BLUE_PIN, OUTPUT);
+  pinMode(MODE_LED_RED_PIN, OUTPUT);
+  pinMode(MODE_LED_GREEN_PIN, OUTPUT);
+  pinMode(MODE_LED_BLUE_PIN, OUTPUT);
+
   digitalWrite(STEP_PIN, LOW);
   runV2.dir = false;
   digitalWrite(DIR_PIN, LOW);
   runV2.enabled = false;
   digitalWrite(EN_PIN, EN_ACTIVE_LOW ? HIGH : LOW);
+  clearStatusLedsV2();
   runV2.lastStepUs = micros();
   runV2.lastUpdateUs = micros();
   runV2.nextStepUs = 0;
+
+  analogReference(INTERNAL);
+  delay(5);
+  analogRead(POWER_SENSE_PIN);
+  analogRead(POWER_SENSE_PIN);
+
+  buildStepColorLutV2();
+  runStartupLedSequenceV2();
 
   TMCSerial.begin(TMC_BAUD);
 
@@ -203,11 +434,18 @@ void setup() {
   driver.blank_time(24);
   driver.rms_current(600);           // RMS mA; adjust for your motor
   driver.microsteps(16);
+  ledStateV2.microsteps = 16;
+  ledStateV2.stepColorCycle = 200UL * (uint32_t)ledStateV2.microsteps;
   driver.en_spreadCycle(false);      // stealth by default
   driver.pwm_autoscale(true);
 
   // Clear latched flags
   driver.GSTAT(0x7);
+
+  const uint32_t nowMs = millis();
+  samplePowerVoltageV2(nowMs);
+  ledStateV2.powerLastToggleMs = nowMs;
+  serviceLedsV2();
 
   v2Initialized = true;
   Serial.println(F("ready"));
@@ -457,6 +695,9 @@ static bool applySetParamV2(const char* name, const char* value, const char** er
     if (v < 1 || v > 256) { if (errorKey) *errorKey = "range"; return false; }
     if (!isMicrostepsAllowedV2((uint16_t)v)) { if (errorKey) *errorKey = "invalid_microsteps"; return false; }
     driver.microsteps((uint16_t)v);
+    ledStateV2.microsteps = (uint16_t)v;
+    ledStateV2.stepColorCycle = 200UL * (uint32_t)ledStateV2.microsteps;
+    ledStateV2.lastStepForColor = LONG_MIN;
     return true;
   }
   if (!strcmp(name, "intpol")) {
@@ -509,13 +750,29 @@ static void completeTargetV2() {
   runV2.stepAcc = 0.0f;
 }
 
+static MotionPhaseCodeV2 getPhaseCodeV2() {
+  if (!runV2.enabled) return MOTION_PHASE_IDLE_V2;
+  if (runV2.actualSpeedSps <= 0.0f) return MOTION_PHASE_HOLD_V2;
+  if (runV2.desiredSpeedSps <= 0.0f) return MOTION_PHASE_DECEL_V2;
+  if (runV2.actualSpeedSps < runV2.desiredSpeedSps) return MOTION_PHASE_ACCEL_V2;
+  if (runV2.actualSpeedSps > runV2.desiredSpeedSps) return MOTION_PHASE_DECEL_V2;
+  return MOTION_PHASE_RUN_V2;
+}
+
 static const char* getPhaseV2() {
-  if (!runV2.enabled) return PHASE_IDLE_V2;
-  if (runV2.actualSpeedSps <= 0.0f) return PHASE_HOLD_V2;
-  if (runV2.desiredSpeedSps <= 0.0f) return PHASE_DECEL_V2;
-  if (runV2.actualSpeedSps < runV2.desiredSpeedSps) return PHASE_ACCEL_V2;
-  if (runV2.actualSpeedSps > runV2.desiredSpeedSps) return PHASE_DECEL_V2;
-  return PHASE_RUN_V2;
+  switch (getPhaseCodeV2()) {
+    case MOTION_PHASE_IDLE_V2:
+      return PHASE_IDLE_V2;
+    case MOTION_PHASE_HOLD_V2:
+      return PHASE_HOLD_V2;
+    case MOTION_PHASE_ACCEL_V2:
+      return PHASE_ACCEL_V2;
+    case MOTION_PHASE_RUN_V2:
+      return PHASE_RUN_V2;
+    case MOTION_PHASE_DECEL_V2:
+      return PHASE_DECEL_V2;
+  }
+  return PHASE_IDLE_V2;
 }
 
 static const char* getModeV2() {
@@ -611,6 +868,7 @@ static void handleLineV2(char* s) {
     respondKeyValueFloatV2("speed", runV2.speedSps, 2);
     respondKeyValueFloatV2("actual_speed", runV2.actualSpeedSps, 2);
     respondKeyValueFloatV2("accel_per_s", runV2.accelStepsPerUs * 1000000., 2);
+    respondKeyValueFloatV2("power_v", ledStateV2.supplyVoltageV, 2);
     respondEndV2();
     return;
   }
@@ -911,4 +1169,6 @@ void loop() {
   serviceStepperv2();
   profiler.stepper += micros() - start;
   profiler.stepper /= 2.;
+
+  serviceLedsV2();
 }
