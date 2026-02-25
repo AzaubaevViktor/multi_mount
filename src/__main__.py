@@ -11,64 +11,6 @@ from tmc2209.tmc2209_lx200 import TMC2209LX200
 
 
 setup_logging()
-
-
-class LX200TestDECServer(LX200Base):
-    def __init__(self) -> None:
-        self.dec = 1
-
-    def get_telescope_dec(self) -> Dec:
-        return Dec.from_degrees(self.dec)
-    
-    def sync_telescope_dec(self, position: Dec) -> bool:
-        self.dec = position.to_degrees()
-        return True
-    
-    def halt_all(self) -> bool:
-        return True
-    
-    def move_east(self) -> bool:
-        return False
-
-    def move_north(self) -> bool:
-        return True
-
-    def move_south(self) -> bool:
-        return True
-
-    def move_west(self) -> bool:
-        return False
-
-    def halt_east(self) -> bool:
-        return False
-
-    def halt_north(self) -> bool:
-        return True
-
-    def halt_south(self) -> bool:
-        return True
-
-    def halt_west(self) -> bool:
-        return False
-
-    def set_slew_to_find(self) -> bool:
-        return True
-
-    def slew_to_dec(self, position: Dec) -> bool:
-        self.dec = position.to_degrees()
-        return True
-
-    def handle_alignment(self, data: bytes) -> AlignmentMode:
-        return AlignmentMode.POLAR
-    
-    def get_site1_name(self) -> str:
-        return "noop"
-    
-    def connect(self):
-        pass
-
-    def get_distance(self) -> str:
-        return ""
     
 
 if __name__ == "__main__":
