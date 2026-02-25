@@ -231,13 +231,13 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
     def _wrap_mount_position(self, mount_position: float) -> float:
         raise NotImplementedError()
     
-    def _set_tracking_rate(self, rate: float) -> None:
+    def _set_tracking_rate(self, rate: float) -> float | None:
         raise NotImplementedError()
 
     def set_tracking_rate(self, rate: float) -> None:
         self._last_tracking_rate = self._current_track_rate
-        self._set_tracking_rate(rate)
-        self._current_track_rate = rate
+        _rounded_rate = self._set_tracking_rate(rate)
+        self._current_track_rate = _rounded_rate if _rounded_rate is not None else rate 
     
     def resume_tracking(self) -> None:
         # TODO: Move resume_tracking logic here
@@ -420,10 +420,20 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
                         continue
                 
                 self.logger.debug("Found applyable guide task: %s -> rate: %.3f", guide_task, new_tracking_rate)
-                
-                self.set_tracking_rate(new_tracking_rate)
+                try:
+                    self.set_tracking_rate(new_tracking_rate)
+                except Exception:
+                    self.logger.exception(
+                        "While applying guide task on %s: %s -> rate=%.3f",
+                        self.AXIS_NAME,
+                        guide_task,
+                        new_tracking_rate,
+                    )
 
     def stop(self):
+        if not self._working:
+            return 
+
         self._working = False
         if self._telemetry_thread and self._telemetry_thread.is_alive():
             try:

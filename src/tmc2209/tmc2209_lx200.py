@@ -93,12 +93,15 @@ class TMC2209LX200(LX200DECHandler):
 
     def _set_tracking_rate(self, rate: float):
         self.logger.info("Tracking start")
-        self._apply_profile(self._guide_profile, custom_rate=rate)
+        # TMC speed is unsigned; guide direction is controlled separately.
+        rounded_rate = self._apply_profile(self._guide_profile, custom_rate=abs(rate))
+        rate_sign = 1 if rate > 0 else -1
         self._adapter.set_free_ride_mode()
         self._adapter.set_direction(rate > 0)
         if rate != 0:
             self._adapter.run()
         self.logger.info("Tracking applied")
+        return rounded_rate * rate_sign if rounded_rate is not None else None
 
     def handle_alignment(self, data: bytes) -> AlignmentMode:
         return AlignmentMode.POLAR
@@ -153,7 +156,7 @@ class TMC2209LX200(LX200DECHandler):
         return int(round(arcsecs * self.steps_per_arcsec))
 
     def _arcseconds_from_steps(self, steps: int) -> float:
-        return (steps / self.steps_per_arcsec)
+        return steps / self.steps_per_arcsec
 
     def get_telescope_dec(self) -> Dec:
         return Dec.from_arcseconds(self._mount_position_raw)
@@ -255,7 +258,7 @@ class TMC2209LX200(LX200DECHandler):
 
     def _apply_profile(
         self, profile: SpeedProfile, custom_rate: float = 1
-    ) -> None:
+    ) -> float | None:
         new_speed = int(profile.speed * custom_rate)
         if new_speed == 0:
             self.logger.info("Stop motor")
@@ -282,3 +285,5 @@ class TMC2209LX200(LX200DECHandler):
         self._adapter.set_speed_sps(new_speed)
         
         self._current_profile = profile
+
+        return new_speed / profile.speed
