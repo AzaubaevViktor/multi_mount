@@ -42,7 +42,7 @@ static const float R_SENSE = 0.11f;
 static const uint8_t DRIVER_ADDRESS = 0b00;
 
 static const float ADC_INTERNAL_VREF = 1.1f;
-static const float POWER_DIVIDER_RATIO = 11.0f;       // Vin = Vadc * ratio
+static const float POWER_DIVIDER_RATIO = 23.93555f;       // Vin = Vadc * ratio
 static const float POWER_SOLID_THRESHOLD_V = 12.0f;
 static const float POWER_EXP_BASE_V = 10.0f;
 static const uint16_t POWER_BLINK_BASE_MS = 250;
@@ -51,6 +51,7 @@ static const uint32_t POWER_SAMPLE_INTERVAL_MS = 200;
 static const uint16_t STEP_COLOR_LUT_SIZE = 256;
 static const uint8_t STEP_COLOR_GREEN_SHIFT = 85;     // 120 degrees for 256-step LUT
 static const uint8_t STEP_COLOR_BLUE_SHIFT = 170;     // 240 degrees for 256-step LUT
+static const uint8_t MAX_STEP_LIGHT = 4;
 
 AltSoftSerial TMCSerial(TMC_RX_PIN, TMC_TX_PIN);
 TMC2209Stepper driver(&TMCSerial, R_SENSE, DRIVER_ADDRESS);
@@ -247,7 +248,7 @@ static void buildStepColorLutV2() {
   for (uint16_t i = 0; i < STEP_COLOR_LUT_SIZE; i++) {
     const float phase = (2.0f * PI * (float)i) / (float)STEP_COLOR_LUT_SIZE;
     const float normalized = 0.5f + (0.5f * sinf(phase));
-    stepColorLutV2[i] = (uint8_t)(normalized * 100.0f + 0.5f);
+    stepColorLutV2[i] = (uint8_t)(normalized * 255. + 0.5f);
   }
 }
 
@@ -277,7 +278,6 @@ static float readSupplyVoltageV2() {
   for (uint8_t i = 0; i < SAMPLE_COUNT; i++) {
     sum += (uint32_t)analogRead(POWER_SENSE_PIN);
   }
-  Serial.println(sum);
   const float raw = (float)sum / (float)SAMPLE_COUNT;
   const float adcV = (raw * ADC_INTERNAL_VREF) / 1023.0f;
   return adcV * POWER_DIVIDER_RATIO;
@@ -340,9 +340,9 @@ static void updateStepColorLedsV2() {
   const uint32_t wrapped = positiveModuloV2(position, ledStateV2.stepColorCycle);
   const uint8_t idx = (uint8_t)((wrapped * STEP_COLOR_LUT_SIZE) / ledStateV2.stepColorCycle);
 
-  analogWrite(STEP_RGB_RED_PIN, stepColorLutV2[idx]);
-  analogWrite(STEP_RGB_GREEN_PIN, stepColorLutV2[(uint8_t)(idx + STEP_COLOR_GREEN_SHIFT)]);
-  analogWrite(STEP_RGB_BLUE_PIN, stepColorLutV2[(uint8_t)(idx + STEP_COLOR_BLUE_SHIFT)]);
+  analogWrite(STEP_RGB_RED_PIN, stepColorLutV2[idx] / MAX_STEP_LIGHT);
+  analogWrite(STEP_RGB_GREEN_PIN, stepColorLutV2[(uint8_t)(idx + STEP_COLOR_GREEN_SHIFT)] / MAX_STEP_LIGHT);
+  analogWrite(STEP_RGB_BLUE_PIN, stepColorLutV2[(uint8_t)(idx + STEP_COLOR_BLUE_SHIFT)] / MAX_STEP_LIGHT);
 }
 
 static void updateModeLedsV2() {
