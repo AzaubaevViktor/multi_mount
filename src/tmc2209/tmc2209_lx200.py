@@ -52,7 +52,7 @@ class TMC2209LX200(LX200DECHandler):
     _guide_profile = SpeedProfile(
         microsteps=16, 
         speed=100,
-        accel=1000,
+        accel=10000,
         name="guide",
     )
 

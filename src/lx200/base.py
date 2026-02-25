@@ -270,11 +270,12 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
         ))
 
     def halt_all(self):
+        # Drop tracking rate when we send halt_all, but not when we halt direction motion
+        self._last_tracking_rate = self.DEFAULT_TRACKING_RATE
         self.halt_motion()
+        return True
 
     def halt_motion(self) -> None:
-        # TODO: Replace all custom halt and halt_all with _halt_motion
-        self._last_tracking_rate = self.DEFAULT_TRACKING_RATE
         self._halt_motion()
         self.resume_tracking()
 
@@ -423,6 +424,7 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
                 try:
                     with self._position_update_lock:
                         # TODO: In future, we should change tracking rate (and make any rate changes) here
+                        # Or just don't change mount position when we in tracking mode...
                         self.set_tracking_rate(new_tracking_rate)
                         # Manual update position after changing speed
                         self._motor_position_raw = self._get_motor_raw_position()
