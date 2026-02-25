@@ -412,7 +412,9 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
                     case MoveDirection.EAST | MoveDirection.SOUTH:
                         new_tracking_rate = (self.MAX_TRACKING_RATE - self.DEFAULT_TRACKING_RATE) * guide_task.ms / self._guide_interval + self.DEFAULT_TRACKING_RATE
                     case MoveDirection.WEST | MoveDirection.NORTH:
-                        new_tracking_rate = (self.DEFAULT_TRACKING_RATE - self.MIN_TRACKING_RATE) * guide_task.ms / self._guide_interval + self.DEFAULT_TRACKING_RATE
+                        new_tracking_rate = self.DEFAULT_TRACKING_RATE - (
+                            (self.DEFAULT_TRACKING_RATE - self.MIN_TRACKING_RATE) * guide_task.ms / self._guide_interval
+                        )
                     case _:
                         _logger.warning("Wrong direction: %s", guide_task.direction)
                         continue
@@ -438,7 +440,7 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
 class LX200RAHandler(LX200AxisHandler[Ha]):
     POS_CLS = Ha
     AXIS_NAME = "Ra"
-    DIRECTIONS = (MoveDirection.EAST, MoveDirection.SOUTH)
+    DIRECTIONS = (MoveDirection.EAST, MoveDirection.WEST)
     COMPENSATE_MOTOR_SIGN = 1
 
     MIN_TRACKING_RATE = 0
@@ -450,7 +452,7 @@ class LX200RAHandler(LX200AxisHandler[Ha]):
 class LX200DECHandler(LX200AxisHandler[Dec]):
     POS_CLS = Dec
     AXIS_NAME = "Dec"
-    DIRECTIONS = (MoveDirection.WEST, MoveDirection.NORTH)
+    DIRECTIONS = (MoveDirection.NORTH, MoveDirection.SOUTH)
     COMPENSATE_MOTOR_SIGN = -1
 
     MIN_TRACKING_RATE = -1
@@ -577,7 +579,7 @@ class LX200Handler(LX200Base):
                 self.set_slew_to_find()
                 result = None
             case LX200Commands.GUIDE, data:
-                direction = data[0]
+                direction = data[0].lower()
                 ms = int(data[1:])
 
                 match direction:
