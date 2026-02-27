@@ -54,7 +54,7 @@ HALT command must resume mount to tracking mode from SLEW / GOTO / GUIDE (?)
         - ✅ Moving
         - ✅ Stop
         - ✅ Tracking
-        - 💪 Guiding
+        - ✅ Guiding
 - SkyWatcher
     - ✅ Connect with mount
     - ✅ Move
@@ -75,29 +75,32 @@ HALT command must resume mount to tracking mode from SLEW / GOTO / GUIDE (?)
     - ✅ Sync
     - ✅ Slew
     - ✅ GOTO
-    - 💪 Guide
+    - ✅ Guide
 
 
 ## TODO
+Upper - more priority
+
 - Place on mount
     - ✅ Board scheme
     - ✅ Optimise traces
     - Board
         - ✅ Solder
-        - Status lights
-        - Reset button
-        - Voltage measure
-    - 3d printed case for board
+        - ✅* Status lights
+        - ✅ Reset button
+        - ✅ Voltage measure
+    - 💪 3d printed case for board
 - Motor-mount connection
     - Reprint gears with better axis and free rotation
     - Reprint middle-plate with more fixation and hole for polarscope
 - Fixes
     - Find correct ratio for DEC
+- Edge cases
+    - DEC more 90 -> RA + 12
 - Long tests
     - Sync -> GOTO -> (halt?) -> Check
     - Sync -> Slew -> (halt?) -> Check
-- Edge cases
-    - DEC more 90 -> RA + 12
+    - More tests for cases combination
 - Security
     - Watchdog
     - Stop after signals
@@ -118,3 +121,39 @@ HALT command must resume mount to tracking mode from SLEW / GOTO / GUIDE (?)
         - voltages
         - correction thread: delta, expected, real motor
         - guiding thread: last X timings, movavg
+    - Guiding
+        - real polar delta
+        - guiding delta
+- Rewrite with more clean architecture
+    - Sec/Arcsec + per secons + per second square (types)
+    - Motor controller 
+        - send queryies
+        - check current status
+        - return errors
+        - control speed, accel, microsteps limits
+        - run and stop motor
+    - Mount controller
+        - calculate current mount position
+        - store guiding rates
+        - converts steps to sec/arcsec
+        - control guiding
+        - stop motor when its need to be stopped (motor say so)
+    - Sky controller
+        - get/set sky position
+        - change base tracking (sky/lunar/solar/...)
+        - guide
+            - (*) calculate real polar position and autoguide based on external guiding
+        - moving
+        - set moving rate
+        - goto
+        - check goto finished
+        - halt, halt_all
+        - thread-cycle with:
+            - motor to mount position based on status and tracking rate
+            - control moving
+            - control goto
+            - control guide
+            - control halt
+    - lx200 controller
+        - handle lx200 command
+        - return correct answers
