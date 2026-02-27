@@ -125,7 +125,7 @@ Upper - more priority
         - real polar delta
         - guiding delta
 - Rewrite with more clean architecture
-    - Sec/Arcsec + per secons + per second square (types)
+    - Better types
     - Motor controller 
         - send queryies
         - check current status
