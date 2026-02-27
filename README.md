@@ -10,14 +10,15 @@ The Python runtime is organized around a socket server (`LX200SimpleServer`) and
 The project includes broad automated coverage for parsing, coordinate math, motion-status conversions, rate control, and serial error handling, plus hardware-oriented test suites for SkyWatcher, TMC2209, and end-to-end splitter behavior (`SYNC`, `SLEW`, `GOTO`, `HALT`, guiding in all directions). Firmware for the DEC controller lives in `telescope_dec/src/main.cpp`, where a lightweight line protocol (`status/get/set/position/delta/run/stop/mode`) powers the Python adapter and keeps command latency low on embedded hardware.
 
 ## Scheme
-INDI --LX200--> FrankenMount 
-
-FM --RA--> SkyWatcherAdapter --SynScan--> SkyWatcher 2i
-by https://github.com/indilib/indi/blob/master/drivers/telescope/skywatcherAPIMount.cpp
-
-FM --DEC--> LX200Adapter --LX200--> Arduino --> TMC2209 --> Motor --> Mount dec throught gears
-
-FM Controls Current position and movements
+```
+kstars
+v
+ekos
+v
+INDI --LX200--> MultiMount
+                 `--RA--> SkyWatcherAdapter --SynScan--> SkyWatcher 2i
+                 `--DEC--> TMC2209Adapter --LX200--> Arduino --> TMC2209 --> Motor --> Mount dec throught gears
+```
 
 ## Coordinate system
 | Case                           | RA Rate | RA Ticks | RA mount | Dec Rate | Dec Ticks | Dec mount |
