@@ -157,3 +157,5 @@ Upper - more priority
     - lx200 controller
         - handle lx200 command
         - return correct answers
+- Test for every new level
+- Plan for migration to new architecture
