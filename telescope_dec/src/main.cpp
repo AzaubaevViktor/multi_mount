@@ -48,7 +48,7 @@ static const float POWER_EXP_BASE_V = 10.0f;
 static const uint16_t POWER_BLINK_BASE_MS = 250;
 static const uint32_t POWER_SAMPLE_INTERVAL_MS = 200;
 
-static const uint16_t STEP_COLOR_LUT_SIZE = 256;
+static const uint16_t STEP_COLOR_LUT_SIZE = 128;
 static const uint8_t STEP_COLOR_GREEN_SHIFT = 85;     // 120 degrees for 256-step LUT
 static const uint8_t STEP_COLOR_BLUE_SHIFT = 170;     // 240 degrees for 256-step LUT
 static const uint8_t MAX_STEP_LIGHT = 4;
