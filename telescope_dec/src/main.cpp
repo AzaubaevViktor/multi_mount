@@ -23,13 +23,13 @@ static const bool    EN_ACTIVE_LOW = true;
 static const uint8_t POWER_LED_PIN = 11;
 static const uint8_t POWER_SENSE_PIN = A1;
 
-static const uint8_t STEP_RGB_RED_PIN = 3;
+static const uint8_t STEP_RGB_RED_PIN = 6;
 static const uint8_t STEP_RGB_GREEN_PIN = 5;
-static const uint8_t STEP_RGB_BLUE_PIN = 6;
+static const uint8_t STEP_RGB_BLUE_PIN = 3;
 
-static const uint8_t MODE_LED_RED_PIN = A5;
+static const uint8_t MODE_LED_RED_PIN = A3;
 static const uint8_t MODE_LED_GREEN_PIN = A2;
-static const uint8_t MODE_LED_BLUE_PIN = A3;
+static const uint8_t MODE_LED_BLUE_PIN = A5;
 
 static const uint8_t TMC_RX_PIN = 8;
 static const uint8_t TMC_TX_PIN = 9;
@@ -255,20 +255,20 @@ static void buildStepColorLutV2() {
 static void runStartupLedSequenceV2() {
   static const uint8_t LED_PINS[] = {
     POWER_LED_PIN,
-    STEP_RGB_RED_PIN,
-    STEP_RGB_GREEN_PIN,
-    STEP_RGB_BLUE_PIN,
-    MODE_LED_RED_PIN,
-    MODE_LED_GREEN_PIN,
-    MODE_LED_BLUE_PIN
+    STEP_RGB_RED_PIN,  // red
+    STEP_RGB_GREEN_PIN,  // green
+    STEP_RGB_BLUE_PIN,  // blue
+    MODE_LED_RED_PIN,  // red
+    MODE_LED_GREEN_PIN,  // green
+    MODE_LED_BLUE_PIN  // blue
   };
 
   clearStatusLedsV2();
   for (uint8_t i = 0; i < (sizeof(LED_PINS) / sizeof(LED_PINS[0])); i++) {
     writeStartupLedV2(LED_PINS[i], true);
-    delay(7);
+    delay(10);
     writeStartupLedV2(LED_PINS[i], false);
-    delay(3);
+    delay(5);
   }
 }
 
