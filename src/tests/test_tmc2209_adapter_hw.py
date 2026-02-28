@@ -37,7 +37,8 @@ def adapter() -> Iterator[TMC2209Adapter]:
     adapter = TMC2209Adapter(serial_line)
     adapter.connect()
     adapter._set_param('irun', 1200)
-    adapter._set_param('ihold', 1200)
+    # TODO: Understand why irun -> ihold, ihold -> irun, ihold -> ihold restart microcontroller
+    # adapter._set_param('ihold', 500)
 
     try:
         adapter.set_enabled(True)
