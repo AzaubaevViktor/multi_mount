@@ -28,8 +28,8 @@ static const uint8_t STEP_RGB_GREEN_PIN = 5;
 static const uint8_t STEP_RGB_BLUE_PIN = 6;
 
 static const uint8_t MODE_LED_RED_PIN = A5;
-static const uint8_t MODE_LED_GREEN_PIN = A6;  // Change to A4
-static const uint8_t MODE_LED_BLUE_PIN = A7;  // Change to A4
+static const uint8_t MODE_LED_GREEN_PIN = A2;
+static const uint8_t MODE_LED_BLUE_PIN = A3;
 
 static const uint8_t TMC_RX_PIN = 8;
 static const uint8_t TMC_TX_PIN = 9;
@@ -266,9 +266,9 @@ static void runStartupLedSequenceV2() {
   clearStatusLedsV2();
   for (uint8_t i = 0; i < (sizeof(LED_PINS) / sizeof(LED_PINS[0])); i++) {
     writeStartupLedV2(LED_PINS[i], true);
-    delay(70);
+    delay(7);
     writeStartupLedV2(LED_PINS[i], false);
-    delay(35);
+    delay(3);
   }
 }
 
