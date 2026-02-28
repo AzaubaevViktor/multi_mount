@@ -12,7 +12,6 @@
 #include <TMCStepper.h>
 #include <limits.h>
 #include <math.h>
-#include <stdio.h>
 
 // ---------- Pins ----------
 static const uint8_t STEP_PIN = 7;
@@ -143,8 +142,6 @@ static void samplePowerVoltageV2(uint32_t nowMs);
 
 // ---------- V2 formatting ----------
 static const uint8_t HEX_WIDTH = 8;
-static const uint8_t HEX_PREFIX_LEN = 2;
-static const uint8_t HEX_BUF_LEN = HEX_PREFIX_LEN + HEX_WIDTH + 1;
 
 // ---------- Simple line parser ----------
 static char lineBufV2[256];
@@ -159,7 +156,7 @@ static inline bool outHasDataV2() {
   return outWriteV2 != outReadV2;
 }
 
-static inline bool outPushV2(char c) {
+static inline bool outAppendCharV2(char c) {
   uint8_t next = (uint8_t)(outWriteV2 + 1);
   if (next == outReadV2) return false;
   outBufV2[outWriteV2] = c;
@@ -174,35 +171,36 @@ static inline bool outPopV2(char* c) {
   return true;
 }
 
-static inline void outAppendCharV2(char c) {
-  outPushV2(c);
-}
-
 static inline void outAppendStrV2(const char* s) {
   if (!s) return;
   while (*s) {
-    if (!outPushV2(*s++)) return;
-  }
-}
-
-static inline void outAppendNumLongV2(long v) {
-  char tmp[24];
-  int n = snprintf(tmp, sizeof(tmp), "%ld", v);
-  if (n > 0) {
-    for (int i = 0; i < n; i++) {
-      if (!outPushV2(tmp[i])) break;
-    }
+    if (!outAppendCharV2(*s++)) return;
   }
 }
 
 static inline void outAppendNumU32V2(uint32_t v) {
-  char tmp[24];
-  int n = snprintf(tmp, sizeof(tmp), "%lu", (unsigned long)v);
-  if (n > 0) {
-    for (int i = 0; i < n; i++) {
-      if (!outPushV2(tmp[i])) break;
-    }
+  char tmp[10];
+  uint8_t n = 0;
+
+  do {
+    tmp[n++] = (char)('0' + (v % 10U));
+    v /= 10U;
+  } while (v && n < sizeof(tmp));
+
+  while (n > 0) {
+    outAppendCharV2(tmp[--n]);
   }
+}
+
+static inline void outAppendNumLongV2(long v) {
+  uint32_t value;
+  if (v < 0) {
+    outAppendCharV2('-');
+    value = (uint32_t)(-(v + 1L)) + 1U;
+  } else {
+    value = (uint32_t)v;
+  }
+  outAppendNumU32V2(value);
 }
 
 static inline void outAppendNumFloatV2(float v, uint8_t decimals) {
@@ -216,9 +214,12 @@ static inline void outAppendNumFloatV2(float v, uint8_t decimals) {
 }
 
 static inline void outAppendHexU32V2(uint32_t v) {
-  char tmp[HEX_BUF_LEN];
-  snprintf(tmp, sizeof(tmp), "0x%0*lX", HEX_WIDTH, (unsigned long)v);
-  outAppendStrV2(tmp);
+  outAppendCharV2('0');
+  outAppendCharV2('x');
+  for (int8_t i = HEX_WIDTH - 1; i >= 0; i--) {
+    const uint8_t nibble = (uint8_t)((v >> (i * 4)) & 0x0F);
+    outAppendCharV2((char)(nibble < 10 ? ('0' + nibble) : ('A' + nibble - 10)));
+  }
 }
 
 static inline void outFlushLineV2() {
