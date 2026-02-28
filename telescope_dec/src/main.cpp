@@ -267,8 +267,8 @@ static void runStartupLedSequenceV2() {
   for (uint8_t i = 0; i < (sizeof(LED_PINS) / sizeof(LED_PINS[0])); i++) {
     writeStartupLedV2(LED_PINS[i], true);
     delay(10);
-    writeStartupLedV2(LED_PINS[i], false);
-    delay(5);
+    // writeStartupLedV2(LED_PINS[i], false);
+    // delay(5);
   }
 }
 
