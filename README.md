@@ -76,11 +76,6 @@ HALT command must resume mount to tracking mode from SLEW / GOTO / GUIDE (?)
     - ✅ Slew
     - ✅ GOTO
     - ✅ Guide
-
-
-## TODO
-Upper - more priority
-
 - Place on mount
     - ✅ Board scheme
     - ✅ Optimise traces
@@ -89,14 +84,26 @@ Upper - more priority
         - ✅* Status lights
         - ✅ Reset button
         - ✅ Voltage measure
-    - 💪 3d printed case for board
-- Motor-mount connection
-    - Reprint gears with better axis and free rotation
-    - Reprint middle-plate with more fixation and hole for polarscope
+    - ✅ 3d printed case for board
+
+## TODO
+Upper - more priority
 - Fixes
     - Find correct ratio for DEC
+
 - Edge cases
     - DEC more 90 -> RA + 12
+
+- New Sky class for tracking
+    - Dynamic guides and find real North based on guiding or two-points
+    - Control star, lunar, solar tracking by real North and by control speed rates
+
+- Motor-mount connection
+    - ✅ Reprint gears with better axis and free rotation
+    - Reprint middle-plate with more fixation and hole for polarscope
+
+- Tests for different goto's (A->B)
+- Tests for slews from edge positions
 - Long tests
     - Sync -> GOTO -> (halt?) -> Check
     - Sync -> Slew -> (halt?) -> Check
@@ -107,7 +114,10 @@ Upper - more priority
 - Fixes
     - RA motor stop sometimes
     - Slow reaction to manual slew
+
+## Improvements
 - Status interface
+    - Maybe throught INDI?
     - LX200: raw + commands + answers
         - coordinates get/sync/slew
         - aux
@@ -124,6 +134,7 @@ Upper - more priority
     - Guiding
         - real polar delta
         - guiding delta
+
 - Rewrite with more clean architecture
     - Better types
     - Motor controller 
@@ -157,5 +168,5 @@ Upper - more priority
     - lx200 controller
         - handle lx200 command
         - return correct answers
-- Test for every new level
-- Plan for migration to new architecture
+    - Test for every new level
+    - Plan for migration to new architecture
