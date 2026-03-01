@@ -135,6 +135,8 @@ Upper - more priority
         - real polar delta
         - guiding delta
 
+- Rewrite tmc2209 to binary protocol
+
 - Rewrite with more clean architecture
     - Better types
     - Motor controller 
