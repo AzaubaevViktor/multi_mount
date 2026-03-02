@@ -1,0 +1,1 @@
+- Don't extract single-use code into separate methods/functions. If logic is used once, keep it inline near the call site.

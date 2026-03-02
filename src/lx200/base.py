@@ -10,7 +10,6 @@ from .protocol import AlignmentMode
 from lx200.protocols import Ha, Dec, AxisPos
 
 
-# TODO: Add output verification, LX200 can work strange when output is incorrect
 class LX200Commands(StrEnum):
     GET_TELECOPE_RA = "GR"
     SET_TELESCOPE_RA = "Sr"
@@ -57,8 +56,10 @@ class LX200Commands(StrEnum):
     SET_MINIMUM_ELEVATION = "Sh"
     SET_HIGHEST_ELEVATION = "So"
 
+    SET_SLEW_TO_GUIDE = "RG"
+    SET_SLEW_TO_CENTER = "RC"
     SET_SLEW_TO_FIND = "RM"
-    # TODO: Add RG, RS, RC
+    SET_SLEW_TO_MAX = "RS"
 
     GUIDE = "Mg"
 
@@ -146,6 +147,15 @@ class LX200Base:
     def set_slew_to_find(self) -> bool:
         raise NotImplementedError()
 
+    def set_slew_to_guide(self) -> bool:
+        return self.set_slew_to_find()
+
+    def set_slew_to_center(self) -> bool:
+        return self.set_slew_to_find()
+
+    def set_slew_to_max(self) -> bool:
+        return self.set_slew_to_find()
+
     def get_distance(self) -> str:
         raise NotImplementedError()
     
@@ -199,6 +209,7 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
 
     _TELEMETRY_INTERVAL_S = 1.0
     _RATE_COMPENSATE_INTERVAL_S = .5
+    _GUIDE_QUEUE_POLL_INTERVAL_S = .1
     COMPENSATE_MOTOR_SIGN: int  # Is this really the best way for RA/DEC?
 
     MIN_TRACKING_RATE: float
@@ -229,6 +240,9 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
         self._compensate_thread = threading.Thread(target=self._compensate_tracking_rate, name=f"{type(self).__name__}_compensate")
         self._compensate_thread.start()
 
+        self._guide_thread = threading.Thread(target=self._do_apply_guide, name=f"{type(self).__name__}_guide")
+        self._guide_thread.start()
+
         self._goto_to: Any
 
     def _is_motor_connected(self) -> bool:
@@ -244,6 +258,9 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
         raise NotImplementedError()
     
     def _wrap_mount_position(self, mount_position: float) -> float:
+        raise NotImplementedError()
+
+    def _wrap_motor_position(self, motor_position: float) -> float:
         raise NotImplementedError()
     
     def _set_tracking_rate(self, rate: float) -> float | None:
@@ -285,9 +302,6 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
         ))
 
     def halt_all(self):
-        # Drop sky tracking rate on halt_all, but keep it when halting by direction.
-        with self._position_update_lock:  # TODO: Move into _apply_axis_command
-            self._sky_track_rate = self.DEFAULT_TRACKING_RATE
         self.halt_motion()
         return True
 
@@ -296,7 +310,7 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
             AxisCommand(type=AxisCommandType.HALT_MOTION)
         )
 
-    def halt_x(self, direction: MoveDirection) -> bool:  # TODO: Make private
+    def _halt_direction(self, direction: MoveDirection) -> bool:
         if direction not in self.DIRECTIONS:
             return False
 
@@ -306,24 +320,16 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
         return True
 
     def halt_east(self) -> bool:
-        return self.halt_x(MoveDirection.EAST)
+        return self._halt_direction(MoveDirection.EAST)
 
     def halt_north(self) -> bool:
-        return self.halt_x(MoveDirection.NORTH)
+        return self._halt_direction(MoveDirection.NORTH)
 
     def halt_south(self) -> bool:
-        return self.halt_x(MoveDirection.SOUTH)
+        return self._halt_direction(MoveDirection.SOUTH)
 
     def halt_west(self) -> bool:
-        return self.halt_x(MoveDirection.WEST)
-
-    def _get_axis_command(self, timeout_s: float) -> AxisCommand | None:
-        try:
-            if timeout_s <= 0:
-                return self._axis_command_queue.get_nowait()
-            return self._axis_command_queue.get(timeout=timeout_s)
-        except queue.Empty:
-            return None
+        return self._halt_direction(MoveDirection.WEST)
 
     def _apply_tracking_rate_now(self, rate: float, update_sky_rate: bool) -> None:
         rounded_rate = self._set_tracking_rate(rate)
@@ -334,18 +340,18 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
         self._current_track_rate = applied_rate
 
         try:
-            self._motor_position_raw = self._get_motor_raw_position()
+            motor_position = self._get_motor_raw_position()
+            self._motor_position_raw = self._wrap_motor_position(motor_position)
             self.logger.debug(
-                "Update motor position after tracking rate apply: %.3f",
+                "Update motor position snapshot: %.3f",
                 self._motor_position_raw,
             )
         except Exception:
-            self.logger.exception("While updating motor position after tracking rate apply")
+            self.logger.exception("While updating motor position snapshot")
 
         self._last_update_s = time.monotonic()
 
     def _apply_axis_command(self, cmd: AxisCommand) -> None:
-        # TODO: Update motor_position_raw and last_update, make it different method
         match cmd.type:
             case AxisCommandType.SET_TRACKING_RATE:
                 if cmd.rate is None:
@@ -356,7 +362,8 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
             case AxisCommandType.HALT_MOTION:
                 self._halt_motion()
                 with self._position_update_lock:
-                    self._apply_tracking_rate_now(self._sky_track_rate, update_sky_rate=False)  # TODO: Drop sky rate inside here
+                    self._sky_track_rate = self.DEFAULT_TRACKING_RATE
+                    self._apply_tracking_rate_now(self._sky_track_rate, update_sky_rate=False)
             case AxisCommandType.HALT_DIRECTION:
                 if cmd.direction not in self.DIRECTIONS:
                     self.logger.warning("Ignore wrong halt direction for %s: %s", self.AXIS_NAME, cmd.direction)
@@ -367,29 +374,34 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
             case _:
                 self.logger.warning("Unknown axis command: %s", cmd)
 
-    def _process_guide_tasks(self, _logger: logging.Logger) -> None:
-        while not self._guide_queue.empty():
+    def _do_apply_guide(self) -> None:
+        _logger = self.logger.getChild("guide")
+        while self._working:
             try:
-                guide_task = self._guide_queue.get_nowait()
+                guide_task = self._guide_queue.get(timeout=self._GUIDE_QUEUE_POLL_INTERVAL_S)
             except queue.Empty:
-                break
+                continue
 
             if guide_task.direction not in self.DIRECTIONS:
+                _logger.warning("Wrong direction: %s", guide_task.direction)
                 continue
 
             match guide_task.direction:
                 case MoveDirection.EAST | MoveDirection.SOUTH:
-                    new_tracking_rate = (self.MAX_TRACKING_RATE - self.DEFAULT_TRACKING_RATE) * guide_task.ms / self._guide_interval + self.DEFAULT_TRACKING_RATE
+                    guide_rate = (self.MAX_TRACKING_RATE - self.DEFAULT_TRACKING_RATE) * guide_task.ms / self._guide_interval + self.DEFAULT_TRACKING_RATE
                 case MoveDirection.WEST | MoveDirection.NORTH:
-                    new_tracking_rate = self.DEFAULT_TRACKING_RATE - (
+                    guide_rate = self.DEFAULT_TRACKING_RATE - (
                         (self.DEFAULT_TRACKING_RATE - self.MIN_TRACKING_RATE) * guide_task.ms / self._guide_interval
                     )
                 case _:
                     _logger.warning("Wrong direction: %s", guide_task.direction)
                     continue
 
-            self.logger.debug("Found applyable guide task: %s -> rate: %.3f", guide_task, new_tracking_rate)
-            self.set_tracking_rate(new_tracking_rate, update_sky_rate=False)
+            _logger.debug("Found applyable guide task: %s -> rate: %.3f", guide_task, guide_rate)
+            try:
+                self.set_tracking_rate(guide_rate, update_sky_rate=True)
+            except Exception:
+                _logger.exception("While queueing guide task: %s -> rate=%.3f", guide_task, guide_rate)
 
     def _do_log_telemetry(self):
         _logger = self.logger.getChild("telemetry")
@@ -439,9 +451,10 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
             now = time.monotonic()
             wait_timeout_s = max(0., self._RATE_COMPENSATE_INTERVAL_S - (now - self._last_update_s))
 
-            # TODO: Process guide here
-
-            command = self._get_axis_command(wait_timeout_s)
+            try:
+                command = self._axis_command_queue.get(timeout=wait_timeout_s)
+            except queue.Empty:
+                command = None
             if command:
                 try:
                     self._apply_axis_command(command)
@@ -451,7 +464,7 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
 
             with self._position_update_lock:
                 try:
-                    motor_position = self._get_motor_raw_position()
+                    motor_position = self._wrap_motor_position(self._get_motor_raw_position())
                     self.logger.debug("Motor raw position: %f", motor_position)
                     now = time.monotonic()
                 except Exception as e:
@@ -462,7 +475,6 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
 
                 expected_delta_seconds = elapsed_s * self._get_default_tracking_speed() * self._current_track_rate
 
-                # TODO: Add _wrap_motor_position
                 actual_delta_seconds = motor_position - self._motor_position_raw
 
                 actual_delta_seconds *= self.COMPENSATE_MOTOR_SIGN
@@ -499,8 +511,6 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
                 self._motor_position_raw = motor_position
                 self._last_update_s = now
 
-            self._process_guide_tasks(_logger)
-
     def stop(self):
         if not self._working:
             return 
@@ -513,6 +523,8 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
                 self.logger.exception("While finishing telemetry thread")
         if self._compensate_thread and self._compensate_thread.is_alive():
             self._compensate_thread.join(timeout=self._RATE_COMPENSATE_INTERVAL_S * 5)
+        if self._guide_thread and self._guide_thread.is_alive():
+            self._guide_thread.join(timeout=self._GUIDE_QUEUE_POLL_INTERVAL_S * 5)
 
     def __del__(self):
         self.stop()
@@ -544,6 +556,7 @@ class LX200DECHandler(LX200AxisHandler[Dec]):
 
 class LX200Handler(LX200Base):
     def __init__(self) -> None:
+        self.logger = logging.getLogger(type(self).__name__)
         self._target_ra: Ha = Ha.from_hours(0)
         self._target_dec: Dec = Dec.from_degrees(0)
 
@@ -656,8 +669,17 @@ class LX200Handler(LX200Base):
             case LX200Commands.SET_LOCAL_DATE, _:
                 result = True
 
+            case LX200Commands.SET_SLEW_TO_GUIDE, _:
+                self.set_slew_to_guide()
+                result = None
+            case LX200Commands.SET_SLEW_TO_CENTER, _:
+                self.set_slew_to_center()
+                result = None
             case LX200Commands.SET_SLEW_TO_FIND, _:
                 self.set_slew_to_find()
+                result = None
+            case LX200Commands.SET_SLEW_TO_MAX, _:
+                self.set_slew_to_max()
                 result = None
             case LX200Commands.GUIDE, data:
                 direction = data[0].lower()
@@ -683,18 +705,19 @@ class LX200Handler(LX200Base):
                 result = _LX200NotImplementedCommand(cmd)
         
         return result
-        
+
     def handle(self, full_command: str) -> Any:
         _cmd, argument = full_command[:2], full_command[2:]
-        cmd = LX200Commands(_cmd)
+        try:
+            cmd = LX200Commands(_cmd)
+        except ValueError as e:
+            raise RuntimeError(f"Unknown LX200 command: {_cmd}({argument})") from e
         _logger.info("Get command %s %s(%s)", cmd, cmd.name, argument)
 
         result = self._do_handle(cmd, argument)
         
         if isinstance(result, _LX200NotImplementedCommand):
-            _logger.warning("Empty responce: %s %s(%s) -> ∅", cmd, cmd.name, argument)
-
-            result = None
+            raise RuntimeError(f"Not implemented LX200 command: {cmd} {cmd.name}({argument})")
         elif result is not None:
             _logger.info("Answer command %s %s(%s) -> %s", cmd, cmd.name, argument, result)
         else:

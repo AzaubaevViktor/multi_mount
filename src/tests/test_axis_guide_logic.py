@@ -2,7 +2,7 @@ import time
 
 import pytest
 
-from lx200.base import LX200DECHandler, LX200RAHandler, MoveDirection
+from lx200.base import LX200DECHandler, LX200RAHandler
 
 
 def _wait_for_rate_updates(axis, count: int, timeout_s: float = 1.5) -> None:
@@ -96,6 +96,7 @@ def test_ra_guide_applies_east_and_west_with_opposite_rates() -> None:
         axis.guide_west(2000)
         _wait_for_rate_updates(axis, count=2)
         assert axis.applied_rates[:2] == pytest.approx([1.5, 0.5])
+        assert axis._sky_track_rate == pytest.approx(0.5)
     finally:
         axis.stop()
 
@@ -107,6 +108,7 @@ def test_dec_guide_applies_north_and_south_with_opposite_rates() -> None:
         axis.guide_south(2000)
         _wait_for_rate_updates(axis, count=2)
         assert axis.applied_rates[:2] == pytest.approx([-0.5, 0.5])
+        assert axis._sky_track_rate == pytest.approx(0.5)
     finally:
         axis.stop()
 
@@ -139,7 +141,7 @@ def test_axis_commands_apply_immediately_without_waiting_compensate_interval() -
         _wait_for_rate_updates(axis, count=2, timeout_s=0.5)
 
         halt_start = time.monotonic()
-        assert axis.halt_x(MoveDirection.EAST) is True
+        assert axis.halt_east() is True
         _wait_for_halt(axis, count=1, timeout_s=0.5)
         _wait_for_rate_updates(axis, count=3, timeout_s=0.5)
         assert time.monotonic() - halt_start < 0.5

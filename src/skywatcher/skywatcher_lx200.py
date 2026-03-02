@@ -45,6 +45,9 @@ class SkyWatcherLX200(LX200RAHandler):
     
     def _wrap_mount_position(self, mount_position: float) -> float:
         return mount_position % Ha.SECONDS_PER_CIRCLE
+
+    def _wrap_motor_position(self, motor_position: float) -> float:
+        return motor_position % Ha.SECONDS_PER_CIRCLE
     
     def _set_tracking_rate(self, rate: float):
         self.mount.start_tracking(rate)
