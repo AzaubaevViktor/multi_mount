@@ -6,11 +6,10 @@ import pytest
 
 from lx200.guide_compensator import compute_pole_offset
 
-
 def simulate_guide_rates(eps_N: float, eps_E: float, HA_deg: float, dec_deg: float) -> tuple[float, float]:
     """
-    По известному смещению полюса и позиции звезды вычисляет
-    теоретические d и k — прямая задача.
+    Computes theoretical d and k from known polar offset and star position
+    (the forward problem).
     """
     omega = 15.0
     HA  = math.radians(HA_deg)
@@ -37,10 +36,10 @@ def simulate_guide_rates(eps_N: float, eps_E: float, HA_deg: float, dec_deg: flo
         ),
 )
 def test_simulated_polar_missaligment(e_n: float, e_e: float, ha_deg: float, dec_deg: float):
-    # Прямая задача: получаем d и k
+    # Forward problem: obtain d and k
     d, k = simulate_guide_rates(e_n, e_e, ha_deg, dec_deg)
     
-    # Обратная задача: восстанавливаем смещение
+    # Inverse problem: recover the offset
     eps_N_calc, eps_E_calc = compute_pole_offset(d, k, ha_deg, dec_deg)
 
     err_N = eps_N_calc - e_n
