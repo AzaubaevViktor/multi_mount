@@ -245,6 +245,8 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
 
         self._goto_to: Any
 
+    # TODO: extract NotImplemented _X methods to Motor interface (in different file), unite statuses, motion type and other stuff to base classes, use it for skywatcher and tmc2209adapter
+
     def _is_motor_connected(self) -> bool:
         raise NotImplementedError()
 

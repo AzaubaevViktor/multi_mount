@@ -82,6 +82,9 @@ class TMC2209LX200(LX200DECHandler):
     def _wrap_mount_position(self, mount_position: float) -> float:
         # TODO: Wrap around mount position
         return mount_position
+
+    def _wrap_motor_position(self, motor_position: float) -> float:
+        return motor_position
     
     def _wrap_steps(self, motor_position: float) -> float:
         return (motor_position + self._adapter.steps_per_rev / 2) % self._adapter.steps_per_rev - self._adapter.steps_per_rev / 2
