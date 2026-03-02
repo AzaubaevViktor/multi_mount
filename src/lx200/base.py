@@ -352,6 +352,7 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
         self._last_update_s = time.monotonic()
 
     def _apply_axis_command(self, cmd: AxisCommand) -> None:
+        self.logger.debug("Apply axis command: %s", cmd)
         match cmd.type:
             case AxisCommandType.SET_TRACKING_RATE:
                 if cmd.rate is None:
@@ -359,18 +360,38 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
                     return
                 with self._position_update_lock:
                     self._apply_tracking_rate_now(cmd.rate, update_sky_rate=cmd.update_sky_rate)
+                self.logger.info(
+                    "Applied tracking rate command: rate=%.3f update_sky_rate=%s current=%.3f sky=%.3f",
+                    cmd.rate,
+                    cmd.update_sky_rate,
+                    self._current_track_rate,
+                    self._sky_track_rate,
+                )
             case AxisCommandType.HALT_MOTION:
+                self.logger.info("Apply halt motion command: drop sky tracking to default")
                 self._halt_motion()
                 with self._position_update_lock:
                     self._sky_track_rate = self.DEFAULT_TRACKING_RATE
                     self._apply_tracking_rate_now(self._sky_track_rate, update_sky_rate=False)
+                self.logger.info(
+                    "Applied halt motion command: current=%.3f sky=%.3f",
+                    self._current_track_rate,
+                    self._sky_track_rate,
+                )
             case AxisCommandType.HALT_DIRECTION:
                 if cmd.direction not in self.DIRECTIONS:
                     self.logger.warning("Ignore wrong halt direction for %s: %s", self.AXIS_NAME, cmd.direction)
                     return
+                self.logger.info("Apply halt direction command: %s", cmd.direction)
                 self._halt_motion()
                 with self._position_update_lock:
                     self._apply_tracking_rate_now(self._sky_track_rate, update_sky_rate=False)
+                self.logger.info(
+                    "Applied halt direction command: direction=%s current=%.3f sky=%.3f",
+                    cmd.direction,
+                    self._current_track_rate,
+                    self._sky_track_rate,
+                )
             case _:
                 self.logger.warning("Unknown axis command: %s", cmd)
 
@@ -456,10 +477,18 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
             except queue.Empty:
                 command = None
             if command:
-                try:
-                    self._apply_axis_command(command)
-                except Exception:
-                    _logger.exception("While applying axis command: %s", command)
+                commands = [command]
+                while True:
+                    try:
+                        commands.append(self._axis_command_queue.get_nowait())
+                    except queue.Empty:
+                        break
+
+                for queued_command in commands:
+                    try:
+                        self._apply_axis_command(queued_command)
+                    except Exception:
+                        _logger.exception("While applying axis command: %s", queued_command)
                 continue
 
             with self._position_update_lock:
