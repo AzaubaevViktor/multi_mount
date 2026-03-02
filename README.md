@@ -137,38 +137,49 @@ Upper - more priority
 
 - Rewrite tmc2209 to binary protocol
 
-- Rewrite with more clean architecture
-    - Better types
-    - Motor controller 
-        - send queryies
-        - check current status
-        - return errors
-        - control speed, accel, microsteps limits
-        - run and stop motor
-    - Mount controller
-        - calculate current mount position
-        - store guiding rates
-        - converts steps to sec/arcsec
-        - control guiding
-        - stop motor when its need to be stopped (motor say so)
-    - Sky controller
-        - get/set sky position
-        - change base tracking (sky/lunar/solar/...)
-        - guide
-            - (*) calculate real polar position and autoguide based on external guiding
-        - moving
-        - set moving rate
-        - goto
-        - check goto finished
-        - halt, halt_all
-        - thread-cycle with:
-            - motor to mount position based on status and tracking rate
-            - control moving
-            - control goto
-            - control guide
-            - control halt
-    - lx200 controller
-        - handle lx200 command
-        - return correct answers
-    - Test for every new level
-    - Plan for migration to new architecture
+## Better layers (TODO)
+### Types
+- `HA sec` for RA, 0:00:00 .. 23:59:59
+- `Dec arcsec` for DEC, -90 .. +90
+- `sec` for seconds
+- `HA sec/sec` for RA speed
+- `Dec arcsec/sec` for DEC speed
+
+### Data layer
+Serial wrapper with transactions and blockings
+
+### Motor layer
+- Check current status
+- Send queries to motor
+- Return errors if query can't be done
+- Set speed, acceleration, microsteps in steps
+- Run and stop motor
+
+### Mount layer
+Recalculate current point in the sky periodically:
+- Update current motor position
+- Store current sky rate (mount axis relative speed)
+- Set and store current speed in sec/sec 
+    - convert to steps/sec
+- Stop motor when motion change (if motor need to be stopped)
+- Move mount in direction, stop moving
+
+### Real North layer
+- Check real north by two-axis stable guiding or by manual set
+- Store real north relative position
+- Update sky_rate for mount layer periodically
+
+### Tracking layer
+- Select current tracking mode
+    - Star
+    - Lunar
+    - Solar
+    - Comet?
+    - Manual trajectory?
+- Change rate relative to sky periodically based on:
+    - Next coordinate
+    - Current coordinate
+    - Previous error*
+- LX200
+    - Handle lx200 command
+
