@@ -2,27 +2,27 @@ import math
 
 def compute_pole_offset(d: float, k: float, HA_deg: float, dec_deg: float):
     """
-    d      - дрейф по Dec ["/с], положительный = на север
-    k      - коэффициент RA относительно сидерической (1.0 = точно)
-    HA_deg - часовой угол звезды [градусы], запад положительный
-    dec_deg- склонение звезды [градусы]
-    
-    Возвращает (eps_N, eps_E) в угловых секундах.
-    eps_N > 0 — полюс севернее оси монтировки
-    eps_E > 0 — полюс восточнее оси монтировки
+    d      - Dec drift ["/s], positive = north
+    k      - RA coefficient relative to sidereal (1.0 = exact)
+    HA_deg - star hour angle [degrees], west is positive
+    dec_deg- star declination [degrees]
+
+    Returns (eps_N, eps_E) in arcseconds.
+    eps_N > 0 - pole is north of the mount axis
+    eps_E > 0 - pole is east of the mount axis
     """
-    omega = 15.0  # "/с, сидерическая скорость
+    omega = 15.0  # "/s, sidereal rate
 
     HA  = math.radians(HA_deg)
     dec = math.radians(dec_deg)
 
     tan_dec = math.tan(dec)
     if abs(tan_dec) < 1e-6:
-        raise ValueError("Склонение слишком близко к 0° — уравнение по RA вырождено")
+        raise ValueError("Declination is too close to 0° - RA equation is degenerate")
 
-    # Нормированные правые части
-    rhs_dec = d / omega          # из уравнения по Dec
-    rhs_ra  = (k - 1) / tan_dec  # из уравнения по RA
+    # Normalized right-hand sides
+    rhs_dec = d / omega          # from Dec equation
+    rhs_ra  = (k - 1) / tan_dec  # from RA equation
 
     eps_N = rhs_dec * math.cos(HA) + rhs_ra * math.sin(HA)
     eps_E = -rhs_dec * math.sin(HA) + rhs_ra * math.cos(HA)
@@ -31,24 +31,24 @@ def compute_pole_offset(d: float, k: float, HA_deg: float, dec_deg: float):
 
 
 def main():
-    print("=== Вычисление смещения полюса ===\n")
-    d       = float(input("Дрейф по Dec [\"/ с] (+ север, - юг): "))
-    k       = float(input("Коэффициент RA (например 1.0003): "))
-    HA_deg  = float(input("Часовой угол звезды [градусы] (+ запад): "))
-    dec_deg = float(input("Склонение звезды [градусы]: "))
+    print("=== Pole Offset Calculation ===\n")
+    d       = float(input("Dec drift [\"/s] (+ north, - south): "))
+    k       = float(input("RA coefficient (for example 1.0003): "))
+    HA_deg  = float(input("Star hour angle [degrees] (+ west): "))
+    dec_deg = float(input("Star declination [degrees]: "))
 
     eps_N, eps_E = compute_pole_offset(d, k, HA_deg, dec_deg)
 
-    print(f"\nСмещение полюса от оси монтировки:")
-    print(f"  ε_N = {eps_N:+.2f}\"  ({'полюс севернее' if eps_N > 0 else 'полюс южнее'} оси)")
-    print(f"  ε_E = {eps_E:+.2f}\"  ({'полюс восточнее' if eps_E > 0 else 'полюс западнее'} оси)")
-    print(f"\nПолное смещение: {math.hypot(eps_N, eps_E):.2f}\"")
+    print(f"\nPole offset from the mount axis:")
+    print(f"  ε_N = {eps_N:+.2f}\"  ({'pole north of' if eps_N > 0 else 'pole south of'} axis)")
+    print(f"  ε_E = {eps_E:+.2f}\"  ({'pole east of' if eps_E > 0 else 'pole west of'} axis)")
+    print(f"\nTotal offset: {math.hypot(eps_N, eps_E):.2f}\"")
 
     az_err = math.degrees(math.atan2(eps_E, eps_N))
-    print(f"Направление смещения (от севера на восток): {az_err:.1f}°")
-    print(f"\nЧтобы совместить ось с полюсом:")
-    print(f"  Высоту {'увеличить' if eps_N < 0 else 'уменьшить'} на {abs(eps_N):.2f}\"")
-    print(f"  Азимут {'повернуть на восток' if eps_E < 0 else 'повернуть на запад'} на {abs(eps_E):.2f}\"")
+    print(f"Offset direction (from north toward east): {az_err:.1f}°")
+    print(f"\nTo align the axis with the pole:")
+    print(f"  {'Increase' if eps_N < 0 else 'Decrease'} altitude by {abs(eps_N):.2f}\"")
+    print(f"  Rotate azimuth {'east' if eps_E < 0 else 'west'} by {abs(eps_E):.2f}\"")
 
 
 if __name__ == "__main__":
