@@ -139,7 +139,7 @@ class SkyWatcherLX200(LX200RAHandler):
             self._last_check_goto = time.monotonic()
     
     def stop(self):
-        self.halt_motion()
+        self._halt_motion()
         self._working = False
         super().stop()
         if self._check_goto_thread and self._check_goto_thread.is_alive():

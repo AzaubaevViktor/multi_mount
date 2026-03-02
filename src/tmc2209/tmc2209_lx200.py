@@ -139,7 +139,7 @@ class TMC2209LX200(LX200DECHandler):
         self.logger.info("TMC2209 LX200 connected")
 
     def stop(self):
-        self.halt_all()
+        self._halt_motion()
         self.logger.info("Stop TMC2209 LX200")
         self._is_connected = False
         super().stop()
