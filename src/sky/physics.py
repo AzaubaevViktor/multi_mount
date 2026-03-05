@@ -62,7 +62,7 @@ class HA(AxisPos):
         raise NotImplementedError(f"Unsupported division: {type(self)} / {type(other)}")
     
     def _rounded_total_seconds(self) -> int:
-        rounded_total_seconds = int(round(self._total_seconds))
+        rounded_total_seconds = abs(int(round(self._total_seconds)))
         return rounded_total_seconds % self.SECONDS_PER_CIRCLE
 
     @property
@@ -94,7 +94,7 @@ class HA(AxisPos):
 
     def __str__(self) -> str:
         sign = "-" if self._total_seconds < 0 else ""
-        return f"{sign}{self.hours:02d}:{self.minutes:02d}:{self._total_seconds:02d}"
+        return f"{sign}{self.hours:02d}:{self.minutes:02d}:{self.seconds:02d}"
 
 
 class HAPerSecond(AxisSpeed):
@@ -127,11 +127,9 @@ class Dec(AxisPos):
         return self._total_arcseconds
     
     def _rounded_total_arcseconds(self) -> int:
-        rounded_total_arcseconds = int(round(self._total_arcseconds))
+        rounded_total_arcseconds = abs(int(round(self._total_arcseconds)))
         if rounded_total_arcseconds > self.ARCSECONDS_PER_QUATER_CIRCLE:
             rounded_total_arcseconds %= self.ARCSECONDS_PER_QUATER_CIRCLE
-        if rounded_total_arcseconds < -self.ARCSECONDS_PER_QUATER_CIRCLE:
-            rounded_total_arcseconds %= -self.ARCSECONDS_PER_QUATER_CIRCLE
         return rounded_total_arcseconds
 
     @property
@@ -185,9 +183,5 @@ class DecPerSecond(AxisSpeed):
 
     def __mul__(self, other: Any) -> Any:
         if isinstance(other, Second): 
-            return Dec(self.arcseconds_per_second * other.seconds)
+            return Dec(self._total_arcseconds_per_second * other.seconds)
         raise NotImplementedError(f"Unsupported multiplication: {type(self)} * {type(other)}")
-
-
-a = HA(10) / Second(2)
-print(a._total_seconds_per_second)
