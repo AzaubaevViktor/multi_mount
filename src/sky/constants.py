@@ -1,0 +1,5 @@
+STELLAR_DAY = 86164.098903691 
+"""sec/day"""
+
+STELLAR_SPEED = 15.041067179 
+"""deg/hour"""

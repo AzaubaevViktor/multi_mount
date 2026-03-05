@@ -7,6 +7,7 @@ import time
 from typing import Callable, Self
 from lx200.protocols import Ha
 from serial_wrapper.wrapper import SerialLine
+from sky.constants import STELLAR_DAY, STELLAR_SPEED
 
 
 class SkyWatcherWrongResponce(Exception):
@@ -165,10 +166,6 @@ class SkyWatcherMount:
     _COMMAND_ERROR_PREFIX = "!"
     _RESPONCE_PREFIX = "="
 
-    _STELLAR_DAY = 86164.098903691  # sec/day
-    """sec/day"""
-    STELLAR_SPEED = 15.041067179  # deg/hour
-    """deg/hour"""
     _SIDEREAL_DAY = 86164.09053083288
     _SIDEREAL_SPEED = 15.04106864
 
@@ -194,7 +191,7 @@ class SkyWatcherMount:
         self.ra_steps_360: int
         self.ra_steps_worm: int
         self.ra_highspeed_ratio: int
-        self._last_tracking_rate = self.STELLAR_SPEED
+        self._last_tracking_rate = STELLAR_SPEED
 
         self._last_status_snapshot: tuple[int, bool, bool, SlewMode, Direction, SpeedMode] | None = None
 
@@ -518,7 +515,7 @@ class SkyWatcherMount:
             direction=target_direction,
             speed_mode=target_speed_mode,
         )
-        period = self._STELLAR_DAY * self.ra_steps_worm / self.ra_steps_360 / abs(rate)
+        period = STELLAR_DAY * self.ra_steps_worm / self.ra_steps_360 / abs(rate)
 
         self.logger.info("Set RA rate: %.1f * %d (highspeed=%s) mode=%s // period=%d", rate, self.ra_highspeed_ratio if is_highspeed else 1, is_highspeed, mode.name, int(period))
 

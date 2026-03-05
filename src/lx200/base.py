@@ -240,9 +240,6 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
         self._compensate_thread = threading.Thread(target=self._compensate_tracking_rate, name=f"{type(self).__name__}_compensate")
         self._compensate_thread.start()
 
-        self._guide_thread = threading.Thread(target=self._do_apply_guide, name=f"{type(self).__name__}_guide")
-        self._guide_thread.start()
-
         self._goto_to: Any
 
     # TODO: extract NotImplemented _X methods to Motor interface (in different file), unite statuses, motion type and other stuff to base classes, use it for skywatcher and tmc2209adapter
@@ -356,6 +353,7 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
     def _apply_axis_command(self, cmd: AxisCommand) -> None:
         self.logger.debug("Apply axis command: %s", cmd)
         match cmd.type:
+            # TODO: Rewrite to set values and _apply_tracking_rate_now down + logs
             case AxisCommandType.SET_TRACKING_RATE:
                 if cmd.rate is None:
                     self.logger.warning("Skip empty tracking rate command: %s", cmd)
@@ -408,7 +406,8 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
             if guide_task.direction not in self.DIRECTIONS:
                 _logger.warning("Wrong direction: %s", guide_task.direction)
                 continue
-
+            
+            # TODO: Move this to polar_compensator and rewrite to set rates instead of guide commands
             match guide_task.direction:
                 case MoveDirection.EAST | MoveDirection.SOUTH:
                     guide_rate = (self.MAX_TRACKING_RATE - self.DEFAULT_TRACKING_RATE) * guide_task.ms / self._guide_interval + self.DEFAULT_TRACKING_RATE

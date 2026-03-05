@@ -1,5 +1,7 @@
 import math
 
+from sky.constants import STELLAR_SPEED
+
 def compute_pole_offset(d: float, k: float, HA_deg: float, dec_deg: float):
     """
     d      - Dec drift ["/s], positive = north
@@ -11,7 +13,6 @@ def compute_pole_offset(d: float, k: float, HA_deg: float, dec_deg: float):
     eps_N > 0 - pole is north of the mount axis
     eps_E > 0 - pole is east of the mount axis
     """
-    omega = 15.0  # "/s, sidereal rate
 
     HA  = math.radians(HA_deg)
     dec = math.radians(dec_deg)
@@ -21,13 +22,26 @@ def compute_pole_offset(d: float, k: float, HA_deg: float, dec_deg: float):
         raise ValueError("Declination is too close to 0° - RA equation is degenerate")
 
     # Normalized right-hand sides
-    rhs_dec = d / omega          # from Dec equation
+    rhs_dec = d / STELLAR_SPEED  # from Dec equation
     rhs_ra  = (k - 1) / tan_dec  # from RA equation
 
     eps_N = rhs_dec * math.cos(HA) + rhs_ra * math.sin(HA)
     eps_E = -rhs_dec * math.sin(HA) + rhs_ra * math.cos(HA)
 
     return eps_N, eps_E
+
+
+def compute_guide_rates(eps_N: float, eps_E: float, HA_deg: float, dec_deg: float) -> tuple[float, float]:
+    """
+    Computes theoretical d and k from known polar offset and star position
+    (the forward problem).
+    """
+    HA  = math.radians(HA_deg)
+    dec = math.radians(dec_deg)
+    
+    d = STELLAR_SPEED * (eps_N * math.cos(HA) - eps_E * math.sin(HA))
+    k = 1.0 + math.tan(dec) * (eps_N * math.sin(HA) + eps_E * math.cos(HA))
+    return d, k
 
 
 def main():
