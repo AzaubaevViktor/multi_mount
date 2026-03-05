@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import StrEnum
 import logging
+from math import e
 import queue
 import threading
 import time
@@ -279,26 +280,41 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
 
     def _halt_motion(self) -> None:
         raise NotImplementedError()
+    
+    def _apply_guide_rate(self, direction: MoveDirection, ms: int) -> None:
+        if direction not in self.DIRECTIONS:
+            return
+
+        match direction:
+            case MoveDirection.EAST | MoveDirection.SOUTH:
+                guide_rate = (self.MAX_TRACKING_RATE - self.DEFAULT_TRACKING_RATE) * ms / self._guide_interval + self.DEFAULT_TRACKING_RATE
+            case MoveDirection.WEST | MoveDirection.NORTH:
+                guide_rate = self.DEFAULT_TRACKING_RATE - (
+                    (self.DEFAULT_TRACKING_RATE - self.MIN_TRACKING_RATE) * ms / self._guide_interval
+                )
+            case _:
+                self.logger.warning("Wrong direction: %s", direction)
+                return
+
+        self.logger.debug(
+            "Change guide rate: %s(%d/%d) -> rate: %.3f .. [%.3f] .. %.3f", 
+            direction, ms, self._guide_interval, 
+            self.MIN_TRACKING_RATE, guide_rate, self.MAX_TRACKING_RATE,
+        )
+        
+        self.set_tracking_rate(guide_rate, update_sky_rate=True)
 
     def guide_east(self, ms: int) -> None:
-        self._guide_queue.put(GuideTask(
-            direction=MoveDirection.EAST, ms=ms,
-        ))
+        self._apply_guide_rate(MoveDirection.EAST, ms)
 
     def guide_north(self, ms: int) -> None:
-        self._guide_queue.put(GuideTask(
-            direction=MoveDirection.NORTH, ms=ms,
-        ))
+        self._apply_guide_rate(MoveDirection.NORTH, ms)
 
     def guide_south(self, ms: int) -> None:
-        self._guide_queue.put(GuideTask(
-            direction=MoveDirection.SOUTH, ms=ms,
-        ))
+        self._apply_guide_rate(MoveDirection.SOUTH, ms)
 
     def guide_west(self, ms: int) -> None:
-        self._guide_queue.put(GuideTask(
-            direction=MoveDirection.WEST, ms=ms,
-        ))
+        self._apply_guide_rate(MoveDirection.WEST, ms)
 
     def halt_all(self):
         self.halt_motion()
@@ -394,36 +410,6 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
                 )
             case _:
                 self.logger.warning("Unknown axis command: %s", cmd)
-
-    def _do_apply_guide(self) -> None:
-        _logger = self.logger.getChild("guide")
-        while self._working:
-            try:
-                guide_task = self._guide_queue.get(timeout=self._GUIDE_QUEUE_POLL_INTERVAL_S)
-            except queue.Empty:
-                continue
-
-            if guide_task.direction not in self.DIRECTIONS:
-                _logger.warning("Wrong direction: %s", guide_task.direction)
-                continue
-            
-            # TODO: Move this to polar_compensator and rewrite to set rates instead of guide commands
-            match guide_task.direction:
-                case MoveDirection.EAST | MoveDirection.SOUTH:
-                    guide_rate = (self.MAX_TRACKING_RATE - self.DEFAULT_TRACKING_RATE) * guide_task.ms / self._guide_interval + self.DEFAULT_TRACKING_RATE
-                case MoveDirection.WEST | MoveDirection.NORTH:
-                    guide_rate = self.DEFAULT_TRACKING_RATE - (
-                        (self.DEFAULT_TRACKING_RATE - self.MIN_TRACKING_RATE) * guide_task.ms / self._guide_interval
-                    )
-                case _:
-                    _logger.warning("Wrong direction: %s", guide_task.direction)
-                    continue
-
-            _logger.debug("Found applyable guide task: %s -> rate: %.3f", guide_task, guide_rate)
-            try:
-                self.set_tracking_rate(guide_rate, update_sky_rate=True)
-            except Exception:
-                _logger.exception("While queueing guide task: %s -> rate=%.3f", guide_task, guide_rate)
 
     def _do_log_telemetry(self):
         _logger = self.logger.getChild("telemetry")
@@ -553,8 +539,6 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
                 self.logger.exception("While finishing telemetry thread")
         if self._compensate_thread and self._compensate_thread.is_alive():
             self._compensate_thread.join(timeout=self._RATE_COMPENSATE_INTERVAL_S * 5)
-        if self._guide_thread and self._guide_thread.is_alive():
-            self._guide_thread.join(timeout=self._GUIDE_QUEUE_POLL_INTERVAL_S * 5)
 
     def __del__(self):
         self.stop()
