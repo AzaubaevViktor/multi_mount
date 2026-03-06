@@ -5,10 +5,13 @@ from math import e
 import queue
 import threading
 import time
-from typing import Any
+from typing import Any, Sequence
+
+from sky.constants import STELLAR_SPEED
+from sky.physics import AxisPos, Dec, DecPerSecond, DecPerSecond, HaPerSecond, Ha, AxisSpeed, Second
+from sky.physics import SkyDirection
 
 from .protocol import AlignmentMode
-from lx200.protocols import Ha, Dec, AxisPos
 
 
 class LX200Commands(StrEnum):
@@ -70,19 +73,12 @@ class _LX200NotImplementedCommand:
         self.cmd = cmd
 
 
-class MoveDirection(StrEnum):
-    EAST = "east"
-    NORTH = "north"
-    SOUTH = "south"
-    WEST = "west"
-
-
 _logger = logging.getLogger("lx200")
 
 
 @dataclass
 class GuideTask:
-    direction: MoveDirection
+    direction: SkyDirection
     ms: int
 
 
@@ -95,9 +91,9 @@ class AxisCommandType(StrEnum):
 @dataclass
 class AxisCommand:
     type: AxisCommandType
-    rate: float | None = None
+    rate: AxisSpeed | None = None
     update_sky_rate: bool = False
-    direction: MoveDirection | None = None
+    direction: SkyDirection | None = None
 
 
 class LX200Base:
@@ -127,7 +123,7 @@ class LX200Base:
     def get_telescope_ra(self) -> Ha:
         raise NotImplementedError()
     
-    def motor_position(self) -> tuple[float, float]:
+    def motor_position(self) -> tuple[Ha, Dec]:
         raise NotImplementedError()
     
     def sync_telescope_ra(self, position: Ha) -> bool:
@@ -188,8 +184,7 @@ class LX200Base:
     
     def halt_west(self) -> bool:
         raise NotImplementedError()
-    
-    # Guiding: increase / decrease current tracking rate and returns it when its ok
+
     def guide_east(self, ms: int) -> None:
         raise NotImplementedError()
     
@@ -203,36 +198,40 @@ class LX200Base:
         raise NotImplementedError()
 
 
-class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
+class LX200AxisHandler[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed](LX200Base):
     AXIS_NAME: str
-    DIRECTIONS: tuple[MoveDirection, ...]
+    DIRECTIONS: Sequence[SkyDirection]
     POS_CLS: type[_POS_CLS]
+    SPEED_CLS: type[_SPEED_CLS]
 
     _TELEMETRY_INTERVAL_S = 1.0
-    _RATE_COMPENSATE_INTERVAL_S = .5
-    _GUIDE_QUEUE_POLL_INTERVAL_S = .1
+    _RATE_COMPENSATE_INTERVAL_S = Second(.5)
     COMPENSATE_MOTOR_SIGN: int  # Is this really the best way for RA/DEC?
 
-    MIN_TRACKING_RATE: float
-    DEFAULT_TRACKING_RATE: float
-    MAX_TRACKING_RATE: float
-    DEFAULT_GUIDE_INTERVAL_MS: int = 4000
-
-    _POSITION_DELTA_ACCEPTED_RATE_S = .1
+    MIN_TRACKING_RATE: _SPEED_CLS
+    DEFAULT_TRACKING_RATE: _SPEED_CLS
+    MAX_TRACKING_RATE: _SPEED_CLS
+    DEFAULT_GUIDE_INTERVAL_MS: Second = Second(4)
 
     def __init__(self) -> None:
+        if not issubclass(self.POS_CLS, AxisPos):
+            raise TypeError(f"POS_CLS should be subclass of AxisPos, got {self.POS_CLS}")
+        if not issubclass(self.SPEED_CLS, AxisSpeed):
+            raise TypeError(f"SPEED_CLS should be subclass of AxisSpeed, got {self.SPEED_CLS}")
+
+        self._POSITION_DELTA_ACCEPTED_RATE_S: _SPEED_CLS = self.SPEED_CLS(.1)
+
         self.logger = logging.getLogger(type(self).__name__)
         self._working = True
 
         self._position_update_lock = threading.RLock()
-        self._mount_position_raw: float = 0
-        self._motor_position_raw: float = 0
-        self._last_update_s: float = 0
+        self._mount_position_raw: _POS_CLS = self.POS_CLS(0)
+        self._motor_position_raw: _POS_CLS = self.POS_CLS(0)
+        self._last_update_s: Second = Second.monotonic()
 
-        self._sky_track_rate: float = self.DEFAULT_TRACKING_RATE
-        self._current_track_rate: float = self.DEFAULT_TRACKING_RATE
-        self._guide_interval: int = self.DEFAULT_GUIDE_INTERVAL_MS
-        self._guide_queue: queue.Queue[GuideTask] = queue.Queue()
+        self._sky_track_rate: _SPEED_CLS = self.DEFAULT_TRACKING_RATE
+
+        self._guide_interval: Second = self.DEFAULT_GUIDE_INTERVAL_MS
         self._axis_command_queue: queue.Queue[AxisCommand] = queue.Queue()
 
         self._telemetry_thread = threading.Thread(target=self._do_log_telemetry, name=f"{type(self).__name__}_telemetry")
@@ -251,22 +250,13 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
     def _get_motor_status(self) -> Any:
         raise NotImplementedError()
     
-    def _get_motor_raw_position(self) -> float:
+    def _get_motor_raw_position(self) -> _POS_CLS:
         raise NotImplementedError()
     
-    def _get_default_tracking_speed(self) -> float:
-        raise NotImplementedError()
-    
-    def _wrap_mount_position(self, mount_position: float) -> float:
+    def _set_tracking_rate(self, rate: _SPEED_CLS) -> _SPEED_CLS | None:
         raise NotImplementedError()
 
-    def _wrap_motor_position(self, motor_position: float) -> float:
-        raise NotImplementedError()
-    
-    def _set_tracking_rate(self, rate: float) -> float | None:
-        raise NotImplementedError()
-
-    def set_tracking_rate(self, rate: float, update_sky_rate: bool = False) -> None:
+    def set_tracking_rate(self, rate: _SPEED_CLS, update_sky_rate: bool = False) -> None:
         self._axis_command_queue.put(
             AxisCommand(
                 type=AxisCommandType.SET_TRACKING_RATE,
@@ -280,41 +270,50 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
 
     def _halt_motion(self) -> None:
         raise NotImplementedError()
-    
-    def _apply_guide_rate(self, direction: MoveDirection, ms: int) -> None:
+
+    def calculate_guide_rate(self, direction: SkyDirection, ms: int) -> _SPEED_CLS | None:
         if direction not in self.DIRECTIONS:
-            return
+            return None
+
+        guide_fration = (Second(ms) / self._guide_interval)
 
         match direction:
-            case MoveDirection.EAST | MoveDirection.SOUTH:
-                guide_rate = (self.MAX_TRACKING_RATE - self.DEFAULT_TRACKING_RATE) * ms / self._guide_interval + self.DEFAULT_TRACKING_RATE
-            case MoveDirection.WEST | MoveDirection.NORTH:
+            case SkyDirection.EAST | SkyDirection.SOUTH:
+                guide_rate = (self.MAX_TRACKING_RATE - self.DEFAULT_TRACKING_RATE) * guide_fration + self.DEFAULT_TRACKING_RATE
+            case SkyDirection.WEST | SkyDirection.NORTH:
                 guide_rate = self.DEFAULT_TRACKING_RATE - (
-                    (self.DEFAULT_TRACKING_RATE - self.MIN_TRACKING_RATE) * ms / self._guide_interval
+                    (self.DEFAULT_TRACKING_RATE - self.MIN_TRACKING_RATE) * guide_fration
                 )
             case _:
                 self.logger.warning("Wrong direction: %s", direction)
-                return
+                return None
+        
+        return guide_rate
+    
+    def _apply_guide_rate(self, direction: SkyDirection, ms: int) -> None:
+        guide_rate = self.calculate_guide_rate(direction, ms)
+        if guide_rate is None:
+            return
 
         self.logger.debug(
             "Change guide rate: %s(%d/%d) -> rate: %.3f .. [%.3f] .. %.3f", 
-            direction, ms, self._guide_interval, 
+            direction, ms, self._guide_interval.to_milliseconds(), 
             self.MIN_TRACKING_RATE, guide_rate, self.MAX_TRACKING_RATE,
         )
         
         self.set_tracking_rate(guide_rate, update_sky_rate=True)
 
     def guide_east(self, ms: int) -> None:
-        self._apply_guide_rate(MoveDirection.EAST, ms)
+        self._apply_guide_rate(SkyDirection.EAST, ms)
 
     def guide_north(self, ms: int) -> None:
-        self._apply_guide_rate(MoveDirection.NORTH, ms)
+        self._apply_guide_rate(SkyDirection.NORTH, ms)
 
     def guide_south(self, ms: int) -> None:
-        self._apply_guide_rate(MoveDirection.SOUTH, ms)
+        self._apply_guide_rate(SkyDirection.SOUTH, ms)
 
     def guide_west(self, ms: int) -> None:
-        self._apply_guide_rate(MoveDirection.WEST, ms)
+        self._apply_guide_rate(SkyDirection.WEST, ms)
 
     def halt_all(self):
         self.halt_motion()
@@ -325,7 +324,7 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
             AxisCommand(type=AxisCommandType.HALT_MOTION)
         )
 
-    def _halt_direction(self, direction: MoveDirection) -> bool:
+    def _halt_direction(self, direction: SkyDirection) -> bool:
         if direction not in self.DIRECTIONS:
             return False
 
@@ -335,81 +334,79 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
         return True
 
     def halt_east(self) -> bool:
-        return self._halt_direction(MoveDirection.EAST)
+        return self._halt_direction(SkyDirection.EAST)
 
     def halt_north(self) -> bool:
-        return self._halt_direction(MoveDirection.NORTH)
+        return self._halt_direction(SkyDirection.NORTH)
 
     def halt_south(self) -> bool:
-        return self._halt_direction(MoveDirection.SOUTH)
+        return self._halt_direction(SkyDirection.SOUTH)
 
     def halt_west(self) -> bool:
-        return self._halt_direction(MoveDirection.WEST)
-
-    def _apply_tracking_rate_now(self, rate: float, update_sky_rate: bool) -> None:
-        rounded_rate = self._set_tracking_rate(rate)
-        applied_rate = rounded_rate if rounded_rate is not None else rate
-
-        if update_sky_rate:
-            self._sky_track_rate = applied_rate
-        self._current_track_rate = applied_rate
-
-        try:
-            motor_position = self._get_motor_raw_position()
-            self._motor_position_raw = self._wrap_motor_position(motor_position)
-            self.logger.debug(
-                "Update motor position snapshot: %.3f",
-                self._motor_position_raw,
-            )
-        except Exception:
-            self.logger.exception("While updating motor position snapshot")
-
-        self._last_update_s = time.monotonic()
+        return self._halt_direction(SkyDirection.WEST)
 
     def _apply_axis_command(self, cmd: AxisCommand) -> None:
+        if cmd.direction not in self.DIRECTIONS:
+            self.logger.warning("Ignore wrong halt direction for %s: %s", self.AXIS_NAME, cmd.direction)
+            return
+        
+        
         self.logger.debug("Apply axis command: %s", cmd)
+        
         match cmd.type:
             # TODO: Rewrite to set values and _apply_tracking_rate_now down + logs
             case AxisCommandType.SET_TRACKING_RATE:
-                if cmd.rate is None:
-                    self.logger.warning("Skip empty tracking rate command: %s", cmd)
-                    return
-                with self._position_update_lock:
-                    self._apply_tracking_rate_now(cmd.rate, update_sky_rate=cmd.update_sky_rate)
-                self.logger.info(
-                    "Applied tracking rate command: rate=%.3f update_sky_rate=%s current=%.3f sky=%.3f",
-                    cmd.rate,
-                    cmd.update_sky_rate,
-                    self._current_track_rate,
-                    self._sky_track_rate,
-                )
+                halt_motion = False
+                rate = cmd.rate
+                update_sky_rate = cmd.update_sky_rate
             case AxisCommandType.HALT_MOTION:
-                self.logger.info("Apply halt motion command: drop sky tracking to default")
-                self._halt_motion()
-                with self._position_update_lock:
-                    self._sky_track_rate = self.DEFAULT_TRACKING_RATE
-                    self._apply_tracking_rate_now(self._sky_track_rate, update_sky_rate=False)
-                self.logger.info(
-                    "Applied halt motion command: current=%.3f sky=%.3f",
-                    self._current_track_rate,
-                    self._sky_track_rate,
-                )
+                halt_motion = True
+                rate = self._sky_track_rate
+                update_sky_rate = True
             case AxisCommandType.HALT_DIRECTION:
-                if cmd.direction not in self.DIRECTIONS:
-                    self.logger.warning("Ignore wrong halt direction for %s: %s", self.AXIS_NAME, cmd.direction)
-                    return
-                self.logger.info("Apply halt direction command: %s", cmd.direction)
-                self._halt_motion()
-                with self._position_update_lock:
-                    self._apply_tracking_rate_now(self._sky_track_rate, update_sky_rate=False)
-                self.logger.info(
-                    "Applied halt direction command: direction=%s current=%.3f sky=%.3f",
-                    cmd.direction,
-                    self._current_track_rate,
-                    self._sky_track_rate,
-                )
+                
+                halt_motion = True
+                rate = self._sky_track_rate
+                update_sky_rate = False
             case _:
                 self.logger.warning("Unknown axis command: %s", cmd)
+                return 
+        
+        if rate is None:
+            raise ValueError("Rate should be set for command type %s", cmd.type)
+
+        if not isinstance(rate, self.SPEED_CLS):
+            raise ValueError("Rate should be of type %s for %s axis, got %s", self.SPEED_CLS, self.AXIS_NAME, type(rate))
+
+        previous_sky_rate = self._sky_track_rate
+        previous_motor_position = self._motor_position_raw
+
+        with self._position_update_lock:
+            if halt_motion:
+                self._halt_motion()
+
+            rounded_rate = self._set_tracking_rate(rate)
+
+            applied_rate = rounded_rate if rounded_rate is not None else rate
+
+            if update_sky_rate:
+                self._sky_track_rate = applied_rate
+            sky_rate = self._sky_track_rate
+
+            motor_position = self._get_motor_raw_position()
+            if not isinstance(motor_position, self.POS_CLS):
+                raise ValueError("Motor position should be of type %s for %s axis, got %s", self.POS_CLS, self.AXIS_NAME, type(motor_position))
+            self._motor_position_raw = motor_position.wrap()  # TODO: store if wrapping happens, need to compensate it in other axis if it happens in DEC
+
+            self._last_update_s = Second.monotonic()
+
+        self.logger.info(
+            "Applied command: %s; rate: %.3f->%.3f; sky_rate: %.3f->%.3f; motor_position: %.3f-> %.3f",
+            cmd.type, 
+            cmd.rate, applied_rate,
+            previous_sky_rate, sky_rate,
+            previous_motor_position, motor_position
+        )
 
     def _do_log_telemetry(self):
         _logger = self.logger.getChild("telemetry")
@@ -449,18 +446,18 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
 
     def _compensate_tracking_rate(self):
         _logger = self.logger.getChild("compensate")
-        self._last_update_s = time.monotonic()
+        self._last_update_s = Second.monotonic()
 
         while self._working:
             if not self._is_motor_connected():
-                time.sleep(self._RATE_COMPENSATE_INTERVAL_S)
+                time.sleep(float(self._RATE_COMPENSATE_INTERVAL_S))
                 continue
 
-            now = time.monotonic()
-            wait_timeout_s = max(0., self._RATE_COMPENSATE_INTERVAL_S - (now - self._last_update_s))
+            now = Second.monotonic()
+            wait_timeout_s = max(Second(0.), self._RATE_COMPENSATE_INTERVAL_S - (now - self._last_update_s))
 
             try:
-                command = self._axis_command_queue.get(timeout=wait_timeout_s)
+                command = self._axis_command_queue.get(timeout=float(wait_timeout_s))
             except queue.Empty:
                 command = None
             if command:
@@ -480,16 +477,16 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
 
             with self._position_update_lock:
                 try:
-                    motor_position = self._wrap_motor_position(self._get_motor_raw_position())
+                    motor_position = self._get_motor_raw_position().wrap()
                     self.logger.debug("Motor raw position: %f", motor_position)
-                    now = time.monotonic()
+                    now = Second.monotonic()
                 except Exception as e:
                     _logger.warning("While get raw position: %s", e)
                     continue
 
                 elapsed_s = now - self._last_update_s
 
-                expected_delta_seconds = elapsed_s * self._get_default_tracking_speed() * self._current_track_rate
+                expected_delta_seconds = self._sky_track_rate * elapsed_s
 
                 actual_delta_seconds = motor_position - self._motor_position_raw
 
@@ -498,24 +495,24 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
                 delta = expected_delta_seconds - actual_delta_seconds
 
                 self.logger.debug(
-                    "Calculated delta by %.3fs: %.3f = exp=%.3f = (%.3fs * (%.3fs/s x%.3f)) - act=%.3f = (%.3f - %.3f); MNT: %.3f",
+                    "Calculated delta by %.3fs: %.3f = exp=%.3f = (%.3fs * (%.3fs/s)) - act=%.3f = (%.3f - %.3f); MNT: %.3f",
                     elapsed_s,
                     delta, 
-                    expected_delta_seconds, elapsed_s, self._get_default_tracking_speed(), self._current_track_rate,
+                    expected_delta_seconds, elapsed_s, self._sky_track_rate
                     actual_delta_seconds, motor_position,  self._motor_position_raw,
                     self._mount_position_raw,
                 )
                 
                 if abs(delta) < self._POSITION_DELTA_ACCEPTED_RATE_S * elapsed_s:
-                    delta = 0
+                    delta = self.POS_CLS(0)
 
-                new_mount_position = self._wrap_mount_position(self._mount_position_raw + delta)
+                new_mount_position = (self._mount_position_raw + delta).wrap()
 
                 try:
                     self.logger.info(
                         "Update mount position: %s -> %s (%.2f -> %.2f)",
-                        self.POS_CLS.from_raw(self._mount_position_raw),
-                        self.POS_CLS.from_raw(new_mount_position),
+                        self._mount_position_raw,
+                        new_mount_position,
                         self._mount_position_raw, 
                         new_mount_position,
                     )
@@ -538,43 +535,43 @@ class LX200AxisHandler[_POS_CLS: AxisPos](LX200Base):
             except Exception:
                 self.logger.exception("While finishing telemetry thread")
         if self._compensate_thread and self._compensate_thread.is_alive():
-            self._compensate_thread.join(timeout=self._RATE_COMPENSATE_INTERVAL_S * 5)
+            self._compensate_thread.join(timeout=float(self._RATE_COMPENSATE_INTERVAL_S * 5))
 
     def __del__(self):
         self.stop()
 
 
-class LX200RAHandler(LX200AxisHandler[Ha]):
+class LX200RAHandler(LX200AxisHandler[Ha, HaPerSecond]):
     POS_CLS = Ha
+    SPEED_CLS = HaPerSecond
     AXIS_NAME = "Ra"
-    DIRECTIONS = (MoveDirection.EAST, MoveDirection.WEST)
+    DIRECTIONS = SkyDirection.ha_directions()
     COMPENSATE_MOTOR_SIGN = 1
 
-    MIN_TRACKING_RATE = 0
-    DEFAULT_TRACKING_RATE = 1
-    MAX_TRACKING_RATE = 2
-    DEFAULT_GUIDE_INTERVAL_MS = 4000
+    MIN_TRACKING_RATE = HaPerSecond(0)
+    DEFAULT_TRACKING_RATE = STELLAR_SPEED
+    MAX_TRACKING_RATE = STELLAR_SPEED * 2
 
 
-class LX200DECHandler(LX200AxisHandler[Dec]):
+class LX200DECHandler(LX200AxisHandler[Dec, DecPerSecond]):
     POS_CLS = Dec
+    SPEED_CLS = DecPerSecond
     AXIS_NAME = "Dec"
-    DIRECTIONS = (MoveDirection.NORTH, MoveDirection.SOUTH)
+    DIRECTIONS = SkyDirection.dec_directions()
     COMPENSATE_MOTOR_SIGN = -1
 
-    MIN_TRACKING_RATE = -1
-    DEFAULT_TRACKING_RATE = 0
-    MAX_TRACKING_RATE = 1
-    DEFAULT_GUIDE_INTERVAL_MS = 4000
+    MIN_TRACKING_RATE = DecPerSecond(-100)
+    DEFAULT_TRACKING_RATE = DecPerSecond(0)
+    MAX_TRACKING_RATE = DecPerSecond(100)
 
 
 class LX200Handler(LX200Base):
     def __init__(self) -> None:
         self.logger = logging.getLogger(type(self).__name__)
-        self._target_ra: Ha = Ha.from_hours(0)
-        self._target_dec: Dec = Dec.from_degrees(0)
+        self._target_ra: Ha = Ha(0)
+        self._target_dec: Dec = Dec(0)
 
-        self._manual_move_directions: list[MoveDirection] = []
+        self._manual_move_directions: list[SkyDirection] = []
 
         self._is_connected = False
 
@@ -610,23 +607,23 @@ class LX200Handler(LX200Base):
 
             case LX200Commands.MOVE_EAST, _:
                 if self.move_east():
-                    if MoveDirection.EAST not in self._manual_move_directions:
-                        self._manual_move_directions.append(MoveDirection.EAST)
+                    if SkyDirection.EAST not in self._manual_move_directions:
+                        self._manual_move_directions.append(SkyDirection.EAST)
                 result = None
             case LX200Commands.MOVE_NORTH, _:
                 if self.move_north():
-                    if MoveDirection.NORTH not in self._manual_move_directions:
-                        self._manual_move_directions.append(MoveDirection.NORTH)
+                    if SkyDirection.NORTH not in self._manual_move_directions:
+                        self._manual_move_directions.append(SkyDirection.NORTH)
                 result = None
             case LX200Commands.MOVE_SOUTH, _:
                 if self.move_south():
-                    if MoveDirection.SOUTH not in self._manual_move_directions:
-                        self._manual_move_directions.append(MoveDirection.SOUTH)
+                    if SkyDirection.SOUTH not in self._manual_move_directions:
+                        self._manual_move_directions.append(SkyDirection.SOUTH)
                 result = None
             case LX200Commands.MOVE_WEST, _:
                 if self.move_west():
-                    if MoveDirection.WEST not in self._manual_move_directions:
-                        self._manual_move_directions.append(MoveDirection.WEST)
+                    if SkyDirection.WEST not in self._manual_move_directions:
+                        self._manual_move_directions.append(SkyDirection.WEST)
                 result = None
 
             case LX200Commands.HALT_ALL, _:
@@ -634,24 +631,24 @@ class LX200Handler(LX200Base):
                 self._manual_move_directions.clear()
                 result = None
             case LX200Commands.HALT_EAST, _:
-                if MoveDirection.EAST in self._manual_move_directions:
+                if SkyDirection.EAST in self._manual_move_directions:
                     self.halt_east()
-                    self._manual_move_directions.remove(MoveDirection.EAST)
+                    self._manual_move_directions.remove(SkyDirection.EAST)
                 result = None
             case LX200Commands.HALT_NORTH, _:
-                if MoveDirection.NORTH in self._manual_move_directions:
+                if SkyDirection.NORTH in self._manual_move_directions:
                     self.halt_north()
-                    self._manual_move_directions.remove(MoveDirection.NORTH)
+                    self._manual_move_directions.remove(SkyDirection.NORTH)
                 result = None
             case LX200Commands.HALT_SOUTH, _:
-                if MoveDirection.SOUTH in self._manual_move_directions:
+                if SkyDirection.SOUTH in self._manual_move_directions:
                     self.halt_south()
-                    self._manual_move_directions.remove(MoveDirection.SOUTH)
+                    self._manual_move_directions.remove(SkyDirection.SOUTH)
                 result = None
             case LX200Commands.HALT_WEST, _:
-                if MoveDirection.WEST in self._manual_move_directions:
+                if SkyDirection.WEST in self._manual_move_directions:
                     self.halt_west()
-                    self._manual_move_directions.remove(MoveDirection.WEST)
+                    self._manual_move_directions.remove(SkyDirection.WEST)
                 result = None
 
             case LX200Commands.GET_CALENDAR_FORMAT, _:

@@ -5,12 +5,13 @@ from typing import Callable
 from lx200.base import LX200DECHandler, LX200Handler, LX200RAHandler
 from lx200.guide_compensator import compute_pole_offset, compute_guide_rates
 from lx200.protocol import AlignmentMode
-from lx200.protocols import Dec, Ha
+from sky.constants import STELLAR_SPEED
+from sky.physics import Dec, DecPerSecond, HaPerSecond, Ha, SkyDirection, Second
 
 
 class PolarCompensator:
-    SETTLE_THRESHOLD_RA_COEF = 0.05
-    SETTLE_THRESHOLD_DEC = 0.05
+    SETTLE_THRESHOLD_RA = HaPerSecond(0.05)
+    SETTLE_THRESHOLD_DEC = DecPerSecond(0.05)
 
     CORRECTION_DELTA_S = 5
 
@@ -19,7 +20,7 @@ class PolarCompensator:
         SETTLE = 'settle'
         GUIDING = 'guiding'
 
-    def __init__(self, do_correction: Callable[[float, float], None], settle_count: int = 6) -> None:
+    def __init__(self, do_correction: Callable[[HaPerSecond, DecPerSecond], None], settle_count: int = 6) -> None:
         self.logger = logging.getLogger("PolarCompensator")
         self._do_correction_func = do_correction
 
@@ -27,20 +28,21 @@ class PolarCompensator:
         self._current_settle_count = 0
         self._last_correction_time = time.monotonic()
 
-        self.eps_N: float = 0
-        self.eps_E: float = 0
+        self.eps_N: Dec = Dec(0)
+        self.eps_E: Ha = Ha(0)
 
-        self._last_guide_update: float = time.monotonic()
-        self.current_ha: float = 0
-        self.current_dec: float = 0
+        self._last_guide_update: Second = Second.monotonic()
+        self.current_ha: Ha = Ha(0)
+        self.current_dec: Dec = Dec(0)
 
-        self._prev_drift: float = 0
-        self._dec_drift: float = 0
+        self._prev_dec_drift: DecPerSecond = DecPerSecond(0)
+        self._dec_drift: DecPerSecond = DecPerSecond(0)
 
-        self._prev_ra_coeff: float = 1.0
-        self._ra_coeff: float = 1.0
+        self._prev_ra_speed: HaPerSecond = STELLAR_SPEED
+        self._ra_speed: HaPerSecond = STELLAR_SPEED
 
-        self._updated = threading.Event()
+        self._updated_ra = threading.Event()
+        self._updated_dec = threading.Event()
 
         self.status = self.Status.DISABLED
         self._working = True
@@ -52,34 +54,41 @@ class PolarCompensator:
     
     def stop(self):
         self._working = False
-        self._updated.set()
+        self._updated_ra.set()
+        self._updated_dec.set()
         self._thread.join()
 
-    def _do_correction(self, d: float, k: float):
-        self.logger.debug("Applying correction with d=%.4f, k=%.4f", d, k)
-        self._do_correction_func(d, k)
+    def _do_correction(self, ha_drift: HaPerSecond, dec_drift: DecPerSecond):
+        self.logger.debug("Applying correction with ha_drift=%.4f, dec_drift=%.4f", ha_drift, dec_drift)
+        self._do_correction_func(ha_drift, dec_drift)
 
-    def set_coordiantes(self, ha: float | None, dec: float | None):
+    def set_coordiantes(self, ha: Ha | None, dec: Dec | None):
+        """ Update pointing coordinates """
         if ha is not None:
             self.current_ha = ha
         if dec is not None:
             self.current_dec = dec
 
-    def set_guide_speed_dec(self, speed: float):
-        self._prev_drift = self._dec_drift
+    def set_guide_speed_dec(self, speed: DecPerSecond):
+        self._prev_dec_drift = self._dec_drift
         self._dec_drift = speed
-        self._last_guide_update = time.monotonic()
-        self._updated.set()
+        self._last_guide_update = Second.monotonic()
+        self._updated_dec.set()
     
-    def set_guide_speed_ra(self, coeff: float):
-        self._prev_ra_coeff = self._ra_coeff
-        self._ra_coeff = coeff
-        self._last_guide_update = time.monotonic()
-        self._updated.set()
+    def set_guide_speed_ra(self, speed: HaPerSecond):
+        self._prev_ra_speed = self._ra_speed
+        self._ra_speed = speed
+        self._last_guide_update = Second.monotonic()
+        self._updated_ra.set()
 
     def _do_check(self):
         while self._working:
-            if not self._updated.wait(.5):
+            both_updated = False
+
+            if self._updated_ra.wait(.5) and self._updated_dec.wait(.5):
+                both_updated = True
+            
+            if not both_updated:
                 now = time.monotonic()
 
                 if self.status == self.Status.SETTLE:
@@ -91,10 +100,14 @@ class PolarCompensator:
                         self._last_correction_time = now
 
                 continue
+
+            self._updated_ra.clear()
+            self._updated_dec.clear()
             
-            is_ra_settled = abs(self._prev_ra_coeff - self._ra_coeff) < self.SETTLE_THRESHOLD_RA_COEF
-            is_dec_settled = abs(self._prev_drift - self._dec_drift) < self.SETTLE_THRESHOLD_DEC
-            self._do_correction(self._dec_drift, self._ra_coeff)
+            is_ra_settled = abs(self._prev_ra_speed - self._ra_speed) < self.SETTLE_THRESHOLD_RA
+            is_dec_settled = abs(self._prev_dec_drift - self._dec_drift) < self.SETTLE_THRESHOLD_DEC
+            self._do_correction(self._ra_speed, self._dec_drift)
+
             if is_ra_settled and is_dec_settled:
                 self._current_settle_count += 1
             else:
@@ -103,7 +116,7 @@ class PolarCompensator:
 
             if self._current_settle_count >= self._settle_count:
                 self.status = self.Status.SETTLE
-                self.eps_N, self.eps_E = compute_pole_offset(self._dec_drift, self._ra_coeff, self.current_ha, self.current_dec)
+                self.eps_N, self.eps_E = compute_pole_offset(self._dec_drift, self._ra_speed, self.current_ha, self.current_dec)
 
 
 class LX200Splitter(LX200Handler):
@@ -147,16 +160,17 @@ class LX200Splitter(LX200Handler):
     
     def get_telescope_ra(self) -> Ha:
         ra = self.ra.get_telescope_ra()
-        self._polar_compensator.set_coordiantes(ha=ra.to_seconds(), dec=None)
+        self._polar_compensator.set_coordiantes(ha=ra, dec=None)
         return ra
 
-    def motor_position(self) -> tuple[float, float]:
+    def motor_position(self) -> tuple[Ha, Dec]:
         return (
             self.ra.motor_position()[0],
             self.dec.motor_position()[1],
         )
     
     def slew_to_ra(self, position: Ha) -> bool:
+        # TODO: Reimplement just slew_to with both ra and dec, because we need to set correct dec when crossing pole
         return self.ra.slew_to_ra(position)
     
     def slew_to_dec(self, position: Dec) -> bool:
@@ -166,8 +180,9 @@ class LX200Splitter(LX200Handler):
         return self.ra.sync_telescope_ra(position)
     
     def get_telescope_dec(self) -> Dec:
+        # Implement ra compenstaion when moving throught (+/-)90°
         dec = self.dec.get_telescope_dec()
-        self._polar_compensator.set_coordiantes(ha=None, dec=dec.to_arcseconds())
+        self._polar_compensator.set_coordiantes(ha=None, dec=dec)
         return dec
     
     def sync_telescope_dec(self, position: Dec) -> bool:
@@ -246,32 +261,39 @@ class LX200Splitter(LX200Handler):
             ok = False
         return ok
     
-    def _do_correction(self, d: float, k: float):
-        self.logger.debug("Applying correction with d=%.4f, k=%.4f", d, k)
+    def _do_correction(self, ha_drift: HaPerSecond, dec_drift: DecPerSecond):
+        self.logger.debug("Applying correction with ha_drift=%.4f, dec_drift=%.4f", ha_drift, dec_drift)
         try:
             # TODO: Somehow we need to set dec rate in arcsec/sec directly
-            self.dec.set_tracking_rate(d, update_sky_rate=True)
+            self.dec.set_tracking_rate(dec_drift, update_sky_rate=True)
         except Exception:
             self.logger.exception("While set DEC guide speed")
 
         try:
             # TODO: Maybe we need to set RA rate in sec/sec instead of coefficient
-            self.ra.set_tracking_rate(k, update_sky_rate=True)
+            self.ra.set_tracking_rate(ha_drift, update_sky_rate=True)
         except Exception:
             self.logger.exception("While set RA guide speed")
 
+    def _convert_guide_rates(self, direction: SkyDirection, ms: int) -> None:
+        dec_speed = None
+        if (ra_speed := self.ra.calculate_guide_rate(direction, ms)) is None and (dec_speed := self.dec.calculate_guide_rate(direction, ms)) is None:
+            raise ValueError(f"Unknown move direction: {direction}")
+        
+        if ra_speed is not None:
+            self._polar_compensator.set_guide_speed_ra(ra_speed)
+
+        if dec_speed is not None:   
+            self._polar_compensator.set_guide_speed_dec(dec_speed)
+
     def guide_east(self, ms: int):
-        self._active_guide_ra = True
-        self.ra.guide_east(ms)
+        self._convert_guide_rates(SkyDirection.EAST, ms)
 
     def guide_north(self, ms: int):
-        self._active_guide_dec = True
-        self.dec.guide_north(ms)
+        self._convert_guide_rates(SkyDirection.NORTH, ms)
 
     def guide_south(self, ms: int):
-        self._active_guide_dec = True
-        self.dec.guide_south(ms)
+        self._convert_guide_rates(SkyDirection.SOUTH, ms)
 
     def guide_west(self, ms: int):
-        self._active_guide_ra = True
-        self.ra.guide_west(ms)
+        self._convert_guide_rates(SkyDirection.WEST, ms)

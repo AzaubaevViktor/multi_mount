@@ -5,6 +5,8 @@ import time
 
 import pytest
 
+from sky.constants import STELLAR_SPEED
+from sky.physics import HaPerSecond
 from lx200.protocols import Ha
 from serial_wrapper.wrapper import SerialLine
 from skywatcher.skywatcher import SkyWatcherMount, SlewMode
@@ -41,9 +43,9 @@ def mount() -> Iterator[SkyWatcherMount]:
 )
 def test_skywatcher_hours_roundtrip(mount: SkyWatcherMount, hours_value: str):
     expected = Ha.from_string(hours_value)
-    mount.set_telescope_ra(expected)
+    mount.set_telescope_ha(expected)
     time.sleep(0.2)
-    actual = mount.get_telescope_ra()
+    actual = mount.get_telescope_ha()
     assert actual.to_seconds() - expected.to_seconds() < RA_MOUNT_DISTANCE_DELTA, (actual, expected)
 
 
@@ -64,7 +66,7 @@ def _measure_ra_shift(
 ) -> Iterator[list[tuple[int, int, float]]]:
     _ensure_idle(mount)
     mid_ra_seconds = 12 * 3600
-    mount.set_telescope_ra(Ha.from_seconds(mid_ra_seconds))
+    mount.set_telescope_ha(Ha.from_seconds(mid_ra_seconds))
     
     start_time = None
     
@@ -72,12 +74,12 @@ def _measure_ra_shift(
     try:
         yield measurements
         time.sleep(wait_mount_full_speed_s)
-        start_seconds = mount.get_telescope_ra().to_seconds()
+        start_seconds = mount.get_telescope_ha().to_seconds()
         start_time = time.monotonic()
         
         time.sleep(measure_s)
     finally:
-        end_seconds = mount.get_telescope_ra().to_seconds()
+        end_seconds = mount.get_telescope_ha().to_seconds()
         if start_time:
             elapsed = time.monotonic() - start_time
             measurements.append((start_seconds, end_seconds, elapsed))
@@ -124,9 +126,9 @@ def test_slew_to_ra_moves_mount(mount: SkyWatcherMount, delta):
     timeout_s = 15
     target_tolerance_seconds = 5
 
-    mount.set_telescope_ra(Ha.from_seconds(0))
+    mount.set_telescope_ha(Ha.from_seconds(0))
 
-    current = mount.get_telescope_ra()
+    current = mount.get_telescope_ha()
     target_seconds = (current.to_seconds() + slew_delta_seconds) % (24 * 3600)
     target = Ha.from_seconds(target_seconds)
     delta = Ha.from_seconds(slew_delta_seconds)
@@ -134,11 +136,11 @@ def test_slew_to_ra_moves_mount(mount: SkyWatcherMount, delta):
     assert mount.slew_delta(delta) is True
 
     def get_position(mount: SkyWatcherMount):
-        logging.info("pos: %s", mount.get_telescope_ra())
+        logging.info("pos: %s", mount.get_telescope_ha())
 
     mount.wait_till_stop(timeout_s, func=get_position)
 
-    actual = mount.get_telescope_ra()
+    actual = mount.get_telescope_ha()
     distance = _distance_seconds(actual.to_seconds(), target.to_seconds())
     assert distance <= target_tolerance_seconds, (
         f"Mount did not reach target: distance={distance}s target={target} actual={actual}, status={mount.get_status()}"
@@ -160,32 +162,33 @@ def test_move_ra_rejects_goto_in_progress(mount: SkyWatcherMount) -> None:
     else:
         pytest.fail("Mount did not enter GOTO mode in time")
 
-    assert mount.move_ra(1) is False
+    assert mount.move_ra(STELLAR_SPEED) is False
     mount.wait_till_stop(timeout_s=5, do_stop=True)
 
 
 @pytest.mark.parametrize("rate", [100.0, 1.0, -1.0, -100.0])
 def test_move_ra_speed_and_direction(mount: SkyWatcherMount, rate: float) -> None:
     duration_s = 4.0
+    speed = HaPerSecond(rate * mount._SIDEREAL_SPEED)
 
     with _measure_ra_shift(
         mount,
         measure_s=duration_s
     ) as measurements:
-        assert mount.move_ra(rate) is True
+        assert mount.move_ra(speed) is True
 
     assert len(measurements) == 1
     start_seconds, end_seconds, elapsed = measurements[0]
 
-    _assert_speed_and_direction(start_seconds, end_seconds, elapsed, abs(rate), rate)
+    _assert_speed_and_direction(start_seconds, end_seconds, elapsed, abs(rate * mount._SIDEREAL_SPEED), rate)
 
 
 @pytest.mark.parametrize("trackspeed", [10.0, 1.0, -1.0, -10.0])
 def test_start_tracking_speed_and_direction(mount: SkyWatcherMount, trackspeed: float) -> None:
     duration_s = 4.0
 
-    speed_value = trackspeed
-    expected_rate = abs(speed_value)
+    speed_value = HaPerSecond(trackspeed * mount._SIDEREAL_SPEED)
+    expected_rate = abs(trackspeed * mount._SIDEREAL_SPEED)
 
     time.sleep(1)  # Wait while motor get to full speed
 
@@ -198,13 +201,13 @@ def test_start_tracking_speed_and_direction(mount: SkyWatcherMount, trackspeed: 
     assert len(measurements) == 1
     start_seconds, end_seconds, elapsed = measurements[0]
 
-    _assert_speed_and_direction(start_seconds, end_seconds, elapsed, expected_rate, trackspeed * mount.STELLAR_SPEED)
+    _assert_speed_and_direction(start_seconds, end_seconds, elapsed, expected_rate, trackspeed * mount._SIDEREAL_SPEED)
 
 
 def test_start_tracking_zero_stops_motor(mount: SkyWatcherMount) -> None:
     timeout_s = 5.0
-    speed_value = mount.STELLAR_SPEED
-    stop_speed = 0
+    speed_value = STELLAR_SPEED
+    stop_speed = HaPerSecond(0)
 
     assert mount.start_tracking(speed_value) is True
     time.sleep(0.5)

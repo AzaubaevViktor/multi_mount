@@ -1,6 +1,10 @@
 import pytest
 
-from sky.physics import Dec, DecPerSecond, HA, HAPerSecond, HaFormatError, Second
+from sky.physics import Dec, DecPerSecond, Ha, HaPerSecond, HaFormatError, Second
+
+
+def test_stellar_speed():
+    assert HaPerSecond(Ha.SECONDS_PER_DAY / Second(86164.098903691)).to_ha_deg_per_hour().to_raw() == pytest.approx(15.041067179, abs=1e-6)
 
 
 @pytest.mark.parametrize(
@@ -12,7 +16,7 @@ from sky.physics import Dec, DecPerSecond, HA, HAPerSecond, HaFormatError, Secon
     ],
 )
 def test_ha_from_string_valid(value, expected):
-    ha = HA.from_string(value)
+    ha = Ha.from_string(value)
     assert ha.to_raw() == expected[0]
     assert (ha.hours, ha.minutes, ha.seconds) == expected[1:]
     assert str(ha) == value
@@ -31,7 +35,7 @@ def test_ha_from_string_valid(value, expected):
 )
 def test_ha_from_string_invalid_format(value):
     with pytest.raises(HaFormatError):
-        HA.from_string(value)
+        Ha.from_string(value)
 
 
 @pytest.mark.parametrize(
@@ -43,7 +47,7 @@ def test_ha_from_string_invalid_format(value):
     ],
 )
 def test_ha_rounding_for_components(value, expected_text):
-    ha = HA(value)
+    ha = Ha(value)
     assert str(ha) == expected_text
 
 
@@ -55,29 +59,29 @@ def test_ha_rounding_for_components(value, expected_text):
     ],
 )
 def test_ha_wraps_values_outside_single_circle(value, expected_raw, expected_text):
-    ha = HA(value)
+    ha = Ha(value)
     assert ha.to_raw() == pytest.approx(expected_raw)
     assert str(ha) == expected_text
 
 
 def test_ha_negation_returns_same_type_with_inverted_raw():
-    ha = -HA(12.5)
-    assert isinstance(ha, HA)
+    ha = -Ha(12.5)
+    assert isinstance(ha, Ha)
     assert ha.to_raw() == pytest.approx(-12.5)
 
 
 def test_ha_divide_and_multiply_by_seconds_roundtrip():
-    speed = HA(30) / Second(2)
-    assert isinstance(speed, HAPerSecond)
+    speed = Ha(30) / Second(2)
+    assert isinstance(speed, HaPerSecond)
 
     ha = speed * Second(4)
-    assert isinstance(ha, HA)
+    assert isinstance(ha, Ha)
     assert ha.to_raw() == pytest.approx(60)
 
 
 def test_ha_division_rejects_unsupported_type():
     with pytest.raises(NotImplementedError):
-        HA(30) / 2
+        Ha(30) / 2
 
 
 @pytest.mark.parametrize(

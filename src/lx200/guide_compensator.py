@@ -1,11 +1,14 @@
 import math
 
 from sky.constants import STELLAR_SPEED
+from sky.physics import DecPerSecond, HaPerSecond, Dec, Ha
 
-def compute_pole_offset(d: float, k: float, HA_deg: float, dec_deg: float):
+# TODO: Write formulas
+
+def compute_pole_offset(dec_drift: DecPerSecond, ra_drift: HaPerSecond, ha: Ha, dec_: Dec) -> tuple[Dec, Ha]:
     """
-    d      - Dec drift ["/s], positive = north
-    k      - RA coefficient relative to sidereal (1.0 = exact)
+    dec_drift      - Dec drift ["/s], positive = north
+    ra_drift      - RA drift ["/s]
     HA_deg - star hour angle [degrees], west is positive
     dec_deg- star declination [degrees]
 
@@ -14,7 +17,10 @@ def compute_pole_offset(d: float, k: float, HA_deg: float, dec_deg: float):
     eps_E > 0 - pole is east of the mount axis
     """
 
-    HA  = math.radians(HA_deg)
+    ha_deg = ha.to_hours_deg()
+    dec_deg = dec_.to_degrees()
+
+    HA  = math.radians(ha_deg)
     dec = math.radians(dec_deg)
 
     tan_dec = math.tan(dec)
@@ -22,48 +28,23 @@ def compute_pole_offset(d: float, k: float, HA_deg: float, dec_deg: float):
         raise ValueError("Declination is too close to 0° - RA equation is degenerate")
 
     # Normalized right-hand sides
-    rhs_dec = d / STELLAR_SPEED  # from Dec equation
-    rhs_ra  = (k - 1) / tan_dec  # from RA equation
+    rhs_dec = float(dec_drift) / float(STELLAR_SPEED.to_ha_deg_per_hour())  # from Dec equation
+    rhs_ra  = float((ra_drift - STELLAR_SPEED) / STELLAR_SPEED) / tan_dec  # from RA equation
 
-    eps_N = rhs_dec * math.cos(HA) + rhs_ra * math.sin(HA)
-    eps_E = -rhs_dec * math.sin(HA) + rhs_ra * math.cos(HA)
+    eps_N = Dec(rhs_dec * math.cos(HA) + rhs_ra * math.sin(HA))
+    eps_E = Ha(-rhs_dec * math.sin(HA) + rhs_ra * math.cos(HA))
 
     return eps_N, eps_E
 
 
-def compute_guide_rates(eps_N: float, eps_E: float, HA_deg: float, dec_deg: float) -> tuple[float, float]:
+def compute_guide_rates(eps_N: Dec, eps_E: Ha, HA_deg: Ha, dec_deg: Dec) -> tuple[HaPerSecond, DecPerSecond]:
     """
     Computes theoretical d and k from known polar offset and star position
     (the forward problem).
     """
-    HA  = math.radians(HA_deg)
-    dec = math.radians(dec_deg)
-    
-    d = STELLAR_SPEED * (eps_N * math.cos(HA) - eps_E * math.sin(HA))
-    k = 1.0 + math.tan(dec) * (eps_N * math.sin(HA) + eps_E * math.cos(HA))
-    return d, k
+    HA  = math.radians(HA_deg.to_hours_deg())
+    dec = math.radians(dec_deg.to_degrees())
 
-
-def main():
-    print("=== Pole Offset Calculation ===\n")
-    d       = float(input("Dec drift [\"/s] (+ north, - south): "))
-    k       = float(input("RA coefficient (for example 1.0003): "))
-    HA_deg  = float(input("Star hour angle [degrees] (+ west): "))
-    dec_deg = float(input("Star declination [degrees]: "))
-
-    eps_N, eps_E = compute_pole_offset(d, k, HA_deg, dec_deg)
-
-    print(f"\nPole offset from the mount axis:")
-    print(f"  ε_N = {eps_N:+.2f}\"  ({'pole north of' if eps_N > 0 else 'pole south of'} axis)")
-    print(f"  ε_E = {eps_E:+.2f}\"  ({'pole east of' if eps_E > 0 else 'pole west of'} axis)")
-    print(f"\nTotal offset: {math.hypot(eps_N, eps_E):.2f}\"")
-
-    az_err = math.degrees(math.atan2(eps_E, eps_N))
-    print(f"Offset direction (from north toward east): {az_err:.1f}°")
-    print(f"\nTo align the axis with the pole:")
-    print(f"  {'Increase' if eps_N < 0 else 'Decrease'} altitude by {abs(eps_N):.2f}\"")
-    print(f"  Rotate azimuth {'east' if eps_E < 0 else 'west'} by {abs(eps_E):.2f}\"")
-
-
-if __name__ == "__main__":
-    main()
+    dec_drift = float(STELLAR_SPEED.to_ha_deg_per_hour()) * (float(eps_N) * math.cos(HA) - float(eps_E) * math.sin(HA))
+    ra_drift = STELLAR_SPEED * (1.0 + math.tan(dec) * (float(eps_N) * math.sin(HA) + float(eps_E) * math.cos(HA)))
+    return ra_drift, DecPerSecond(dec_drift)

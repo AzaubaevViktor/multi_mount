@@ -1,4 +1,6 @@
 import pytest
+from sky.constants import STELLAR_SPEED
+from sky.physics import HaPerSecond
 
 from skywatcher.skywatcher import (
     Direction,
@@ -55,7 +57,7 @@ def test_set_ra_rate_zero_stops_motor(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(mount, "_set_speed", _mark_speed)
     monkeypatch.setattr(mount, "_start_motor", _mark_start)
 
-    assert mount.set_ra_rate(0.0) is True
+    assert mount.set_ra_speed(HaPerSecond(0.0)) is True
     assert calls["stop"] == 1
     assert calls["motion"] == 0
     assert calls["speed"] == 0
@@ -85,7 +87,7 @@ def test_set_ra_rate_starts_motor_when_axis_not_running(monkeypatch: pytest.Monk
     monkeypatch.setattr(mount, "_set_speed", _fake_set_speed)
     monkeypatch.setattr(mount, "_start_motor", _fake_start_motor)
 
-    assert mount.set_ra_rate(1.0) is True
+    assert mount.set_ra_speed(STELLAR_SPEED) is True
     assert len(speed_periods) == 1
     assert speed_periods[0] > 0
     assert start_calls == 1
@@ -110,7 +112,7 @@ def test_set_ra_rate_does_not_start_motor_for_goto_mode(monkeypatch: pytest.Monk
     monkeypatch.setattr(mount, "_set_speed", lambda period: None)
     monkeypatch.setattr(mount, "_start_motor", _fake_start_motor)
 
-    assert mount.set_ra_rate(1.0, mode=SlewMode.GOTO) is True
+    assert mount.set_ra_speed(STELLAR_SPEED, mode=SlewMode.GOTO) is True
     assert start_calls == 0
 
 

@@ -1,10 +1,12 @@
 import pytest
 
-from lx200.protocols import Dec
+from sky.physics import Dec
 from tmc2209.tmc2209_adapter import (
     DEGREES_PER_REV,
     GEAR_RATIO_1,
     GEAR_RATIO_2,
+    MAX_ACCEL_STEPS_PER_MS,
+    MAX_SPEED_SPS,
     MICROSTEPS_ALLOWED,
     STEPS_PER_REV,
     Phase,
@@ -147,7 +149,7 @@ def test_set_speed_sps_range():
     with pytest.raises(TMC2209ConfigError):
         adapter.set_speed_sps(-1)
     with pytest.raises(TMC2209ConfigError):
-        adapter.set_speed_sps(40001)
+        adapter.set_speed_sps(MAX_SPEED_SPS + 1)
 
 
 def test_set_acceleration_range():
@@ -156,16 +158,16 @@ def test_set_acceleration_range():
     with pytest.raises(TMC2209ConfigError):
         adapter.set_acceleration_steps_per_ms(-1)
     with pytest.raises(TMC2209ConfigError):
-        adapter.set_acceleration_steps_per_ms(100001)
+        adapter.set_acceleration_steps_per_ms(MAX_ACCEL_STEPS_PER_MS + 1)
 
 
 def test_steps_from_dec_roundtrip():
-    dec = Dec.from_degrees(10.0)
+    dec = Dec(10.0 * 60 * 60)
     microsteps = max(MICROSTEPS_ALLOWED)
     steps = TMC2209Adapter.steps_from_dec(dec, microsteps)
     expected = int(
         round(
-            dec.to_degrees()
+            (float(dec) / 60 / 60)
             * STEPS_PER_REV
             * microsteps
             * GEAR_RATIO_1
@@ -177,20 +179,20 @@ def test_steps_from_dec_roundtrip():
 
 
 def test_steps_from_dec_negative():
-    dec = Dec.from_degrees(-10.0)
+    dec = Dec(-10.0 * 60 * 60)
     microsteps = min(MICROSTEPS_ALLOWED)
-    steps = steps_from_dec(dec, microsteps)
+    steps = TMC2209Adapter.steps_from_dec(dec, microsteps)
     assert steps < 0
 
 
 def test_steps_from_dec_invalid_microsteps():
-    dec = Dec.from_degrees(1.0)
+    dec = Dec(1.0 * 60 * 60)
     with pytest.raises(TMC2209ConfigError):
-        steps_from_dec(dec, 3)
+        TMC2209Adapter.steps_from_dec(dec, 3)
 
 
 def test_steps_from_dec_invalid_steps_per_rev(monkeypatch):
-    dec = Dec.from_degrees(1.0)
+    dec = Dec(1.0 * 60 * 60)
     monkeypatch.setattr("tmc2209.tmc2209_adapter.STEPS_PER_REV", 0)
     with pytest.raises(TMC2209ConfigError):
-        steps_from_dec(dec, min(MICROSTEPS_ALLOWED))
+        TMC2209Adapter.steps_from_dec(dec, min(MICROSTEPS_ALLOWED))
