@@ -5,6 +5,7 @@ import math
 import pytest
 
 from lx200.guide_compensator import compute_pole_offset, compute_guide_rates
+from sky.physics import Dec, Ha
 
 
 @pytest.mark.parametrize(
@@ -32,14 +33,14 @@ from lx200.guide_compensator import compute_pole_offset, compute_guide_rates
 )
 def test_simulated_polar_missaligment(eps_n: float, eps_e: float, ha_deg: float, dec_deg: float):
     # Forward problem: obtain d and k
-    d, k = compute_guide_rates(eps_n, eps_e, ha_deg, dec_deg)
+    ha_drift, dec_drift = compute_guide_rates(Dec(eps_n), Ha(eps_e), Ha(ha_deg), Dec(dec_deg))
     
     # Inverse problem: recover the offset
-    eps_N_calc, eps_E_calc = compute_pole_offset(d, k, ha_deg, dec_deg)
+    eps_N_calc, eps_E_calc = compute_pole_offset(dec_drift, ha_drift, Ha(ha_deg), Dec(dec_deg))
 
-    err_N = eps_N_calc - eps_n
-    err_E = eps_E_calc - eps_e
-    assert abs(err_N) < 1e-9 and abs(err_E) < 1e-9
+    err_N = eps_N_calc - Dec(eps_n)
+    err_E = eps_E_calc - Ha(eps_e)
+    assert float(abs(err_N)) < 1e-9 and float(abs(err_E)) < 1e-9
 
     print(f"{eps_n:>10.2f} {eps_e:>10.2f} {ha_deg:>7.1f} {dec_deg:>6.1f} "
             f"{eps_N_calc:>10.2f} {eps_E_calc:>10.2f} {err_N:>8.2e} {err_E:>8.2e}")
