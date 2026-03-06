@@ -27,6 +27,11 @@ class _BasicAriphmetic(ABC):
     def __int__(self) -> int:
         return int(float(self))
 
+    def __format__(self, format_spec: str) -> str:
+        if not format_spec:
+            return str(self)
+        return format(float(self), format_spec)
+
     def __neg__(self) -> Self:
         return self.__class__(-float(self))
     
@@ -42,12 +47,15 @@ class _BasicAriphmetic(ABC):
         raise TypeError(f"Unsupported subtraction: {type(self)} - {type(other)}")
 
     @overload
-    def __mul__(self, other: float) -> Self: ...
+    def __mul__(self, other: float | int) -> Self: ...
 
     def __mul__(self, other: Any) -> Any:
-        if isinstance(other, float):
-            return self.__class__(float(self) * other)
+        if isinstance(other, (float, int)):
+            return self.__class__(float(self) * float(other))
         raise TypeError(f"Unsupported multiplication: {type(self)} * {type(other)}")
+
+    def __rmul__(self, other: Any) -> Any:
+        return self.__mul__(other)
 
     @overload
     def __add__(self, other: Self) -> Self: ...
@@ -68,14 +76,14 @@ class _BasicAriphmetic(ABC):
         raise TypeError(f"Unsupported comparison: {type(self)} == {type(value)}")
     
     @overload
-    def __truediv__(self, other: float) -> Self: ...
+    def __truediv__(self, other: float | int) -> Self: ...
 
     @overload
     def __truediv__(self, other: Self) -> float: ...
 
     def __truediv__(self, other: Any) -> Any:
-        if isinstance(other, float):
-            return self.__class__(float(self) / other)
+        if isinstance(other, (float, int)):
+            return self.__class__(float(self) / float(other))
         if isinstance(other, self.__class__):
             return float(self) / float(other)
         raise TypeError(f"Unsupported division: {type(self)} / {type(other)}")
@@ -126,10 +134,13 @@ class AxisPos(_BasicAriphmetic):
     def __truediv__(self, other: AxisSpeed) -> Second: ...
 
     @overload
-    def __truediv__(self, other: float) -> Self: ...
+    def __truediv__(self, other: float | int) -> Self: ...
 
     @overload
     def __truediv__(self, other: Self) -> float: ...
+
+    def __truediv__(self, other: Any) -> Any:
+        return super().__truediv__(other)
 
 
 class AxisSpeed(_BasicAriphmetic):
@@ -137,7 +148,10 @@ class AxisSpeed(_BasicAriphmetic):
     def __mul__(self, other: Second) -> AxisPos: ...
 
     @overload
-    def __mul__(self, other: float) -> Self: ...
+    def __mul__(self, other: float | int) -> Self: ...
+
+    def __mul__(self, other: Any) -> Any:
+        return super().__mul__(other)
 
 
 class HaFormatError(ValueError):
@@ -178,22 +192,17 @@ class Ha(AxisPos):
     def __truediv__(self, other: AxisSpeed) -> Second: ...
 
     @overload
-    def __truediv__(self, other: float) -> Self: ...
+    def __truediv__(self, other: float | int) -> Self: ...
 
     @overload
     def __truediv__(self, other: Self) -> float: ...
 
     def __truediv__(self, other: Any) -> Any:
-        try:
-            super().__truediv__(other)
-        except TypeError:
-            pass
-            
         if isinstance(other, Second): 
             return HaPerSecond(float(self) / float(other))
         if isinstance(other, HaPerSecond):
             return Second(float(self) / float(other))
-        raise TypeError(f"Unsupported division: {type(self)} / {type(other)}")
+        return super().__truediv__(other)
     
     def _rounded_total_seconds(self) -> int:
         rounded_total_seconds = abs(int(round(self._total_seconds)))
@@ -253,17 +262,16 @@ class HaPerSecond(AxisSpeed):
     def __mul__(self, other: Any) -> Any:
         if isinstance(other, Second): 
             return Ha(self._total_ha_seconds_per_second * other.seconds)
-        if isinstance(other, (float, int)):
-            return Ha(float(self) * other)
-        raise TypeError(f"Unsupported multiplication: {type(self)} * {type(other)}")
+        return super().__mul__(other)
     
     @overload
     def __truediv__(self, other: HaPerSecond) -> float: ...
 
+    @overload
+    def __truediv__(self, other: float | int) -> Self: ...
+
     def __truediv__(self, other: Any) -> Any:
-        if isinstance(other, HaPerSecond):
-            return float(self) / float(other)
-        raise TypeError(f"Unsupported division: {type(self)} / {type(other)}")
+        return super().__truediv__(other)
 
 
 class HaDegPerHour(AxisSpeed):
@@ -342,10 +350,21 @@ class Dec(AxisPos):
     @overload
     def __truediv__(self, other: Second) -> DecPerSecond: ...
 
+    @overload
+    def __truediv__(self, other: DecPerSecond) -> Second: ...
+
+    @overload
+    def __truediv__(self, other: float | int) -> Self: ...
+
+    @overload
+    def __truediv__(self, other: Self) -> float: ...
+
     def __truediv__(self, other: Any) -> Any:
         if isinstance(other, Second): 
             return DecPerSecond(self._total_arcseconds / other.seconds)
-        raise TypeError(f"Unsupported division: {type(self)} / {type(other)}")
+        if isinstance(other, DecPerSecond):
+            return Second(float(self) / float(other))
+        return super().__truediv__(other)
     
     def __str__(self) -> str:
         sign = "-" if self._total_arcseconds < 0 else "+"
@@ -362,23 +381,22 @@ class DecPerSecond(AxisSpeed):
     @overload
     def __mul__(self, other: Second) -> Dec: ...
 
+    @overload
+    def __mul__(self, other: float | int) -> Self: ...
+
     def __mul__(self, other: Any) -> Any:
         if isinstance(other, Second): 
             return Dec(self._total_arcseconds_per_second * other.seconds)
-        raise TypeError(f"Unsupported multiplication: {type(self)} * {type(other)}")
+        return super().__mul__(other)
 
     @overload
     def __truediv__(self, other: DecPerSecond) -> float: ...
 
     @overload
-    def __truediv__(self, other: float) -> DecPerSecond: ...
+    def __truediv__(self, other: float | int) -> DecPerSecond: ...
 
     def __truediv__(self, other: Any) -> Any:
-        if isinstance(other, DecPerSecond):
-            return float(self) / float(other)
-        if isinstance(other, float):
-            return DecPerSecond(float(self) / other)
-        raise TypeError(f"Unsupported division: {type(self)} / {type(other)}")
+        return super().__truediv__(other)
 
 class SkyDirection(StrEnum):
     EAST = "east"

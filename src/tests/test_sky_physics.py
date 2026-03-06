@@ -78,10 +78,9 @@ def test_ha_divide_and_multiply_by_seconds_roundtrip():
     assert isinstance(ha, Ha)
     assert float(ha) == pytest.approx(60)
 
-
 def test_ha_division_rejects_unsupported_type():
-    with pytest.raises(NotImplementedError):
-        Ha(30) / 2
+    with pytest.raises(TypeError):
+        Ha(30) / object()
 
 
 @pytest.mark.parametrize(
