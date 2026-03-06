@@ -3,8 +3,8 @@ from enum import StrEnum
 import logging
 import time
 
-from lx200.protocols import Dec
 from serial_wrapper.wrapper import SerialLine
+from sky.physics import Dec, DecPerSecond
 
 COMMAND_TERMINATOR = "\n"
 RESPONSE_DELIMITER = ";"
@@ -255,8 +255,74 @@ class TMC2209Adapter:
         return status
     
     @property
+    def microsteps(self) -> int:
+        return self._microsteps
+
+    @classmethod
+    def _validate_microsteps(cls, microsteps: int) -> None:
+        if microsteps not in MICROSTEPS_ALLOWED:
+            raise TMC2209ConfigError(f"microsteps not allowed: {microsteps!r}")
+
+    @classmethod
+    def _steps_per_rev_for_microsteps(cls, microsteps: int) -> float:
+        cls._validate_microsteps(microsteps)
+        if STEPS_PER_REV <= 0:
+            raise TMC2209ConfigError(f"steps_per_rev must be positive: {STEPS_PER_REV!r}")
+        if GEAR_RATIO_1 <= 0 or GEAR_RATIO_2 <= 0:
+            raise TMC2209ConfigError(
+                f"gear ratios must be positive: {GEAR_RATIO_1!r}, {GEAR_RATIO_2!r}"
+            )
+
+        return STEPS_PER_REV * microsteps * GEAR_RATIO_1 * GEAR_RATIO_2
+
+    @classmethod
+    def steps_per_arcsecond_for_microsteps(cls, microsteps: int) -> float:
+        return cls._steps_per_rev_for_microsteps(microsteps) / (DEGREES_PER_REV * 60 * 60)
+
+    @classmethod
+    def steps_from_dec(cls, position: Dec, microsteps: int) -> int:
+        return int(round(float(position) * cls.steps_per_arcsecond_for_microsteps(microsteps)))
+
+    @classmethod
+    def dec_from_steps(cls, steps: int | float, microsteps: int) -> Dec:
+        return Dec(float(steps) / cls.steps_per_arcsecond_for_microsteps(microsteps))
+
+    @property
     def steps_per_rev(self) -> float:
-        return STEPS_PER_REV * self._microsteps * GEAR_RATIO_1 * GEAR_RATIO_2
+        return type(self)._steps_per_rev_for_microsteps(self._microsteps)
+
+    @property
+    def steps_per_arcsecond(self) -> float:
+        return type(self).steps_per_arcsecond_for_microsteps(self._microsteps)
+
+    def motor_steps_from_dec(self, position: Dec, microsteps: int | None = None) -> int:
+        target_microsteps = self._microsteps if microsteps is None else microsteps
+        return type(self).steps_from_dec(position, target_microsteps)
+
+    def dec_from_motor_steps(self, steps: int | float, microsteps: int | None = None) -> Dec:
+        target_microsteps = self._microsteps if microsteps is None else microsteps
+        return type(self).dec_from_steps(steps, target_microsteps)
+
+    def sps_from_dec_speed(self, speed: DecPerSecond, microsteps: int | None = None) -> int:
+        target_microsteps = self._microsteps if microsteps is None else microsteps
+        return int(round(float(speed) * type(self).steps_per_arcsecond_for_microsteps(target_microsteps)))
+
+    def dec_speed_from_sps(
+        self,
+        speed_sps: int | float,
+        microsteps: int | None = None,
+    ) -> DecPerSecond:
+        target_microsteps = self._microsteps if microsteps is None else microsteps
+        return DecPerSecond(
+            float(speed_sps) / type(self).steps_per_arcsecond_for_microsteps(target_microsteps)
+        )
+
+    def get_telescope_dec(self) -> Dec:
+        return self.dec_from_motor_steps(self.status().position)
+
+    def set_telescope_dec(self, position: Dec) -> bool:
+        self.set_position(self.motor_steps_from_dec(position))
+        return True
 
     def driver_status(self) -> TMC2209DriverStatus:
         response = self._transact("driver_status")
@@ -282,8 +348,7 @@ class TMC2209Adapter:
             self.set_microsteps(microsteps)
     
     def set_microsteps(self, microsteps: int) -> bool:
-        if microsteps not in MICROSTEPS_ALLOWED:
-            raise TMC2209LX200ConfigError(f"microsteps not allowed: {microsteps!r}")
+        type(self)._validate_microsteps(microsteps)
         
         if microsteps == self._microsteps:
             return True
