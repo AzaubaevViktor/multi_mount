@@ -66,7 +66,7 @@ def test_set_tracking_rate_negative_uses_positive_speed_and_north_direction() ->
     adapter = _FakeAdapter()
     axis = TMC2209LX200(adapter)
     try:
-        axis._set_tracking_rate(DecPerSecond(-0.5))
+        axis._set_tracking_speed(DecPerSecond(-0.5))
         assert adapter.speed_calls[-1] == 50
         assert adapter.direction_calls[-1] is False
         assert adapter.run_calls == 1
@@ -78,7 +78,7 @@ def test_set_tracking_rate_positive_uses_positive_speed_and_south_direction() ->
     adapter = _FakeAdapter()
     axis = TMC2209LX200(adapter)
     try:
-        axis._set_tracking_rate(DecPerSecond(0.5))
+        axis._set_tracking_speed(DecPerSecond(0.5))
         assert adapter.speed_calls[-1] == 50
         assert adapter.direction_calls[-1] is True
         assert adapter.run_calls == 1

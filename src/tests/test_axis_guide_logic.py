@@ -41,7 +41,7 @@ class _DummyRAHandler(LX200RAHandler):
     def _get_motor_raw_position(self) -> float:
         return self._motor_position_raw
 
-    def _set_tracking_rate(self, rate: float) -> None:
+    def _set_tracking_speed(self, rate: float) -> None:
         self.applied_rates.append(rate)
 
     def _halt_motion(self) -> None:
@@ -66,7 +66,7 @@ class _DummyDECHandler(LX200DECHandler):
     def _get_motor_raw_position(self) -> float:
         return self._motor_position_raw
 
-    def _set_tracking_rate(self, rate: float) -> None:
+    def _set_tracking_speed(self, rate: float) -> None:
         self.applied_rates.append(rate)
 
     def _halt_motion(self) -> None:

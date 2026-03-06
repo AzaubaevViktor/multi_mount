@@ -82,21 +82,21 @@ class TMC2209LX200(LX200DECHandler):
         self._adapter.halt()
         self.logger.info("Halt all DEC movements done")
 
-    def _set_tracking_rate(self, rate: DecPerSecond) -> DecPerSecond | None:
-        if rate == DecPerSecond(0):
+    def _set_tracking_speed(self, speed: DecPerSecond) -> DecPerSecond | None:
+        if speed == DecPerSecond(0):
             self.logger.info("Tracking stop")
             self._adapter.halt()
             return DecPerSecond(0)
 
-        self.logger.info("Tracking start: speed=%s", rate)
+        self.logger.info("Tracking start: speed=%s", speed)
         # TMC speed is unsigned; guide direction is controlled separately.
-        rounded_rate = self._apply_profile(self._guide_profile, custom_speed=abs(rate))
-        rate_sign = 1.0 if rate > DecPerSecond(0) else -1.0
+        rounded_rate = self._apply_profile(self._guide_profile, custom_speed=abs(speed))
+        rate_sign = 1.0 if speed > DecPerSecond(0) else -1.0
         self._adapter.set_free_ride_mode()
-        self._adapter.set_direction(rate > DecPerSecond(0))
-        if rate != DecPerSecond(0):
+        self._adapter.set_direction(speed > DecPerSecond(0))
+        if speed != DecPerSecond(0):
             self._adapter.run()
-        self.logger.info("Tracking applied: speed=%s rounded=%s", rate, rounded_rate)
+        self.logger.info("Tracking applied: speed=%s rounded=%s", speed, rounded_rate)
         if rounded_rate is None:
             return None
         return DecPerSecond(float(rounded_rate) * rate_sign)

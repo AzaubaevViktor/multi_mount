@@ -37,7 +37,7 @@ class SkyWatcherLX200(LX200RAHandler):
     def _get_motor_raw_position(self) -> Ha:
         return self.motor_position()[0]
     
-    def _set_tracking_rate(self, rate: HaPerSecond):
+    def _set_tracking_speed(self, rate: HaPerSecond):
         self.mount.start_tracking(rate)
     
     def _halt_motion(self):

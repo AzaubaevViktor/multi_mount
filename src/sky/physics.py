@@ -399,3 +399,6 @@ class Direction(IntEnum):
     FORWARD = 1
     BACKWARD = -1
     STOP = 0
+
+# TODO: Add StepsPerSecond
+# TODO: Add StepsPerHa / StepsPerDec

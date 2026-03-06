@@ -253,7 +253,7 @@ class LX200AxisHandler[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed](LX200Base):
     def _get_motor_raw_position(self) -> _POS_CLS:
         raise NotImplementedError()
     
-    def _set_tracking_rate(self, rate: _SPEED_CLS) -> _SPEED_CLS | None:
+    def _set_tracking_speed(self, speed: _SPEED_CLS) -> _SPEED_CLS | None:
         raise NotImplementedError()
 
     def set_tracking_rate(self, rate: _SPEED_CLS, update_sky_rate: bool = False) -> None:
@@ -349,10 +349,9 @@ class LX200AxisHandler[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed](LX200Base):
         if cmd.direction not in self.DIRECTIONS:
             self.logger.warning("Ignore wrong halt direction for %s: %s", self.AXIS_NAME, cmd.direction)
             return
-        
-        
+
         self.logger.debug("Apply axis command: %s", cmd)
-        
+
         match cmd.type:
             # TODO: Rewrite to set values and _apply_tracking_rate_now down + logs
             case AxisCommandType.SET_TRACKING_RATE:
@@ -364,7 +363,6 @@ class LX200AxisHandler[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed](LX200Base):
                 rate = self._sky_track_rate
                 update_sky_rate = True
             case AxisCommandType.HALT_DIRECTION:
-                
                 halt_motion = True
                 rate = self._sky_track_rate
                 update_sky_rate = False
@@ -385,7 +383,7 @@ class LX200AxisHandler[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed](LX200Base):
             if halt_motion:
                 self._halt_motion()
 
-            rounded_rate = self._set_tracking_rate(rate)
+            rounded_rate = self._set_tracking_speed(rate)
 
             applied_rate = rounded_rate if rounded_rate is not None else rate
 
