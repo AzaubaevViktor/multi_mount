@@ -85,7 +85,7 @@ class Second(_BasicAriphmetic):
     MILLISECONDS_PER_SECOND = 1000
 
     def __init__(self, seconds: float):
-        self.seconds = seconds
+        self.seconds = float(seconds)
     
     def to_milliseconds(self) -> float:
         return self.seconds * self.MILLISECONDS_PER_SECOND
@@ -166,7 +166,7 @@ class Ha(AxisPos):
         self._total_seconds = seconds
 
     def __float__(self) -> float:
-        return self._total_seconds
+        return float(self._total_seconds)
     
     def wrap(self) -> Self:
         return self.__class__(self._total_seconds % _SECONDS_PER_DAY)
@@ -236,7 +236,7 @@ class Ha(AxisPos):
 
 class HaPerSecond(AxisSpeed):
     def __init__(self, seconds_per_second: float):
-        self._total_ha_seconds_per_second = seconds_per_second
+        self._total_ha_seconds_per_second = float(seconds_per_second)
 
     def __float__(self) -> float:
         return self._total_ha_seconds_per_second
@@ -248,12 +248,12 @@ class HaPerSecond(AxisSpeed):
     def __mul__(self, other: Second) -> Ha: ...
 
     @overload
-    def __mul__(self, other: float) -> Self: ...
+    def __mul__(self, other: float | int) -> Self: ...
 
     def __mul__(self, other: Any) -> Any:
         if isinstance(other, Second): 
             return Ha(self._total_ha_seconds_per_second * other.seconds)
-        if isinstance(other, float):
+        if isinstance(other, (float, int)):
             return Ha(float(self) * other)
         raise TypeError(f"Unsupported multiplication: {type(self)} * {type(other)}")
     
@@ -268,7 +268,7 @@ class HaPerSecond(AxisSpeed):
 
 class HaDegPerHour(AxisSpeed):
     def __init__(self, degrees_per_hour: float):
-        self._degrees_per_hour = degrees_per_hour
+        self._degrees_per_hour = float(degrees_per_hour)
 
     def __float__(self) -> float:
         return self._degrees_per_hour
@@ -288,7 +288,7 @@ class Dec(AxisPos):
             arcseconds %= self.ARCSECONDS_PER_QUATER_CIRCLE
         if arcseconds < -self.ARCSECONDS_PER_QUATER_CIRCLE:
             arcseconds %= -self.ARCSECONDS_PER_QUATER_CIRCLE
-        self._total_arcseconds = arcseconds
+        self._total_arcseconds = float(arcseconds)
 
     def __float__(self) -> float:
         return self._total_arcseconds
@@ -354,7 +354,7 @@ class Dec(AxisPos):
 
 class DecPerSecond(AxisSpeed):
     def __init__(self, arcseconds_per_second: float):
-        self._total_arcseconds_per_second = arcseconds_per_second
+        self._total_arcseconds_per_second = float(arcseconds_per_second)
 
     def __float__(self) -> float:
         return self._total_arcseconds_per_second

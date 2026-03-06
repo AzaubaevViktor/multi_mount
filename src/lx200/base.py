@@ -496,7 +496,7 @@ class LX200AxisHandler[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed](LX200Base):
                     "Calculated delta by %.3fs: %.3f = exp=%.3f = (%.3fs * (%.3fs/s)) - act=%.3f = (%.3f - %.3f); MNT: %.3f",
                     elapsed_s,
                     delta, 
-                    expected_delta_seconds, elapsed_s, self._sky_track_rate
+                    expected_delta_seconds, elapsed_s, self._sky_track_rate,
                     actual_delta_seconds, motor_position,  self._motor_position_raw,
                     self._mount_position_raw,
                 )
