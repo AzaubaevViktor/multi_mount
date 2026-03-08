@@ -64,6 +64,21 @@ def test_ha_wraps_values_outside_single_circle(value, expected_raw, expected_tex
     assert str(ha) == expected_text
 
 
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        (1000, 1000),
+        (-1000, -1000),
+        (50000, -36400),
+        (-50000, 36400),
+        (12 * 60 * 60, 12 * 60 * 60),
+        (-12 * 60 * 60, -12 * 60 * 60),
+    ],
+)
+def test_ha_moving_wrap_returns_shortest_signed_delta(value, expected):
+    assert float(Ha(value).moving_wrap()) == pytest.approx(expected)
+
+
 def test_ha_negation_returns_same_type_with_inverted_raw():
     ha = -Ha(12.5)
     assert isinstance(ha, Ha)

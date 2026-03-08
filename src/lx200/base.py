@@ -433,9 +433,9 @@ class LX200AxisHandler[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed](LX200Base):
             _logger.info(
                 "%s: MNT(%s raw=%d) MTR(%s raw=%s) status=%s goto_active=%s consistent=%s",
                 self.AXIS_NAME,
-                self.POS_CLS.from_raw(current_mount_position),  
+                self.POS_CLS(float(current_mount_position)),
                 current_mount_position,
-                self.POS_CLS.from_raw(current_motor_position),
+                self.POS_CLS(float(current_motor_position)),
                 current_motor_position,
                 str(status),
                 getattr(self, "_goto_to", None) is not None,

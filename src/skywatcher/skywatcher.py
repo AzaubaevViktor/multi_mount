@@ -435,13 +435,14 @@ class SkyWatcherMount:
         self._transact(SkyWatcherCommand.START_MOTION)
 
     def _do_wrap_delta_move(self, delta: Ha) -> tuple[Ha, HaPerSecond]:
-        delta_abs_seconds = abs(delta)
+        wrapped_delta = delta.moving_wrap()
+        delta_abs_seconds = abs(wrapped_delta)
         
         is_highspeed = delta_abs_seconds > self._LOWSPEED_MARGIN_S
 
         real_speed = self._HIGHSPEED_SPEED if is_highspeed else self._LOWSPEED_SPEED
 
-        if delta < Ha(0):
+        if wrapped_delta < Ha(0):
             real_speed *= -1
 
         return delta_abs_seconds, real_speed

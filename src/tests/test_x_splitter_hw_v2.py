@@ -5,8 +5,7 @@ import threading
 import time
 
 import pytest
-from lx200.base import Dec
-from lx200.protocols import Ha
+from sky.physics import Dec, Ha
 from lx200.splitter import LX200Splitter
 from serial_wrapper.wrapper import SerialLine
 from skywatcher.skywatcher import SkyWatcherMount
@@ -113,7 +112,7 @@ class SplitterController:
 
     @staticmethod
     def ra_distance_seconds(a_seconds: float, b_seconds: float) -> float:
-        circle_seconds = Ha.SECONDS_PER_CIRCLE
+        circle_seconds = 24 * 60 * 60
         delta = abs(a_seconds - b_seconds)
         return min(delta, circle_seconds - delta)
 
@@ -124,11 +123,11 @@ class SplitterController:
         self.set_target_dec(target_dec)
         self.sync()
 
-        synced_ra = self.get_ra().to_seconds()
-        synced_dec = self.get_dec().to_arcseconds()
+        synced_ra = float(self.get_ra())
+        synced_dec = float(self.get_dec())
 
-        assert self.ra_distance_seconds(synced_ra, target_ra.to_seconds()) <= SYNC_RA_TOLERANCE_S
-        assert abs(synced_dec - target_dec.to_arcseconds()) <= SYNC_DEC_TOLERANCE_ARCSEC
+        assert self.ra_distance_seconds(synced_ra, float(target_ra)) <= SYNC_RA_TOLERANCE_S
+        assert abs(synced_dec - float(target_dec)) <= SYNC_DEC_TOLERANCE_ARCSEC
 
         return target_ra, target_dec
     
@@ -191,47 +190,70 @@ class SplitterController:
         real_start, start_mount, start_motor, start_tracking_rates = start_state
         real_end, end_mount, end_motor, _end_tracking_rates = end_state
         real_delay_s = real_end - real_start
+        start_mount_ra = float(start_mount[0])
+        end_mount_ra = float(end_mount[0])
+        ra_mount_delta = end_mount_ra - start_mount_ra
+        if ra_mount_delta > 12 * 60 * 60:
+            ra_mount_delta -= 24 * 60 * 60
+        elif ra_mount_delta < -12 * 60 * 60:
+            ra_mount_delta += 24 * 60 * 60
+
+        start_motor_ra = float(start_motor[0])
+        end_motor_ra = float(end_motor[0])
+        ra_motor_delta = end_motor_ra - start_motor_ra
+        if ra_motor_delta > 12 * 60 * 60:
+            ra_motor_delta -= 24 * 60 * 60
+        elif ra_motor_delta < -12 * 60 * 60:
+            ra_motor_delta += 24 * 60 * 60
+
+        start_mount_dec = float(start_mount[1])
+        end_mount_dec = float(end_mount[1])
+        dec_mount_delta = end_mount_dec - start_mount_dec
+
+        start_motor_dec = float(start_motor[1])
+        end_motor_dec = float(end_motor[1])
+        dec_motor_delta = end_motor_dec - start_motor_dec
 
         return Deltas(
             ra=AxisInfo(
                 start=Position(
-                    mount=start_mount[0],
-                    motor=start_motor[0],
+                    mount=start_mount_ra,
+                    motor=start_motor_ra,
                 ),
                 end=Position(
-                    mount=end_mount[0],
-                    motor=end_motor[0],
+                    mount=end_mount_ra,
+                    motor=end_motor_ra,
                 ),
                 delta=Position(
-                    mount=end_mount[0] - start_mount[0],
-                    motor=end_motor[0] - start_motor[0],
+                    mount=ra_mount_delta,
+                    motor=ra_motor_delta,
                 ),
                 delay_s=real_delay_s,
                 rate_per_s=Position(
-                    mount=(end_mount[0] - start_mount[0]) / real_delay_s,
-                    motor=(end_motor[0] - start_motor[0]) / real_delay_s,
+                    mount=ra_mount_delta / real_delay_s,
+                    motor=ra_motor_delta / real_delay_s,
                 ),
-                tracking_rate_tick_per_s=start_tracking_rates[0],
+                tracking_rate_tick_per_s=float(start_tracking_rates[0]),
             ),
             dec=AxisInfo(
                 start=Position(
-                    mount=start_mount[1],
-                    motor=start_motor[1],
+                    mount=start_mount_dec,
+                    motor=start_motor_dec,
                 ),
                 end=Position(
-                    mount=end_mount[1],
-                    motor=end_motor[1],
+                    mount=end_mount_dec,
+                    motor=end_motor_dec,
                 ),
                 delta=Position(
-                    mount=end_mount[1] - start_mount[1],
-                    motor=end_motor[1] - start_motor[1],
+                    mount=dec_mount_delta,
+                    motor=dec_motor_delta,
                 ),
                 delay_s=real_delay_s,
                 rate_per_s=Position(
-                    mount=(end_mount[1] - start_mount[1]) / real_delay_s,
-                    motor=(end_motor[1] - start_motor[1]) / real_delay_s,
+                    mount=dec_mount_delta / real_delay_s,
+                    motor=dec_motor_delta / real_delay_s,
                 ),
-                tracking_rate_tick_per_s=start_tracking_rates[1],
+                tracking_rate_tick_per_s=float(start_tracking_rates[1]),
             ),
         )
 
@@ -342,8 +364,8 @@ class SplitterController:
             timeout_s,
         )
 
-        target_ra_seconds = target_ra.to_seconds()
-        target_dec_arcsec = target_dec.to_arcseconds()
+        target_ra_seconds = float(target_ra)
+        target_dec_arcsec = float(target_dec)
 
         start = time.monotonic()
         last_ra_seconds = target_ra_seconds
@@ -351,8 +373,8 @@ class SplitterController:
         last_ra_distance = 0.0
         last_dec_distance = 0.0
         while True:
-            last_ra_seconds = self.get_ra().to_seconds()
-            last_dec_arcsec = self.get_dec().to_arcseconds()
+            last_ra_seconds = float(self.get_ra())
+            last_dec_arcsec = float(self.get_dec())
             last_ra_distance = self.ra_distance_seconds(last_ra_seconds, target_ra_seconds)
             last_dec_distance = abs(last_dec_arcsec - target_dec_arcsec)
 
@@ -381,8 +403,8 @@ class SplitterController:
             "RA DISTANCE: %.3fs (limit %.3fs)\n"
             "DEC DISTANCE: %.3f arcsec (limit %.3f arcsec)\n",
             time.monotonic() - start,
-            Ha.from_seconds(last_ra_seconds),
-            Dec.from_arcseconds(last_dec_arcsec),
+            Ha(last_ra_seconds),
+            Dec(last_dec_arcsec),
             last_ra_distance,
             ra_tolerance_s,
             last_dec_distance,
@@ -391,8 +413,8 @@ class SplitterController:
 
         pytest.fail(
             "GOTO did not reach target in time: "
-            f"target_ra={target_ra} current_ra={Ha.from_seconds(last_ra_seconds)} "
-            f"target_dec={target_dec} current_dec={Dec.from_arcseconds(last_dec_arcsec)} "
+            f"target_ra={target_ra} current_ra={Ha(last_ra_seconds)} "
+            f"target_dec={target_dec} current_dec={Dec(last_dec_arcsec)} "
             f"ra_distance={last_ra_distance:.3f}s dec_distance={last_dec_distance:.3f}arcsec"
         )
 
@@ -645,8 +667,8 @@ def test_goto_command_moves_mount_to_target_coordinates(
     dec_delta_arcsec: float,
 ):
     start_ra, start_dec = sc.sync_known_position("12:00:00", "+20*00:00")
-    target_ra = Ha.from_seconds(start_ra.to_seconds() + ra_delta_s)
-    target_dec = Dec.from_arcseconds(start_dec.to_arcseconds() + dec_delta_arcsec)
+    target_ra = Ha(float(start_ra) + ra_delta_s)
+    target_dec = Dec(float(start_dec) + dec_delta_arcsec)
 
     sc.set_slew_to_find()
     sc.set_target_ra(target_ra)
@@ -662,13 +684,13 @@ def test_goto_command_moves_mount_to_target_coordinates(
         poll_interval_s=GOTO_POLL_INTERVAL_S,
     )
 
-    final_ra = sc.get_ra().to_seconds()
-    final_dec = sc.get_dec().to_arcseconds()
+    final_ra = float(sc.get_ra())
+    final_dec = float(sc.get_dec())
 
     if ra_delta_s != 0:
-        assert sc.ra_distance_seconds(final_ra, start_ra.to_seconds()) > GOTO_MIN_RA_MOVE_S
+        assert sc.ra_distance_seconds(final_ra, float(start_ra)) > GOTO_MIN_RA_MOVE_S
     if dec_delta_arcsec != 0:
-        assert abs(final_dec - start_dec.to_arcseconds()) > GOTO_MIN_DEC_MOVE_ARCSEC
+        assert abs(final_dec - float(start_dec)) > GOTO_MIN_DEC_MOVE_ARCSEC
 
 
 MOTION_SETTLE_S = 0.6
@@ -749,8 +771,8 @@ def test_halt_command_returns_to_tracking_from_goto(
     dec_delta_arcsec: float,
 ):
     start_ra, start_dec = sc.sync_known_position("12:00:00", "+20*00:00")
-    target_ra = Ha.from_seconds(start_ra.to_seconds() + ra_delta_s)
-    target_dec = Dec.from_arcseconds(start_dec.to_arcseconds() + dec_delta_arcsec)
+    target_ra = Ha(float(start_ra) + ra_delta_s)
+    target_dec = Dec(float(start_dec) + dec_delta_arcsec)
 
     sc.set_slew_to_find()
     sc.set_target_ra(target_ra)
@@ -803,13 +825,9 @@ def test_coordinate_system_guide_ra_rates(
     expected_sign: int,
 ):
     baseline = sc.get_deltas(MOTION_SAMPLE_S)
-
-    with sc.with_get_deltas() as guided_items:
-        sc.guide(direction, pulse_ms)
-        time.sleep(MOTION_SETTLE_S + MOTION_SAMPLE_S)
-
-    assert len(guided_items) == 1
-    guided = guided_items[0]
+    sc.guide(direction, pulse_ms)
+    time.sleep(MOTION_SETTLE_S)
+    guided = sc.get_deltas(MOTION_SAMPLE_S)
 
     if direction in RA_GUIDE_DIRECTIONS:
         ra_rate_delta = guided.ra.rate_per_s.motor - baseline.ra.rate_per_s.motor

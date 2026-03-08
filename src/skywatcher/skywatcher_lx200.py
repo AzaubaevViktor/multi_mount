@@ -2,7 +2,7 @@ import threading
 import time
 
 from lx200.base import HaPerSecond, LX200RAHandler
-from sky.physics import SECONDS_PER_DAY, Dec, Direction, Ha, Second
+from sky.physics import Dec, Direction, Ha, Second
 from .skywatcher import SkyWatcherMount, SkyWatcherStatus, SlewMode
 
 
@@ -51,8 +51,6 @@ class SkyWatcherLX200(LX200RAHandler):
 
     def _check_goto(self):
         logger = self.logger.getChild("goto")
-        circle_seconds = SECONDS_PER_DAY
-        half_circle_seconds = Ha(float(circle_seconds / 2))
 
         while self._working:
             if not self.mount.is_connected:
@@ -70,7 +68,7 @@ class SkyWatcherLX200(LX200RAHandler):
                         current_ra = self._mount_position_raw
 
                     # TODO: Move this to smart goto method in splitter
-                    delta_to_target_seconds = (_goto_to - current_ra + half_circle_seconds).wrap() - half_circle_seconds
+                    delta_to_target_seconds = (_goto_to - current_ra).moving_wrap()
                     delta_to_target_abs_seconds = abs(delta_to_target_seconds)
 
                     if delta_to_target_abs_seconds < self._STOP_GOTO_SECONDS:
@@ -91,29 +89,28 @@ class SkyWatcherLX200(LX200RAHandler):
                     else:
                         logger.debug("Continuing slewing, %.3fs still need to moved", delta_to_target_abs_seconds)
                         if self.mount.get_status().slew_mode != SlewMode.GOTO:
-                            # start goto
-                            raw_delta_seconds = delta_to_target_seconds
-                            
-                            real_rate = self.mount.get_slew_real_speed(raw_delta_seconds)
-                            # Add sky moving approximation
-                            real_delta_seconds = raw_delta_seconds + abs(raw_delta_seconds) / (self._sky_track_rate / real_rate)
-                            if real_delta_seconds < Ha(0):
-                                real_delta_seconds -= self.MAGIC_SECONDS_MINUS_SLEW  # add 6 magic seconds, because of accel/deccel/stop/star
-                            real_delta = -real_delta_seconds  # why tf minus here and it works?
+                            motor_delta = -delta_to_target_seconds
+                            real_rate = abs(self.mount.get_slew_real_speed(motor_delta))
+                            tracking_ratio = abs(self._sky_track_rate / real_rate)
 
-                            self.mount.slew_delta(real_delta)
-                            if real_delta > Ha(0):
+                            if delta_to_target_seconds > Ha(0):
+                                motor_delta = -delta_to_target_seconds / (1 + tracking_ratio)
                                 self._goto_direction_sign = Direction.FORWARD
-                            elif real_delta < Ha(0):
+                            elif delta_to_target_seconds < Ha(0):
+                                motor_delta = -delta_to_target_seconds / (1 - tracking_ratio)
                                 self._goto_direction_sign = Direction.BACKWARD
                             else:
+                                motor_delta = Ha(0)
                                 self._goto_direction_sign = Direction.STOP
 
-                            logger.info("Run GOTO to %s from %s with delta %s (x%f)",
+                            self.mount.slew_delta(motor_delta)
+
+                            logger.info("Run GOTO to %s from %s with coordinate delta %s and motor delta %s (x%f)",
                                         _goto_to,
                                         current_ra,
-                                        real_delta_seconds,
-                                        real_delta_seconds / raw_delta_seconds,
+                                        delta_to_target_seconds,
+                                        motor_delta,
+                                        motor_delta / delta_to_target_seconds,
                                         )
                         elif self._goto_direction_sign and ((delta_to_target_seconds > Ha(0)) ^ (self._goto_direction_sign == Direction.FORWARD)):
                             # Too far away
@@ -124,6 +121,7 @@ class SkyWatcherLX200(LX200RAHandler):
                                             delta_to_target_seconds,
                                             )
                             self._goto_to = None
+                            self._goto_direction_sign = Direction.STOP
                 except Exception:
                     logger.exception("While processing GOTO to %s", _goto_to)
 

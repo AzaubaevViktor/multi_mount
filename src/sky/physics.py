@@ -185,6 +185,15 @@ class Ha(AxisPos):
     def wrap(self) -> Self:
         return self.__class__(self._total_seconds % _SECONDS_PER_DAY)
 
+    def moving_wrap(self) -> Self:
+        half_circle = self.__class__(_SECONDS_PER_DAY / 2)
+        full_circle = self.__class__(_SECONDS_PER_DAY)
+        if self > half_circle:
+            return self - full_circle
+        if self < -half_circle:
+            return self + full_circle
+        return self
+
     @overload
     def __truediv__(self, other: Second) -> AxisSpeed: ...
 
