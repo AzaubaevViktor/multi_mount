@@ -83,12 +83,10 @@ class PolarCompensator:
 
     def _do_check(self):
         while self._working:
-            both_updated = False
+            ra_updated = self._updated_ra.wait(.5)
+            dec_updated = self._updated_dec.wait(.5)
 
-            if self._updated_ra.wait(.5) and self._updated_dec.wait(.5):
-                both_updated = True
-            
-            if not both_updated:
+            if not (ra_updated or dec_updated):
                 now = time.monotonic()
 
                 if self.status == self.Status.SETTLE:
@@ -107,6 +105,7 @@ class PolarCompensator:
             is_ra_settled = abs(self._prev_ra_speed - self._ra_speed) < self.SETTLE_THRESHOLD_RA
             is_dec_settled = abs(self._prev_dec_drift - self._dec_drift) < self.SETTLE_THRESHOLD_DEC
             self._do_correction(self._ra_speed, self._dec_drift)
+            self._last_correction_time = time.monotonic()
 
             if is_ra_settled and is_dec_settled:
                 self._current_settle_count += 1
@@ -280,6 +279,11 @@ class LX200Splitter(LX200Handler):
         if (ra_speed := self.ra.calculate_guide_rate(direction, ms)) is None and (dec_speed := self.dec.calculate_guide_rate(direction, ms)) is None:
             raise ValueError(f"Unknown move direction: {direction}")
         
+        # External pulse width controls the requested guide magnitude only.
+        # We keep the last guide correction latched after the external guider
+        # stops sending pulses, because these guide updates are also used to
+        # estimate polar alignment error and continuously recompute tracking
+        # correction relative to that measured pole offset.
         if ra_speed is not None:
             self._polar_compensator.set_guide_speed_ra(ra_speed)
 

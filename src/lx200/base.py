@@ -275,7 +275,7 @@ class LX200AxisHandler[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed](LX200Base):
         if direction not in self.DIRECTIONS:
             return None
 
-        guide_fration = (Second(ms) / self._guide_interval)
+        guide_fration = Second.from_milliseconds(ms) / self._guide_interval
 
         match direction:
             case SkyDirection.EAST | SkyDirection.SOUTH:
@@ -346,7 +346,7 @@ class LX200AxisHandler[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed](LX200Base):
         return self._halt_direction(SkyDirection.WEST)
 
     def _apply_axis_command(self, cmd: AxisCommand) -> None:
-        if cmd.direction not in self.DIRECTIONS:
+        if cmd.type == AxisCommandType.HALT_DIRECTION and cmd.direction not in self.DIRECTIONS:
             self.logger.warning("Ignore wrong halt direction for %s: %s", self.AXIS_NAME, cmd.direction)
             return
 
@@ -398,10 +398,12 @@ class LX200AxisHandler[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed](LX200Base):
 
             self._last_update_s = Second.monotonic()
 
+        requested_rate = rate if cmd.rate is None else cmd.rate
+
         self.logger.info(
             "Applied command: %s; rate: %.3f->%.3f; sky_rate: %.3f->%.3f; motor_position: %.3f-> %.3f",
             cmd.type, 
-            cmd.rate, applied_rate,
+            requested_rate, applied_rate,
             previous_sky_rate, sky_rate,
             previous_motor_position, motor_position
         )

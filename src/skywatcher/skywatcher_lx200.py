@@ -79,7 +79,7 @@ class SkyWatcherLX200(LX200RAHandler):
                         
                         with self._position_update_lock:
                             _current_ra = self._mount_position_raw
-
+                        
                         logger.info("Finished GOTO to %s in %s with delta: %fs", 
                                     _goto_to, 
                                     _current_ra, 
@@ -87,6 +87,7 @@ class SkyWatcherLX200(LX200RAHandler):
                                     )
                         
                         self._goto_to = None
+                        self._goto_direction_sign = Direction.STOP
                     else:
                         logger.debug("Continuing slewing, %.3fs still need to moved", delta_to_target_abs_seconds)
                         if self.mount.get_status().slew_mode != SlewMode.GOTO:

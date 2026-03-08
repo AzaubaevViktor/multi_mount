@@ -3,6 +3,8 @@ import time
 import pytest
 
 from lx200.base import LX200DECHandler, LX200RAHandler
+from lx200.splitter import LX200Splitter
+from sky.physics import DecPerSecond, HaPerSecond, Second
 
 
 def _wait_for_rate_updates(axis, count: int, timeout_s: float = 1.5) -> None:
@@ -25,7 +27,7 @@ def _wait_for_halt(axis, count: int, timeout_s: float = 1.5) -> None:
 
 class _DummyRAHandler(LX200RAHandler):
     _TELEMETRY_INTERVAL_S = 0.05
-    _RATE_COMPENSATE_INTERVAL_S = 0.05
+    _RATE_COMPENSATE_INTERVAL_S = Second(0.05)
 
     def __init__(self) -> None:
         self.applied_rates: list[float] = []
@@ -38,11 +40,11 @@ class _DummyRAHandler(LX200RAHandler):
     def _get_motor_status(self):
         return "ok"
 
-    def _get_motor_raw_position(self) -> float:
+    def _get_motor_raw_position(self):
         return self._motor_position_raw
 
-    def _set_tracking_speed(self, rate: float) -> None:
-        self.applied_rates.append(rate)
+    def _set_tracking_speed(self, rate: HaPerSecond) -> None:
+        self.applied_rates.append(float(rate))
 
     def _halt_motion(self) -> None:
         self.halt_calls += 1
@@ -50,7 +52,7 @@ class _DummyRAHandler(LX200RAHandler):
 
 class _DummyDECHandler(LX200DECHandler):
     _TELEMETRY_INTERVAL_S = 0.05
-    _RATE_COMPENSATE_INTERVAL_S = 0.05
+    _RATE_COMPENSATE_INTERVAL_S = Second(0.05)
 
     def __init__(self) -> None:
         self.applied_rates: list[float] = []
@@ -63,18 +65,18 @@ class _DummyDECHandler(LX200DECHandler):
     def _get_motor_status(self):
         return "ok"
 
-    def _get_motor_raw_position(self) -> float:
+    def _get_motor_raw_position(self):
         return self._motor_position_raw
 
-    def _set_tracking_speed(self, rate: float) -> None:
-        self.applied_rates.append(rate)
+    def _set_tracking_speed(self, rate: DecPerSecond) -> None:
+        self.applied_rates.append(float(rate))
 
     def _halt_motion(self) -> None:
         self.halt_calls += 1
 
 
 class _SlowQueueRAHandler(_DummyRAHandler):
-    _RATE_COMPENSATE_INTERVAL_S = 2.0
+    _RATE_COMPENSATE_INTERVAL_S = Second(2.0)
 
 
 def test_ra_guide_applies_east_and_west_with_opposite_rates() -> None:
@@ -83,8 +85,9 @@ def test_ra_guide_applies_east_and_west_with_opposite_rates() -> None:
         axis.guide_east(2000)
         axis.guide_west(2000)
         _wait_for_rate_updates(axis, count=2)
-        assert axis.applied_rates[:2] == pytest.approx([1.5, 0.5])
-        assert axis._sky_track_rate == pytest.approx(0.5)
+        default_rate = float(axis.DEFAULT_TRACKING_RATE)
+        assert axis.applied_rates[:2] == pytest.approx([default_rate * 1.5, default_rate * 0.5])
+        assert float(axis._sky_track_rate) == pytest.approx(default_rate * 0.5)
     finally:
         axis.stop()
 
@@ -95,8 +98,9 @@ def test_dec_guide_applies_north_and_south_with_opposite_rates() -> None:
         axis.guide_north(2000)
         axis.guide_south(2000)
         _wait_for_rate_updates(axis, count=2)
-        assert axis.applied_rates[:2] == pytest.approx([-0.5, 0.5])
-        assert axis._sky_track_rate == pytest.approx(0.5)
+        half_range = float(axis.MAX_TRACKING_RATE) * 0.5
+        assert axis.applied_rates[:2] == pytest.approx([-half_range, half_range])
+        assert float(axis._sky_track_rate) == pytest.approx(half_range)
     finally:
         axis.stop()
 
@@ -104,15 +108,15 @@ def test_dec_guide_applies_north_and_south_with_opposite_rates() -> None:
 def test_set_tracking_rate_updates_current_and_sky_by_flag() -> None:
     axis = _DummyRAHandler()
     try:
-        axis.set_tracking_rate(1.25, update_sky_rate=False)
+        axis.set_tracking_rate(HaPerSecond(1.25), update_sky_rate=False)
         _wait_for_rate_updates(axis, count=1)
-        assert axis._current_track_rate == pytest.approx(1.25)
-        assert axis._sky_track_rate == pytest.approx(axis.DEFAULT_TRACKING_RATE)
+        assert axis.applied_rates[-1] == pytest.approx(1.25)
+        assert float(axis._sky_track_rate) == pytest.approx(float(axis.DEFAULT_TRACKING_RATE))
 
-        axis.set_tracking_rate(1.4, update_sky_rate=True)
+        axis.set_tracking_rate(HaPerSecond(1.4), update_sky_rate=True)
         _wait_for_rate_updates(axis, count=2)
-        assert axis._current_track_rate == pytest.approx(1.4)
-        assert axis._sky_track_rate == pytest.approx(1.4)
+        assert axis.applied_rates[-1] == pytest.approx(1.4)
+        assert float(axis._sky_track_rate) == pytest.approx(1.4)
     finally:
         axis.stop()
 
@@ -121,11 +125,11 @@ def test_axis_commands_apply_immediately_without_waiting_compensate_interval() -
     axis = _SlowQueueRAHandler()
     try:
         start = time.monotonic()
-        axis.set_tracking_rate(1.3)
+        axis.set_tracking_rate(HaPerSecond(1.3))
         _wait_for_rate_updates(axis, count=1, timeout_s=0.5)
         assert time.monotonic() - start < 0.5
 
-        axis.set_tracking_rate(1.1, update_sky_rate=True)
+        axis.set_tracking_rate(HaPerSecond(1.1), update_sky_rate=True)
         _wait_for_rate_updates(axis, count=2, timeout_s=0.5)
 
         halt_start = time.monotonic()
@@ -136,3 +140,37 @@ def test_axis_commands_apply_immediately_without_waiting_compensate_interval() -
         assert axis.applied_rates[-1] == pytest.approx(1.1)
     finally:
         axis.stop()
+
+
+def test_splitter_ra_guide_applies_without_dec_update() -> None:
+    ra = _DummyRAHandler()
+    dec = _DummyDECHandler()
+    splitter = LX200Splitter(ra=ra, dec=dec)
+    splitter._polar_compensator.start()
+
+    try:
+        splitter.guide_east(2000)
+        _wait_for_rate_updates(ra, count=1)
+        _wait_for_rate_updates(dec, count=1)
+
+        assert ra.applied_rates[-1] == pytest.approx(float(ra.DEFAULT_TRACKING_RATE) * 1.5)
+        assert dec.applied_rates[-1] == pytest.approx(0.0)
+    finally:
+        splitter.stop()
+
+
+def test_splitter_dec_guide_applies_without_ra_update() -> None:
+    ra = _DummyRAHandler()
+    dec = _DummyDECHandler()
+    splitter = LX200Splitter(ra=ra, dec=dec)
+    splitter._polar_compensator.start()
+
+    try:
+        splitter.guide_north(2000)
+        _wait_for_rate_updates(ra, count=1)
+        _wait_for_rate_updates(dec, count=1)
+
+        assert ra.applied_rates[-1] == pytest.approx(float(ra.DEFAULT_TRACKING_RATE))
+        assert dec.applied_rates[-1] == pytest.approx(-float(dec.MAX_TRACKING_RATE) * 0.5)
+    finally:
+        splitter.stop()
