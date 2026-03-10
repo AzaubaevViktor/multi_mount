@@ -16,9 +16,9 @@ class PolarCompensator:
     CORRECTION_DELTA_S = 5
     DISABLED_RESET_AFTER_S = 6
 
-    # TODO: Add WAITING mode
     class Status:
         DISABLED = 'disabled'
+        WAITING = 'waiting'
         SETTLE = 'settle'
         GUIDING = 'guiding'
 
@@ -81,9 +81,9 @@ class PolarCompensator:
         self._do_correction(self._ra_speed, self._dec_drift)
 
     def _do_correction(self, ha_drift: HaPerSecond, dec_drift: DecPerSecond):
-        # TODO: Add self._last_guide_update update
         self.logger.debug("Applying correction with ha_drift=%.4f, dec_drift=%.4f", ha_drift, dec_drift)
         self._do_correction_func(ha_drift, dec_drift)
+        self._last_guide_update = Second.monotonic()
 
     def set_coordiantes(self, ha: Ha | None, dec: Dec | None):
         """ Update pointing coordinates """
@@ -113,7 +113,7 @@ class PolarCompensator:
                 now = time.monotonic()
                 since_last_guide = Second.monotonic() - self._last_guide_update
 
-                if self.status == self.Status.DISABLED and since_last_guide > Second(self.DISABLED_RESET_AFTER_S):
+                if self.status in (self.Status.DISABLED, self.Status.WAITING) and since_last_guide > Second(self.DISABLED_RESET_AFTER_S):
                     if self._ra_speed != STELLAR_SPEED or self._dec_drift != DecPerSecond(0):
                         self.disable(reset_rates=True)
                     continue
@@ -127,6 +127,10 @@ class PolarCompensator:
                         self._last_correction_time = now
 
                 continue
+
+            if self.status == self.Status.DISABLED:
+                self.logger.info("Start waiting for external guide settle")
+                self.status = self.Status.WAITING
 
             self._updated_ra.clear()
             self._updated_dec.clear()
@@ -294,13 +298,11 @@ class LX200Splitter(LX200Handler):
     def _do_correction(self, ha_drift: HaPerSecond, dec_drift: DecPerSecond):
         self.logger.debug("Applying correction with ha_drift=%.4f, dec_drift=%.4f", ha_drift, dec_drift)
         try:
-            # TODO: Somehow we need to set dec rate in arcsec/sec directly
             self.dec.set_tracking_rate(dec_drift, update_sky_rate=True)
         except Exception:
             self.logger.exception("While set DEC guide speed")
 
         try:
-            # TODO: Maybe we need to set RA rate in sec/sec instead of coefficient
             self.ra.set_tracking_rate(ha_drift, update_sky_rate=True)
         except Exception:
             self.logger.exception("While set RA guide speed")
