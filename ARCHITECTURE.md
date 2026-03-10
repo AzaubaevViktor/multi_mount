@@ -1,305 +1,329 @@
 # Multi-Mount Architecture
 
-## Цель
+## Назначение
 
-Описать целевую архитектуру по слоям для гибридной монтировки (RA + DEC) и формализовать поведение осевого контроллера `L3` через state machine и вызовы `L4`.
+Проект собирает гибридную монтировку из двух разных физических осей и публикует наружу один LX200-совместимый endpoint:
 
----
+- RA управляется через SynScan/SkyWatcher backend.
+- DEC управляется через самодельный контроллер на Arduino + TMC2209.
+- клиент (`INDI`, `KStars`, `Ekos`) видит это как одну монтировку.
 
-## Слои
+Текущая архитектура уже реализована и строится вокруг композиции `LX200SimpleServer -> LX200Splitter -> RA/DEC axis handlers -> hardware adapters`.
 
-### L1. LX200 Server + Protocol Endpoint
+## Верхнеуровневая схема
 
-Зона ответственности:
-- TCP-сервер, парсинг входящих LX200-команд, формирование ответов.
-- Никакой бизнес-логики движения.
-
-Должен уметь:
-- Принять `:<cmd>#`.
-- Передать вызов в `L2`.
-- Вернуть ответ в формате LX200.
-
-Не должен уметь:
-- Управлять мотором напрямую.
-- Решать, как считать delta или выбирать профиль скоростей.
-
----
-
-### L2. Splitter / Composite Mount
-
-Зона ответственности:
-- Маршрутизация команд между RA/DEC осевыми контроллерами (`L3`).
-- Композиция статусов и результатов.
-
-Должен уметь:
-- Делегировать осевые команды в нужный `L3`.
-- Для составных команд (`SYNC`, `SLEW`, `HALT_ALL`) агрегировать результаты осей.
-- Возвращать в L1 корректный общий результат (`ok = ra_ok and dec_ok`).
-
-Не должен уметь:
-- Знать low-level протокол железа.
-- Выполнять осевую state machine.
-
----
-
-### L3. Axis Controller (RA/DEC)
-
-Зона ответственности:
-- Осевой домен в `sec/arcsec` (или эквивалентных axis units).
-- State machine оси.
-- Политика guide/tracking/manual/goto/halt.
-- Формирование `motion intent` для L4 (что сделать), но не как именно в raw units.
-
-Должен уметь:
-- `sync`, `tracking`, `manual move`, `goto`, `guide`, `halt_X`, `halt_all`.
-- Поддерживать persistent guide-offset до явного сброса `halt_all`.
-- Возвращать понятный результат операций для L2.
-
----
-
-### L4. Hardware Driver
-
-Зона ответственности:
-- Управление мотором/контроллером в raw units (`steps/ticks/period`).
-- Конверсия осевых величин (`sec/arcsec`) <-> raw units.
-- Выбор и применение motion profiles (tracking/manual/goto fast/slow).
-- Исполнение low-level команд без LX200-протокола.
-
-Минимальный контракт:
-
-```python
-class AxisHwDriver(Protocol):
-    def connect(self) -> None: ...
-    def disconnect(self) -> None: ...
-    def snapshot(self) -> HwSnapshot: ...
-    def set_position_axis(self, pos_axis: float) -> None: ...
-    def stop(self, graceful: bool = True) -> None: ...
-    def run_tracking_axis(self, tracking_rate_axis: float) -> None: ...
-    def run_manual_axis(self, manual_rate_axis: float) -> None: ...
-    def run_goto_axis(self, target_axis: float) -> None: ...
+```text
+LX200 client
+  -> LX200SimpleServer
+    -> LX200Handler.handle()
+      -> LX200Splitter
+        -> SkyWatcherLX200 (RA)
+          -> SkyWatcherMount
+            -> SerialLine
+        -> TMC2209LX200 (DEC)
+          -> TMC2209Adapter
+            -> SerialLine
 ```
 
-`HwSnapshot` минимум:
-- `running: bool`
-- `direction_raw` (`+1` / `0` / `-1`)
-- `phase` (`idle` / `halt` / `acceleration` / `running` / `deceleration`)
-- `profile` (`stop` / `tracking` / `slow` / `fast`) — speed and accel
-- `motor_position: int` — raw motor position
-- `position: int` — position in sec/arces
-- `target_raw: int | None`
+Отдельно от LX200-стека существует HTTP monitor:
 
----
-
-## L3: модель данных
-
-Переменные состояния оси:
-- `state: AxisState`
-- `base_tracking_rate: float`
-- `guide_offset_rate: float`
-- `effective_tracking_rate = base_tracking_rate + guide_offset_rate`
-- `tracking_rate_before_motion: float | None`
-- `manual_rate: float | None`
-- `goto_target_axis: AxisPos | None`
-- `mount_position: AxisPos`
-- `motor_position: int` — sec/arcsec
-
-Важно:
-- `guide_offset_rate` сохраняется после guide-команд.
-- Вход в `MANUAL`/`GOTO` не должен менять tracking-rate сам по себе.
-- При выходе из `MANUAL`/`GOTO` восстанавливается `tracking_rate_before_motion`.
-- Сброс `guide_offset_rate` выполняется только через `halt_all`.
-
----
-
-## L3 State Machine
-
-Состояния:
-- `DISCONNECTED`
-- `TRACKING`
-- `MANUAL`
-- `GOTO`
-- `FAULT`
-
-События:
-- `connect`
-- `disconnect`
-- `sync_to(pos)`
-- `set_tracking_base(rate)`
-- `guide(direction, ms)`
-- `move_manual(direction)`
-- `halt_X(direction)`
-- `manual_stop`
-- `slew_to(target)`
-- `goto_tick` (периодический polling L4)
-- `halt_all`
-- `hw_error`
-
----
-
-## Переходы L3 через вызовы L4
-
-| Событие | From | Действия L3 | Вызовы L4 | To |
-|---|---|---|---|---|
-| `connect` | `DISCONNECTED` | инициализация rates/offset | `connect()`, `run_tracking_axis(base+offset)` | `TRACKING` |
-| `disconnect` | `TRACKING/MANUAL/GOTO/FAULT` | очистка runtime-контекста | `stop(graceful=True)`, `disconnect()` | `DISCONNECTED` |
-| `sync_to(pos)` | `TRACKING/MANUAL` | обновление local pose | `set_position_axis(pos)` | без смены |
-| `set_tracking_base(rate)` | `TRACKING` | `base_tracking_rate = rate` | `run_tracking_axis(base+offset)` | `TRACKING` |
-| `set_tracking_base(rate)` | `MANUAL/GOTO` | только сохранить новый base, применить позже | нет немедленного вызова | без смены |
-| `guide(dir, ms)` | `TRACKING` | пересчитать `guide_offset_rate` | `run_tracking_axis(base+offset)` | `TRACKING` |
-| `guide(dir, ms)` | `MANUAL/GOTO` | пересчитать `guide_offset_rate`, отложить применение | нет немедленного вызова | без смены |
-| `move_manual(dir)` | `TRACKING` | `tracking_rate_before_motion = base+offset`, выбрать знак и manual-rate | `run_manual_axis(manual_signed_rate)` | `MANUAL` |
-| `move_manual(dir)` | `GOTO` | отменить goto, сохранить previous tracking-rate, перейти в ручное | `stop(graceful=True)`, `run_manual_axis(manual_signed_rate)` | `MANUAL` |
-| `halt_X(dir)` | `TRACKING` | no-op (останавливать нечего) | нет вызова | `TRACKING` |
-| `halt_X(dir)` | `MANUAL` | остановить manual для активной оси/направления и восстановить previous tracking-rate; `effective_tracking_rate` не менять | `run_tracking_axis(tracking_rate_before_motion or (base+offset))` | `TRACKING` |
-| `halt_X(dir)` | `GOTO` | прервать goto и восстановить previous tracking-rate; `effective_tracking_rate` не менять | `stop(graceful=True)`, `run_tracking_axis(tracking_rate_before_motion or (base+offset))` | `TRACKING` |
-| `manual_stop` | `MANUAL` | завершить manual, восстановить previous tracking-rate | `run_tracking_axis(tracking_rate_before_motion or (base+offset))` | `TRACKING` |
-| `slew_to(target)` | `TRACKING/MANUAL` | сохранить target; при входе из `TRACKING` сохранить previous tracking-rate | если `MANUAL`: `stop(graceful=True)`; затем `run_goto_axis(target)` | `GOTO` |
-| `goto_tick` (target reached) | `GOTO` | завершить goto, восстановить previous tracking-rate | `run_tracking_axis(tracking_rate_before_motion or (base+offset))` | `TRACKING` |
-| `goto_tick` (timeout/overshoot/error) | `GOTO` | аварийное завершение | `stop(graceful=True)` | `FAULT` или `TRACKING` по политике |
-| `halt_all` | `TRACKING/MANUAL/GOTO/FAULT` | policy-команда: отмена goto/manual; optional `guide_offset_rate = 0` | `stop(graceful=True)`, `run_tracking_axis(base_tracking_rate)` | `TRACKING` |
-| `hw_error` | любой connected | лог + блокировка оси | `stop(graceful=False)` | `FAULT` |
-
----
-
-## Базовые сценарии
-
-### 1) Tracking (номинальный цикл)
-
-1. `L2 -> L3.set_tracking_base(rate)`
-2. `L3` вычисляет `effective = base + guide_offset`
-3. `L3 -> L4.run_tracking_axis(effective)` (профиль и raw-конверсия внутри L4)
-4. Ось в `TRACKING`
-
-### 2) Manual движение
-
-1. `L2 -> L3.move_manual(direction)`
-2. `L3` сохраняет previous tracking-rate (`tracking_rate_before_motion`), вычисляет signed rate.
-3. `L3 -> L4.run_manual_axis(manual_signed_rate)`
-4. Ось в `MANUAL`
-5. `L2 -> L3.halt_X(direction)` и восстановление сохранённого tracking-rate.
-6. `halt_X` не меняет `effective_tracking_rate`; он только завершает текущее движение.
-
-### 3) GOTO
-
-1. `L2 -> L3.slew_to(target)`
-2. `L3` передаёт target оси.
-3. `L3 -> L4.run_goto_axis(target)` (конверсия и fast/slow профиль внутри L4)
-4. `L3` переходит в `GOTO`, запускает `goto_tick` polling.
-5. По достижению цели: `L3 -> L4.run_tracking_axis(previous_tracking_rate)`, переход в `TRACKING`.
-
-### 4) Guide с persistent offset
-
-1. `L2 -> L3.guide(direction, ms)`
-2. `L3` обновляет `guide_offset_rate` (накапливаемо).
-3. Если state=`TRACKING`: сразу `L4.run_tracking_axis(base+offset)`.
-4. Если state=`MANUAL/GOTO`: offset сохраняется и применится при возврате в `TRACKING`.
-5. Сброс только через `halt_all`.
-
----
-
-## Общий Код Статуса
-
-Единая структура статуса нужна для:
-- `L4 -> L3`: нормализованный hardware snapshot.
-- `L3 -> L2`: нормализованный осевой статус.
-- `L2 -> L1`: агрегированный статус монтировки.
-
-Рекомендуемые модели:
-
-```python
-@dataclass(frozen=True)
-class AxisStatusCommon:
-    axis: Literal["ra", "dec"]
-    connected: bool
-    state: AxisState                   # DISCONNECTED/TRACKING/MANUAL/GOTO/FAULT
-    running: bool
-    motion: Literal["idle", "tracking", "manual", "goto", "fault"]
-    effective_tracking_rate: float
-    tracking_rate_before_motion: float | None
-    guide_offset_rate: float
-    mount_position: float              # sec for RA, arcsec for DEC
-    motor_position_raw: int
-    direction_sign: int                # -1 / 0 / +1
-    phase: str                         # idle/hold/acceleration/running/deceleration
-    profile: str                       # tracking/manual/goto_fast/goto_slow/stop
-    target_position: float | None
-    error: str | None
-    raw: dict[str, Any]                # оригинальный статус железки
-
-@dataclass(frozen=True)
-class MountStatusCommon:
-    ra: AxisStatusCommon
-    dec: AxisStatusCommon
-    connected: bool
-    slewing: bool
-    guiding_active: bool
-    faulted: bool
+```text
+MonitorMixin objects
+  -> MonitorRegistry
+    -> MonitorRequestHandler / ThreadingHTTPServer
+      -> SSE + static UI
 ```
 
-### Маппинг из текущих железок
+## Основные модули
 
-SkyWatcher (`SkyWatcherStatus`):
-- `running <- status.running`
-- `direction_sign <- +1 if FORWARD else -1`
-- `phase <- "running" if running else "hold"` (детального accel/decel нет в протоколе)
-- `profile <- "goto"` если `slew_mode=GOTO`, иначе `"tracking/manual"` по состоянию L3
-- `raw <- {"raw": ..., "slew_mode": ..., "speed_mode": ..., ...}`
+### `src/__main__.py`
 
-TMC2209 (`TMC2209Status`):
-- `running <- phase not in {"idle", "hold"}`
-- `phase <- status.phase`
-- `profile <- выводится из L3-команды + L4 профиля`
-- `target_position <- из target (raw -> axis units)`
-- `raw <- {"mode": ..., "target_set": ..., "speed": ..., "actual_speed": ..., ...}`
+Точка сборки production-конфигурации:
 
-### Инварианты статуса
+- ищет serial-устройства;
+- создаёт `SkyWatcherMount` и `TMC2209Adapter`;
+- оборачивает их в `SkyWatcherLX200` и `TMC2209LX200`;
+- соединяет обе оси через `LX200Splitter`;
+- запускает `LX200SimpleServer`.
 
-- `halt_X` не меняет `effective_tracking_rate`.
-- `halt_X` должен менять только `motion/state` и флаг `running`.
-- `halt_all` может иметь policy-сброс (`guide_offset_rate = 0`) и это должно быть явно отражено в статусе.
+### `src/lx200/base_server.py`
 
----
+`LX200SimpleServer` поднимает TCP-сервер и работает на уровне байтового протокола LX200:
 
-## Политика результатов для LX200
+- принимает поток команд `:<cmd>#`;
+- отдельно обрабатывает alignment query (`0x06`);
+- декодирует команду и передаёт её в `lx200.handle(...)`;
+- сериализует ответ обратно в LX200-формат.
 
-Минимальное правило для `L2`:
-- `SYNC`: `ok = ra_ok and dec_ok`
-- `SLEW`: `ok = ra_ok and dec_ok`
-- `HALT_ALL`: `ok = ra_ok and dec_ok` (если политика не допускает partial-ok)
+Сервер не содержит логики движения и не знает о конкретных типах mount/backend.
 
-Рекомендация:
-- В логах хранить раздельно `ra_result`, `dec_result`, `combined_result`.
-- В L1 всегда возвращать ответ строго по ожидаемому формату LX200 для конкретной команды.
+### `src/lx200/base.py`
 
----
+Главный протокольный и доменный слой.
 
-## Web Control Progress
+Содержит:
 
-Файл: `src/web_control/web.py`
+- `LX200Commands` с поддерживаемыми командами LX200;
+- базовый контракт `LX200Base`;
+- общий `LX200Handler`, который:
+  - хранит target RA/DEC;
+  - парсит команды;
+  - маршрутизирует их в методы управления;
+  - ведёт список активных manual-direction halt-команд;
+- обобщённый `LX200AxisHandler`, который реализует общую механику оси.
 
-Что уже сделано:
-- Реализован компактный прототип monitoring framework без внешних зависимостей.
-- Есть typed descriptors: `MonitorField`, `MonitorAction`, `MonitorGroup`.
-- Есть `MonitorMixin` для интеграции monitored-объектов с минимальным boilerplate.
-- Есть разделение на static structure и dynamic updates.
-- Есть background polling с хранением last snapshot и отправкой только при изменениях.
-- Есть live transport через SSE (`/events`) вместо polling из браузера.
-- Есть HTTP API для чтения структуры, изменения rw-полей и вызова actions.
-- Есть минимальный встроенный frontend.
-- Библиотечный код отделен от demo: пример вынесен в `src/web_control/example.py`.
-- Есть базовый тестовый пример для web control layer.
+`LX200AxisHandler` является фактическим общим ядром для RA/DEC и отвечает за:
 
-Что пока не сделано:
-- Настоящий WebSocket transport.
-- Нормальная сериализация/валидация аргументов по сложным типам.
-- Полноценная вложенная layout-модель для recursive groups на UI.
-- Интеграция с реальными `SkyWatcherLX200` / `LX200Splitter` объектами проекта.
-- Авторизация, multi-user isolation, throttling, metrics, graceful shutdown.
-- Тесты на web control layer.
+- хранение mount-позиции и motor-позиции;
+- хранение текущей sky tracking speed;
+- очередь `AxisCommand`;
+- фоновую компенсацию позиции по фактическому движению мотора;
+- периодический telemetry logging;
+- обработку `set_tracking_rate`, `halt_motion`, `halt_direction`;
+- пересчёт guide-rate из ширины guide pulse.
 
-Следующие шаги:
-- Заменить SSE на WebSocket transport, если нужен duplex-канал без HTTP POST.
-- Вынести frontend в отдельные static assets, если UI начнет расти.
-- Добавить adapter layer для текущих mount/splitter классов проекта.
-- Добавить typed coercion для `int/float/bool/enum` и structured action args.
-- Добавить unit tests на diffing, field writes, action dispatch и transport events.
+Это не чистая state machine из старого документа. В текущем коде поведение строится вокруг:
+
+- текущей sky-rate;
+- очереди команд оси;
+- background thread, который либо применяет команды, либо периодически компенсирует координату по данным мотора.
+
+### `src/lx200/splitter.py`
+
+`LX200Splitter` композиционно объединяет две независимые оси под одним интерфейсом `LX200Handler`.
+
+Ответственность:
+
+- RA-команды делегируются `SkyWatcherLX200`;
+- DEC-команды делегируются `TMC2209LX200`;
+- общие команды (`connect`, `halt_all`, `set_slew_to_find`, `get_distance`) агрегируются;
+- координируется polar compensation через `PolarCompensator`.
+
+`PolarCompensator`:
+
+- принимает внешние guide-rate изменения;
+- ждёт стабилизации;
+- оценивает polar misalignment;
+- периодически пересчитывает corrective guide rates;
+- возвращает поправки обратно в обе оси через `set_tracking_rate(..., update_sky_rate=True)`.
+
+То есть guide-пульсы в текущей архитектуре используются не только как разовое управление, но и как источник оценки ошибки полярного выравнивания.
+
+### `src/skywatcher/skywatcher_lx200.py`
+
+`SkyWatcherLX200` реализует RA-ось поверх `SkyWatcherMount`.
+
+Особенности:
+
+- наследуется от `LX200RAHandler`;
+- использует backend mount для tracking/manual slew;
+- GOTO реализован через отдельный поток `_check_goto`;
+- поток контролирует достижение цели, останавливает goto и отслеживает overshoot;
+- текущая mount-координата RA хранится отдельно от raw-положения мотора и поддерживается общим механизмом компенсации из `LX200AxisHandler`.
+
+Фактически RA backend умеет:
+
+- подключение и запуск tracking;
+- чтение статуса и положения;
+- ручное движение east/west;
+- goto на delta-based SynScan API;
+- остановку движения и возврат к tracking.
+
+### `src/tmc2209/tmc2209_lx200.py`
+
+`TMC2209LX200` реализует DEC-ось поверх `TMC2209Adapter`.
+
+Особенности:
+
+- наследуется от `LX200DECHandler`;
+- использует профили движения (`guide`, `slew`, `goto_fast`, `goto_slow`);
+- сам управляет `microsteps`, `speed`, `accel`, `direction`, `run/halt`;
+- tracking DEC реализован как signed speed через guide-profile;
+- goto DEC запускается сразу через target mode адаптера;
+- manual movement поддерживается только по направлениям north/south.
+
+В отличие от RA backend, DEC backend ближе к low-level моторному контролю и сам выбирает speed-profile.
+
+### `src/skywatcher/skywatcher.py`
+
+Низкоуровневый драйвер SynScan/SkyWatcher mount:
+
+- serial-протокол к mount;
+- чтение статуса;
+- tracking;
+- slew;
+- работа с реальным положением RA.
+
+### `src/tmc2209/tmc2209_adapter.py`
+
+Низкоуровневый драйвер DEC-контроллера:
+
+- line-based serial protocol к Arduino;
+- статусы `phase/mode/position/...`;
+- команды `run`, `halt`, `set_speed`, `set_acceleration`, `set_position`, `slew_delta`, `set_target_mode`, `set_free_ride_mode`;
+- конвертации между steps, speed in steps/s и DEC axis units.
+
+### `src/serial_wrapper/wrapper.py`
+
+Общий serial transport:
+
+- поиск устройства;
+- line-based transactions;
+- timeout/retry boundary для hardware adapters.
+
+### `src/sky/physics.py` и `src/lx200/protocols.py`
+
+Доменные типы и преобразования:
+
+- `Ha`, `Dec`, `AxisPos`;
+- axis speed types;
+- арифметика координат, wrapping, parsing/formatting;
+- это базовый словарь типов, на котором строятся `lx200`, `skywatcher` и `tmc2209`.
+
+### `src/web_control/web.py`
+
+Независимый от LX200 стек веб-мониторинга.
+
+Состав:
+
+- `MonitorField`, `MonitorAction`, `MonitorGroup`;
+- `MonitorMixin` для декларативного описания monitor surface;
+- `MonitorRegistry` с polling diff loop;
+- `MonitorRequestHandler` на базе standard library HTTP server;
+- SSE endpoint `/events`;
+- static UI в `src/web_control/static`.
+
+Этот слой пока не встроен в production startup из `src/__main__.py`, но покрыт отдельными тестами и предназначен для live inspection / manual control.
+
+### `telescope_dec/src/main.cpp`
+
+Прошивка Arduino для DEC-контроллера:
+
+- исполняет текстовый serial protocol;
+- управляет TMC2209;
+- предоставляет Python-адаптеру минимальный транспортный API для статуса и движения.
+
+## Поток команд LX200
+
+### 1. Подключение клиента
+
+1. `LX200SimpleServer.serve_forever()` запускает TCP listener.
+2. При старте сервер вызывает `splitter.connect()`.
+3. `LX200Splitter.connect()` подключает RA и DEC оси и запускает `PolarCompensator`.
+
+### 2. Обработка команды
+
+1. Клиент отправляет `:<cmd>#`.
+2. `LX200SimpleServer` выделяет команду из byte stream.
+3. `LX200Handler.handle()` превращает первые два символа в `LX200Commands`.
+4. `LX200Handler._do_handle()` вызывает метод доменного уровня.
+5. Конкретная реализация (`LX200Splitter`, `SkyWatcherLX200`, `TMC2209LX200`) выполняет действие.
+6. Ответ сериализуется назад в LX200-формат.
+
+### 3. Команды координат
+
+- `Sr` / `Sd` только записывают target RA/DEC во внутреннее состояние `LX200Handler`.
+- `CM` вызывает sync обеих осей через сохранённые target values.
+- `MS` запускает slew/goto по обеим осям, но в текущем коде response path для `MS` ещё не доведён до корректного LX200 результата и возвращает `False`.
+
+Это важный факт текущей реализации: архитектура уже поддерживает slew/goto, но протокольный ответ на `MS` остаётся упрощённым.
+
+## Модель оси в текущем коде
+
+Вместо единой формализованной state machine текущая ось хранит:
+
+- `_mount_position_raw` — логическая mount-координата;
+- `_motor_position_raw` — последнее известное положение мотора;
+- `_sky_track_rate` — текущая целевая скорость оси в sky units;
+- `_axis_command_queue` — очередь команд изменения режима;
+- `_last_update_s` — время последней синхронизации;
+- backend-specific runtime (`_goto_to`, speed profile, hardware status).
+
+Движение оси состоит из двух параллельных процессов:
+
+- command path:
+  - `set_tracking_rate`, `halt_motion`, `halt_direction` кладутся в очередь;
+  - `_compensate_tracking_rate()` вычитывает их и применяет через `_set_tracking_speed()` / `_halt_motion()`;
+- compensation path:
+  - при отсутствии команд поток читает фактическое motor position;
+  - сравнивает ожидаемое смещение с реальным;
+  - корректирует логическую mount position.
+
+Это даёт два уровня координат:
+
+- motor position: что реально сообщает железо;
+- mount position: что видит LX200-клиент после компенсации tracking/guiding/manual motion.
+
+## RA и DEC различаются по ответственности
+
+### RA
+
+- tracking включён по умолчанию;
+- guide меняет tracking rate вокруг sidereal speed;
+- manual movement east/west идёт через SkyWatcher mount;
+- goto управляется фоновым supervisory thread.
+
+### DEC
+
+- базовый tracking rate обычно `0`;
+- guide и tracking используют signed DEC speed;
+- manual movement north/south идёт напрямую через TMC2209;
+- goto использует target mode и speed profiles;
+- low-level профиль выбирается в Python слое `TMC2209LX200`.
+
+## Параллелизм
+
+В проекте несколько независимых фоновых потоков:
+
+- `LX200SimpleServer`: отдельный thread на клиента;
+- каждый `LX200AxisHandler`:
+  - telemetry thread;
+  - compensate thread;
+- `SkyWatcherLX200`:
+  - goto supervision thread;
+- `PolarCompensator`:
+  - correction thread;
+- `MonitorRegistry`:
+  - polling diff thread;
+- `ThreadingHTTPServer`:
+  - отдельные HTTP request threads.
+
+Синхронизация в основном строится на:
+
+- `threading.RLock` для позиции оси;
+- `queue.Queue` для axis commands;
+- `threading.Event` внутри `PolarCompensator`.
+
+## Тестовое покрытие
+
+Автотесты в `src/tests` покрывают:
+
+- координатную математику и parsing;
+- logic guide/polar compensation;
+- splitter behavior;
+- serial wrapper;
+- SkyWatcher math/status conversions;
+- TMC2209 adapter и `TMC2209LX200`;
+- web monitor registry и example monitor.
+
+Есть и hardware-oriented тесты, которые проверяют интеграцию с реальными устройствами.
+
+## Ограничения и известные архитектурные долги
+
+- `ARCHITECTURE.md` раньше описывал целевую, но не фактическую layered state-machine архитектуру; теперь документ отражает текущий код.
+- `LX200Handler._do_handle()` частично смешивает protocol parsing и command orchestration.
+- Ответ на `MS` пока не оформлен как полноценный LX200 status/result.
+- Общий status model для RA/DEC backend'ов ещё не унифицирован.
+- В `LX200AxisHandler` уже есть TODO о выносе моторного интерфейса и унификации статусов.
+- Web monitor существует отдельно от основного server startup.
+- Полярная компенсация встроена в splitter и тесно связана с тем, как guide-команды меняют tracking rate.
+
+## Направление дальнейшей эволюции
+
+Если развивать текущую архитектуру без полного переписывания, естественные шаги такие:
+
+- унифицировать hardware status contract для SkyWatcher и TMC2209;
+- отделить LX200 protocol layer от orchestration layer;
+- формализовать axis state model поверх уже существующей command queue;
+- довести `SLEW` response semantics до корректного LX200 поведения;
+- встроить web monitor в основной runtime как штатный диагностический интерфейс.
