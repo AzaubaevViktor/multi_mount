@@ -8,6 +8,7 @@ from typing import Callable, Self
 from serial_wrapper.wrapper import SerialLine
 from sky.constants import STELLAR_DAY, STELLAR_SPEED
 from sky.physics import HaPerSecond, Ha
+from web_control.web import MonitorMixin, MonitorRenderer, monitor_action, monitor_field, monitor_group
 
 
 class SkyWatcherWrongResponce(Exception):
@@ -160,7 +161,72 @@ class Revu24:
         return value.to_bytes(3, "little").hex().upper()
 
 
-class SkyWatcherMount:
+class SkyWatcherWebMixin(MonitorMixin):
+    monitor_name = "SkyWatcher Mount"
+    monitor_groups = (
+        monitor_group("main", "Mount"),
+        monitor_group("status", "Status"),
+        monitor_group("config", "Config"),
+    )
+    monitor_fields = (
+        monitor_field("connected", "Connected", "is_connected"),
+        monitor_field("tracking_rate", "Tracking rate", lambda self: round(self._last_tracking_speed / STELLAR_SPEED, 6), mode="rw", setter="set_monitor_tracking_rate"),
+        monitor_field("ha", "Hour angle", "monitor_hour_angle"),
+        monitor_field("status", "Motor status", "monitor_status_payload", renderer=MonitorRenderer.JSON, group="status"),
+        monitor_field("steps_360", "Steps 360", lambda self: getattr(self, "ra_steps_360", None), group="config"),
+        monitor_field("steps_worm", "Steps worm", lambda self: getattr(self, "ra_steps_worm", None), group="config"),
+        monitor_field("highspeed_ratio", "Highspeed ratio", lambda self: getattr(self, "ra_highspeed_ratio", None), group="config"),
+    )
+    monitor_actions = (
+        monitor_action("stop", "Stop motor", "monitor_stop_motor"),
+        monitor_action("refresh", "Refresh structure", "monitor_refresh_layout"),
+    )
+
+    def __init__(self) -> None:
+        super().__init__()
+
+    def monitor_status_payload(self: SkyWatcherMount) -> dict[str, int | bool | str]:
+        if not self.is_connected:
+            return {
+                "raw": 0,
+                "running": False,
+                "initialized": False,
+                "slew_mode": "DISCONNECTED",
+                "direction": "DISCONNECTED",
+                "speed_mode": "DISCONNECTED",
+            }
+        status = self.get_status()
+        return {
+            "raw": status.raw,
+            "running": status.running,
+            "initialized": status.initialized,
+            "slew_mode": status.slew_mode.name,
+            "direction": status.direction.name,
+            "speed_mode": status.speed_mode.name,
+        }
+
+    def monitor_hour_angle(self: SkyWatcherMount) -> str | None:
+        if not self.is_connected:
+            return None
+        return str(self.get_telescope_ha())
+
+    def set_monitor_tracking_rate(self: SkyWatcherMount, value: str) -> float:
+        if not self.is_connected:
+            raise RuntimeError("SkyWatcher mount is not connected")
+        rate = float(value)
+        self.start_tracking(HaPerSecond(STELLAR_SPEED * rate))
+        return rate
+
+    def monitor_stop_motor(self: SkyWatcherMount) -> bool:
+        self.gracefully_stop_motor()
+        return True
+
+    def monitor_refresh_layout(self) -> str:
+        self.monitor_force_refresh()
+        return "ok"
+
+
+class SkyWatcherMount(SkyWatcherWebMixin):
     _LEADING = ":"
     _TRAILING = "\r"
     _COMMAND_ERROR_PREFIX = "!"
@@ -178,6 +244,7 @@ class SkyWatcherMount:
     MAX_SPEED = STELLAR_SPEED * MAX_RATE
 
     def __init__(self, serial: SerialLine) -> None:
+        super().__init__()
         self.logger = logging.getLogger("skywatcher")
         self._serial = serial
         
