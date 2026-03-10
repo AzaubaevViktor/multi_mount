@@ -270,3 +270,36 @@ TMC2209 (`TMC2209Status`):
 Рекомендация:
 - В логах хранить раздельно `ra_result`, `dec_result`, `combined_result`.
 - В L1 всегда возвращать ответ строго по ожидаемому формату LX200 для конкретной команды.
+
+---
+
+## Web Control Progress
+
+Файл: `src/web_control/web.py`
+
+Что уже сделано:
+- Реализован компактный прототип monitoring framework без внешних зависимостей.
+- Есть typed descriptors: `MonitorField`, `MonitorAction`, `MonitorGroup`.
+- Есть `MonitorMixin` для интеграции monitored-объектов с минимальным boilerplate.
+- Есть разделение на static structure и dynamic updates.
+- Есть background polling с хранением last snapshot и отправкой только при изменениях.
+- Есть live transport через SSE (`/events`) вместо polling из браузера.
+- Есть HTTP API для чтения структуры, изменения rw-полей и вызова actions.
+- Есть минимальный встроенный frontend.
+- Библиотечный код отделен от demo: пример вынесен в `src/web_control/example.py`.
+- Есть базовый тестовый пример для web control layer.
+
+Что пока не сделано:
+- Настоящий WebSocket transport.
+- Нормальная сериализация/валидация аргументов по сложным типам.
+- Полноценная вложенная layout-модель для recursive groups на UI.
+- Интеграция с реальными `SkyWatcherLX200` / `LX200Splitter` объектами проекта.
+- Авторизация, multi-user isolation, throttling, metrics, graceful shutdown.
+- Тесты на web control layer.
+
+Следующие шаги:
+- Заменить SSE на WebSocket transport, если нужен duplex-канал без HTTP POST.
+- Вынести frontend в отдельные static assets, если UI начнет расти.
+- Добавить adapter layer для текущих mount/splitter классов проекта.
+- Добавить typed coercion для `int/float/bool/enum` и structured action args.
+- Добавить unit tests на diffing, field writes, action dispatch и transport events.
