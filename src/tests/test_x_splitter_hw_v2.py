@@ -3,10 +3,11 @@ from dataclasses import dataclass
 import logging
 import threading
 import time
+from typing import Callable
 
 import pytest
-from sky.physics import Dec, Ha
-from lx200.splitter import LX200Splitter
+from sky.physics import Dec, Ha, SkyDirection
+from lx200.splitter import LX200Splitter, PolarCompensator
 from serial_wrapper.wrapper import SerialLine
 from skywatcher.skywatcher import SkyWatcherMount
 from skywatcher.skywatcher_lx200 import SkyWatcherLX200
@@ -34,6 +35,15 @@ class AxisInfo:
 class Deltas:
     ra: AxisInfo
     dec: AxisInfo
+
+
+@dataclass
+class PolarSnapshot:
+    status: str
+    eps_n: float
+    eps_e: float
+    ra_sky_rate: float
+    dec_sky_rate: float
 
 
 class SplitterController:
@@ -142,6 +152,55 @@ class SplitterController:
     def _get_tracking_rates(self):
         return self.ra._sky_track_rate, \
                 self.dec._sky_track_rate
+
+    def polar_compensator(self) -> PolarCompensator:
+        return self._splitter._polar_compensator
+
+    def disable_polar_compensator(self) -> None:
+        self._splitter.disable_polar_compensator()
+
+    def get_polar_snapshot(self) -> PolarSnapshot:
+        polar_compensator = self.polar_compensator()
+        return PolarSnapshot(
+            status=polar_compensator.status,
+            eps_n=float(polar_compensator.eps_N),
+            eps_e=float(polar_compensator.eps_E),
+            ra_sky_rate=float(self.ra._sky_track_rate),
+            dec_sky_rate=float(self.dec._sky_track_rate),
+        )
+
+    def wait_for_polar_condition(
+        self,
+        predicate: Callable[[PolarSnapshot], bool],
+        timeout_s: float,
+        description: str,
+        poll_interval_s: float = 0.1,
+    ) -> PolarSnapshot:
+        start = time.monotonic()
+        last_snapshot = self.get_polar_snapshot()
+        while True:
+            last_snapshot = self.get_polar_snapshot()
+            if predicate(last_snapshot):
+                self.logger.warning(
+                    "\n==== POLAR CONDITION REACHED ====\n"
+                    "DESCRIPTION: %s\n"
+                    "AFTER: %.3fs\n"
+                    "SNAPSHOT: %s\n",
+                    description,
+                    time.monotonic() - start,
+                    last_snapshot,
+                )
+                return last_snapshot
+
+            if time.monotonic() - start > timeout_s:
+                break
+
+            time.sleep(poll_interval_s)
+
+        pytest.fail(
+            f"Polar condition not reached in {timeout_s:.3f}s: {description}; "
+            f"last_snapshot={last_snapshot}"
+        )
     
     @contextmanager
     def _with_position_locks(self):
@@ -843,6 +902,203 @@ def test_coordinate_system_guide_ra_rates(
         pytest.fail(f"Unexpected guide direction: {direction}")
 
 
-# TODO: Test for guide - guide - guide (need to store last tracking rate after time)
-# TODO: Test for guide - slew - tracking (need to store last tracking guide rate)
-# TODO: Test for guide - goto - tracking (need to store last tracking guide rate)
+POLAR_COORDINATE_RA_TEXT = "12:12:34"
+POLAR_COORDINATE_DEC_TEXT = "+23*15:20"
+POLAR_GUIDE_APPLY_TIMEOUT_S = 2.0
+POLAR_GUIDE_DELAY_S = 5.0
+POLAR_GUIDING_HOLD_S = PolarCompensator.CORRECTION_DELTA_S + 1.0
+POLAR_IDLE_RESET_TIMEOUT_S = PolarCompensator.DISABLED_RESET_AFTER_S + 2.0
+POLAR_EPS_TOLERANCE = 1e-6
+POLAR_EPS_HOLD_TOLERANCE = 0.01
+POLAR_RA_SKY_RATE_TOLERANCE = 0.25
+POLAR_DEC_SKY_RATE_TOLERANCE = 1.0
+POLAR_DEC_GUIDE_RATE_DELTA_MIN = 5.0
+
+POLAR_DIFFERENT_GUIDES = (
+    ("e", 1500),
+    ("w", 3200),
+    ("n", 1500),
+    ("s", 3200),
+)
+POLAR_DIFFERENT_DEC_GUIDES = (
+    ("n", 1500),
+    ("n", 2100),
+    ("n", 2700),
+    ("n", 3300),
+)
+
+
+def _polar_snapshot_is_disabled(sc: SplitterController, snapshot: PolarSnapshot) -> bool:
+    return (
+        snapshot.status == PolarCompensator.Status.DISABLED
+        and abs(snapshot.eps_n) <= POLAR_EPS_TOLERANCE
+        and abs(snapshot.eps_e) <= POLAR_EPS_TOLERANCE
+        and abs(snapshot.ra_sky_rate - float(sc.ra.DEFAULT_TRACKING_RATE)) <= POLAR_RA_SKY_RATE_TOLERANCE
+        and abs(snapshot.dec_sky_rate - float(sc.dec.DEFAULT_TRACKING_RATE)) <= POLAR_DEC_SKY_RATE_TOLERANCE
+    )
+
+
+@pytest.fixture
+def _prepare_polar_compensator(sc: SplitterController) -> SplitterController:
+    sc.logger.warning("\n==== PREPARE POLAR COMPENSATOR TEST ====\n")
+    sc.sync_known_position(POLAR_COORDINATE_RA_TEXT, POLAR_COORDINATE_DEC_TEXT)
+    sc.disable_polar_compensator()
+    sc.wait_for_polar_condition(
+        lambda snapshot: _polar_snapshot_is_disabled(sc, snapshot),
+        timeout_s=POLAR_GUIDE_APPLY_TIMEOUT_S,
+        description="polar compensator disabled and guide rates reset",
+    )
+    return sc
+
+
+def _send_guide_sequence(sc: SplitterController, guides: tuple[tuple[str, int], ...]) -> None:
+    for index, (direction, pulse_ms) in enumerate(guides):
+        sc.logger.warning(
+            "\n==== GUIDE PULSE ====\n"
+            "INDEX: %d/%d\n"
+            "DIRECTION: %s\n"
+            "PULSE: %d ms\n",
+            index + 1,
+            len(guides),
+            direction,
+            pulse_ms,
+        )
+        sc.guide(direction, pulse_ms)
+        if index + 1 < len(guides):
+            time.sleep(POLAR_GUIDE_DELAY_S)
+
+
+def _assert_guide_applies_quickly(sc: SplitterController, direction: str, pulse_ms: int) -> PolarSnapshot:
+    before = sc.get_polar_snapshot()
+    start = time.monotonic()
+    sc.guide(direction, pulse_ms)
+
+    if direction in RA_GUIDE_DIRECTIONS:
+        snapshot = sc.wait_for_polar_condition(
+            lambda item: (
+                item.status == PolarCompensator.Status.DISABLED
+                and abs(item.eps_n) <= POLAR_EPS_TOLERANCE
+                and abs(item.eps_e) <= POLAR_EPS_TOLERANCE
+                and abs(item.ra_sky_rate - before.ra_sky_rate) > RA_GUIDE_RATE_DELTA_MIN
+                and abs(item.dec_sky_rate - before.dec_sky_rate) <= POLAR_DEC_SKY_RATE_TOLERANCE
+            ),
+            timeout_s=POLAR_GUIDE_APPLY_TIMEOUT_S,
+            description=f"{direction} guide applies without DEC sky-rate update",
+        )
+    else:
+        snapshot = sc.wait_for_polar_condition(
+            lambda item: (
+                item.status == PolarCompensator.Status.DISABLED
+                and abs(item.eps_n) <= POLAR_EPS_TOLERANCE
+                and abs(item.eps_e) <= POLAR_EPS_TOLERANCE
+                and abs(item.dec_sky_rate - before.dec_sky_rate) > POLAR_DEC_GUIDE_RATE_DELTA_MIN
+                and abs(item.ra_sky_rate - before.ra_sky_rate) <= POLAR_RA_SKY_RATE_TOLERANCE
+            ),
+            timeout_s=POLAR_GUIDE_APPLY_TIMEOUT_S,
+            description=f"{direction} guide applies without RA sky-rate update",
+        )
+
+    assert time.monotonic() - start < POLAR_GUIDE_APPLY_TIMEOUT_S
+    return snapshot
+
+
+def _enter_guiding_mode(sc: SplitterController) -> PolarSnapshot:
+    sc.logger.warning("\n==== DIFFERENT DEC GUIDES KEEP POLAR COMPENSATOR DISABLED ====\n")
+    _send_guide_sequence(sc, POLAR_DIFFERENT_DEC_GUIDES)
+    disabled_snapshot = sc.wait_for_polar_condition(
+        lambda snapshot: (
+            snapshot.status == PolarCompensator.Status.DISABLED
+            and abs(snapshot.eps_n) <= POLAR_EPS_TOLERANCE
+            and abs(snapshot.eps_e) <= POLAR_EPS_TOLERANCE
+        ),
+        timeout_s=POLAR_GUIDE_APPLY_TIMEOUT_S,
+        description="polar compensator remains disabled after different DEC guides",
+    )
+    assert abs(disabled_snapshot.ra_sky_rate - float(sc.ra.DEFAULT_TRACKING_RATE)) <= POLAR_RA_SKY_RATE_TOLERANCE
+
+    settled_dec_rate_a = sc.dec.calculate_guide_rate(SkyDirection.NORTH, 2500)
+    settled_dec_rate_b = sc.dec.calculate_guide_rate(SkyDirection.NORTH, 2501)
+    assert settled_dec_rate_a is not None
+    assert settled_dec_rate_b is not None
+    assert float(abs(settled_dec_rate_a - settled_dec_rate_b)) < float(PolarCompensator.SETTLE_THRESHOLD_DEC)
+    assert float(abs(sc.ra.DEFAULT_TRACKING_RATE - sc.ra.DEFAULT_TRACKING_RATE)) < float(PolarCompensator.SETTLE_THRESHOLD_RA)
+
+    settled_guides = tuple(
+        ("n", 2500 + (index % 2))
+        for index in range(sc.polar_compensator()._settle_count + 2)
+    )
+    sc.logger.warning("\n==== MOSTLY EQUAL DEC GUIDES MOVE POLAR COMPENSATOR TO GUIDING ====\n")
+    _send_guide_sequence(sc, settled_guides)
+    return sc.wait_for_polar_condition(
+        lambda snapshot: (
+            snapshot.status == PolarCompensator.Status.GUIDING
+            and abs(snapshot.eps_n) > POLAR_EPS_TOLERANCE
+            and abs(snapshot.eps_e) > POLAR_EPS_TOLERANCE
+        ),
+        timeout_s=POLAR_GUIDE_APPLY_TIMEOUT_S,
+        description="polar compensator enters guiding after mostly equal DEC guides",
+    )
+
+
+def test_polar_compensator_stays_disabled_after_different_guides(_prepare_polar_compensator: SplitterController):
+    sc = _prepare_polar_compensator
+
+    sc.logger.warning("\n==== DIFFERENT GUIDES APPLY IMMEDIATELY AND KEEP POLAR COMPENSATOR DISABLED ====\n")
+    for index, (direction, pulse_ms) in enumerate(POLAR_DIFFERENT_GUIDES):
+        _assert_guide_applies_quickly(sc, direction, pulse_ms)
+        if index + 1 < len(POLAR_DIFFERENT_GUIDES):
+            time.sleep(POLAR_GUIDE_DELAY_S)
+
+    sc.logger.warning("\n==== WAIT FOR DISABLED POLAR COMPENSATOR TO DROP LATCHED GUIDE RATES ====\n")
+    sc.wait_for_polar_condition(
+        lambda snapshot: _polar_snapshot_is_disabled(sc, snapshot),
+        timeout_s=POLAR_IDLE_RESET_TIMEOUT_S,
+        description="disabled polar compensator resets latched guide rates",
+    )
+
+
+def test_polar_compensator_enters_guiding_after_settled_guides(_prepare_polar_compensator: SplitterController):
+    sc = _prepare_polar_compensator
+    guiding_snapshot = _enter_guiding_mode(sc)
+
+    sc.logger.warning("\n==== GUIDING STATE SHOULD HOLD WITHOUT NEW GUIDE PULSES ====\n")
+    time.sleep(POLAR_GUIDING_HOLD_S)
+    held_snapshot = sc.wait_for_polar_condition(
+        lambda snapshot: snapshot.status == PolarCompensator.Status.GUIDING,
+        timeout_s=POLAR_GUIDE_APPLY_TIMEOUT_S,
+        description="polar compensator stays in guiding without new guide pulses",
+    )
+
+    assert held_snapshot.eps_n == pytest.approx(guiding_snapshot.eps_n, abs=POLAR_EPS_HOLD_TOLERANCE)
+    assert held_snapshot.eps_e == pytest.approx(guiding_snapshot.eps_e, abs=POLAR_EPS_HOLD_TOLERANCE)
+
+
+def test_polar_compensator_resets_after_guiding_then_different_guides(_prepare_polar_compensator: SplitterController):
+    sc = _prepare_polar_compensator
+    guiding_snapshot = _enter_guiding_mode(sc)
+
+    sc.logger.warning("\n==== GUIDING STATE SHOULD STILL HOLD BEFORE RESET SEQUENCE ====\n")
+    time.sleep(POLAR_GUIDING_HOLD_S)
+    held_snapshot = sc.wait_for_polar_condition(
+        lambda snapshot: snapshot.status == PolarCompensator.Status.GUIDING,
+        timeout_s=POLAR_GUIDE_APPLY_TIMEOUT_S,
+        description="polar compensator stays in guiding before different-guide reset",
+    )
+
+    assert held_snapshot.eps_n == pytest.approx(guiding_snapshot.eps_n, abs=POLAR_EPS_HOLD_TOLERANCE)
+    assert held_snapshot.eps_e == pytest.approx(guiding_snapshot.eps_e, abs=POLAR_EPS_HOLD_TOLERANCE)
+
+    sc.logger.warning("\n==== DIFFERENT DEC GUIDES SHOULD RESET POLAR COMPENSATOR BACK TO DISABLED ====\n")
+    _send_guide_sequence(sc, POLAR_DIFFERENT_DEC_GUIDES)
+    disabled_snapshot = sc.wait_for_polar_condition(
+        lambda snapshot: (
+            snapshot.status == PolarCompensator.Status.DISABLED
+            and abs(snapshot.eps_n) <= POLAR_EPS_TOLERANCE
+            and abs(snapshot.eps_e) <= POLAR_EPS_TOLERANCE
+        ),
+        timeout_s=POLAR_GUIDE_APPLY_TIMEOUT_S,
+        description="different DEC guides reset guiding state back to disabled",
+    )
+
+    assert abs(disabled_snapshot.eps_n) <= POLAR_EPS_TOLERANCE
+    assert abs(disabled_snapshot.eps_e) <= POLAR_EPS_TOLERANCE

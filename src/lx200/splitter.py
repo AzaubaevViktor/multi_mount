@@ -14,6 +14,7 @@ class PolarCompensator:
     SETTLE_THRESHOLD_DEC = DecPerSecond(0.05)
 
     CORRECTION_DELTA_S = 5
+    DISABLED_RESET_AFTER_S = 6
 
     class Status:
         DISABLED = 'disabled'
@@ -58,6 +59,26 @@ class PolarCompensator:
         self._updated_dec.set()
         self._thread.join()
 
+    def disable(self, reset_rates: bool = True):
+        self.logger.info("Disable polar compensator: reset_rates=%s", reset_rates)
+        self._current_settle_count = 0
+        self.status = self.Status.DISABLED
+        self.eps_N = Dec(0)
+        self.eps_E = Ha(0)
+
+        if not reset_rates:
+            return
+
+        self._prev_dec_drift = DecPerSecond(0)
+        self._dec_drift = DecPerSecond(0)
+        self._prev_ra_speed = STELLAR_SPEED
+        self._ra_speed = STELLAR_SPEED
+        self._last_guide_update = Second.monotonic()
+        self._last_correction_time = time.monotonic()
+        self._updated_ra.clear()
+        self._updated_dec.clear()
+        self._do_correction(self._ra_speed, self._dec_drift)
+
     def _do_correction(self, ha_drift: HaPerSecond, dec_drift: DecPerSecond):
         self.logger.debug("Applying correction with ha_drift=%.4f, dec_drift=%.4f", ha_drift, dec_drift)
         self._do_correction_func(ha_drift, dec_drift)
@@ -89,6 +110,11 @@ class PolarCompensator:
             if not (ra_updated or dec_updated):
                 now = time.monotonic()
 
+                if self.status == self.Status.DISABLED and (now - self._last_guide_update) > self.DISABLED_RESET_AFTER_S:
+                    if self._ra_speed != STELLAR_SPEED or self._dec_drift != DecPerSecond(0):
+                        self.disable(reset_rates=True)
+                    continue
+
                 if self.status == self.Status.SETTLE:
                     self.status = self.Status.GUIDING
 
@@ -110,8 +136,7 @@ class PolarCompensator:
             if is_ra_settled and is_dec_settled:
                 self._current_settle_count += 1
             else:
-                self._current_settle_count = 0
-                self.status = self.Status.DISABLED
+                self.disable(reset_rates=False)
 
             if self._current_settle_count >= self._settle_count:
                 self.status = self.Status.SETTLE
@@ -136,6 +161,9 @@ class LX200Splitter(LX200Handler):
         self.dec.connect()
         self._polar_compensator.start()
         super().connect()
+
+    def disable_polar_compensator(self):
+        self._polar_compensator.disable()
 
     def stop(self):
         super().stop()
