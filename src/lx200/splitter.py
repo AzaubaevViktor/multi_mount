@@ -16,6 +16,7 @@ class PolarCompensator:
     CORRECTION_DELTA_S = 5
     DISABLED_RESET_AFTER_S = 6
 
+    # TODO: Add WAITING mode
     class Status:
         DISABLED = 'disabled'
         SETTLE = 'settle'
@@ -80,6 +81,7 @@ class PolarCompensator:
         self._do_correction(self._ra_speed, self._dec_drift)
 
     def _do_correction(self, ha_drift: HaPerSecond, dec_drift: DecPerSecond):
+        # TODO: Add self._last_guide_update update
         self.logger.debug("Applying correction with ha_drift=%.4f, dec_drift=%.4f", ha_drift, dec_drift)
         self._do_correction_func(ha_drift, dec_drift)
 
@@ -109,8 +111,9 @@ class PolarCompensator:
 
             if not (ra_updated or dec_updated):
                 now = time.monotonic()
+                since_last_guide = Second.monotonic() - self._last_guide_update
 
-                if self.status == self.Status.DISABLED and (now - self._last_guide_update) > self.DISABLED_RESET_AFTER_S:
+                if self.status == self.Status.DISABLED and since_last_guide > Second(self.DISABLED_RESET_AFTER_S):
                     if self._ra_speed != STELLAR_SPEED or self._dec_drift != DecPerSecond(0):
                         self.disable(reset_rates=True)
                     continue
