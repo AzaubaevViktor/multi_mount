@@ -49,10 +49,13 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
     axis: AxisName
     POS_CLS: type[_POS_CLS]
     SPEED_CLS: type[_SPEED_CLS]
-    DIRECTIONS: Sequence[SkyDirection]
+    FORWARD_DIRECTION: SkyDirection
+    BACKWARD_DIRECTION: SkyDirection
 
     def __init__(self, motor: Motor[_POS_CLS, _SPEED_CLS]) -> None:
         self.logger = logging.getLogger(f"{type(self).__name__}.{self.axis.value}")
+        self.DIRECTIONS: Sequence[SkyDirection] = (self.FORWARD_DIRECTION, self.BACKWARD_DIRECTION)
+
         self._motor = motor
         self._mode: AxisMotionMode = AxisMotionMode.STOP
         self._connected = False
@@ -105,16 +108,14 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
     def _get_motor_direction_and_speed(self, direction: SkyDirection, speed: AxisSpeed) -> tuple[MotorDirection, int]:
         if not isinstance(speed, self.SPEED_CLS):
             raise ValueError(f"Speed should be of type {self.SPEED_CLS} for {self.axis.value} axis, got {type(speed)}")
-
+        
         if direction not in self.DIRECTIONS:
             raise ValueError(f"Direction should be one of {self.DIRECTIONS} for {self.axis.value} axis, got {direction}")
-        
-        if direction in (SkyDirection.EAST, SkyDirection.SOUTH):
-            return (MotorDirection.FORWARD, abs(self._motor.convert_speed_to_steps_per_second(speed)))
-        elif direction in (SkyDirection.WEST, SkyDirection.NORTH):
-            return (MotorDirection.BACKWARD, abs(self._motor.convert_speed_to_steps_per_second(speed)))
+
+        if (direction == self.FORWARD_DIRECTION) ^ (float(speed) > 0):
+            return (MotorDirection.BACKWARD, self._motor.convert_speed_to_steps_per_second(abs(speed)))
         else:
-            raise ValueError(f"Direction should be one of {self.DIRECTIONS} for {self.axis.value} axis, got {direction}")
+            return (MotorDirection.FORWARD, self._motor.convert_speed_to_steps_per_second(abs(speed)))
 
     def _get_current_position(self, position: PointCoordinates | None = None) -> _POS_CLS:
         if position is None:
@@ -132,6 +133,15 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                 self._dec_position = pos
             else:
                 raise ValueError(f"Invalid axis: {self.axis}")
+    
+    def _get_forward_relative_speed(self, direction: SkyDirection, speed: _SPEED_CLS) -> _SPEED_CLS:
+        if direction not in self.DIRECTIONS:
+            raise ValueError(f"Direction should be one of {self.DIRECTIONS} for {self.axis.value} axis, got {direction}")
+
+        if direction == self.FORWARD_DIRECTION:
+            return speed
+        elif direction == self.BACKWARD_DIRECTION:
+            return -speed
 
     def _do_resume_to_tracking(self) -> None:
         if float(self._sky_speed) > 0:
@@ -162,10 +172,10 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
             delta = self._get_current_position() - position
             if float(delta) > 0:
                 direction = MotorDirection.FORWARD
-                self._goto_direction = SkyDirection.EAST
+                self._goto_direction = self.FORWARD_DIRECTION
             elif float(delta) < 0:
                 direction = MotorDirection.BACKWARD
-                self._goto_direction = SkyDirection.WEST
+                self._goto_direction = self.BACKWARD_DIRECTION
             else:
                 direction = MotorDirection.STOP
                 self._goto_direction = None
@@ -245,7 +255,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                                 try:
                                     self._motor.set_direction(direction)
                                     self._motor.set_speed(speed)
-                                    self._sky_speed = command.speed if command.update_sky_speed else self._sky_speed
+                                    self._sky_speed = self._get_forward_relative_speed(command.direction, command.speed) if command.update_sky_speed else self._sky_speed
                                     
                                     if speed == 0:
                                         self._mode = AxisMotionMode.STOP
@@ -368,6 +378,10 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                         actual_delta = current_motor_position - self._last_motor_position
 
                         delta = expected_delta - actual_delta
+
+                        self._set_current_position(
+                            self._get_current_position() + delta
+                        )
                         
                         self._last_motor_position = current_motor_position + delta
                         self._last_motor_position_update_s = motor_position_update_s
@@ -383,8 +397,8 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
     def set_position(self, position: PointCoordinates) -> None:
         self._queue.put(AxisCommand(AxisCommandType.SET_POSITION, position=position))
 
-    def change_speed(self, speed: _SPEED_CLS, update_sky_speed: bool = False) -> None:
-        self._queue.put(AxisCommand(AxisCommandType.CHANGE_SPEED, speed=speed, update_sky_speed=update_sky_speed))
+    def change_speed(self, direction: SkyDirection, speed: _SPEED_CLS, update_sky_speed: bool = False) -> None:
+        self._queue.put(AxisCommand(AxisCommandType.CHANGE_SPEED, direction=direction, speed=speed, update_sky_speed=update_sky_speed))
 
     def move(self, direction: SkyDirection, speed: _SPEED_CLS) -> None:
         self._queue.put(AxisCommand(AxisCommandType.MOVE, direction=direction, speed=speed))
