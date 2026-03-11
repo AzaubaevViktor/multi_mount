@@ -1,0 +1,577 @@
+import threading
+import time
+from collections.abc import Iterator
+
+import pytest
+from serial.serialutil import SerialException
+
+from serial_wrapper.wrapper import SerialLine
+from sky.axis import AxisDEC, AxisRA, PointCoordinates
+from sky.combiner import Combiner
+from sky.constants import STELLAR_SPEED
+from sky.motor import MotorDirection
+from sky.physics import Dec, DecPerSecond, Ha, HaPerSecond, Second, SkyDirection
+from skywatcher.motor import SkyWatcherMotor
+from tmc2209.motor import TMC2209Motor, TMC2209MotorProtocolError
+
+
+RA_DEVICE_PATTERN = "PL2303G-USBtoUART"
+RA_SERIAL_BAUD = 112500
+RA_SERIAL_TIMEOUT_S = 0.2
+
+DEC_DEVICE_PATTERN = r"^tty\.usbserial.*$"
+DEC_SERIAL_BAUD = 115200
+DEC_SERIAL_TIMEOUT_S = 2.0
+DEC_CONNECT_ATTEMPTS = 3
+DEC_READY_TIMEOUT_S = 10.0
+
+POLL_INTERVAL_S = 0.2
+COMMAND_PROCESS_TIMEOUT_S = 5.0
+MOTOR_STOP_TIMEOUT_S = 10.0
+GOTO_TIMEOUT_S = 60.0
+SLEW_OBSERVE_S = 3.0
+SPEED_STABILIZE_S = 1.0
+SPEED_MEASURE_S = 3.0
+
+RA_POSITION_TOLERANCE_S = 2.0
+DEC_POSITION_TOLERANCE_AS = 2.0
+RA_DRIFT_TOLERANCE_S = 5.0
+DEC_DRIFT_TOLERANCE_AS = 5.0
+RA_CHANGE_THRESHOLD_S = 0.5
+DEC_CHANGE_THRESHOLD_AS = 0.5
+GOTO_RA_TOLERANCE_S = 15.0
+GOTO_DEC_TOLERANCE_AS = 15.0
+MOTOR_SPEED_REL_TOL = 0.15
+
+RA_SLEW_SPEED = HaPerSecond(3)
+DEC_SLEW_SPEED = DecPerSecond(20)
+
+DEFAULT_START_RA = Ha(12 * 3600)
+DEFAULT_START_DEC = Dec(0)
+
+
+@pytest.fixture(scope="session")
+def combiner() -> Iterator[Combiner]:
+    ra_serial = SerialLine(
+        port=SerialLine.search(RA_DEVICE_PATTERN),
+        baud=RA_SERIAL_BAUD,
+        timeout_s=RA_SERIAL_TIMEOUT_S,
+        name="skywatcher_axis_ra",
+        terminator="\r",
+    )
+    ra_motor = SkyWatcherMotor(ra_serial)
+    axis_ra = AxisRA(ra_motor)
+    axis_ra.connect()
+
+    dec_serial = SerialLine(
+        port=SerialLine.search(DEC_DEVICE_PATTERN),
+        baud=DEC_SERIAL_BAUD,
+        timeout_s=DEC_SERIAL_TIMEOUT_S,
+        name="tmc2209_axis_dec",
+        terminator="\n",
+    )
+    dec_motor: TMC2209Motor | None = None
+    for attempt in range(DEC_CONNECT_ATTEMPTS):
+        try:
+            dec_serial.connect()
+            dec_serial.reset()
+            time.sleep(0.5)
+            deadline = time.monotonic() + DEC_READY_TIMEOUT_S
+            while time.monotonic() < deadline:
+                try:
+                    ready = dec_serial.query(None, timeout=1).strip()
+                except SerialException:
+                    break
+                if ready == "ready":
+                    dec_motor = TMC2209Motor(dec_serial)
+                    dec_motor._is_connected = True
+                    break
+            if dec_motor is not None:
+                break
+            else:
+                raise TMC2209MotorProtocolError("device did not report ready in time")
+        except (SerialException, TMC2209MotorProtocolError):
+            try:
+                dec_serial.close()
+            except Exception:
+                pass
+            if attempt == DEC_CONNECT_ATTEMPTS - 1:
+                raise
+            time.sleep(0.5)
+        else:
+            raise AssertionError("unreachable")
+    if dec_motor is None:
+        raise AssertionError("dec motor fixture failed to initialize")
+
+    axis_dec = AxisDEC(dec_motor)
+    dec_motor.reset()
+    axis_dec._connected = True
+    axis_dec._motion_convertor_thread = threading.Thread(
+        target=axis_dec._motion_convertor,
+        name="dec_motion_convertor",
+    )
+    axis_dec._motion_convertor_thread.start()
+
+    comb = Combiner(axis_ra, axis_dec)
+    comb._polar_compensator_thread = threading.Thread(
+        target=comb._polar_compensation,
+        name="PolarCompensator",
+    )
+    comb._polar_compensator_thread.start()
+
+    try:
+        yield comb
+    finally:
+        comb.halt_all()
+        time.sleep(2.0)
+        comb.disconnect()
+
+
+@pytest.fixture(autouse=True)
+def _reset_between_tests(combiner: Combiner) -> Iterator[None]:
+    _do_reset(combiner)
+    yield
+    _do_reset(combiner)
+
+
+def _do_reset(comb: Combiner) -> None:
+    comb.halt_all()
+    _wait_for_ra_motor_stop(comb, MOTOR_STOP_TIMEOUT_S)
+    _wait_for_dec_motor_stop(comb, MOTOR_STOP_TIMEOUT_S)
+
+    comb.ra._sky_speed = STELLAR_SPEED
+    comb.ra._goto_target = None
+    comb.ra._goto_direction = None
+    comb.ra._move_direction = None
+
+    comb.dec._sky_speed = DecPerSecond(0)
+    comb.dec._goto_target = None
+    comb.dec._goto_direction = None
+    comb.dec._move_direction = None
+
+    comb._polar_compensator.ra_speed = STELLAR_SPEED
+    comb._polar_compensator.dec_speed = DecPerSecond(0)
+    comb._polar_compensator.last_guide_pulse = Second.monotonic()
+    comb._polar_compensator.stable_guide_ra_pulses_count = 0
+    comb._polar_compensator.stable_guide_dec_pulses_count = 0
+
+    comb.ra.set_position(PointCoordinates(ra=DEFAULT_START_RA, dec=Dec(0)))
+    comb.dec.set_position(PointCoordinates(ra=Ha(0), dec=DEFAULT_START_DEC))
+    comb.ra.change_speed(SkyDirection.EAST, STELLAR_SPEED, update_sky_speed=True)
+
+    _wait_for_position_near(
+        comb,
+        PointCoordinates(ra=DEFAULT_START_RA, dec=DEFAULT_START_DEC),
+        ra_tol=RA_POSITION_TOLERANCE_S,
+        dec_tol=DEC_POSITION_TOLERANCE_AS,
+        timeout_s=COMMAND_PROCESS_TIMEOUT_S,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Polling helpers
+# ---------------------------------------------------------------------------
+
+def _wait_for_position_near(
+    comb: Combiner,
+    target: PointCoordinates,
+    ra_tol: float,
+    dec_tol: float,
+    timeout_s: float,
+) -> None:
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        pos = comb.get_position()
+        if abs(float(pos.ra) - float(target.ra)) < ra_tol and abs(float(pos.dec) - float(target.dec)) < dec_tol:
+            return
+        time.sleep(POLL_INTERVAL_S)
+    pos = comb.get_position()
+    pytest.fail(
+        f"Position did not reach target within {timeout_s}s: "
+        f"ra={float(pos.ra):.1f} (expected {float(target.ra):.1f}±{ra_tol}), "
+        f"dec={float(pos.dec):.1f} (expected {float(target.dec):.1f}±{dec_tol})"
+    )
+
+
+def _wait_for_ra_change(
+    comb: Combiner,
+    start_ra: Ha,
+    direction: SkyDirection,
+    timeout_s: float,
+) -> float:
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        current = float(comb.get_position().ra)
+        delta = current - float(start_ra)
+        if direction == SkyDirection.EAST and delta < -RA_CHANGE_THRESHOLD_S:
+            return current
+        if direction == SkyDirection.WEST and delta > RA_CHANGE_THRESHOLD_S:
+            return current
+        time.sleep(POLL_INTERVAL_S)
+    pytest.fail(f"RA did not change toward {direction.value} from {float(start_ra):.1f}")
+
+
+def _wait_for_dec_change(
+    comb: Combiner,
+    start_dec: Dec,
+    direction: SkyDirection,
+    timeout_s: float,
+) -> float:
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        current = float(comb.get_position().dec)
+        delta = current - float(start_dec)
+        if direction == SkyDirection.NORTH and delta > DEC_CHANGE_THRESHOLD_AS:
+            return current
+        if direction == SkyDirection.SOUTH and delta < -DEC_CHANGE_THRESHOLD_AS:
+            return current
+        time.sleep(POLL_INTERVAL_S)
+    pytest.fail(f"DEC did not change toward {direction.value} from {float(start_dec):.1f}")
+
+
+def _wait_for_ra_motor_stop(comb: Combiner, timeout_s: float) -> None:
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        if comb.ra._motor.status().direction == MotorDirection.STOP:
+            return
+        time.sleep(POLL_INTERVAL_S)
+    pytest.fail("RA motor did not stop in time")
+
+
+def _wait_for_dec_motor_stop(comb: Combiner, timeout_s: float) -> None:
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        if comb.dec._motor.status().direction == MotorDirection.STOP:
+            return
+        time.sleep(POLL_INTERVAL_S)
+    pytest.fail("DEC motor did not stop in time")
+
+
+def _wait_for_ra_motor_running(comb: Combiner, timeout_s: float) -> None:
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        if comb.ra._motor.status().direction != MotorDirection.STOP:
+            return
+        time.sleep(POLL_INTERVAL_S)
+    pytest.fail("RA motor did not start running in time")
+
+
+def _wait_for_dec_motor_running(comb: Combiner, timeout_s: float) -> None:
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        if comb.dec._motor.status().direction != MotorDirection.STOP:
+            return
+        time.sleep(POLL_INTERVAL_S)
+    pytest.fail("DEC motor did not start running in time")
+
+
+def _wait_for_goto_done(comb: Combiner, timeout_s: float) -> None:
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        if comb.is_moving_to():
+            break
+        time.sleep(POLL_INTERVAL_S)
+    else:
+        pytest.fail("GOTO never started")
+    while time.monotonic() < deadline:
+        if not comb.is_moving_to():
+            return
+        time.sleep(POLL_INTERVAL_S)
+    pytest.fail("GOTO did not complete in time")
+
+
+def _measure_ra_motor_speed_sps(comb: Combiner, duration_s: float) -> float:
+    steps1 = comb.ra._motor.status().steps
+    t1 = time.monotonic()
+    time.sleep(duration_s)
+    steps2 = comb.ra._motor.status().steps
+    t2 = time.monotonic()
+    return abs(steps2 - steps1) / (t2 - t1)
+
+
+def _measure_dec_motor_speed_sps(comb: Combiner, duration_s: float) -> float:
+    steps1 = comb.dec._motor.status().steps
+    t1 = time.monotonic()
+    time.sleep(duration_s)
+    steps2 = comb.dec._motor.status().steps
+    t2 = time.monotonic()
+    return abs(steps2 - steps1) / (t2 - t1)
+
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
+
+def test_hw_combiner_is_connected(combiner: Combiner) -> None:
+    assert combiner.is_connected() is True
+    assert combiner.ra.is_connected() is True
+    assert combiner.dec.is_connected() is True
+
+
+def test_hw_combiner_initial_position(combiner: Combiner) -> None:
+    pos = combiner.get_position()
+    assert abs(float(pos.ra) - float(DEFAULT_START_RA)) < RA_POSITION_TOLERANCE_S
+    assert abs(float(pos.dec) - float(DEFAULT_START_DEC)) < DEC_POSITION_TOLERANCE_AS
+
+
+def test_hw_combiner_sidereal_tracking_stable(combiner: Combiner) -> None:
+    """RA tracks at sidereal rate; sky position should stay nearly constant."""
+    _wait_for_ra_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
+    time.sleep(3.0)
+    pos = combiner.get_position()
+    assert abs(float(pos.ra) - float(DEFAULT_START_RA)) < RA_DRIFT_TOLERANCE_S
+    assert abs(float(pos.dec) - float(DEFAULT_START_DEC)) < DEC_DRIFT_TOLERANCE_AS
+
+
+@pytest.mark.parametrize(
+    ("direction", "expect_ra_sign"),
+    [
+        (SkyDirection.EAST, -1),
+        (SkyDirection.WEST, 1),
+    ],
+)
+def test_hw_combiner_move_ra(
+    combiner: Combiner,
+    direction: SkyDirection,
+    expect_ra_sign: int,
+) -> None:
+    start = combiner.get_position()
+    combiner.move(direction, RA_SLEW_SPEED)
+    _wait_for_ra_change(combiner, start.ra, direction, COMMAND_PROCESS_TIMEOUT_S + SLEW_OBSERVE_S)
+
+    time.sleep(SLEW_OBSERVE_S)
+    end = combiner.get_position()
+
+    assert (float(end.ra) - float(start.ra)) * expect_ra_sign > 0
+    assert abs(float(end.dec) - float(start.dec)) < DEC_DRIFT_TOLERANCE_AS
+
+
+@pytest.mark.parametrize(
+    ("direction", "expect_dec_sign"),
+    [
+        (SkyDirection.NORTH, 1),
+        (SkyDirection.SOUTH, -1),
+    ],
+)
+def test_hw_combiner_move_dec(
+    combiner: Combiner,
+    direction: SkyDirection,
+    expect_dec_sign: int,
+) -> None:
+    start = combiner.get_position()
+    combiner.move(direction, DEC_SLEW_SPEED)
+    _wait_for_dec_change(combiner, start.dec, direction, COMMAND_PROCESS_TIMEOUT_S + SLEW_OBSERVE_S)
+
+    time.sleep(SLEW_OBSERVE_S)
+    end = combiner.get_position()
+
+    assert (float(end.dec) - float(start.dec)) * expect_dec_sign > 0
+    assert abs(float(end.ra) - float(start.ra)) < RA_DRIFT_TOLERANCE_S
+
+
+def test_hw_combiner_move_both_axes(combiner: Combiner) -> None:
+    start = combiner.get_position()
+    combiner.move(SkyDirection.WEST, RA_SLEW_SPEED)
+    combiner.move(SkyDirection.NORTH, DEC_SLEW_SPEED)
+    _wait_for_ra_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
+    _wait_for_dec_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
+
+    time.sleep(SLEW_OBSERVE_S)
+    end = combiner.get_position()
+
+    assert float(end.ra) - float(start.ra) > RA_CHANGE_THRESHOLD_S
+    assert float(end.dec) - float(start.dec) > DEC_CHANGE_THRESHOLD_AS
+
+
+@pytest.mark.parametrize("direction", [SkyDirection.EAST, SkyDirection.WEST])
+def test_hw_combiner_halt_ra_direction(
+    combiner: Combiner,
+    direction: SkyDirection,
+) -> None:
+    combiner.move(direction, RA_SLEW_SPEED)
+    _wait_for_ra_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
+
+    combiner.halt_direction(direction)
+    _wait_for_ra_motor_stop(combiner, MOTOR_STOP_TIMEOUT_S)
+
+    assert combiner.ra._motor.status().direction == MotorDirection.STOP
+
+
+@pytest.mark.parametrize("direction", [SkyDirection.NORTH, SkyDirection.SOUTH])
+def test_hw_combiner_halt_dec_direction(
+    combiner: Combiner,
+    direction: SkyDirection,
+) -> None:
+    combiner.move(direction, DEC_SLEW_SPEED)
+    _wait_for_dec_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
+
+    combiner.halt_direction(direction)
+    _wait_for_dec_motor_stop(combiner, MOTOR_STOP_TIMEOUT_S)
+
+    assert combiner.dec._motor.status().direction == MotorDirection.STOP
+
+
+@pytest.mark.parametrize(
+    ("move_dir", "halt_dir"),
+    [
+        (SkyDirection.EAST, SkyDirection.WEST),
+        (SkyDirection.WEST, SkyDirection.EAST),
+        (SkyDirection.NORTH, SkyDirection.SOUTH),
+        (SkyDirection.SOUTH, SkyDirection.NORTH),
+    ],
+)
+def test_hw_combiner_halt_wrong_direction_ignored(
+    combiner: Combiner,
+    move_dir: SkyDirection,
+    halt_dir: SkyDirection,
+) -> None:
+    is_ra = move_dir in (SkyDirection.EAST, SkyDirection.WEST)
+    speed: HaPerSecond | DecPerSecond = RA_SLEW_SPEED if is_ra else DEC_SLEW_SPEED
+
+    combiner.move(move_dir, speed)
+    if is_ra:
+        _wait_for_ra_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
+    else:
+        _wait_for_dec_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
+
+    combiner.halt_direction(halt_dir)
+    time.sleep(1.5)
+
+    motor = combiner.ra._motor if is_ra else combiner.dec._motor
+    assert motor.status().direction != MotorDirection.STOP
+
+
+def test_hw_combiner_halt_all(combiner: Combiner) -> None:
+    combiner.move(SkyDirection.WEST, RA_SLEW_SPEED)
+    combiner.move(SkyDirection.NORTH, DEC_SLEW_SPEED)
+    _wait_for_ra_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
+    _wait_for_dec_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
+
+    combiner.halt_all()
+    _wait_for_ra_motor_stop(combiner, MOTOR_STOP_TIMEOUT_S)
+    _wait_for_dec_motor_stop(combiner, MOTOR_STOP_TIMEOUT_S)
+
+    assert combiner.ra._motor.status().direction == MotorDirection.STOP
+    assert combiner.dec._motor.status().direction == MotorDirection.STOP
+
+
+def test_hw_combiner_set_sky_speed(combiner: Combiner) -> None:
+    combiner.set_sky_speed(STELLAR_SPEED, DecPerSecond(0))
+    _wait_for_ra_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
+
+    time.sleep(3.0)
+
+    pos = combiner.get_position()
+    assert abs(float(pos.ra) - float(DEFAULT_START_RA)) < RA_DRIFT_TOLERANCE_S
+    assert abs(float(pos.dec) - float(DEFAULT_START_DEC)) < DEC_DRIFT_TOLERANCE_AS
+
+
+def test_hw_combiner_set_moving_speed(combiner: Combiner) -> None:
+    combiner.set_moving_speed(RA_SLEW_SPEED, DEC_SLEW_SPEED)
+    _wait_for_ra_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
+    _wait_for_dec_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
+
+    time.sleep(SPEED_STABILIZE_S)
+
+    assert combiner.ra._motor.status().direction != MotorDirection.STOP
+    assert combiner.dec._motor.status().direction != MotorDirection.STOP
+
+
+@pytest.mark.parametrize("direction", [SkyDirection.EAST, SkyDirection.WEST])
+def test_hw_combiner_guide_ra(
+    combiner: Combiner,
+    direction: SkyDirection,
+) -> None:
+    combiner.guide(direction, 2500)
+    _wait_for_ra_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
+    assert combiner.ra._motor.status().direction != MotorDirection.STOP
+
+
+@pytest.mark.parametrize("direction", [SkyDirection.NORTH, SkyDirection.SOUTH])
+def test_hw_combiner_guide_dec(
+    combiner: Combiner,
+    direction: SkyDirection,
+) -> None:
+    combiner.guide(direction, 2500)
+    _wait_for_dec_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
+    assert combiner.dec._motor.status().direction != MotorDirection.STOP
+
+
+def test_hw_combiner_guide_ra_changes_tracking_speed(combiner: Combiner) -> None:
+    combiner.set_sky_speed(STELLAR_SPEED, DecPerSecond(0))
+    _wait_for_ra_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
+    time.sleep(SPEED_STABILIZE_S)
+
+    speed_before = _measure_ra_motor_speed_sps(combiner, SPEED_MEASURE_S)
+
+    combiner.guide(SkyDirection.EAST, 2500)
+    time.sleep(SPEED_STABILIZE_S)
+
+    speed_after = _measure_ra_motor_speed_sps(combiner, SPEED_MEASURE_S)
+    assert speed_after != pytest.approx(speed_before, rel=0.02)
+
+
+@pytest.mark.parametrize(
+    ("delta_ra", "delta_dec"),
+    [
+        (Ha(600), Dec(0)),
+        (Ha(-600), Dec(0)),
+        (Ha(0), Dec(600)),
+        (Ha(0), Dec(-600)),
+        (Ha(300), Dec(300)),
+        (Ha(-300), Dec(-300)),
+    ],
+)
+def test_hw_combiner_goto_reaches_target(
+    combiner: Combiner,
+    delta_ra: Ha,
+    delta_dec: Dec,
+) -> None:
+    target = PointCoordinates(
+        ra=DEFAULT_START_RA + delta_ra,
+        dec=DEFAULT_START_DEC + delta_dec,
+    )
+    combiner.goto_to(target)
+    _wait_for_goto_done(combiner, GOTO_TIMEOUT_S)
+
+    final = combiner.get_position()
+    assert abs(float(final.ra) - float(target.ra)) < GOTO_RA_TOLERANCE_S
+    assert abs(float(final.dec) - float(target.dec)) < GOTO_DEC_TOLERANCE_AS
+
+
+def test_hw_combiner_goto_zero_delta_is_noop(combiner: Combiner) -> None:
+    target = PointCoordinates(ra=DEFAULT_START_RA, dec=DEFAULT_START_DEC)
+    combiner.goto_to(target)
+    time.sleep(1.0)
+
+    assert not combiner.is_moving_to()
+
+    pos = combiner.get_position()
+    assert abs(float(pos.ra) - float(target.ra)) < RA_POSITION_TOLERANCE_S
+    assert abs(float(pos.dec) - float(target.dec)) < DEC_POSITION_TOLERANCE_AS
+
+
+def test_hw_combiner_is_moving_to_during_goto(combiner: Combiner) -> None:
+    target = PointCoordinates(
+        ra=DEFAULT_START_RA + Ha(600),
+        dec=DEFAULT_START_DEC + Dec(600),
+    )
+    combiner.goto_to(target)
+
+    deadline = time.monotonic() + COMMAND_PROCESS_TIMEOUT_S
+    while time.monotonic() < deadline:
+        if combiner.is_moving_to():
+            break
+        time.sleep(POLL_INTERVAL_S)
+    assert combiner.is_moving_to() is True
+
+    _wait_for_goto_done(combiner, GOTO_TIMEOUT_S)
+    assert combiner.is_moving_to() is False
+
+
+def test_hw_combiner_move_wrong_speed_type_raises(combiner: Combiner) -> None:
+    with pytest.raises(ValueError):
+        combiner.move(SkyDirection.EAST, DecPerSecond(10))
+
+    with pytest.raises(ValueError):
+        combiner.move(SkyDirection.NORTH, HaPerSecond(10))
