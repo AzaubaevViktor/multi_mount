@@ -203,12 +203,22 @@ class LX200Splitter(LX200Handler):
             self.dec.motor_position()[1],
         )
     
+    def slew_to(self, ra: Ha, dec: Dec) -> bool:
+        result = self.ra.slew_to_ra(ra)
+        result &= self.dec.slew_to_dec(dec)
+        return result
+
     def slew_to_ra(self, position: Ha) -> bool:
         # TODO: Reimplement just slew_to with both ra and dec, because we need to set correct dec when crossing pole
         return self.ra.slew_to_ra(position)
     
     def slew_to_dec(self, position: Dec) -> bool:
         return self.dec.slew_to_dec(position)
+
+    def sync_telescope(self, ra: Ha, dec: Dec) -> bool:
+        result = self.ra.sync_telescope_ra(ra)
+        result &= self.dec.sync_telescope_dec(dec)
+        return result
 
     def sync_telescope_ra(self, position: Ha) -> bool:
         return self.ra.sync_telescope_ra(position)

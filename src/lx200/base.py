@@ -125,6 +125,11 @@ class LX200Base:
     def motor_position(self) -> tuple[Ha, Dec]:
         raise NotImplementedError()
     
+    def sync_telescope(self, ra: Ha, dec: Dec) -> bool:
+        result = self.sync_telescope_ra(ra)
+        result &= self.sync_telescope_dec(dec)
+        return result
+
     def sync_telescope_ra(self, position: Ha) -> bool:
         raise NotImplementedError()
     
@@ -134,6 +139,11 @@ class LX200Base:
     def sync_telescope_dec(self, position: Dec) -> bool:
         raise NotImplementedError()
     
+    def slew_to(self, ra: Ha, dec: Dec) -> bool:
+        result = self.slew_to_ra(ra)
+        result &= self.slew_to_dec(dec)
+        return result
+
     def slew_to_ra(self, position: Ha) -> bool:
         raise NotImplementedError()
     
@@ -593,12 +603,10 @@ class LX200Handler(LX200Base):
                 result = True
 
             case LX200Commands.SYNC, _:
-                result = self.sync_telescope_ra(self._target_ra)
-                result &= self.sync_telescope_dec(self._target_dec)
+                result = self.sync_telescope(self._target_ra, self._target_dec)
                 result = "OK"
             case LX200Commands.SLEW, _:
-                result = self.slew_to_ra(self._target_ra)
-                result = self.slew_to_dec(self._target_dec)
+                result = self.slew_to(self._target_ra, self._target_dec)
                 result = False
                 # But 1<below horison>#
                 # But 2<below higher>#

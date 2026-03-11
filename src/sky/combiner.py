@@ -146,6 +146,9 @@ class Combiner:
         
         self._guide_updated.set()
     
+    def is_moving_to(self) -> bool:
+        return self.ra.is_moving_to() or self.dec.is_moving_to()
+    
     def halt_direction(self, direction: SkyDirection) -> None:
         axis = self._dispatch_axis(direction)
         axis.halt_direction(direction)
