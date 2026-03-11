@@ -60,11 +60,8 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
         self._mode: AxisMotionMode = AxisMotionMode.STOP
         self._connected = False
 
-        self._motion_convertor_thread = threading.Thread(
-            target=self._motion_convertor,
-            name=f"{self.axis.value}_motion_convertor",
-        )
-        self._motor_lock = threading.Lock()
+        self._motion_convertor_thread: threading.Thread | None = None
+        self._motor_lock = threading.RLock()
         self._queue: queue.Queue[AxisCommand] = queue.Queue()
 
         self._sky_speed: _SPEED_CLS = self.SPEED_CLS(0)
@@ -90,6 +87,11 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
             self._motor.reset()
 
         self._connected = True
+        if self._motion_convertor_thread is None or not self._motion_convertor_thread.is_alive():
+            self._motion_convertor_thread = threading.Thread(
+                target=self._motion_convertor,
+                name=f"{self.axis.value}_motion_convertor",
+            )
 
         self._motion_convertor_thread.start()
 
@@ -106,7 +108,8 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
             self._motor.reset()
             self._motor.disconnect()
         
-        self._motion_convertor_thread.join(float(self.THREAD_ITERATION_DELAY_S))
+        if self._motion_convertor_thread is not None:
+            self._motion_convertor_thread.join(float(self.THREAD_ITERATION_DELAY_S))
 
     def _get_motor_direction_and_speed(self, direction: SkyDirection, speed: AxisSpeed) -> tuple[MotorDirection, int]:
         if not isinstance(speed, self.SPEED_CLS):

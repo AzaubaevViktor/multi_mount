@@ -97,6 +97,7 @@ class PolarCompensator:
         self.ra_speed: HaPerSecond = STELLAR_SPEED
         self.dec_speed: DecPerSecond = DecPerSecond(0)
 
+        # We expect RA and DEC guide pulses to arrive as a pair, so one shared timestamp is enough here.
         self.last_guide_pulse: Second = Second.monotonic()
         self.stable_guide_ra_pulses_count = 0
         self.stable_guide_dec_pulses_count = 0

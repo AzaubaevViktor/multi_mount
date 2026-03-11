@@ -64,31 +64,31 @@ class _BasicAriphmetic(ABC):
         if isinstance(other, self.__class__):
             return self.__class__(float(self) + float(other))
         raise TypeError(f"Unsupported addition: {type(self)} + {type(other)}")
+
+    def _comparison_value(self, other: Any) -> float:
+        if isinstance(other, self.__class__):
+            return float(other)
+        if isinstance(other, (float, int)):
+            return float(other)
+        raise TypeError(f"Unsupported comparison: {type(self)} and {type(other)}")
     
-    def __lt__(self, other: Self):
-        if isinstance(other, self.__class__):
-            return float(self) < float(other)
-        raise TypeError(f"Unsupported comparison: {type(self)} < {type(other)}")
+    def __lt__(self, other: Self | float | int):
+        return float(self) < self._comparison_value(other)
 
-    def __le__(self, other: Self):
-        if isinstance(other, self.__class__):
-            return float(self) <= float(other)
-        raise TypeError(f"Unsupported comparison: {type(self)} <= {type(other)}")
+    def __le__(self, other: Self | float | int):
+        return float(self) <= self._comparison_value(other)
 
-    def __gt__(self, other: Self):
-        if isinstance(other, self.__class__):
-            return float(self) > float(other)
-        raise TypeError(f"Unsupported comparison: {type(self)} > {type(other)}")
+    def __gt__(self, other: Self | float | int):
+        return float(self) > self._comparison_value(other)
 
-    def __ge__(self, other: Self):
-        if isinstance(other, self.__class__):
-            return float(self) >= float(other)
-        raise TypeError(f"Unsupported comparison: {type(self)} >= {type(other)}")
+    def __ge__(self, other: Self | float | int):
+        return float(self) >= self._comparison_value(other)
     
-    def __eq__(self, value: Self) -> bool:
-        if isinstance(value, self.__class__):
-            return float(self) == float(value)
-        raise TypeError(f"Unsupported comparison: {type(self)} == {type(value)}")
+    def __eq__(self, value: object) -> bool:
+        try:
+            return float(self) == self._comparison_value(value)
+        except TypeError:
+            return NotImplemented
     
     @overload
     def __truediv__(self, other: float | int) -> Self: ...
@@ -140,6 +140,14 @@ class AxisPos(_BasicAriphmetic):
 
     @abstractmethod
     def wrap(self) -> Self:
+        ...
+
+    @abstractmethod
+    def moving_wrap(self) -> Self:
+        ...
+
+    @abstractmethod
+    def check_wrap(self) -> tuple[Self, bool]:
         ...
 
     @overload
@@ -201,6 +209,7 @@ class Ha(AxisPos):
         return self.__class__(self._total_seconds % _SECONDS_PER_DAY)
 
     def moving_wrap(self) -> Self:
+        """Normalize delta-like RA value to the shortest path in the range [-12h, +12h]."""
         half_circle = self.__class__(_SECONDS_PER_DAY / 2)
         full_circle = self.__class__(_SECONDS_PER_DAY)
         if self > half_circle:
@@ -208,6 +217,10 @@ class Ha(AxisPos):
         if self < -half_circle:
             return self + full_circle
         return self
+
+    def check_wrap(self) -> tuple[Self, bool]:
+        wrapped = self.wrap()
+        return wrapped, wrapped != self
 
     @overload
     def __truediv__(self, other: Second) -> AxisSpeed: ...
@@ -332,6 +345,14 @@ class Dec(AxisPos):
         if self._total_arcseconds < -self.ARCSECONDS_PER_QUATER_CIRCLE:
             return self.__class__(-self.ARCSECONDS_PER_QUATER_CIRCLE * 2 - self._total_arcseconds)
         return self
+
+    def moving_wrap(self) -> Self:
+        """Reflect DEC into the physical range [-90deg, +90deg]."""
+        return self.wrap()
+
+    def check_wrap(self) -> tuple[Self, bool]:
+        wrapped = self.wrap()
+        return wrapped, wrapped != self
 
     def _rounded_total_arcseconds(self) -> int:
         rounded_total_arcseconds = abs(int(round(self._total_arcseconds)))

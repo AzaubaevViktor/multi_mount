@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 import threading
-import time
 from sky.axis import AxisRA, AxisDEC, PointCoordinates
 from sky.constants import STELLAR_SPEED
 from sky.physics import AxisSpeed, DecPerSecond, HaPerSecond, Second, SkyDirection
@@ -47,7 +46,7 @@ class Combiner:
 
         self._polar_compensator = PolarCompensator()
 
-        self._polar_compensator_thread = threading.Thread(target=self._polar_compensation, name="PolarCompensator")
+        self._polar_compensator_thread: threading.Thread | None = None
         self._guide_updated = threading.Event()
 
     def _polar_compensation(self) -> None:
@@ -66,6 +65,8 @@ class Combiner:
     def connect(self) -> None:
         self.ra.connect()
         self.dec.connect()
+        if self._polar_compensator_thread is None or not self._polar_compensator_thread.is_alive():
+            self._polar_compensator_thread = threading.Thread(target=self._polar_compensation, name="PolarCompensator")
         self._polar_compensator_thread.start()
 
     def is_connected(self) -> bool:
@@ -74,6 +75,9 @@ class Combiner:
     def disconnect(self) -> None:
         self.ra.disconnect()
         self.dec.disconnect()
+        self._guide_updated.set()
+        if self._polar_compensator_thread is not None:
+            self._polar_compensator_thread.join(float(self.GUIDE_INTERVAL_S))
 
     def get_position(self) -> PointCoordinates:
         pos_from_ra = self.ra.get_position()
