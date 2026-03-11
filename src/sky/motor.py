@@ -54,7 +54,25 @@ class Motor[POS_CLS: AxisPos, SPEED_CLS: AxisSpeed](ABC):
     If error happens, we should raise MotorStateError or MotorStopRequire
     """
     FORWARD_POSITION_SIGN: int
-    """1 if MotorDirection.FORWARD increases the position value, -1 if it decreases it."""
+    """
+    1 or -1. How motor step increase translates to sky coordinate change.
+
+    The Axis operates in two coordinate frames:
+    - "motor frame": _sky_speed and motor position deltas are positive
+      when Motor goes FORWARD (step count grows).
+    - "sky frame": reported celestial position (Ha, Dec).
+
+    FORWARD_POSITION_SIGN = 1 means these frames agree:
+      Motor FORWARD → steps ↑ → position ↑ (e.g. DEC: forward = north = Dec grows).
+    FORWARD_POSITION_SIGN = -1 means they disagree:
+      Motor FORWARD → steps ↑ → position ↑ in encoder units,
+      but the corresponding sky motion is opposite to FORWARD_DIRECTION
+      (e.g. RA: forward = Ha grows = telescope tracks west,
+      while FORWARD_DIRECTION = EAST because "East button" = faster tracking).
+
+    Used in Axis to convert between these frames: goto direction,
+    overshoot detection, sky-speed compensation, and position drift correction.
+    """
 
     @abstractmethod
     def __init__(self) -> None:
