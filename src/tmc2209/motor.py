@@ -101,6 +101,7 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         self._logger = logging.getLogger(type(self).__name__)
         self._microsteps = 16
         self._is_connected = False
+        self._direction = MotorDirection.STOP
 
     def connect(self):
         self._serial.connect()
@@ -128,10 +129,8 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
             motion_mode = MotionMode.RUN
         if status.phase in (_Phase.IDLE, _Phase.HOLD):
             direction = MotorDirection.STOP
-        elif status.actual_speed_sps < 0:
-            direction = MotorDirection.BACKWARD
         else:
-            direction = MotorDirection.FORWARD
+            direction = self._direction
         return MotorStatus(
             is_connected=self._is_connected,
             steps=status.position,
@@ -172,11 +171,12 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         if direction == MotorDirection.STOP:
             return True
         self._transact("direction", ["1" if direction == MotorDirection.BACKWARD else "0"])
+        self._direction = direction
         return True
 
     def set_delta(self, delta_steps: int) -> bool:
         self._ensure_not_goto(self._status(), "cannot change target while GOTO is in progress")
-        self._transact("delta", [str(delta_steps)])
+        self._transact("delta", [str(abs(delta_steps))])
         return True
 
     def get_speed_sps_by_delta(self, delta_steps: int) -> int:
