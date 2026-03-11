@@ -35,6 +35,10 @@ class MotorStopRequire(Exception):
     pass
 
 
+class MotorStateError(Exception):
+    pass
+
+
 
 class Motor[POS_CLS: AxisPos, SPEED_CLS: AxisSpeed](ABC):
     """
