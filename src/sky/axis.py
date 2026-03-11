@@ -6,7 +6,7 @@ import threading
 from typing import Sequence, cast
 
 from sky.motor import Motor, MotorDirection, MotorStopRequire
-from sky.physics import AxisPos, AxisSpeed, Dec, Ha, Second, SkyDirection
+from sky.physics import AxisPos, AxisSpeed, Dec, DecPerSecond, Ha, HaPerSecond, Second, SkyDirection
 
 
 class AxisName(StrEnum):
@@ -93,6 +93,9 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
 
         self._motion_convertor_thread.start()
 
+    def is_connected(self) -> bool:
+        return self._connected
+
     def disconnect(self):
         if not self._connected:
             return
@@ -128,9 +131,9 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
     def _set_current_position(self, pos: _POS_CLS) -> None:
         with self._motor_lock:
             if self.axis == AxisName.RA:
-                self._ra_position = pos
+                self._ra_position = cast(Ha, pos)
             elif self.axis == AxisName.DEC:
-                self._dec_position = pos
+                self._dec_position = cast(Dec, pos)
             else:
                 raise ValueError(f"Invalid axis: {self.axis}")
     
@@ -378,7 +381,8 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                         actual_delta = current_motor_position - self._last_motor_position
 
                         delta = expected_delta - actual_delta
-
+                        
+                        # TODO: Add wrapping, if wrap happens in dec axis, we need to add to RA axis +12 hours
                         self._set_current_position(
                             self._get_current_position() + delta
                         )
@@ -392,7 +396,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
         logger.info("Stop working")
 
     def get_position(self) -> PointCoordinates:
-        return PointCoordinates(self._ra_position, self._dec_position)
+        return PointCoordinates(ra=self._ra_position, dec=self._dec_position)
     
     def set_position(self, position: PointCoordinates) -> None:
         self._queue.put(AxisCommand(AxisCommandType.SET_POSITION, position=position))
@@ -414,3 +418,19 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
 
     def is_moving_to(self) -> bool:
         return self._mode == AxisMotionMode.GOTO
+
+
+class AxisRA(Axis[Ha, HaPerSecond]):
+    axis = AxisName.RA
+    POS_CLS = Ha
+    SPEED_CLS = HaPerSecond
+    FORWARD_DIRECTION = SkyDirection.EAST
+    BACKWARD_DIRECTION = SkyDirection.WEST
+
+
+class AxisDEC(Axis[Dec, DecPerSecond]):
+    axis = AxisName.DEC
+    POS_CLS = Dec
+    SPEED_CLS = DecPerSecond
+    FORWARD_DIRECTION = SkyDirection.NORTH
+    BACKWARD_DIRECTION = SkyDirection.SOUTH

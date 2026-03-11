@@ -144,8 +144,13 @@ class PolarCompensator:
         return compute_pole_offset(self.dec_speed, self.ra_speed, self.current_ha, self.current_dec)
 
     def get_guide_speeds(self) -> tuple[HaPerSecond, DecPerSecond]:
+        """ Returns actual guide speeds """
         if self.stable_guide_ra_pulses_count < self.STABLE_GUIDE_PULSES_COUNT or self.stable_guide_dec_pulses_count < self.STABLE_GUIDE_PULSES_COUNT:
-            return STELLAR_SPEED, DecPerSecond(0)
+            if Second.monotonic() - self.last_guide_pulse > self.DROP_GUIDE_PULSES_COUNT_AFTER:
+                self.ra_speed = STELLAR_SPEED
+                self.dec_speed = DecPerSecond(0)
+            
+            return self.ra_speed, self.dec_speed
 
         eps_E, eps_N = self.get_polar_offset()
 

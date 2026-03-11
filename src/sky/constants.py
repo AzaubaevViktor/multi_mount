@@ -4,6 +4,7 @@ from sky.physics import HaPerSecond, Second, SECONDS_PER_DAY
 STELLAR_DAY = Second(86164.098903691)
 
 STELLAR_SPEED = HaPerSecond(SECONDS_PER_DAY / STELLAR_DAY)
+""" Sidereal tracking speed """
 
 _SIDEREAL_DAY = 86164.09053083288
 _SIDEREAL_SPEED = 15.04106864
