@@ -243,6 +243,21 @@ def test_hw_run_mode_moves_in_requested_direction(
     assert (later_status.steps - moved_position) * expected_sign > 0
 
 
+@pytest.mark.parametrize(("requested_speed_sps", "expected_speed_sps"), [(600.4, 600), (600.6, 601), (1_200.0, 1_200)])
+def test_hw_set_speed_rounds_fractional_value(
+    tmc2209_motor: TMC2209Motor,
+    requested_speed_sps: float,
+    expected_speed_sps: int,
+) -> None:
+    assert tmc2209_motor.set_motion_mode(MotionMode.RUN) is True
+
+    actual_speed_sps = tmc2209_motor.set_speed(requested_speed_sps)
+    status = tmc2209_motor.status()
+
+    assert actual_speed_sps == expected_speed_sps
+    assert status.speed_sps == expected_speed_sps
+
+
 SPEED_MEASURE_INTERVAL_S = 0.8
 SPEED_TOLERANCE_RATIO = 0.2
 SPEED_TOLERANCE_ABS = 120.0

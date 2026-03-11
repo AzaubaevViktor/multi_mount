@@ -41,6 +41,10 @@ class _Command(StrEnum):
     INITIALIZE = "F"
 
 
+class _Axis(StrEnum):
+    RA = "1"
+
+
 class _Direction(IntEnum):
     BACKWARD = 0
     FORWARD = 1
@@ -136,6 +140,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._last_speed_sps = 0
         self._last_direction = MotorDirection.STOP
         self._last_target: int | None = None
+        self._zero_target_pending = False
         self._mount_position_cache = Ha(0)
         self._mount_position_cache_updated = 0.0
 
@@ -189,12 +194,14 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         return True
 
     def set_speed(self, steps_per_second: int) -> int:
-        self._ensure_not_goto(self._get_status(), "cannot change speed while GOTO is in progress")
+        status = self._get_status()
+        self._ensure_not_goto(status, "cannot change speed while GOTO is in progress")
         if steps_per_second <= 0:
             raise ValueError(f"steps_per_second must be positive, got {steps_per_second}")
-        self._last_speed_sps = steps_per_second
-        self._transact(_Command.SET_STEP_PERIOD, _Revu24.from_int(self._period_from_speed_sps(steps_per_second)))
-        return steps_per_second
+        period = self._period_from_speed_sps(steps_per_second)
+        self._transact(_Command.SET_STEP_PERIOD, _Revu24.from_int(period))
+        self._last_speed_sps = self._speed_sps_from_period(period, status.speed_mode)
+        return self._last_speed_sps
 
     def set_acceleration(self, steps_per_second_square: float) -> bool:
         self._ensure_not_goto(self._get_status(), "cannot change acceleration while GOTO is in progress")
@@ -224,8 +231,10 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._ensure_not_goto(status, "cannot change target while GOTO is in progress")
         delta = self.convert_steps_to_position(delta_steps).moving_wrap()
         if delta == Ha(0):
-            self._last_target = 0
+            self._last_target = None
+            self._zero_target_pending = True
             return True
+        self._zero_target_pending = False
         speed = self._get_goto_speed(delta)
         target_speed_mode = _SpeedMode.HIGHSPEED if abs(speed) > self._LOWSPEED_SPEED else _SpeedMode.LOWSPEED
         self._set_motion(
@@ -301,6 +310,9 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     def run(self) -> bool:
         status = self._get_status()
         self._ensure_not_goto(status, "cannot run while GOTO is in progress")
+        if self._zero_target_pending:
+            self._zero_target_pending = False
+            return True
         if self._last_target is not None and status.slew_mode != _SlewMode.GOTO:
             raise MotorStateError("cannot run before motor motion mode is switched")
         self._transact(_Command.START_MOTION)
@@ -309,6 +321,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     def stop(self) -> bool:
         self._transact(_Command.STOP_MOTION)
         self._last_target = None
+        self._zero_target_pending = False
         return True
 
     def wait_till_stop(self, do_stop: bool = True, timeout_s: float | None = None) -> None:
@@ -325,6 +338,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._last_speed_sps = 0
         self._last_direction = MotorDirection.STOP
         self._last_target = None
+        self._zero_target_pending = False
 
     def _get_status(self) -> _Status:
         return _Status.from_bytes(self._transact(_Command.INQUIRE_STATUS).encode("ascii"))
@@ -355,10 +369,19 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._ensure_geometry_ready()
         if speed_sps <= 0:
             raise MotorStateError("speed must be positive")
-        rate = speed_sps * (24 * 60 * 60) / self._steps_360 / STELLAR_SPEED
+        rate = speed_sps * (24 * 60 * 60) / self._steps_360 / float(STELLAR_SPEED)
         if rate > self._highspeed_ratio:
             rate /= self._highspeed_ratio
         return int(STELLAR_DAY * self._steps_worm / self._steps_360 / rate)
+
+    def _speed_sps_from_period(self, period: int, speed_mode: _SpeedMode) -> int:
+        self._ensure_geometry_ready()
+        if period <= 0:
+            raise MotorStateError("period must be positive")
+        rate = float(STELLAR_DAY) * self._steps_worm / self._steps_360 / period
+        if speed_mode == _SpeedMode.HIGHSPEED:
+            rate *= self._highspeed_ratio
+        return int(round(rate * float(STELLAR_SPEED) * self._steps_360 / (24 * 60 * 60)))
 
     def _ensure_not_goto(self, status: _Status, message: str) -> None:
         if status.running and status.slew_mode == _SlewMode.GOTO:
@@ -369,7 +392,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
             raise SkyWatcherMotorProtocolError("motor geometry is not initialized")
 
     def _transact(self, command: _Command, arg: str | None = None) -> str:
-        payload = f"{self._LEADING}{command.value}{arg or ''}{self._TRAILING}"
+        payload = f"{self._LEADING}{command.value}{_Axis.RA}{arg or ''}{self._TRAILING}"
         response = self._serial.query(payload)
         if not response.startswith(self._RESPONSE_PREFIX):
             if response.startswith(self._COMMAND_ERROR_PREFIX):

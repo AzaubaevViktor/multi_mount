@@ -152,8 +152,9 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         self._ensure_not_goto(self._status(), "cannot change speed while GOTO is in progress")
         if steps_per_second < 0:
             raise ValueError(f"steps_per_second must be non-negative, got {steps_per_second}")
-        self._transact("speed", [str(steps_per_second)])
-        return steps_per_second
+        speed = int(round(steps_per_second))
+        self._transact("speed", [str(speed)])
+        return speed
 
     def set_acceleration(self, steps_per_second_square: float) -> bool:
         self._ensure_not_goto(self._status(), "cannot change acceleration while GOTO is in progress")
