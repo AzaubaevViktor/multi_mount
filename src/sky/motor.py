@@ -55,7 +55,7 @@ class Motor[POS_CLS: AxisPos, SPEED_CLS: AxisSpeed](ABC):
     """
     FORWARD_POSITION_SIGN: int
     """
-    1 or -1. How motor step increase translates to sky coordinate change.
+    +1 or -1. How motor step increase translates to sky coordinate change.
 
     The Axis operates in two coordinate frames:
     - "motor frame": _sky_speed and motor position deltas are positive
