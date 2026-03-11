@@ -69,6 +69,21 @@ class _BasicAriphmetic(ABC):
         if isinstance(other, self.__class__):
             return float(self) < float(other)
         raise TypeError(f"Unsupported comparison: {type(self)} < {type(other)}")
+
+    def __le__(self, other: Self):
+        if isinstance(other, self.__class__):
+            return float(self) <= float(other)
+        raise TypeError(f"Unsupported comparison: {type(self)} <= {type(other)}")
+
+    def __gt__(self, other: Self):
+        if isinstance(other, self.__class__):
+            return float(self) > float(other)
+        raise TypeError(f"Unsupported comparison: {type(self)} > {type(other)}")
+
+    def __ge__(self, other: Self):
+        if isinstance(other, self.__class__):
+            return float(self) >= float(other)
+        raise TypeError(f"Unsupported comparison: {type(self)} >= {type(other)}")
     
     def __eq__(self, value: Self) -> bool:
         if isinstance(value, self.__class__):

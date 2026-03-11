@@ -45,3 +45,79 @@ def test_sky_physics_test_model(operation, expected_type, expected_value):
         assert result == pytest.approx(expected_value)
     else:
         assert float(result) == pytest.approx(expected_value)
+
+
+def test_ha_comparisons():
+    a = Ha(10)
+    b = Ha(20)
+
+    assert a < b
+    assert a <= b
+    assert b > a
+    assert b >= a
+    assert a == Ha(10)
+
+
+def test_dec_comparisons():
+    a = Dec(10)
+    b = Dec(20)
+
+    assert a < b
+    assert a <= b
+    assert b > a
+    assert b >= a
+    assert a == Dec(10)
+
+
+@pytest.mark.parametrize(
+    ("left", "right"),
+    [
+        pytest.param(Ha(10), Ha(10), id="ha_equal"),
+        pytest.param(Dec(10), Dec(10), id="dec_equal"),
+    ],
+)
+def test_comparisons_on_equal_values(left, right):
+    assert left <= right
+    assert left >= right
+    assert not (left < right)
+    assert not (left > right)
+    assert left == right
+
+
+@pytest.mark.parametrize(
+    ("left", "right"),
+    [
+        pytest.param(Ha(86461), Ha(61), id="ha_normalized_equal"),
+        pytest.param(Dec(324061), Dec(61), id="dec_normalized_equal"),
+    ],
+)
+def test_comparisons_use_normalized_values(left, right):
+    assert left == right
+    assert left <= right
+    assert left >= right
+    assert not (left < right)
+    assert not (left > right)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        Ha(10),
+        Dec(10),
+    ],
+)
+def test_comparisons_reject_unsupported_type(value):
+    with pytest.raises(TypeError):
+        _ = value < object()
+
+    with pytest.raises(TypeError):
+        _ = value <= object()
+
+    with pytest.raises(TypeError):
+        _ = value > object()
+
+    with pytest.raises(TypeError):
+        _ = value >= object()
+
+    with pytest.raises(TypeError):
+        _ = (value == object())
