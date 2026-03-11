@@ -198,7 +198,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                     try:
                         self._motor.set_direction(direction)
                         self._motor.set_speed(speed_sps)
-                        self._motor.set_delta(self._motor.convert_position_to_steps(delta))
+                        self._motor.set_delta(-self._MOTOR_POSITION_SIGN * self._motor.convert_position_to_steps(delta))
                         self._motor.run()
 
                         self._goto_target = position

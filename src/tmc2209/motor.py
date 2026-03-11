@@ -176,7 +176,7 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
 
     def set_delta(self, delta_steps: int) -> bool:
         self._ensure_not_goto(self._status(), "cannot change target while GOTO is in progress")
-        self._transact("delta", [str(abs(delta_steps))])
+        self._transact("delta", [str(delta_steps)])
         return True
 
     def get_speed_sps_by_delta(self, delta_steps: int) -> int:
