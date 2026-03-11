@@ -357,22 +357,20 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                                 if abs(current_position - self._goto_target) < self.POS_CLS(self._GOTO_SECONDS_TOLERANCE):
                                     need_to_stop = True
 
-                                # Stop if we reached the target
-                                if self._goto_direction == SkyDirection.EAST and current_position >= self._goto_target:
+                                # Stop if we overshot the target
+                                if self._goto_direction == self.FORWARD_DIRECTION and current_position <= self._goto_target:
                                     need_to_stop = True
-                                elif self._goto_direction == SkyDirection.WEST and current_position <= self._goto_target:
+                                elif self._goto_direction == self.BACKWARD_DIRECTION and current_position >= self._goto_target:
                                     need_to_stop = True
                                 
                                 if need_to_stop:
                                     self._motor.wait_till_stop()
-                                
-                                if need_to_stop and abs(current_position - self._goto_target) < self.POS_CLS(self._GOTO_SECONDS_TOLERANCE):
-                                    self._mode = AxisMotionMode.STOP
-                                    self._goto_target = None
-                                    self._goto_direction = None
-                                else:
-                                    # Need to rerun GOTO to the target
-                                    self._run_goto_to(self._goto_target)
+                                    if abs(current_position - self._goto_target) < self.POS_CLS(self._GOTO_SECONDS_TOLERANCE):
+                                        self._mode = AxisMotionMode.STOP
+                                        self._goto_target = None
+                                        self._goto_direction = None
+                                    else:
+                                        self._run_goto_to(self._goto_target)
                 
                 if need_to_compensate:
                     with self._motor_lock:
@@ -390,7 +388,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                             self._get_current_position() + delta
                         )
                         
-                        self._last_motor_position = current_motor_position + delta
+                        self._last_motor_position = current_motor_position
                         self._last_motor_position_update_s = motor_position_update_s
 
             except:
@@ -405,15 +403,21 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
         self._queue.put(AxisCommand(AxisCommandType.SET_POSITION, position=position))
 
     def change_speed(self, direction: SkyDirection, speed: _SPEED_CLS, update_sky_speed: bool = False) -> None:
+        if direction not in self.DIRECTIONS:
+            return
         self._queue.put(AxisCommand(AxisCommandType.CHANGE_SPEED, direction=direction, speed=speed, update_sky_speed=update_sky_speed))
 
     def move(self, direction: SkyDirection, speed: _SPEED_CLS) -> None:
+        if direction not in self.DIRECTIONS:
+            return
         self._queue.put(AxisCommand(AxisCommandType.MOVE, direction=direction, speed=speed))
 
     def goto_to(self, position: PointCoordinates) -> None:
         self._queue.put(AxisCommand(AxisCommandType.GOTO_TO, position=position))
     
     def halt_direction(self, direction: SkyDirection) -> None:
+        if direction not in self.DIRECTIONS:
+            return
         self._queue.put(AxisCommand(AxisCommandType.HALT_DIRECTION, direction=direction))
     
     def halt_all(self) -> None:
