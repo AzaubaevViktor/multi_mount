@@ -121,6 +121,8 @@ class _Revu24:
 
 
 class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
+    FORWARD_POSITION_SIGN = -1
+
     _LEADING = ":"
     _TRAILING = "\r"
     _RESPONSE_PREFIX = "="

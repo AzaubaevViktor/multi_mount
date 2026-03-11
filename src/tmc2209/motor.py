@@ -96,6 +96,8 @@ class _Status:
 
 
 class TMC2209Motor(Motor[Dec, DecPerSecond]):
+    FORWARD_POSITION_SIGN = 1
+
     def __init__(self, serial: SerialLine) -> None:
         self._serial = serial
         self._logger = logging.getLogger(type(self).__name__)

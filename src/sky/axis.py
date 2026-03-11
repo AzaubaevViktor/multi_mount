@@ -51,8 +51,6 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
     SPEED_CLS: type[_SPEED_CLS]
     FORWARD_DIRECTION: SkyDirection
     BACKWARD_DIRECTION: SkyDirection
-    _MOTOR_POSITION_SIGN: int
-
     def __init__(self, motor: Motor[_POS_CLS, _SPEED_CLS]) -> None:
         self.logger = logging.getLogger(f"{type(self).__name__}.{self.axis.value}")
         self.DIRECTIONS: Sequence[SkyDirection] = (self.FORWARD_DIRECTION, self.BACKWARD_DIRECTION)
@@ -177,7 +175,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
         with self._motor_lock:
             # This is fastest path; It will be calculated at higher level
             delta = self._get_current_position() - position
-            signed = self._MOTOR_POSITION_SIGN * float(delta)
+            signed = self._motor.FORWARD_POSITION_SIGN * float(delta)
             if signed < 0:
                 direction = MotorDirection.FORWARD
                 self._goto_direction = self.FORWARD_DIRECTION
@@ -192,13 +190,13 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                 speed_sps = self._motor.get_speed_sps_by_delta(self._motor.convert_position_to_steps(delta))
                 speed = self._motor.get_speed_by_speed_sps(speed_sps)
                 moving_approx_time = abs(delta / speed)
-                delta -= self.POS_CLS(float(self._sky_speed) * float(moving_approx_time) * self._MOTOR_POSITION_SIGN)
+                delta -= self.POS_CLS(float(self._sky_speed) * float(moving_approx_time) * self._motor.FORWARD_POSITION_SIGN)
                 
                 while True:
                     try:
                         self._motor.set_direction(direction)
                         self._motor.set_speed(speed_sps)
-                        self._motor.set_delta(-self._MOTOR_POSITION_SIGN * self._motor.convert_position_to_steps(delta))
+                        self._motor.set_delta(-self._motor.FORWARD_POSITION_SIGN * self._motor.convert_position_to_steps(delta))
                         self._motor.run()
 
                         self._goto_target = position
@@ -359,7 +357,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                                 if abs(current_position - self._goto_target) < self.POS_CLS(self._GOTO_SECONDS_TOLERANCE):
                                     need_to_stop = True
 
-                                overshoot = self._MOTOR_POSITION_SIGN * float(current_position - self._goto_target)
+                                overshoot = self._motor.FORWARD_POSITION_SIGN * float(current_position - self._goto_target)
                                 if self._goto_direction == self.FORWARD_DIRECTION and overshoot >= 0:
                                     need_to_stop = True
                                 elif self._goto_direction == self.BACKWARD_DIRECTION and overshoot <= 0:
@@ -383,7 +381,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                         expected_delta = self._sky_speed * elapsed_s
                         actual_delta = current_motor_position - self._last_motor_position
 
-                        delta = self.POS_CLS(self._MOTOR_POSITION_SIGN * float(actual_delta - expected_delta))
+                        delta = self.POS_CLS(self._motor.FORWARD_POSITION_SIGN * float(actual_delta - expected_delta))
                         
                         # TODO: Add wrapping, if wrap happens in dec axis, we need to add to RA axis +12 hours
                         self._set_current_position(
@@ -435,7 +433,6 @@ class AxisRA(Axis[Ha, HaPerSecond]):
     SPEED_CLS = HaPerSecond
     FORWARD_DIRECTION = SkyDirection.EAST
     BACKWARD_DIRECTION = SkyDirection.WEST
-    _MOTOR_POSITION_SIGN = -1
 
 
 class AxisDEC(Axis[Dec, DecPerSecond]):
@@ -444,4 +441,3 @@ class AxisDEC(Axis[Dec, DecPerSecond]):
     SPEED_CLS = DecPerSecond
     FORWARD_DIRECTION = SkyDirection.NORTH
     BACKWARD_DIRECTION = SkyDirection.SOUTH
-    _MOTOR_POSITION_SIGN = 1

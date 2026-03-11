@@ -53,6 +53,9 @@ class Motor[POS_CLS: AxisPos, SPEED_CLS: AxisSpeed](ABC):
     If motor is moving, we can't change direction and microsteps
     If error happens, we should raise MotorStateError or MotorStopRequire
     """
+    FORWARD_POSITION_SIGN: int
+    """1 if MotorDirection.FORWARD increases the position value, -1 if it decreases it."""
+
     @abstractmethod
     def __init__(self) -> None:
         ...
