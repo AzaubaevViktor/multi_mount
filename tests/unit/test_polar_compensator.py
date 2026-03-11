@@ -52,6 +52,27 @@ class TestComputePoleOffset:
         assert float(recovered_N) == pytest.approx(float(eps_N), abs=1e-6), \
             f"eps_N mismatch at HA={ha_hours}h dec=1°: expected {float(eps_N)}, got {float(recovered_N)}"
 
+    @pytest.mark.parametrize("eps_E_hours", [0, 3, 6, 9, 12, 15, 18, 21])
+    def test_round_trip_small_eps_N_any_eps_E(self, eps_E_hours: float):
+        eps_E = Ha(eps_E_hours * 3600)
+        eps_N = Dec(1 * 3600)
+
+        rng = random.Random(eps_E_hours)
+        for i in range(200):
+            ha_hours = rng.uniform(0, 24)
+            dec_deg = rng.choice([-1, 1]) * rng.uniform(1, 89)
+            ha = Ha(ha_hours * 3600)
+            dec = Dec(dec_deg * 3600)
+
+            ra_speed, dec_speed = compute_guide_speeds(eps_E, eps_N, ha, dec)
+            recovered_E, recovered_N = compute_pole_offset(dec_speed, ra_speed, ha, dec)
+
+            tag = f"eps_E={eps_E_hours}h eps_N=1° HA={ha_hours:.2f}h dec={dec_deg:.2f}° (sample {i})"
+            assert float(recovered_E) == pytest.approx(float(eps_E), abs=1e-4), \
+                f"eps_E mismatch: {tag}, got {float(recovered_E)}"
+            assert float(recovered_N) == pytest.approx(float(eps_N), abs=1e-4), \
+                f"eps_N mismatch: {tag}, got {float(recovered_N)}"
+
     def test_round_trip_random_values(self):
         rng = random.Random(42)
         n_samples = 200
