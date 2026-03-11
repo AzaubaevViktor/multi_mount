@@ -4,7 +4,34 @@ import math
 from sky.constants import STELLAR_SPEED
 from sky.physics import DecPerSecond, HaPerSecond, Dec, Ha, Second
 
-# TODO: Write formulas
+"""
+Polar misalignment model.
+
+Let:
+eps_N - polar axis error to the north
+eps_E - polar axis error to the east
+HA    - star hour angle
+dec   - star declination
+S     - sidereal tracking speed
+
+Then the guide rates caused by polar misalignment at a given sky position are:
+
+dec_drift / S_deg = eps_N * cos(HA) - eps_E * sin(HA)
+(ra_drift - S) / (S * tan(dec)) = eps_N * sin(HA) + eps_E * cos(HA)
+
+This is a 2x2 rotation system:
+
+[rhs_dec] = [ cos(HA)  -sin(HA)] [eps_N]
+[rhs_ra ]   [ sin(HA)   cos(HA)] [eps_E]
+
+so from measured guide rates and current pointing we recover the polar offset:
+
+eps_N = rhs_dec * cos(HA) + rhs_ra * sin(HA)
+eps_E = -rhs_dec * sin(HA) + rhs_ra * cos(HA)
+
+Then for any other sky position we solve the forward problem again and compute the
+guide rates needed to compensate the same polar offset there.
+"""
 
 def compute_pole_offset(dec_drift: DecPerSecond, ra_drift: HaPerSecond, ha: Ha, dec_: Dec) -> tuple[Ha, Dec]:
     """
