@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from enum import StrEnum
 import logging
-from math import e
 import queue
 import threading
 import time
