@@ -47,6 +47,11 @@ class Motor[POS_CLS: AxisPos, SPEED_CLS: AxisSpeed](ABC):
     Expect methods implemented in this class
     Methods should not wait until inqured action happens!
     Standart session looks like bunch of set's, which should change behaviour, wait till stop if method wants to stop, and send run command if need to run
+    
+    Some invariants:
+    If motor is in GOTO mode, we can only check status and position
+    If motor is moving, we can't change direction and microsteps
+    If error happens, we should raise MotorStateError or MotorStopRequire
     """
     @abstractmethod
     def __init__(self) -> None:
