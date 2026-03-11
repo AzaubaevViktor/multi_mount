@@ -19,7 +19,7 @@ class SkyWatcherLX200(LX200RAHandler):
 
         super().__init__()
 
-        self._manual_slew_rate = self.mount.MAX_SPEED
+        self._manual_slew_speed = self.mount.MAX_SPEED
 
         self._goto_to: Ha | None = None
         self._goto_direction_sign: Direction = Direction.STOP
@@ -37,8 +37,8 @@ class SkyWatcherLX200(LX200RAHandler):
     def _get_motor_raw_position(self) -> Ha:
         return self.motor_position()[0]
     
-    def _set_tracking_speed(self, rate: HaPerSecond):
-        self.mount.start_tracking(rate)
+    def _set_tracking_speed(self, speed: HaPerSecond):
+        self.mount.start_tracking(speed)
     
     def _halt_motion(self):
         self.logger.info("Stop motion")
@@ -90,8 +90,8 @@ class SkyWatcherLX200(LX200RAHandler):
                         logger.debug("Continuing slewing, %.3fs still need to moved", delta_to_target_abs_seconds)
                         if self.mount.get_status().slew_mode != SlewMode.GOTO:
                             motor_delta = -delta_to_target_seconds
-                            real_rate = abs(self.mount.get_slew_real_speed(motor_delta))
-                            tracking_ratio = abs(self._sky_track_rate / real_rate)
+                            real_speed = abs(self.mount.get_slew_real_speed(motor_delta))
+                            tracking_ratio = abs(self._sky_track_speed / real_speed)
 
                             if delta_to_target_seconds > Ha(0):
                                 motor_delta = -delta_to_target_seconds / (1 + tracking_ratio)
@@ -141,7 +141,7 @@ class SkyWatcherLX200(LX200RAHandler):
 
         self.sync_telescope_ra(Ha(0))
 
-        self.mount.start_tracking(self.DEFAULT_TRACKING_RATE)
+        self.mount.start_tracking(self.DEFAULT_TRACKING_SPEED)
         self.logger.info("SkyWatcher LX200 connected")
 
     def get_telescope_ra(self) -> Ha:
@@ -174,11 +174,11 @@ class SkyWatcherLX200(LX200RAHandler):
             return ""
 
     def set_slew_to_find(self) -> bool:
-        self._manual_slew_rate = self.mount.MAX_SPEED
+        self._manual_slew_speed = self.mount.MAX_SPEED
         return True
 
     def move_east(self) -> bool:
-        return self.mount.move_ra(self._manual_slew_rate)
+        return self.mount.move_ra(self._manual_slew_speed)
 
     def move_north(self) -> bool:
         return False
@@ -187,4 +187,4 @@ class SkyWatcherLX200(LX200RAHandler):
         return False
 
     def move_west(self) -> bool:
-        return self.mount.move_ra(-self._manual_slew_rate)
+        return self.mount.move_ra(-self._manual_slew_speed)

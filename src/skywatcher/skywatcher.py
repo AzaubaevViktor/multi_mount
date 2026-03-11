@@ -170,6 +170,7 @@ class SkyWatcherWebMixin(MonitorMixin):
     )
     monitor_fields = (
         monitor_field("connected", "Connected", "is_connected"),
+        monitor_field("tracking_speed", "Tracking speed", lambda self: round(self._last_tracking_speed, 6), mode="rw", setter="set_monitor_tracking_speed"),
         monitor_field("tracking_rate", "Tracking rate", lambda self: round(self._last_tracking_speed / STELLAR_SPEED, 6), mode="rw", setter="set_monitor_tracking_rate"),
         monitor_field("ha", "Hour angle", "monitor_hour_angle"),
         monitor_field("status", "Motor status", "monitor_status_payload", renderer=MonitorRenderer.JSON, group="status"),

@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from lx200.guide_compensator import compute_pole_offset, compute_guide_rates
+from lx200.guide_compensator import compute_pole_offset, compute_guide_speeds
 from sky.physics import Dec, Ha
 
 
@@ -33,7 +33,7 @@ from sky.physics import Dec, Ha
 )
 def test_simulated_polar_missaligment(eps_n: float, eps_e: float, ha_deg: float, dec_deg: float):
     # Forward problem: obtain d and k
-    ha_drift, dec_drift = compute_guide_rates(Dec(eps_n), Ha(eps_e), Ha(ha_deg), Dec(dec_deg))
+    ha_drift, dec_drift = compute_guide_speeds(Dec(eps_n), Ha(eps_e), Ha(ha_deg), Dec(dec_deg))
     
     # Inverse problem: recover the offset
     eps_N_calc, eps_E_calc = compute_pole_offset(dec_drift, ha_drift, Ha(ha_deg), Dec(dec_deg))

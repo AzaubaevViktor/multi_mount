@@ -83,7 +83,7 @@ class GuideTask:
 
 
 class AxisCommandType(StrEnum):
-    SET_TRACKING_RATE = "set_tracking_rate"
+    SET_TRACKING_SPEED = "set_tracking_speed"
     HALT_MOTION = "halt_motion"
     HALT_DIRECTION = "halt_direction"
 
@@ -91,8 +91,8 @@ class AxisCommandType(StrEnum):
 @dataclass
 class AxisCommand:
     type: AxisCommandType
-    rate: AxisSpeed | None = None
-    update_sky_rate: bool = False
+    speed: AxisSpeed | None = None
+    update_sky_speed: bool = False
     direction: SkyDirection | None = None
 
 
@@ -208,9 +208,9 @@ class LX200AxisHandler[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed](LX200Base):
     _RATE_COMPENSATE_INTERVAL_S = Second(.5)
     COMPENSATE_MOTOR_SIGN: int  # Is this really the best way for RA/DEC?
 
-    MIN_TRACKING_RATE: _SPEED_CLS
-    DEFAULT_TRACKING_RATE: _SPEED_CLS
-    MAX_TRACKING_RATE: _SPEED_CLS
+    BACKWARD_TRACKING_SPEED: _SPEED_CLS
+    DEFAULT_TRACKING_SPEED: _SPEED_CLS
+    FORWARD_TRACKING_SPEED: _SPEED_CLS
     DEFAULT_GUIDE_INTERVAL_MS: Second = Second(4)
 
     def __init__(self) -> None:
@@ -229,7 +229,7 @@ class LX200AxisHandler[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed](LX200Base):
         self._motor_position_raw: _POS_CLS = self.POS_CLS(0)
         self._last_update_s: Second = Second.monotonic()
 
-        self._sky_track_rate: _SPEED_CLS = self.DEFAULT_TRACKING_RATE
+        self._sky_track_speed: _SPEED_CLS = self.DEFAULT_TRACKING_SPEED
 
         self._guide_interval: Second = self.DEFAULT_GUIDE_INTERVAL_MS
         self._axis_command_queue: queue.Queue[AxisCommand] = queue.Queue()
@@ -237,7 +237,7 @@ class LX200AxisHandler[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed](LX200Base):
         self._telemetry_thread = threading.Thread(target=self._do_log_telemetry, name=f"{type(self).__name__}_telemetry")
         self._telemetry_thread.start()
 
-        self._compensate_thread = threading.Thread(target=self._compensate_tracking_rate, name=f"{type(self).__name__}_compensate")
+        self._compensate_thread = threading.Thread(target=self._compensate_tracking_speed, name=f"{type(self).__name__}_compensate")
         self._compensate_thread.start()
 
         self._goto_to: Any
@@ -256,22 +256,22 @@ class LX200AxisHandler[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed](LX200Base):
     def _set_tracking_speed(self, speed: _SPEED_CLS) -> _SPEED_CLS | None:
         raise NotImplementedError()
 
-    def set_tracking_rate(self, rate: _SPEED_CLS, update_sky_rate: bool = False) -> None:
+    def set_tracking_speed(self, speed: _SPEED_CLS, update_sky_speed: bool = False) -> None:
         self._axis_command_queue.put(
             AxisCommand(
-                type=AxisCommandType.SET_TRACKING_RATE,
-                rate=rate,
-                update_sky_rate=update_sky_rate,
+                type=AxisCommandType.SET_TRACKING_SPEED,
+                speed=speed,
+                update_sky_speed=update_sky_speed,
             )
         )
     
     def resume_tracking(self) -> None:
-        self.set_tracking_rate(self._sky_track_rate)
+        self.set_tracking_speed(self._sky_track_speed)
 
     def _halt_motion(self) -> None:
         raise NotImplementedError()
 
-    def calculate_guide_rate(self, direction: SkyDirection, ms: int) -> _SPEED_CLS | None:
+    def calculate_guide_speed(self, direction: SkyDirection, ms: int) -> _SPEED_CLS | None:
         if direction not in self.DIRECTIONS:
             return None
 
@@ -279,41 +279,41 @@ class LX200AxisHandler[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed](LX200Base):
 
         match direction:
             case SkyDirection.EAST | SkyDirection.SOUTH:
-                guide_rate = (self.MAX_TRACKING_RATE - self.DEFAULT_TRACKING_RATE) * guide_fration + self.DEFAULT_TRACKING_RATE
+                guide_speed = (self.FORWARD_TRACKING_SPEED - self.DEFAULT_TRACKING_SPEED) * guide_fration + self.DEFAULT_TRACKING_SPEED
             case SkyDirection.WEST | SkyDirection.NORTH:
-                guide_rate = self.DEFAULT_TRACKING_RATE - (
-                    (self.DEFAULT_TRACKING_RATE - self.MIN_TRACKING_RATE) * guide_fration
+                guide_speed = self.DEFAULT_TRACKING_SPEED - (
+                    (self.DEFAULT_TRACKING_SPEED - self.BACKWARD_TRACKING_SPEED) * guide_fration
                 )
             case _:
                 self.logger.warning("Wrong direction: %s", direction)
                 return None
         
-        return guide_rate
+        return guide_speed
     
-    def _apply_guide_rate(self, direction: SkyDirection, ms: int) -> None:
-        guide_rate = self.calculate_guide_rate(direction, ms)
-        if guide_rate is None:
+    def _apply_guide_speed(self, direction: SkyDirection, ms: int) -> None:
+        guide_speed = self.calculate_guide_speed(direction, ms)
+        if guide_speed is None:
             return
 
         self.logger.debug(
-            "Change guide rate: %s(%d/%d) -> rate: %.3f .. [%.3f] .. %.3f", 
+            "Change guide speed: %s(%d/%d) -> speed: %.3f .. [%.3f] .. %.3f", 
             direction, ms, self._guide_interval.to_milliseconds(), 
-            self.MIN_TRACKING_RATE, guide_rate, self.MAX_TRACKING_RATE,
+            self.BACKWARD_TRACKING_SPEED, guide_speed, self.FORWARD_TRACKING_SPEED,
         )
         
-        self.set_tracking_rate(guide_rate, update_sky_rate=True)
+        self.set_tracking_speed(guide_speed, update_sky_speed=True)
 
     def guide_east(self, ms: int) -> None:
-        self._apply_guide_rate(SkyDirection.EAST, ms)
+        self._apply_guide_speed(SkyDirection.EAST, ms)
 
     def guide_north(self, ms: int) -> None:
-        self._apply_guide_rate(SkyDirection.NORTH, ms)
+        self._apply_guide_speed(SkyDirection.NORTH, ms)
 
     def guide_south(self, ms: int) -> None:
-        self._apply_guide_rate(SkyDirection.SOUTH, ms)
+        self._apply_guide_speed(SkyDirection.SOUTH, ms)
 
     def guide_west(self, ms: int) -> None:
-        self._apply_guide_rate(SkyDirection.WEST, ms)
+        self._apply_guide_speed(SkyDirection.WEST, ms)
 
     def halt_all(self):
         self.halt_motion()
@@ -353,43 +353,42 @@ class LX200AxisHandler[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed](LX200Base):
         self.logger.debug("Apply axis command: %s", cmd)
 
         match cmd.type:
-            # TODO: Rewrite to set values and _apply_tracking_rate_now down + logs
-            case AxisCommandType.SET_TRACKING_RATE:
+            case AxisCommandType.SET_TRACKING_SPEED:
                 halt_motion = False
-                rate = cmd.rate
-                update_sky_rate = cmd.update_sky_rate
+                speed = cmd.speed
+                update_sky_speed = cmd.update_sky_speed
             case AxisCommandType.HALT_MOTION:
                 halt_motion = True
-                rate = self._sky_track_rate
-                update_sky_rate = True
+                speed = self._sky_track_speed
+                update_sky_speed = True
             case AxisCommandType.HALT_DIRECTION:
                 halt_motion = True
-                rate = self._sky_track_rate
-                update_sky_rate = False
+                speed = self._sky_track_speed
+                update_sky_speed = False
             case _:
                 self.logger.warning("Unknown axis command: %s", cmd)
                 return 
         
-        if rate is None:
+        if speed is None:
             raise ValueError("Rate should be set for command type %s", cmd.type)
 
-        if not isinstance(rate, self.SPEED_CLS):
-            raise ValueError("Rate should be of type %s for %s axis, got %s", self.SPEED_CLS, self.AXIS_NAME, type(rate))
+        if not isinstance(speed, self.SPEED_CLS):
+            raise ValueError("Rate should be of type %s for %s axis, got %s", self.SPEED_CLS, self.AXIS_NAME, type(speed))
 
-        previous_sky_rate = self._sky_track_rate
+        previous_sky_speed = self._sky_track_speed
         previous_motor_position = self._motor_position_raw
 
         with self._position_update_lock:
             if halt_motion:
                 self._halt_motion()
 
-            rounded_rate = self._set_tracking_speed(rate)
+            rounded_speed = self._set_tracking_speed(speed)
 
-            applied_rate = rounded_rate if rounded_rate is not None else rate
+            applied_speed = rounded_speed if rounded_speed is not None else speed
 
-            if update_sky_rate:
-                self._sky_track_rate = applied_rate
-            sky_rate = self._sky_track_rate
+            if update_sky_speed:
+                self._sky_track_speed = applied_speed
+            sky_speed = self._sky_track_speed
 
             motor_position = self._get_motor_raw_position()
             if not isinstance(motor_position, self.POS_CLS):
@@ -398,13 +397,13 @@ class LX200AxisHandler[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed](LX200Base):
 
             self._last_update_s = Second.monotonic()
 
-        requested_rate = rate if cmd.rate is None else cmd.rate
+        requested_speed = speed if cmd.speed is None else cmd.speed
 
         self.logger.info(
-            "Applied command: %s; rate: %.3f->%.3f; sky_rate: %.3f->%.3f; motor_position: %.3f-> %.3f",
+            "Applied command: %s; speed: %.3f->%.3f; sky_speed: %.3f->%.3f; motor_position: %.3f-> %.3f",
             cmd.type, 
-            requested_rate, applied_rate,
-            previous_sky_rate, sky_rate,
+            requested_speed, applied_speed,
+            previous_sky_speed, sky_speed,
             previous_motor_position, motor_position
         )
 
@@ -444,7 +443,7 @@ class LX200AxisHandler[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed](LX200Base):
 
             time.sleep(self._TELEMETRY_INTERVAL_S)
 
-    def _compensate_tracking_rate(self):
+    def _compensate_tracking_speed(self):
         _logger = self.logger.getChild("compensate")
         self._last_update_s = Second.monotonic()
 
@@ -486,7 +485,7 @@ class LX200AxisHandler[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed](LX200Base):
 
                 elapsed_s = now - self._last_update_s
 
-                expected_delta_seconds = self._sky_track_rate * elapsed_s
+                expected_delta_seconds = self._sky_track_speed * elapsed_s
 
                 actual_delta_seconds = motor_position - self._motor_position_raw
 
@@ -498,7 +497,7 @@ class LX200AxisHandler[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed](LX200Base):
                     "Calculated delta by %.3fs: %.3f = exp=%.3f = (%.3fs * (%.3fs/s)) - act=%.3f = (%.3f - %.3f); MNT: %.3f",
                     elapsed_s,
                     delta, 
-                    expected_delta_seconds, elapsed_s, self._sky_track_rate,
+                    expected_delta_seconds, elapsed_s, self._sky_track_speed,
                     actual_delta_seconds, motor_position,  self._motor_position_raw,
                     self._mount_position_raw,
                 )

@@ -85,9 +85,9 @@ def test_ra_guide_applies_east_and_west_with_opposite_rates() -> None:
         axis.guide_east(2000)
         axis.guide_west(2000)
         _wait_for_rate_updates(axis, count=2)
-        default_rate = float(axis.DEFAULT_TRACKING_RATE)
+        default_rate = float(axis.DEFAULT_TRACKING_SPEED)
         assert axis.applied_rates[:2] == pytest.approx([default_rate * 1.5, default_rate * 0.5])
-        assert float(axis._sky_track_rate) == pytest.approx(default_rate * 0.5)
+        assert float(axis._sky_track_speed) == pytest.approx(default_rate * 0.5)
     finally:
         axis.stop()
 
@@ -98,9 +98,9 @@ def test_dec_guide_applies_north_and_south_with_opposite_rates() -> None:
         axis.guide_north(2000)
         axis.guide_south(2000)
         _wait_for_rate_updates(axis, count=2)
-        half_range = float(axis.MAX_TRACKING_RATE) * 0.5
+        half_range = float(axis.FORWARD_TRACKING_SPEED) * 0.5
         assert axis.applied_rates[:2] == pytest.approx([-half_range, half_range])
-        assert float(axis._sky_track_rate) == pytest.approx(half_range)
+        assert float(axis._sky_track_speed) == pytest.approx(half_range)
     finally:
         axis.stop()
 
@@ -108,15 +108,15 @@ def test_dec_guide_applies_north_and_south_with_opposite_rates() -> None:
 def test_set_tracking_rate_updates_current_and_sky_by_flag() -> None:
     axis = _DummyRAHandler()
     try:
-        axis.set_tracking_rate(HaPerSecond(1.25), update_sky_rate=False)
+        axis.set_tracking_speed(HaPerSecond(1.25), update_sky_speed=False)
         _wait_for_rate_updates(axis, count=1)
         assert axis.applied_rates[-1] == pytest.approx(1.25)
-        assert float(axis._sky_track_rate) == pytest.approx(float(axis.DEFAULT_TRACKING_RATE))
+        assert float(axis._sky_track_speed) == pytest.approx(float(axis.DEFAULT_TRACKING_SPEED))
 
-        axis.set_tracking_rate(HaPerSecond(1.4), update_sky_rate=True)
+        axis.set_tracking_speed(HaPerSecond(1.4), update_sky_speed=True)
         _wait_for_rate_updates(axis, count=2)
         assert axis.applied_rates[-1] == pytest.approx(1.4)
-        assert float(axis._sky_track_rate) == pytest.approx(1.4)
+        assert float(axis._sky_track_speed) == pytest.approx(1.4)
     finally:
         axis.stop()
 
@@ -125,11 +125,11 @@ def test_axis_commands_apply_immediately_without_waiting_compensate_interval() -
     axis = _SlowQueueRAHandler()
     try:
         start = time.monotonic()
-        axis.set_tracking_rate(HaPerSecond(1.3))
+        axis.set_tracking_speed(HaPerSecond(1.3))
         _wait_for_rate_updates(axis, count=1, timeout_s=0.5)
         assert time.monotonic() - start < 0.5
 
-        axis.set_tracking_rate(HaPerSecond(1.1), update_sky_rate=True)
+        axis.set_tracking_speed(HaPerSecond(1.1), update_sky_speed=True)
         _wait_for_rate_updates(axis, count=2, timeout_s=0.5)
 
         halt_start = time.monotonic()
@@ -153,7 +153,7 @@ def test_splitter_ra_guide_applies_without_dec_update() -> None:
         _wait_for_rate_updates(ra, count=1)
         _wait_for_rate_updates(dec, count=1)
 
-        assert ra.applied_rates[-1] == pytest.approx(float(ra.DEFAULT_TRACKING_RATE) * 1.5)
+        assert ra.applied_rates[-1] == pytest.approx(float(ra.DEFAULT_TRACKING_SPEED) * 1.5)
         assert dec.applied_rates[-1] == pytest.approx(0.0)
     finally:
         splitter.stop()
@@ -170,7 +170,7 @@ def test_splitter_dec_guide_applies_without_ra_update() -> None:
         _wait_for_rate_updates(ra, count=1)
         _wait_for_rate_updates(dec, count=1)
 
-        assert ra.applied_rates[-1] == pytest.approx(float(ra.DEFAULT_TRACKING_RATE))
-        assert dec.applied_rates[-1] == pytest.approx(-float(dec.MAX_TRACKING_RATE) * 0.5)
+        assert ra.applied_rates[-1] == pytest.approx(float(ra.DEFAULT_TRACKING_SPEED))
+        assert dec.applied_rates[-1] == pytest.approx(-float(dec.FORWARD_TRACKING_SPEED) * 0.5)
     finally:
         splitter.stop()

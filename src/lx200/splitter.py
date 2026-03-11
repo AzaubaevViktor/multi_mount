@@ -3,7 +3,7 @@ import threading
 import time
 from typing import Callable
 from lx200.base import LX200DECHandler, LX200Handler, LX200RAHandler
-from lx200.guide_compensator import compute_pole_offset, compute_guide_rates
+from lx200.guide_compensator import compute_pole_offset, compute_guide_speeds
 from lx200.protocol import AlignmentMode
 from sky.constants import STELLAR_SPEED
 from sky.physics import Dec, DecPerSecond, HaPerSecond, Ha, SkyDirection, Second
@@ -123,7 +123,7 @@ class PolarCompensator:
 
                 if self.status == self.Status.GUIDING:
                     if (now - self._last_correction_time) > self.CORRECTION_DELTA_S:
-                        self._do_correction(*compute_guide_rates(self.eps_N, self.eps_E, self.current_ha, self.current_dec))
+                        self._do_correction(*compute_guide_speeds(self.eps_N, self.eps_E, self.current_ha, self.current_dec))
                         self._last_correction_time = now
 
                 continue
@@ -298,18 +298,18 @@ class LX200Splitter(LX200Handler):
     def _do_correction(self, ha_drift: HaPerSecond, dec_drift: DecPerSecond):
         self.logger.debug("Applying correction with ha_drift=%.4f, dec_drift=%.4f", ha_drift, dec_drift)
         try:
-            self.dec.set_tracking_rate(dec_drift, update_sky_rate=True)
+            self.dec.set_tracking_speed(dec_drift, update_sky_speed=True)
         except Exception:
             self.logger.exception("While set DEC guide speed")
 
         try:
-            self.ra.set_tracking_rate(ha_drift, update_sky_rate=True)
+            self.ra.set_tracking_speed(ha_drift, update_sky_speed=True)
         except Exception:
             self.logger.exception("While set RA guide speed")
 
-    def _convert_guide_rates(self, direction: SkyDirection, ms: int) -> None:
+    def _convert_guide_speed(self, direction: SkyDirection, ms: int) -> None:
         dec_speed = None
-        if (ra_speed := self.ra.calculate_guide_rate(direction, ms)) is None and (dec_speed := self.dec.calculate_guide_rate(direction, ms)) is None:
+        if (ra_speed := self.ra.calculate_guide_speed(direction, ms)) is None and (dec_speed := self.dec.calculate_guide_speed(direction, ms)) is None:
             raise ValueError(f"Unknown move direction: {direction}")
         
         # External pulse width controls the requested guide magnitude only.
@@ -324,13 +324,13 @@ class LX200Splitter(LX200Handler):
             self._polar_compensator.set_guide_speed_dec(dec_speed)
 
     def guide_east(self, ms: int):
-        self._convert_guide_rates(SkyDirection.EAST, ms)
+        self._convert_guide_speed(SkyDirection.EAST, ms)
 
     def guide_north(self, ms: int):
-        self._convert_guide_rates(SkyDirection.NORTH, ms)
+        self._convert_guide_speed(SkyDirection.NORTH, ms)
 
     def guide_south(self, ms: int):
-        self._convert_guide_rates(SkyDirection.SOUTH, ms)
+        self._convert_guide_speed(SkyDirection.SOUTH, ms)
 
     def guide_west(self, ms: int):
-        self._convert_guide_rates(SkyDirection.WEST, ms)
+        self._convert_guide_speed(SkyDirection.WEST, ms)

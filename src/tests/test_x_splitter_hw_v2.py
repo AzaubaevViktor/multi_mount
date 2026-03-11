@@ -150,8 +150,8 @@ class SplitterController:
         return self.ra._mount_position_raw, self.dec._mount_position_raw
     
     def _get_tracking_rates(self):
-        return self.ra._sky_track_rate, \
-                self.dec._sky_track_rate
+        return self.ra._sky_track_speed, \
+                self.dec._sky_track_speed
 
     def polar_compensator(self) -> PolarCompensator:
         return self._splitter._polar_compensator
@@ -165,8 +165,8 @@ class SplitterController:
             status=polar_compensator.status,
             eps_n=float(polar_compensator.eps_N),
             eps_e=float(polar_compensator.eps_E),
-            ra_sky_rate=float(self.ra._sky_track_rate),
-            dec_sky_rate=float(self.dec._sky_track_rate),
+            ra_sky_rate=float(self.ra._sky_track_speed),
+            dec_sky_rate=float(self.dec._sky_track_speed),
         )
 
     def wait_for_polar_condition(
@@ -933,8 +933,8 @@ def _polar_snapshot_is_disabled(sc: SplitterController, snapshot: PolarSnapshot)
         snapshot.status == PolarCompensator.Status.DISABLED
         and abs(snapshot.eps_n) <= POLAR_EPS_TOLERANCE
         and abs(snapshot.eps_e) <= POLAR_EPS_TOLERANCE
-        and abs(snapshot.ra_sky_rate - float(sc.ra.DEFAULT_TRACKING_RATE)) <= POLAR_RA_SKY_RATE_TOLERANCE
-        and abs(snapshot.dec_sky_rate - float(sc.dec.DEFAULT_TRACKING_RATE)) <= POLAR_DEC_SKY_RATE_TOLERANCE
+        and abs(snapshot.ra_sky_rate - float(sc.ra.DEFAULT_TRACKING_SPEED)) <= POLAR_RA_SKY_RATE_TOLERANCE
+        and abs(snapshot.dec_sky_rate - float(sc.dec.DEFAULT_TRACKING_SPEED)) <= POLAR_DEC_SKY_RATE_TOLERANCE
     )
 
 
@@ -1014,14 +1014,14 @@ def _enter_guiding_mode(sc: SplitterController) -> PolarSnapshot:
         timeout_s=POLAR_GUIDE_APPLY_TIMEOUT_S,
         description="polar compensator remains disabled after different DEC guides",
     )
-    assert abs(disabled_snapshot.ra_sky_rate - float(sc.ra.DEFAULT_TRACKING_RATE)) <= POLAR_RA_SKY_RATE_TOLERANCE
+    assert abs(disabled_snapshot.ra_sky_rate - float(sc.ra.DEFAULT_TRACKING_SPEED)) <= POLAR_RA_SKY_RATE_TOLERANCE
 
-    settled_dec_rate_a = sc.dec.calculate_guide_rate(SkyDirection.NORTH, 2500)
-    settled_dec_rate_b = sc.dec.calculate_guide_rate(SkyDirection.NORTH, 2501)
+    settled_dec_rate_a = sc.dec.calculate_guide_speed(SkyDirection.NORTH, 2500)
+    settled_dec_rate_b = sc.dec.calculate_guide_speed(SkyDirection.NORTH, 2501)
     assert settled_dec_rate_a is not None
     assert settled_dec_rate_b is not None
     assert float(abs(settled_dec_rate_a - settled_dec_rate_b)) < float(PolarCompensator.SETTLE_THRESHOLD_DEC)
-    assert float(abs(sc.ra.DEFAULT_TRACKING_RATE - sc.ra.DEFAULT_TRACKING_RATE)) < float(PolarCompensator.SETTLE_THRESHOLD_RA)
+    assert float(abs(sc.ra.DEFAULT_TRACKING_SPEED - sc.ra.DEFAULT_TRACKING_SPEED)) < float(PolarCompensator.SETTLE_THRESHOLD_RA)
 
     settled_guides = tuple(
         ("n", 2500 + (index % 2))

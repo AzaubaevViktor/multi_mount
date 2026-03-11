@@ -37,7 +37,7 @@ def compute_pole_offset(dec_drift: DecPerSecond, ra_drift: HaPerSecond, ha: Ha, 
     return eps_N, eps_E
 
 
-def compute_guide_rates(eps_N: Dec, eps_E: Ha, HA_deg: Ha, dec_deg: Dec) -> tuple[HaPerSecond, DecPerSecond]:
+def compute_guide_speeds(eps_N: Dec, eps_E: Ha, HA_deg: Ha, dec_deg: Dec) -> tuple[HaPerSecond, DecPerSecond]:
     """
     Computes theoretical d and k from known polar offset and star position
     (the forward problem).
