@@ -72,6 +72,11 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
         """ Dec Mount point position """
 
         self._move_direction: SkyDirection | None = None
+        self._goto_target: _POS_CLS | None = None
+        self._goto_direction: SkyDirection | None = None
+
+        self._last_motor_position: _POS_CLS = self.POS_CLS(0)
+        self._last_motor_position_update_s: Second = Second.monotonic()
 
     def connect(self):
         if self._connected:
@@ -119,6 +124,15 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
 
         return cast(_POS_CLS, position.ra if self.axis == AxisName.RA else position.dec)
 
+    def _set_current_position(self, pos: _POS_CLS) -> None:
+        with self._motor_lock:
+            if self.axis == AxisName.RA:
+                self._ra_position = pos
+            elif self.axis == AxisName.DEC:
+                self._dec_position = pos
+            else:
+                raise ValueError(f"Invalid axis: {self.axis}")
+
     def _do_resume_to_tracking(self) -> None:
         if float(self._sky_speed) > 0:
             direction = MotorDirection.FORWARD
@@ -142,7 +156,42 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                     self._mode = AxisMotionMode.STOP
                     self._motor.wait_till_stop()
 
+    def _run_goto_to(self, position: _POS_CLS) -> None:
+        with self._motor_lock:
+            # This is fastest path; It will be calculated at higher level
+            delta = self._get_current_position() - position
+            if float(delta) > 0:
+                direction = MotorDirection.FORWARD
+                self._goto_direction = SkyDirection.EAST
+            elif float(delta) < 0:
+                direction = MotorDirection.BACKWARD
+                self._goto_direction = SkyDirection.WEST
+            else:
+                direction = MotorDirection.STOP
+                self._goto_direction = None
+            
+            if float(delta) != 0:
+                speed_sps = self._motor.get_speed_sps_by_delta(self._motor.convert_position_to_steps(delta))
+                speed = self._motor.get_speed_by_speed_sps(speed_sps)
+                moving_approx_time = abs(delta / speed)
+                delta += self._sky_speed * moving_approx_time
+                
+                while True:
+                    try:
+                        self._motor.set_direction(direction)
+                        self._motor.set_speed(speed_sps)
+                        self._motor.set_delta(self._motor.convert_position_to_steps(delta))
+                        self._motor.run()
+
+                        self._goto_target = position
+                        self._mode = AxisMotionMode.GOTO
+                        break
+                    except MotorStopRequire:
+                        self._mode = AxisMotionMode.STOP
+                        self._motor.wait_till_stop()
+
     THREAD_ITERATION_DELAY_S = Second(.5)
+    _GOTO_SECONDS_TOLERANCE = 10
     def _motion_convertor(self):
         logger = self.logger.getChild("_motion_convertor")
         logger.info("Start working")
@@ -242,31 +291,8 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                     case AxisCommandType.GOTO_TO:
                         if not command.position:
                             raise ValueError("Position is required for GOTO_TO command")
-                        
-                        with self._motor_lock:
-                            # This is fastest path; It will be calculated at higher level
-                            delta = self._get_current_position() - self._get_current_position(command.position)
-                            if float(delta) > 0:
-                                direction = MotorDirection.FORWARD
-                            elif float(delta) < 0:
-                                direction = MotorDirection.BACKWARD
-                            else:
-                                direction = MotorDirection.STOP
 
-                            speed = self._motor.get_speed_sps_by_delta(self._motor.convert_position_to_steps(delta))
-                            
-                            while True:
-                                try:
-                                    self._motor.set_direction(direction)
-                                    self._motor.set_speed(speed)
-                                    self._motor.set_delta(self._motor.convert_position_to_steps(delta))
-                                    self._motor.run()
-                                    
-                                    self._mode = AxisMotionMode.GOTO
-                                    break
-                                except MotorStopRequire:
-                                    self._mode = AxisMotionMode.STOP
-                                    self._motor.wait_till_stop()
+                        self._run_goto_to(self._get_current_position(command.position))
                     
                     case AxisCommandType.HALT_DIRECTION:
                         if not command.direction:
@@ -286,15 +312,66 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                     self._do_resume_to_tracking()
 
             try:
+                need_to_compensate = False
+
                 match self._mode:
                     case AxisMotionMode.STOP:
-                        pass
+                        if self._sky_speed == 0:
+                            self._mode = AxisMotionMode.TRACK
+                        else:
+                            need_to_compensate = True
                     case AxisMotionMode.TRACK:
-                        pass
+                        with self._motor_lock:
+                            # Don't need to change pointing position — its tracking
+                            self._last_motor_position = self._motor.convert_steps_to_position(self._motor.status().steps)
+                            self._last_motor_position_update_s = Second.monotonic()
                     case AxisMotionMode.SLEW:
-                        pass
+                        need_to_compensate = True
                     case AxisMotionMode.GOTO:
-                        pass
+                        need_to_compensate = True
+
+                        with self._motor_lock:
+                            if self._goto_target is None or self._goto_direction is None:
+                                self._mode = AxisMotionMode.STOP
+                            else:
+                                current_position = self._get_current_position()
+
+                                need_to_stop = False
+
+                                if abs(current_position - self._goto_target) < self.POS_CLS(self._GOTO_SECONDS_TOLERANCE):
+                                    need_to_stop = True
+
+                                # Stop if we reached the target
+                                if self._goto_direction == SkyDirection.EAST and current_position >= self._goto_target:
+                                    need_to_stop = True
+                                elif self._goto_direction == SkyDirection.WEST and current_position <= self._goto_target:
+                                    need_to_stop = True
+                                
+                                if need_to_stop:
+                                    self._motor.wait_till_stop()
+                                
+                                if need_to_stop and abs(current_position - self._goto_target) < self.POS_CLS(self._GOTO_SECONDS_TOLERANCE):
+                                    self._mode = AxisMotionMode.STOP
+                                    self._goto_target = None
+                                    self._goto_direction = None
+                                else:
+                                    # Need to rerun GOTO to the target
+                                    self._run_goto_to(self._goto_target)
+                
+                if need_to_compensate:
+                    with self._motor_lock:
+                        current_motor_position = self._motor.convert_steps_to_position(self._motor.status().steps)
+                        motor_position_update_s = Second.monotonic()
+                        elapsed_s = motor_position_update_s - self._last_motor_position_update_s
+
+                        expected_delta = self._sky_speed * elapsed_s
+                        actual_delta = current_motor_position - self._last_motor_position
+
+                        delta = expected_delta - actual_delta
+                        
+                        self._last_motor_position = current_motor_position + delta
+                        self._last_motor_position_update_s = motor_position_update_s
+
             except:
                 logger.exception("While processing step: ")
 

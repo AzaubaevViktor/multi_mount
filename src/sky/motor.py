@@ -92,6 +92,11 @@ class Motor[POS_CLS: AxisPos, SPEED_CLS: AxisSpeed](ABC):
         ...
 
     @abstractmethod
+    def get_speed_by_speed_sps(self, speed_sps: int) -> AxisSpeed:
+        """ Get speed in steps per second by speed in steps per second """
+        ...
+
+    @abstractmethod
     def set_motion_mode(self, motion_mode: MotionMode) -> bool:
         """ Set new motion mode; can raise MotorStopRequire """
 
@@ -103,6 +108,11 @@ class Motor[POS_CLS: AxisPos, SPEED_CLS: AxisSpeed](ABC):
     @abstractmethod
     def convert_position_to_steps(self, position: POS_CLS) -> int:
         """ Convert position to steps """
+        ...
+
+    @abstractmethod
+    def convert_steps_to_position(self, steps: int) -> POS_CLS:
+        """ Convert steps to position """
         ...
 
     @abstractmethod
