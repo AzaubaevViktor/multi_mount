@@ -257,6 +257,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                 
                 if motor_speed == 0:
                     self._mode = AxisMotionMode.STOP
+                    self._motor.wait_till_stop()
                 elif update_sky_speed:
                     self._mode = AxisMotionMode.TRACK
                     self._motor.run()
@@ -410,6 +411,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                     match self._mode:
                         case AxisMotionMode.STOP:
                             if self._sky_speed == 0:
+                                # Technically if sky not moving, and mount not moving, it's tracking
                                 self._mode = AxisMotionMode.TRACK
                             else:
                                 need_to_compensate = True

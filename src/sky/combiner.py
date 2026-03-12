@@ -41,8 +41,8 @@ class Combiner:
         self.ra = ra
         self.dec = dec
 
-        if set(self.ra.DIRECTIONS) & set(self.dec.DIRECTIONS) != set():
-            raise ValueError("RA and DEC axes have different directions")
+        if union := (set(self.ra.DIRECTIONS) & set(self.dec.DIRECTIONS)):
+            raise ValueError(f"RA and DEC axes have common directions: {union}")
 
         self._polar_compensator = PolarCompensator()
 
