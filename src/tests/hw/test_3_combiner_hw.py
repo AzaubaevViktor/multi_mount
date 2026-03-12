@@ -1,4 +1,3 @@
-import threading
 import time
 from collections.abc import Iterator
 
@@ -51,26 +50,11 @@ ZERO_POSITION = PointCoordinates(ra=Ha(0), dec=Dec(0))
 
 def _connect_dec_axis(dec_serial: SerialLine) -> AxisDEC:
     """Connect DEC axis with retry logic for TMC2209 serial handshake."""
-    dec_motor: TMC2209Motor | None = None
     for attempt in range(DEC_CONNECT_ATTEMPTS):
         try:
-            dec_serial.connect()
-            dec_serial.reset()
-            time.sleep(0.5)
-            deadline = time.monotonic() + DEC_READY_TIMEOUT_S
-            while time.monotonic() < deadline:
-                try:
-                    ready = dec_serial.query(None, timeout=1).strip()
-                except SerialException:
-                    break
-                if ready == "ready":
-                    dec_motor = TMC2209Motor(dec_serial)
-                    dec_motor._is_connected = True
-                    break
-            if dec_motor is not None:
-                break
-            else:
-                raise TMC2209MotorProtocolError("device did not report ready in time")
+            axis = AxisDEC(TMC2209Motor(dec_serial))
+            axis.connect()
+            return axis
         except (SerialException, TMC2209MotorProtocolError):
             try:
                 dec_serial.close()
@@ -79,20 +63,7 @@ def _connect_dec_axis(dec_serial: SerialLine) -> AxisDEC:
             if attempt == DEC_CONNECT_ATTEMPTS - 1:
                 raise
             time.sleep(0.5)
-        else:
-            raise AssertionError("unreachable")
-    if dec_motor is None:
-        raise AssertionError("dec motor fixture failed to initialize")
-
-    axis = AxisDEC(dec_motor)
-    dec_motor.reset()
-    axis._connected = True
-    axis._motion_convertor_thread = threading.Thread(
-        target=axis._motion_convertor,
-        name="dec_motion_convertor",
-    )
-    axis._motion_convertor_thread.start()
-    return axis
+    raise RuntimeError("Unreachable")
 
 
 @pytest.fixture(scope="session")

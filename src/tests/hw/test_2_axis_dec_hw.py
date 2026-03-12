@@ -1,4 +1,3 @@
-import threading
 import time
 from collections.abc import Iterator
 
@@ -48,26 +47,12 @@ def axis_dec() -> Iterator[AxisDEC]:
         name=SERIAL_NAME,
         terminator="\n",
     )
-    motor: TMC2209Motor | None = None
+    motor: TMC2209Motor = TMC2209Motor(serial_line)
+    axis = AxisDEC(motor)
     for attempt in range(CONNECT_ATTEMPTS):
         try:
-            serial_line.connect()
-            serial_line.reset()
-            time.sleep(0.5)
-            deadline = time.monotonic() + READY_TIMEOUT_S
-            while time.monotonic() < deadline:
-                try:
-                    ready = serial_line.query(None, timeout=1).strip()
-                except SerialException:
-                    break
-                if ready == "ready":
-                    motor = TMC2209Motor(serial_line)
-                    motor._is_connected = True
-                    break
-            if motor is not None:
-                break
-            else:
-                raise TMC2209MotorProtocolError("device did not report ready in time")
+            axis.connect()
+            break
         except (SerialException, TMC2209MotorProtocolError):
             try:
                 serial_line.close()
@@ -75,20 +60,7 @@ def axis_dec() -> Iterator[AxisDEC]:
                 pass
             if attempt == CONNECT_ATTEMPTS - 1:
                 raise
-            time.sleep(0.5)
-        else:
-            raise AssertionError("unreachable")
-    if motor is None:
-        raise AssertionError("motor fixture failed to initialize")
-
-    axis = AxisDEC(motor)
-    motor.reset()
-    axis._connected = True
-    axis._motion_convertor_thread = threading.Thread(
-        target=axis._motion_convertor,
-        name=f"{axis.axis.value}_motion_convertor",
-    )
-    axis._motion_convertor_thread.start()
+            time.sleep(1)
     try:
         yield axis
     finally:
