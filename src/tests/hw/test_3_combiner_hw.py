@@ -338,9 +338,13 @@ def test_hw_combiner_halt_ra_direction(
     _wait_for_ra_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
 
     combiner.halt_direction(direction)
-    _wait_for_ra_motor_stop(combiner, MOTOR_STOP_TIMEOUT_S)
+    _wait_for_tracking_mode(combiner, COMMAND_PROCESS_TIMEOUT_S)
+    pos_after_halt = combiner.get_position()
+    time.sleep(SPEED_STABILIZE_S)
+    pos_after_tracking = combiner.get_position()
 
-    assert combiner.ra._motor.status().direction == MotorDirection.STOP
+    assert combiner.ra.mode() == AxisMotionMode.TRACK
+    assert abs(float(pos_after_tracking.ra) - float(pos_after_halt.ra)) < RA_DRIFT_TOLERANCE_S
 
 
 @pytest.mark.parametrize("direction", [SkyDirection.NORTH, SkyDirection.SOUTH])
@@ -353,8 +357,13 @@ def test_hw_combiner_halt_dec_direction(
 
     combiner.halt_direction(direction)
     _wait_for_dec_motor_stop(combiner, MOTOR_STOP_TIMEOUT_S)
+    _wait_for_tracking_mode(combiner, COMMAND_PROCESS_TIMEOUT_S)
+    pos_after_halt = combiner.get_position()
+    time.sleep(SPEED_STABILIZE_S)
+    pos_after_tracking = combiner.get_position()
 
-    assert combiner.dec._motor.status().direction == MotorDirection.STOP
+    assert combiner.dec.mode() == AxisMotionMode.TRACK
+    assert abs(float(pos_after_tracking.dec) - float(pos_after_halt.dec)) < DEC_DRIFT_TOLERANCE_AS
 
 
 @pytest.mark.parametrize(
