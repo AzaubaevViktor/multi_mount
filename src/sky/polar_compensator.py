@@ -70,16 +70,11 @@ def compute_guide_speeds(eps_E: Ha, eps_N: Dec, HA_deg: Ha, dec_deg: Dec) -> tup
     Computes theoretical ra_speed and dec_speed from known polar offset and star position
     (the forward problem).
     """
-    logger = logging.getLogger("PolarCompensator")
-    logger.debug("Computing guide speeds for HA: %s, DEC: %s", HA_deg, dec_deg)
     HA  = math.radians(HA_deg.to_hours_deg())
     dec = math.radians(dec_deg.to_degrees())
-    logger.debug("HA: %s, dec: %s", HA, dec)
-
+    
     dec_drift = float(STELLAR_SPEED.to_ha_deg_per_hour()) * (float(eps_N) * math.cos(HA) - float(eps_E) * math.sin(HA))
-    logger.debug("%s * (%s * %s - %s * %s) = %s", STELLAR_SPEED.to_ha_deg_per_hour(), float(eps_N), math.cos(HA), float(eps_E), math.sin(HA), dec_drift)
     ra_drift = STELLAR_SPEED * (1.0 + math.tan(dec) * (float(eps_N) * math.sin(HA) + float(eps_E) * math.cos(HA)))
-    logger.debug("%s * (1.0 + %s * (%s * %s + %s * %s)) = %s", STELLAR_SPEED, math.tan(dec), float(eps_N), math.sin(HA), float(eps_E), math.cos(HA), ra_drift)
     return ra_drift, DecPerSecond(dec_drift)
 
 
