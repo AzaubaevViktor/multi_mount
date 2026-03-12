@@ -64,10 +64,8 @@ class Combiner:
             self._polar_compensator.update_position(pos.ra, pos.dec)
 
             speeds = self._polar_compensator.get_guide_speeds()
-            if speeds is None:
-                continue
-
-            self.set_sky_speed(*speeds, update_polar_compensator=False)
+            if speeds is not None:
+                self.set_sky_speed(*speeds, update_polar_compensator=False)
 
             self._guide_updated.clear()
 
