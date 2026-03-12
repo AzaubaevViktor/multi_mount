@@ -56,7 +56,7 @@ class Combiner:
             if not self._guide_updated.wait(float(self.GUIDE_INTERVAL_S)):
                 pass
 
-            if self.ra._mode in self._POLAR_SKIP_MODES or self.dec._mode in self._POLAR_SKIP_MODES:
+            if self.ra.mode() in self._POLAR_SKIP_MODES or self.dec.mode() in self._POLAR_SKIP_MODES:
                 self._guide_updated.clear()
                 continue
             

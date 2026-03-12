@@ -109,6 +109,9 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
         
         if self._motion_convertor_thread is not None:
             self._motion_convertor_thread.join(float(self.THREAD_ITERATION_DELAY_S))
+    
+    def mode(self) -> AxisMotionMode:
+        return self._mode
 
     def _get_motor_direction_and_speed(self, direction: SkyDirection, speed: AxisSpeed) -> tuple[MotorDirection, int]:
         if not isinstance(speed, self.SPEED_CLS):
