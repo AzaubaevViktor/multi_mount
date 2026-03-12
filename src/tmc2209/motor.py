@@ -144,10 +144,12 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
             motion_mode = MotionMode.DECELERATION
         else:
             motion_mode = MotionMode.RUN
+
         if status.phase in (_Phase.IDLE, _Phase.HOLD):
             direction = MotorDirection.STOP
         else:
             direction = self._direction
+
         return MotorStatus(
             is_connected=self._is_connected,
             steps=status.position,
