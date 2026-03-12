@@ -574,6 +574,9 @@ class LX200DECHandler(LX200AxisHandler[Dec, DecPerSecond]):
 
 
 class LX200Handler(LX200Base):
+    """
+    All methods should be fast and non-blocking.
+    """
     def __init__(self) -> None:
         self.logger = logging.getLogger(type(self).__name__)
         self._target_ra: Ha = Ha(0)
