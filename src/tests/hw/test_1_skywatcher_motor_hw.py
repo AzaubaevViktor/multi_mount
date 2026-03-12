@@ -155,6 +155,33 @@ def test_hw_target_move_reaches_requested_delta(
     assert final_status.target is None
 
 
+@pytest.mark.parametrize(
+    ("delta_steps", "expected_direction"),
+    [
+        (10_000, MotorDirection.FORWARD),
+        (-10_000, MotorDirection.BACKWARD),
+    ],
+)
+def test_hw_goto_shows_target_motion_mode_while_moving(
+    skywatcher_motor: SkyWatcherMotor,
+    delta_steps: int,
+    expected_direction: MotorDirection,
+) -> None:
+    assert skywatcher_motor.set_delta(delta_steps) is True
+    assert skywatcher_motor.run() is True
+
+    _wait_for_position_change(
+        skywatcher_motor,
+        start_position=0,
+        direction=expected_direction,
+        timeout_s=RUN_TIMEOUT_S,
+    )
+
+    assert skywatcher_motor.status().motion_mode == MotionMode.TARGET
+
+    _wait_for_stop(skywatcher_motor, TARGET_TIMEOUT_S)
+
+
 RUN_SETTLE_S = 0.5
 
 

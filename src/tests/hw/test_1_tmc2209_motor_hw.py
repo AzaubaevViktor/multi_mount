@@ -121,6 +121,16 @@ def _wait_for_target_finish(motor: TMC2209Motor, timeout_s: float) -> int:
     pytest.fail("Target move did not finish in time")
 
 
+def _wait_for_target_motion_mode(motor: TMC2209Motor, timeout_s: float) -> None:
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        status = motor.status()
+        if status.motion_mode == MotionMode.TARGET:
+            return
+        time.sleep(POLL_INTERVAL_S)
+    pytest.fail("Motor did not report TARGET motion mode while moving")
+
+
 def _wait_for_stable_run(
     motor: TMC2209Motor,
     speed_sps: int,
@@ -200,6 +210,35 @@ def test_hw_target_move_reaches_requested_delta(
     assert final_status.direction == MotorDirection.STOP
     assert final_status.target is None
     assert final_status.motion_mode == MotionMode.RUN
+
+
+@pytest.mark.parametrize(
+    ("delta_steps", "expected_direction"),
+    [
+        (2_000, MotorDirection.FORWARD),
+        (-2_000, MotorDirection.BACKWARD),
+    ],
+)
+def test_hw_goto_shows_target_motion_mode_while_moving(
+    tmc2209_motor: TMC2209Motor,
+    delta_steps: int,
+    expected_direction: MotorDirection,
+) -> None:
+    assert tmc2209_motor.set_motion_mode(MotionMode.TARGET) is True
+    assert tmc2209_motor.set_speed(1_000) == 1_000
+    assert tmc2209_motor.set_delta(delta_steps) is True
+    assert tmc2209_motor.run() is True
+
+    _wait_for_position_change(
+        tmc2209_motor,
+        start_position=0,
+        direction=expected_direction,
+        timeout_s=RUN_TIMEOUT_S,
+    )
+
+    _wait_for_target_motion_mode(tmc2209_motor, timeout_s=RUN_TIMEOUT_S)
+
+    _wait_for_target_finish(tmc2209_motor, TARGET_TIMEOUT_S)
 
 
 RUN_SETTLE_S = 0.3
