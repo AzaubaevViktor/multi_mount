@@ -408,7 +408,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                     need_to_compensate = False
 
                     prev_mode = self._mode
-                    self._mc_logger.info("Mode: %s -> %s", self._mode)
+                    self._mc_logger.info("Mode: %s -> %s", prev_mode, self._mode)
 
                     match self._mode:
                         case AxisMotionMode.STOP:

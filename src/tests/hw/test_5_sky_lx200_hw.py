@@ -87,6 +87,7 @@ def _reset_between_tests(combiner: Combiner) -> Iterator[None]:
 def _do_reset(comb: Combiner) -> None:
     comb.halt_all()
     comb.set_sky_speed(STELLAR_SPEED, DecPerSecond(0))
+    _wait_for_sky_speed(comb, STELLAR_SPEED, DecPerSecond(0), COMMAND_PROCESS_TIMEOUT_S)
     comb.set_position(ZERO_POSITION)
     _wait_for_position_near(
         comb,
@@ -98,6 +99,24 @@ def _do_reset(comb: Combiner) -> None:
     _wait_for_tracking_mode(comb, COMMAND_PROCESS_TIMEOUT_S)
     assert comb.ra.mode() == AxisMotionMode.TRACK
     assert comb.dec.mode() == AxisMotionMode.TRACK
+
+
+def _wait_for_sky_speed(
+    comb: Combiner,
+    ra_speed: HaPerSecond,
+    dec_speed: DecPerSecond,
+    timeout_s: float,
+) -> None:
+    deadline: float = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        if comb.ra._sky_speed == ra_speed and comb.dec._sky_speed == dec_speed:
+            return
+        time.sleep(POLL_INTERVAL_S)
+    pytest.fail(
+        f"Sky speed did not reach target within {timeout_s}s: "
+        f"ra={comb.ra._sky_speed} expected={ra_speed}, "
+        f"dec={comb.dec._sky_speed} expected={dec_speed}"
+    )
 
 
 def _wait_for_tracking_mode(comb: Combiner, timeout_s: float) -> None:
@@ -337,12 +356,16 @@ def test_sky_lx200_guide_pulses_change_tracking_speed(
 
     getattr(sky_lx200, guide_method)(pulse_ms)
 
-    time.sleep(0.5)
-
     if direction in (SkyDirection.EAST, SkyDirection.WEST):
+        deadline = time.monotonic() + COMMAND_PROCESS_TIMEOUT_S
+        while time.monotonic() < deadline and combiner.ra._sky_speed == ra_speed_before:
+            time.sleep(POLL_INTERVAL_S)
         assert combiner.ra._sky_speed != ra_speed_before
         assert combiner.dec._sky_speed == dec_speed_before
     else:
+        deadline = time.monotonic() + COMMAND_PROCESS_TIMEOUT_S
+        while time.monotonic() < deadline and combiner.dec._sky_speed == dec_speed_before:
+            time.sleep(POLL_INTERVAL_S)
         assert combiner.dec._sky_speed != dec_speed_before
         assert combiner.ra._sky_speed == ra_speed_before
 
@@ -404,14 +427,35 @@ def test_sky_lx200_halt_direction_stops_manual_slew(
     assert delta * expect_sign > 0
 
     getattr(sky_lx200, halt_method)()
-    _wait_for_tracking_mode(combiner, COMMAND_PROCESS_TIMEOUT_S)
+    deadline = time.monotonic() + COMMAND_PROCESS_TIMEOUT_S
+    while time.monotonic() < deadline:
+        if axis_name == "ra":
+            if combiner.ra.mode() == AxisMotionMode.TRACK and combiner.dec.mode() == AxisMotionMode.TRACK:
+                break
+        else:
+            if combiner.dec.mode() == AxisMotionMode.TRACK:
+                break
+        time.sleep(POLL_INTERVAL_S)
+    else:
+        if axis_name == "ra":
+            pytest.fail(
+                f"Axes did not reach TRACK mode within {COMMAND_PROCESS_TIMEOUT_S}s: "
+                f"ra={combiner.ra.mode().value}, dec={combiner.dec.mode().value}"
+            )
+        pytest.fail(
+            f"DEC axis did not reach TRACK mode within {COMMAND_PROCESS_TIMEOUT_S}s: "
+            f"ra={combiner.ra.mode().value}, dec={combiner.dec.mode().value}"
+        )
 
     pos_after_halt = combiner.get_position()
     time.sleep(2.0)
     pos_after_tracking = combiner.get_position()
 
-    assert combiner.ra.mode() == AxisMotionMode.TRACK
-    assert combiner.dec.mode() == AxisMotionMode.TRACK
+    if axis_name == "ra":
+        assert combiner.ra.mode() == AxisMotionMode.TRACK
+        assert combiner.dec.mode() == AxisMotionMode.TRACK
+    else:
+        assert combiner.dec.mode() == AxisMotionMode.TRACK
 
     if axis_name == "ra":
         assert abs(float(pos_after_tracking.ra) - float(pos_after_halt.ra)) < RA_DRIFT_TOLERANCE_S
@@ -426,12 +470,13 @@ def test_sky_lx200_halt_all_resets_sky_speed(
     custom_ra = STELLAR_SPEED + HaPerSecond(2)
     custom_dec = DecPerSecond(2)
     combiner.set_sky_speed(custom_ra, custom_dec)
-    _wait_for_tracking_mode(combiner, COMMAND_PROCESS_TIMEOUT_S)
+    _wait_for_sky_speed(combiner, custom_ra, custom_dec, COMMAND_PROCESS_TIMEOUT_S)
 
     assert combiner.ra._sky_speed == custom_ra
     assert combiner.dec._sky_speed == custom_dec
 
     sky_lx200.halt_all()
+    _wait_for_sky_speed(combiner, STELLAR_SPEED, DecPerSecond(0), COMMAND_PROCESS_TIMEOUT_S)
     _wait_for_tracking_mode(combiner, COMMAND_PROCESS_TIMEOUT_S)
 
     assert combiner.ra._sky_speed == STELLAR_SPEED
