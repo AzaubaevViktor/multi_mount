@@ -6,7 +6,7 @@ import threading
 from typing import Sequence, cast
 
 from serial_wrapper.wrapper import EXCEPTIONS_TO_CLOSE
-from sky.motor import Motor, MotorDirection, MotorStopRequire
+from sky.motor import MotionMode, Motor, MotorDirection, MotorStopRequire
 from sky.physics import AxisPos, AxisSpeed, Dec, DecPerSecond, Ha, HaPerSecond, Second, SkyDirection
 from utils.method_call_chain import log_method_call_chain
 
@@ -412,27 +412,34 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                                 else:
                                     current_position = self._get_current_position()
 
-                                    need_to_stop = False
+                                    need_to_stop = None
 
                                     if abs(current_position - self._goto_target) < self.POS_CLS(self._GOTO_SECONDS_TOLERANCE):
-                                        need_to_stop = True
+                                        need_to_stop = "Tolerance good enough"
+
+                                    if self._motor.status().motion_mode != MotionMode.TARGET:
+                                        need_to_stop = "Motor stopped before target"
 
                                     overshoot = self._motor.FORWARD_POSITION_SIGN * float(current_position - self._goto_target)
                                     if self._goto_direction == self.FORWARD_DIRECTION and overshoot >= 0:
-                                        need_to_stop = True
+                                        need_to_stop = "Overshoot in forward direction"
                                     elif self._goto_direction == self.BACKWARD_DIRECTION and overshoot <= 0:
-                                        need_to_stop = True
+                                        need_to_stop = "Overshoot in backward direction"
                                     
-                                    if need_to_stop:
+                                    if need_to_stop is not None:
+                                        self.logger.info("GOTO to %s need to be stopped: %s", self._goto_target, need_to_stop)
                                         self._motor.wait_till_stop()
                                         self._last_motor_position = self._motor.convert_steps_to_position(self._motor.status().steps)
                                         self._last_motor_position_update_s = Second.monotonic()
+
                                         if abs(current_position - self._goto_target) < self.POS_CLS(self._GOTO_SECONDS_TOLERANCE):
                                             self._mode = AxisMotionMode.STOP
                                             self._goto_target = None
                                             self._goto_direction = None
+                                            self.logger.info("GOTO to %s stopped, resume to tracking", self._goto_target)
                                             self._do_resume_to_tracking()
                                         else:
+                                            self.logger.info("GOTO rerun to %s", self._goto_target)
                                             self._run_goto_to(self._goto_target)
 
                     self._mc_logger.debug("Processing mode done, need to compensate: %s", need_to_compensate)
