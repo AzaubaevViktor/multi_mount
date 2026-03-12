@@ -146,9 +146,13 @@ def test_sky_lx200_sync_telescope_updates_combiner_coordinates(
 
     assert sky_lx200.sync_telescope(target_ra, target_dec) is True
 
-    pos = combiner.get_position()
-    assert abs(float(pos.ra) - float(target_ra)) < RA_POSITION_TOLERANCE_S
-    assert abs(float(pos.dec) - float(target_dec)) < DEC_POSITION_TOLERANCE_AS
+    _wait_for_position_near(
+        combiner,
+        PointCoordinates(ra=target_ra, dec=target_dec),
+        ra_tol=RA_POSITION_TOLERANCE_S,
+        dec_tol=DEC_POSITION_TOLERANCE_AS,
+        timeout_s=COMMAND_PROCESS_TIMEOUT_S,
+    )
 
 
 def test_sky_lx200_get_telescope_coordinates_match_combiner(

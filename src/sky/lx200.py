@@ -13,7 +13,7 @@ class SkyLX200(LX200Handler):
     GUIDE_DEC_SPEED = DecPerSecond(5)
     CENTER_RA_SPEED = HaPerSecond(2 * float(STELLAR_SPEED))
     CENTER_DEC_SPEED = DecPerSecond(10)
-    FIND_RA_SPEED = HaPerSecond(5 * float(STELLAR_SPEED))
+    FIND_RA_SPEED = HaPerSecond(8 * float(STELLAR_SPEED))
     FIND_DEC_SPEED = DecPerSecond(20)
     MAX_RA_SPEED = HaPerSecond(10 * float(STELLAR_SPEED))
     MAX_DEC_SPEED = DecPerSecond(40)

@@ -97,8 +97,8 @@ class Combiner:
         return PointCoordinates(ra=ra, dec=dec)
     
     def set_position(self, position: PointCoordinates) -> None:
-        self.ra.set_position(position)
-        self.dec.set_position(position)
+        self.ra.set_position(PointCoordinates(ra=position.ra, dec=type(position.dec)(0)))
+        self.dec.set_position(PointCoordinates(ra=type(position.ra)(0), dec=position.dec))
 
     def _dispatch_axis(self, direction: SkyDirection) -> AxisRA | AxisDEC:
         if direction in self.ra.DIRECTIONS:

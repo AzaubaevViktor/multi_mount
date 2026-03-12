@@ -262,8 +262,9 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                     self._mode = AxisMotionMode.TRACK
                     self._motor.run()
                 else:
-                    self._mode = AxisMotionMode.SLEW
-                    self._motor.run()
+                    if self._move_direction is not None and self._mode == AxisMotionMode.SLEW:
+                        self._mode = AxisMotionMode.SLEW
+                        self._motor.run()
                 
                 break
             except MotorStopRequire:
