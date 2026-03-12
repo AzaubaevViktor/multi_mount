@@ -60,13 +60,10 @@ def combiner() -> Iterator[Combiner]:
     axis_dec = AxisDEC(TMC2209Motor(dec_serial))
 
     comb: Combiner = Combiner(axis_ra, axis_dec)
-    comb.connect()
 
     try:
         yield comb
     finally:
-        comb.halt_all()
-        time.sleep(2.0)
         comb.disconnect()
 
 
