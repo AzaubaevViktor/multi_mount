@@ -1,8 +1,10 @@
+import functools
 import logging
 import os
 import re
 import threading
 import time
+from typing import Any, Callable
 
 import serial
 
@@ -25,6 +27,18 @@ class SerialLineSearchDirectoryError(SerialLineSearchError):
 
 class SerialLineSearchNotFound(SerialLineSearchError):
     pass
+
+
+def _disconnect_when_error(func: Callable[..., Any]) -> Callable[..., Any]:
+    @functools.wraps(func)
+    def wrapper(self: "SerialLine", *args: Any, **kwargs: Any) -> Any:
+        try:
+            return func(self, *args, **kwargs)
+        except Exception:
+            self.logger.exception("Error in %s, closing connection", func.__name__)
+            self.close()
+            raise
+    return wrapper
 
 
 class SerialLine:
@@ -68,6 +82,7 @@ class SerialLine:
             f"no match for pattern {pattern!r} in {directory!r}"
         )
     
+    @_disconnect_when_error
     def reset(self):
         with self._lock:
             self.serial.dtr = False
@@ -84,6 +99,7 @@ class SerialLine:
         self.serial = serial.Serial(port=self.port, baudrate=self.baud, timeout=self.timeout_s)
         self.logger.info("Connected to %s:%s (timeout=%d)", self.port, self.baud, self.timeout_s)
 
+    @_disconnect_when_error
     def query(self, payload: str | None, timeout: int | None = None) -> str:
         with self._lock:
             if payload is not None:
@@ -96,6 +112,7 @@ class SerialLine:
 
             return self._read_line(timeout=timeout)
     
+    @_disconnect_when_error
     def _read_line(self, timeout: int | None = None):
         _timeout = self.serial.timeout
         if timeout is not None:
@@ -111,6 +128,7 @@ class SerialLine:
 
         return responce
     
+    @_disconnect_when_error
     def read_all_data(self, timeout: int | None = None) -> list[str] | None:
         with self._lock:
             _timeout = self.serial.timeout
@@ -131,5 +149,8 @@ class SerialLine:
 
     def close(self):
         serial_obj = getattr(self, "serial", None)
-        if serial_obj is not None:
+        if serial_obj is not None and serial_obj.is_open:
+            self.logger.debug("Close serial connection")
             serial_obj.close()
+
+        del self.serial
