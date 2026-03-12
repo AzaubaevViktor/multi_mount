@@ -1,5 +1,4 @@
 import time
-import threading
 from collections.abc import Iterator
 
 import pytest
@@ -47,18 +46,6 @@ RA_SLEW_SPEED = HaPerSecond(3)
 DEC_SLEW_SPEED = DecPerSecond(20)
 
 ZERO_POSITION = PointCoordinates(ra=Ha(0), dec=Dec(0))
-
-_THREAD_ERRORS: dict[int, BaseException] = {}
-_ORIGINAL_THREAD_EXCEPTHOOK = threading.excepthook
-
-
-def _capture_thread_error(args: threading.ExceptHookArgs) -> None:
-    if args.thread is not None:
-        _THREAD_ERRORS[id(args.thread)] = args.exc_value
-    _ORIGINAL_THREAD_EXCEPTHOOK(args)
-
-
-threading.excepthook = _capture_thread_error
 
 
 @pytest.fixture(scope="session")
@@ -120,13 +107,7 @@ def _do_reset(comb: Combiner) -> None:
 
 
 def _wait_while_queue_empty(comb: Combiner, timeout_s: float) -> None:
-    ra_thread_error = _THREAD_ERRORS.get(id(comb.ra._motion_convertor_thread))
-    if ra_thread_error is not None:
-        raise AssertionError("RA motion convertor thread crashed") from ra_thread_error
     assert comb.ra._motion_convertor_thread.is_alive()
-    dec_thread_error = _THREAD_ERRORS.get(id(comb.dec._motion_convertor_thread))
-    if dec_thread_error is not None:
-        raise AssertionError("DEC motion convertor thread crashed") from dec_thread_error
     assert comb.dec._motion_convertor_thread.is_alive()
 
     deadline = time.monotonic() + timeout_s
