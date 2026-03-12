@@ -406,7 +406,8 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                 try:
                     need_to_compensate = False
 
-                    self._mc_logger.info("Mode: %s", self._mode)
+                    prev_mode = self._mode
+                    self._mc_logger.info("Mode: %s -> %s", self._mode)
 
                     match self._mode:
                         case AxisMotionMode.STOP:
@@ -461,7 +462,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                                             self.logger.info("GOTO rerun to %s", self._goto_target)
                                             self._run_goto_to(self._goto_target)
 
-                    self._mc_logger.debug("Processing mode done, need to compensate: %s", need_to_compensate)
+                    self._mc_logger.debug("Processing mode done: %s -> %s, need to compensate: %s", prev_mode, self._mode, need_to_compensate)
 
                     if need_to_compensate:
                         self._mc_logger.info("Compensating tracking")
