@@ -415,6 +415,79 @@ def test_hw_combiner_halt_all(combiner: Combiner) -> None:
     combiner.halt_all()
 
 
+@pytest.mark.parametrize("axis_name", ["ra", "dec"], ids=["ra", "dec"])
+@pytest.mark.parametrize("tracking_name", ["default", "custom"], ids=["default_tracking", "custom_tracking"])
+@pytest.mark.parametrize("action_name", ["move", "goto"], ids=["move", "goto"])
+@pytest.mark.parametrize("halt_name", ["halt_direction", "halt_all"], ids=["halt_direction", "halt_all"])
+def test_hw_combiner_halt_restores_tracking_state(
+    combiner: Combiner,
+    axis_name: str,
+    tracking_name: str,
+    action_name: str,
+    halt_name: str,
+) -> None:
+    if tracking_name == "default":
+        expected_ra_sky_speed = STELLAR_SPEED
+        expected_dec_sky_speed = DecPerSecond(0)
+    else:
+        expected_ra_sky_speed = STELLAR_SPEED + HaPerSecond(2)
+        expected_dec_sky_speed = DecPerSecond(2)
+        combiner.set_sky_speed(expected_ra_sky_speed, expected_dec_sky_speed)
+        _wait_for_tracking_mode(combiner, COMMAND_PROCESS_TIMEOUT_S)
+
+    if axis_name == "ra":
+        direction = SkyDirection.WEST
+        move_speed: HaPerSecond | DecPerSecond = RA_SLEW_SPEED
+        target = PointCoordinates(ra=Ha(300), dec=Dec(0))
+        drift_tolerance = RA_DRIFT_TOLERANCE_S
+    else:
+        direction = SkyDirection.SOUTH
+        move_speed = DEC_SLEW_SPEED
+        target = PointCoordinates(ra=Ha(0), dec=Dec(-300))
+        drift_tolerance = DEC_DRIFT_TOLERANCE_AS
+
+    if action_name == "move":
+        combiner.move(direction, move_speed)
+        if axis_name == "ra":
+            _wait_for_ra_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
+        else:
+            _wait_for_dec_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
+    else:
+        combiner.goto_to(target)
+        deadline = time.monotonic() + COMMAND_PROCESS_TIMEOUT_S
+        while time.monotonic() < deadline:
+            if combiner.is_moving_to():
+                break
+            time.sleep(POLL_INTERVAL_S)
+        else:
+            pytest.fail("GOTO never started before halt")
+
+    if halt_name == "halt_direction":
+        combiner.halt_direction(direction)
+    else:
+        combiner.halt_all()
+
+    _wait_for_tracking_mode(combiner, COMMAND_PROCESS_TIMEOUT_S + MOTOR_STOP_TIMEOUT_S)
+    pos_after_halt = combiner.get_position()
+    time.sleep(SPEED_STABILIZE_S)
+    pos_after_tracking = combiner.get_position()
+
+    assert combiner.ra.mode() == AxisMotionMode.TRACK
+    assert combiner.dec.mode() == AxisMotionMode.TRACK
+
+    if axis_name == "ra":
+        assert abs(float(pos_after_tracking.ra) - float(pos_after_halt.ra)) < drift_tolerance
+    else:
+        assert abs(float(pos_after_tracking.dec) - float(pos_after_halt.dec)) < drift_tolerance
+
+    if halt_name == "halt_all":
+        assert combiner.ra._sky_speed == STELLAR_SPEED
+        assert combiner.dec._sky_speed == DecPerSecond(0)
+    else:
+        assert combiner.ra._sky_speed == expected_ra_sky_speed
+        assert combiner.dec._sky_speed == expected_dec_sky_speed
+
+
 def test_hw_combiner_set_sky_speed(combiner: Combiner) -> None:
     combiner.set_sky_speed(STELLAR_SPEED, DecPerSecond(0))
     _wait_for_ra_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
