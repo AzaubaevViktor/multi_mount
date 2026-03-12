@@ -8,6 +8,7 @@ from typing import Sequence, cast
 from serial_wrapper.wrapper import EXCEPTIONS_TO_CLOSE
 from sky.motor import Motor, MotorDirection, MotorStopRequire
 from sky.physics import AxisPos, AxisSpeed, Dec, DecPerSecond, Ha, HaPerSecond, Second, SkyDirection
+from utils.method_call_chain import log_method_call_chain
 
 
 class AxisName(StrEnum):
@@ -218,12 +219,18 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
     def _run_change_speed(self, sky_direction: SkyDirection, new_speed: _SPEED_CLS, update_sky_speed: bool) -> None:
         motor_direction, motor_speed = self._get_motor_direction_and_speed(sky_direction, new_speed)
 
+        self._mc_logger.info("Run change speed: %s, %s, %s", sky_direction, new_speed, update_sky_speed)
+
         while True:
             try:
                 if motor_speed != 0:
                     self._motor.set_direction(motor_direction)
                     self._motor.set_speed(motor_speed)
+
+                prev_sky_speed = self._sky_speed
                 self._sky_speed = self._get_forward_relative_speed(sky_direction, new_speed) if update_sky_speed else self._sky_speed
+                
+                self._mc_logger.info("New sky speed: %s -> %s", prev_sky_speed, self._sky_speed)
                 
                 if motor_speed == 0:
                     self._mode = AxisMotionMode.STOP
@@ -303,8 +310,8 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
     THREAD_ITERATION_DELAY_S = Second(.5)
     _GOTO_SECONDS_TOLERANCE = 10
     def _motion_convertor(self):
-        logger = self.logger.getChild("_motion_convertor")
-        logger.info("Start working")
+        self._mc_logger = self.logger.getChild("_motion_convertor")
+        self._mc_logger.info("Start working")
 
         while self._connected:
             try:
@@ -317,6 +324,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
 
                 if command:
                     try:
+                        self._mc_logger.info("Processing command: %s", command)
                         match command.type:
                             case AxisCommandType.SET_POSITION:
                                 if not command.position:
@@ -363,14 +371,24 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                             case AxisCommandType.HALT_ALL:
                                 with self._motor_lock:
                                     return_to_tracking = self._run_halt_direction()
+                        
+                        self._mc_logger.info("Command precessed, return to tracking required: %s", return_to_tracking)
 
                         if return_to_tracking is not None and return_to_tracking:
                             self._do_resume_to_tracking()
                     except EXCEPTIONS_TO_CLOSE:
-                        logger.exception("While processing command, skip: %s", command)
+                        self._mc_logger.exception("While processing command, skip: %s", command)
 
                 try:
                     need_to_compensate = False
+
+                    self._mc_logger.info("Mode: %s", self._mode)
+                    self._mc_logger.debug("    Sky speed: %.3f", float(self._sky_speed))
+                    self._mc_logger.debug("    Move direction: %s", self._move_direction)
+                    self._mc_logger.debug("    Goto target: %s", self._goto_target)
+                    self._mc_logger.debug("    Goto direction: %s", self._goto_direction)
+                    self._mc_logger.debug("    Last motor position: %.3f", float(self._last_motor_position))
+                    self._mc_logger.debug("    Last motor position update: %s", self._last_motor_position_update_s)
 
                     match self._mode:
                         case AxisMotionMode.STOP:
@@ -416,8 +434,11 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                                             self._do_resume_to_tracking()
                                         else:
                                             self._run_goto_to(self._goto_target)
-                    
+
+                    self._mc_logger.debug("Processing mode done, need to compensate: %s", need_to_compensate)
+
                     if need_to_compensate:
+                        self._mc_logger.info("Compensating tracking")
                         with self._motor_lock:
                             current_motor_position = self._motor.convert_steps_to_position(self._motor.status().steps)
                             motor_position_update_s = Second.monotonic()
@@ -435,19 +456,21 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                             
                             self._last_motor_position = current_motor_position
                             self._last_motor_position_update_s = motor_position_update_s
+                        
+                        self._mc_logger.debug("Compensating tracking done")
 
                 except EXCEPTIONS_TO_CLOSE:
-                    logger.exception("While processing mode: %s", self._mode)
+                    self._mc_logger.exception("While processing mode: %s", self._mode)
             
             except Exception:
                 if not self._connected:
-                    logger.debug("Connection is closed, stop working")
+                    self._mc_logger.debug("Connection is closed, stop working")
                     break
                 else:
-                    logger.exception("While processing")
+                    self._mc_logger.exception("While processing")
                     raise
 
-        logger.info("Stop working")
+        self._mc_logger.info("Stop working")
 
     def get_position(self) -> PointCoordinates:
         return PointCoordinates(ra=self._ra_position, dec=self._dec_position)
@@ -455,6 +478,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
     def set_position(self, position: PointCoordinates) -> None:
         self._queue.put(AxisCommand(AxisCommandType.SET_POSITION, position=position))
 
+    @log_method_call_chain()
     def change_speed(self, direction: SkyDirection, speed: _SPEED_CLS, update_sky_speed: bool = False) -> None:
         if direction not in self.DIRECTIONS:
             return

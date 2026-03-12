@@ -119,6 +119,8 @@ class PolarCompensator:
             self.stable_guide_ra_pulses_count += 1
         else:
             self.stable_guide_ra_pulses_count = 0
+
+        self.logger.debug("RA (%d/%d) guide speed: %s -> %s", self.stable_guide_ra_pulses_count, self.STABLE_GUIDE_PULSES_COUNT, prev_speed, speed)
         
         self.ra_speed = speed
 
@@ -136,6 +138,8 @@ class PolarCompensator:
         else:
             self.stable_guide_dec_pulses_count = 0
         
+        self.logger.debug("DEC (%d/%d) guide speed: %s -> %s", self.stable_guide_dec_pulses_count, self.STABLE_GUIDE_PULSES_COUNT, prev_speed, speed)
+
         self.dec_speed = speed
 
     def get_polar_offset(self) -> tuple[Ha, Dec]:
@@ -144,15 +148,21 @@ class PolarCompensator:
 
         return compute_pole_offset(self.dec_speed, self.ra_speed, self.current_ha, self.current_dec)
 
-    def get_guide_speeds(self) -> tuple[HaPerSecond, DecPerSecond]:
-        """ Returns actual guide speeds """
-        if self.stable_guide_ra_pulses_count < self.STABLE_GUIDE_PULSES_COUNT or self.stable_guide_dec_pulses_count < self.STABLE_GUIDE_PULSES_COUNT:
-            if Second.monotonic() - self.last_guide_pulse > self.DROP_GUIDE_PULSES_COUNT_AFTER:
-                self.ra_speed = STELLAR_SPEED
-                self.dec_speed = DecPerSecond(0)
+    def get_guide_speeds(self) -> tuple[HaPerSecond, DecPerSecond] | None:
+        """ Returns actual guide speeds ONLY when no external guide and has stable guide speeds """
+        is_external_guide = Second.monotonic() - self.last_guide_pulse < self.DROP_GUIDE_PULSES_COUNT_AFTER
+        is_stable_guide = self.stable_guide_ra_pulses_count >= self.STABLE_GUIDE_PULSES_COUNT and self.stable_guide_dec_pulses_count >= self.STABLE_GUIDE_PULSES_COUNT
+
+        if not is_external_guide and is_stable_guide:
+            eps_E, eps_N = self.get_polar_offset()
+
+            ha_speed, dec_speed = compute_guide_speeds(eps_E, eps_N, self.current_ha, self.current_dec)
+            self.logger.debug("Guide speeds: %s, %s (from ε_E: %s, ε_N: %s)", ha_speed, dec_speed, eps_E, eps_N)
+            return ha_speed, dec_speed
+
+        if not is_stable_guide and not is_external_guide:
+            self.ra_speed = STELLAR_SPEED
+            self.dec_speed = DecPerSecond(0)
+            self.logger.info("No guide pulses for %.1fs, reset guide speeds to sidereal", Second.monotonic() - self.last_guide_pulse)
             
-            return self.ra_speed, self.dec_speed
-
-        eps_E, eps_N = self.get_polar_offset()
-
-        return compute_guide_speeds(eps_E, eps_N, self.current_ha, self.current_dec)
+        return None

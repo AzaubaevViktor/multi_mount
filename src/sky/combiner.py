@@ -63,8 +63,11 @@ class Combiner:
             pos = self.get_position()
             self._polar_compensator.update_position(pos.ra, pos.dec)
 
-            ra_speed, dec_speed = self._polar_compensator.get_guide_speeds()
-            self.set_sky_speed(ra_speed, dec_speed)
+            speeds = self._polar_compensator.get_guide_speeds()
+            if speeds is None:
+                continue
+
+            self.set_sky_speed(*speeds, update_polar_compensator=False)
 
             self._guide_updated.clear()
 
@@ -106,9 +109,12 @@ class Combiner:
             return self.dec
         raise ValueError(f"Direction {direction} is not supported for both axes")
 
-    def set_sky_speed(self, ra_speed: HaPerSecond, dec_speed: DecPerSecond) -> None:
-        self.ra.change_speed(self.ra.FORWARD_DIRECTION,ra_speed, update_sky_speed=True)
+    def set_sky_speed(self, ra_speed: HaPerSecond, dec_speed: DecPerSecond, update_polar_compensator: bool = True) -> None:
+        self.ra.change_speed(self.ra.FORWARD_DIRECTION, ra_speed, update_sky_speed=True)
         self.dec.change_speed(self.dec.FORWARD_DIRECTION, dec_speed, update_sky_speed=True)
+        if update_polar_compensator:
+            self._polar_compensator.guide_ra(ra_speed)
+            self._polar_compensator.guide_dec(dec_speed)
 
     def move(self, direction: SkyDirection, speed: HaPerSecond | DecPerSecond) -> None:
         axis = self._dispatch_axis(direction)
@@ -160,5 +166,8 @@ class Combiner:
         axis.halt_direction(direction)
     
     def halt_all(self) -> None:
+        """ Halt all drop current guide speeds """
         self.ra.halt_all()
+        self.ra.change_speed(self.ra.FORWARD_DIRECTION, STELLAR_SPEED, update_sky_speed=True)
         self.dec.halt_all()
+        self.dec.change_speed(self.dec.FORWARD_DIRECTION, DecPerSecond(0), update_sky_speed=True)

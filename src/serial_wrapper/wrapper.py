@@ -116,12 +116,13 @@ class SerialLine:
     def query(self, payload: str | None, timeout: int | None = None) -> str:
         with self._lock:
             if payload is not None:
-                self.logger.debug("Send `%r`", payload)
+                # self.logger.debug("Send `%r`", payload)
                 self.serial.reset_input_buffer()
                 self.serial.write(payload.encode(self.encoding))
                 self.serial.flush()
             else:
-                self.logger.debug("Just wait for answer")
+                # self.logger.debug("Just wait for answer")
+                pass
 
             return self._read_line(timeout=timeout)
     
@@ -137,7 +138,7 @@ class SerialLine:
                 self.serial.timeout = _timeout
 
         responce = line.decode(self.encoding, errors="ignore")
-        self.logger.debug("Receive `%r`", responce)
+        # self.logger.debug("Receive `%r`", responce)
 
         return responce
     
@@ -156,7 +157,7 @@ class SerialLine:
             
             lines = [line.decode(self.encoding, errors="ignore") for line in data.split(self.terminator)]
 
-            self.logger.debug("Receive all data from input:\n%s", lines)
+            self.logger.info("Receive all data from input:\n%s", lines)
 
         return lines
 
