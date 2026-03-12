@@ -379,7 +379,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                         elapsed_s = motor_position_update_s - self._last_motor_position_update_s
 
                         expected_delta = self._sky_speed * elapsed_s
-                        actual_delta = current_motor_position - self._last_motor_position
+                        actual_delta = (current_motor_position - self._last_motor_position).moving_wrap()
 
                         delta = self.POS_CLS(self._motor.FORWARD_POSITION_SIGN * float(actual_delta - expected_delta))
                         

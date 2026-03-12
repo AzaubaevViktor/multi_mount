@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import threading
-from sky.axis import AxisRA, AxisDEC, PointCoordinates
+from sky.axis import AxisMotionMode, AxisRA, AxisDEC, PointCoordinates
 from sky.constants import STELLAR_SPEED
 from sky.physics import AxisSpeed, DecPerSecond, HaPerSecond, Second, SkyDirection
 from sky.polar_compensator import PolarCompensator
@@ -49,10 +49,16 @@ class Combiner:
         self._polar_compensator_thread: threading.Thread | None = None
         self._guide_updated = threading.Event()
 
+    _POLAR_SKIP_MODES = frozenset({AxisMotionMode.SLEW, AxisMotionMode.GOTO})
+
     def _polar_compensation(self) -> None:
         while self.is_connected():
             if not self._guide_updated.wait(float(self.GUIDE_INTERVAL_S)):
                 pass
+
+            if self.ra._mode in self._POLAR_SKIP_MODES or self.dec._mode in self._POLAR_SKIP_MODES:
+                self._guide_updated.clear()
+                continue
             
             pos = self.get_position()
             self._polar_compensator.update_position(pos.ra, pos.dec)

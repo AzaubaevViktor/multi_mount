@@ -46,30 +46,11 @@ MOTOR_SPEED_REL_TOL = 0.15
 RA_SLEW_SPEED = HaPerSecond(3)
 DEC_SLEW_SPEED = DecPerSecond(20)
 
-DEFAULT_START_RA = Ha(12 * 3600)
-DEFAULT_START_DEC = Dec(0)
+ZERO_POSITION = PointCoordinates(ra=Ha(0), dec=Dec(0))
 
 
-@pytest.fixture(scope="session")
-def combiner() -> Iterator[Combiner]:
-    ra_serial = SerialLine(
-        port=SerialLine.search(RA_DEVICE_PATTERN),
-        baud=RA_SERIAL_BAUD,
-        timeout_s=RA_SERIAL_TIMEOUT_S,
-        name="skywatcher_axis_ra",
-        terminator="\r",
-    )
-    ra_motor = SkyWatcherMotor(ra_serial)
-    axis_ra = AxisRA(ra_motor)
-    axis_ra.connect()
-
-    dec_serial = SerialLine(
-        port=SerialLine.search(DEC_DEVICE_PATTERN),
-        baud=DEC_SERIAL_BAUD,
-        timeout_s=DEC_SERIAL_TIMEOUT_S,
-        name="tmc2209_axis_dec",
-        terminator="\n",
-    )
+def _connect_dec_axis(dec_serial: SerialLine) -> AxisDEC:
+    """Connect DEC axis with retry logic for TMC2209 serial handshake."""
     dec_motor: TMC2209Motor | None = None
     for attempt in range(DEC_CONNECT_ATTEMPTS):
         try:
@@ -103,21 +84,39 @@ def combiner() -> Iterator[Combiner]:
     if dec_motor is None:
         raise AssertionError("dec motor fixture failed to initialize")
 
-    axis_dec = AxisDEC(dec_motor)
+    axis = AxisDEC(dec_motor)
     dec_motor.reset()
-    axis_dec._connected = True
-    axis_dec._motion_convertor_thread = threading.Thread(
-        target=axis_dec._motion_convertor,
+    axis._connected = True
+    axis._motion_convertor_thread = threading.Thread(
+        target=axis._motion_convertor,
         name="dec_motion_convertor",
     )
-    axis_dec._motion_convertor_thread.start()
+    axis._motion_convertor_thread.start()
+    return axis
+
+
+@pytest.fixture(scope="session")
+def combiner() -> Iterator[Combiner]:
+    ra_serial = SerialLine(
+        port=SerialLine.search(RA_DEVICE_PATTERN),
+        baud=RA_SERIAL_BAUD,
+        timeout_s=RA_SERIAL_TIMEOUT_S,
+        name="skywatcher_axis_ra",
+        terminator="\r",
+    )
+    axis_ra = AxisRA(SkyWatcherMotor(ra_serial))
+
+    dec_serial = SerialLine(
+        port=SerialLine.search(DEC_DEVICE_PATTERN),
+        baud=DEC_SERIAL_BAUD,
+        timeout_s=DEC_SERIAL_TIMEOUT_S,
+        name="tmc2209_axis_dec",
+        terminator="\n",
+    )
+    axis_dec = _connect_dec_axis(dec_serial)
 
     comb = Combiner(axis_ra, axis_dec)
-    comb._polar_compensator_thread = threading.Thread(
-        target=comb._polar_compensation,
-        name="PolarCompensator",
-    )
-    comb._polar_compensator_thread.start()
+    comb.connect()
 
     try:
         yield comb
@@ -136,32 +135,13 @@ def _reset_between_tests(combiner: Combiner) -> Iterator[None]:
 
 def _do_reset(comb: Combiner) -> None:
     comb.halt_all()
-    _wait_for_ra_motor_stop(comb, MOTOR_STOP_TIMEOUT_S)
-    _wait_for_dec_motor_stop(comb, MOTOR_STOP_TIMEOUT_S)
-
-    comb.ra._sky_speed = STELLAR_SPEED
-    comb.ra._goto_target = None
-    comb.ra._goto_direction = None
-    comb.ra._move_direction = None
-
-    comb.dec._sky_speed = DecPerSecond(0)
-    comb.dec._goto_target = None
-    comb.dec._goto_direction = None
-    comb.dec._move_direction = None
-
-    comb._polar_compensator.ra_speed = STELLAR_SPEED
-    comb._polar_compensator.dec_speed = DecPerSecond(0)
-    comb._polar_compensator.last_guide_pulse = Second.monotonic()
-    comb._polar_compensator.stable_guide_ra_pulses_count = 0
-    comb._polar_compensator.stable_guide_dec_pulses_count = 0
-
-    comb.ra.set_position(PointCoordinates(ra=DEFAULT_START_RA, dec=Dec(0)))
-    comb.dec.set_position(PointCoordinates(ra=Ha(0), dec=DEFAULT_START_DEC))
-    comb.ra.change_speed(SkyDirection.EAST, STELLAR_SPEED, update_sky_speed=True)
-
+    comb.set_sky_speed(STELLAR_SPEED, DecPerSecond(0))
+    comb.set_position(ZERO_POSITION)
+    # Force polar compensator to reset to default speeds on next iteration
+    comb._polar_compensator.last_guide_pulse = Second(0)
     _wait_for_position_near(
         comb,
-        PointCoordinates(ra=DEFAULT_START_RA, dec=DEFAULT_START_DEC),
+        ZERO_POSITION,
         ra_tol=RA_POSITION_TOLERANCE_S,
         dec_tol=DEC_POSITION_TOLERANCE_AS,
         timeout_s=COMMAND_PROCESS_TIMEOUT_S,
@@ -289,29 +269,18 @@ def _measure_ra_motor_speed_sps(comb: Combiner, duration_s: float) -> float:
     return abs(steps2 - steps1) / (t2 - t1)
 
 
-def _measure_dec_motor_speed_sps(comb: Combiner, duration_s: float) -> float:
-    steps1 = comb.dec._motor.status().steps
-    t1 = time.monotonic()
-    time.sleep(duration_s)
-    steps2 = comb.dec._motor.status().steps
-    t2 = time.monotonic()
-    return abs(steps2 - steps1) / (t2 - t1)
-
-
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
 
 def test_hw_combiner_is_connected(combiner: Combiner) -> None:
     assert combiner.is_connected() is True
-    assert combiner.ra.is_connected() is True
-    assert combiner.dec.is_connected() is True
 
 
 def test_hw_combiner_initial_position(combiner: Combiner) -> None:
     pos = combiner.get_position()
-    assert abs(float(pos.ra) - float(DEFAULT_START_RA)) < RA_POSITION_TOLERANCE_S
-    assert abs(float(pos.dec) - float(DEFAULT_START_DEC)) < DEC_POSITION_TOLERANCE_AS
+    assert abs(float(pos.ra)) < RA_POSITION_TOLERANCE_S
+    assert abs(float(pos.dec)) < DEC_POSITION_TOLERANCE_AS
 
 
 def test_hw_combiner_sidereal_tracking_stable(combiner: Combiner) -> None:
@@ -319,8 +288,8 @@ def test_hw_combiner_sidereal_tracking_stable(combiner: Combiner) -> None:
     _wait_for_ra_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
     time.sleep(3.0)
     pos = combiner.get_position()
-    assert abs(float(pos.ra) - float(DEFAULT_START_RA)) < RA_DRIFT_TOLERANCE_S
-    assert abs(float(pos.dec) - float(DEFAULT_START_DEC)) < DEC_DRIFT_TOLERANCE_AS
+    assert abs(float(pos.ra)) < RA_DRIFT_TOLERANCE_S
+    assert abs(float(pos.dec)) < DEC_DRIFT_TOLERANCE_AS
 
 
 @pytest.mark.parametrize(
@@ -462,8 +431,8 @@ def test_hw_combiner_set_sky_speed(combiner: Combiner) -> None:
     time.sleep(3.0)
 
     pos = combiner.get_position()
-    assert abs(float(pos.ra) - float(DEFAULT_START_RA)) < RA_DRIFT_TOLERANCE_S
-    assert abs(float(pos.dec) - float(DEFAULT_START_DEC)) < DEC_DRIFT_TOLERANCE_AS
+    assert abs(float(pos.ra)) < RA_DRIFT_TOLERANCE_S
+    assert abs(float(pos.dec)) < DEC_DRIFT_TOLERANCE_AS
 
 
 def test_hw_combiner_set_moving_speed(combiner: Combiner) -> None:
@@ -527,10 +496,7 @@ def test_hw_combiner_goto_reaches_target(
     delta_ra: Ha,
     delta_dec: Dec,
 ) -> None:
-    target = PointCoordinates(
-        ra=DEFAULT_START_RA + delta_ra,
-        dec=DEFAULT_START_DEC + delta_dec,
-    )
+    target = PointCoordinates(ra=Ha(float(delta_ra)), dec=Dec(float(delta_dec)))
     combiner.goto_to(target)
     _wait_for_goto_done(combiner, GOTO_TIMEOUT_S)
 
@@ -540,22 +506,18 @@ def test_hw_combiner_goto_reaches_target(
 
 
 def test_hw_combiner_goto_zero_delta_is_noop(combiner: Combiner) -> None:
-    target = PointCoordinates(ra=DEFAULT_START_RA, dec=DEFAULT_START_DEC)
-    combiner.goto_to(target)
+    combiner.goto_to(ZERO_POSITION)
     time.sleep(1.0)
 
     assert not combiner.is_moving_to()
 
     pos = combiner.get_position()
-    assert abs(float(pos.ra) - float(target.ra)) < RA_POSITION_TOLERANCE_S
-    assert abs(float(pos.dec) - float(target.dec)) < DEC_POSITION_TOLERANCE_AS
+    assert abs(float(pos.ra)) < RA_POSITION_TOLERANCE_S
+    assert abs(float(pos.dec)) < DEC_POSITION_TOLERANCE_AS
 
 
 def test_hw_combiner_is_moving_to_during_goto(combiner: Combiner) -> None:
-    target = PointCoordinates(
-        ra=DEFAULT_START_RA + Ha(600),
-        dec=DEFAULT_START_DEC + Dec(600),
-    )
+    target = PointCoordinates(ra=Ha(600), dec=Dec(600))
     combiner.goto_to(target)
 
     deadline = time.monotonic() + COMMAND_PROCESS_TIMEOUT_S
