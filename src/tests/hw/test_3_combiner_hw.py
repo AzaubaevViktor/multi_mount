@@ -48,24 +48,6 @@ DEC_SLEW_SPEED = DecPerSecond(20)
 ZERO_POSITION = PointCoordinates(ra=Ha(0), dec=Dec(0))
 
 
-def _connect_dec_axis(dec_serial: SerialLine) -> AxisDEC:
-    """Connect DEC axis with retry logic for TMC2209 serial handshake."""
-    for attempt in range(DEC_CONNECT_ATTEMPTS):
-        try:
-            axis = AxisDEC(TMC2209Motor(dec_serial))
-            axis.connect()
-            return axis
-        except (SerialException, TMC2209MotorProtocolError):
-            try:
-                dec_serial.close()
-            except Exception:
-                pass
-            if attempt == DEC_CONNECT_ATTEMPTS - 1:
-                raise
-            time.sleep(0.5)
-    raise RuntimeError("Unreachable")
-
-
 @pytest.fixture(scope="session")
 def combiner() -> Iterator[Combiner]:
     ra_serial = SerialLine(
@@ -84,7 +66,8 @@ def combiner() -> Iterator[Combiner]:
         name="tmc2209_axis_dec",
         terminator="\n",
     )
-    axis_dec = _connect_dec_axis(dec_serial)
+    
+    axis_dec = AxisDEC(TMC2209Motor(dec_serial))
 
     comb = Combiner(axis_ra, axis_dec)
     comb.connect()
