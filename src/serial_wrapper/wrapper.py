@@ -2,6 +2,7 @@ import logging
 import os
 import re
 import threading
+import time
 
 import serial
 
@@ -69,7 +70,12 @@ class SerialLine:
     
     def reset(self):
         with self._lock:
+            self.serial.dtr = False
+            time.sleep(0.1)
+            self.serial.reset_input_buffer()
+            self.serial.reset_output_buffer()
             self.serial.dtr = True
+            time.sleep(0.5)
 
     def connect(self):
         self.serial = serial.Serial(port=self.port, baudrate=self.baud, timeout=self.timeout_s)
@@ -121,5 +127,6 @@ class SerialLine:
         return lines
 
     def close(self):
-        self.serial.close()
-
+        serial_obj = getattr(self, "serial", None)
+        if serial_obj is not None:
+            serial_obj.close()
