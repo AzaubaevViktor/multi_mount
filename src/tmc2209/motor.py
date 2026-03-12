@@ -136,12 +136,12 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         status = self._status()
         if status.phase == _Phase.IDLE:
             motion_mode = MotionMode.IDLE
+        elif status.mode == _Mode.TARGET and status.phase in (_Phase.ACCELERATION, _Phase.RUNNING, _Phase.DECELERATION):
+            motion_mode = MotionMode.TARGET
         elif status.phase == _Phase.ACCELERATION:
             motion_mode = MotionMode.ACCELERATION
         elif status.phase == _Phase.DECELERATION:
             motion_mode = MotionMode.DECELERATION
-        elif status.mode == _Mode.TARGET and status.target_set:
-            motion_mode = MotionMode.TARGET
         else:
             motion_mode = MotionMode.RUN
         if status.phase in (_Phase.IDLE, _Phase.HOLD):
