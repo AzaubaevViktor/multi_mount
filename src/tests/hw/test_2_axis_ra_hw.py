@@ -12,7 +12,6 @@ from skywatcher.motor import SkyWatcherMotor
 from tests.hw._axis_motor_helpers import (
     POLL_INTERVAL_S,
     _measure_motor_speed_sps,
-    _wait_for_goto_done,
     _wait_for_motor_running,
     _wait_for_motor_stop,
     _wait_for_tracking_mode,
@@ -120,10 +119,6 @@ def _wait_for_ra_change(
             return current
         time.sleep(POLL_INTERVAL_S)
     pytest.fail(f"RA did not change toward {direction.value} from {float(start_ra):.1f}")
-
-
-def _wait_for_goto_done(axis: AxisRA, timeout_s: float) -> None:
-    _wait_for_goto_done(axis, timeout_s)
 
 
 # ---------------------------------------------------------------------------
