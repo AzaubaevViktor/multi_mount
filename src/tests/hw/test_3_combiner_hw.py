@@ -432,8 +432,9 @@ def test_hw_combiner_halt_restores_tracking_state(
     else:
         expected_ra_sky_speed = STELLAR_SPEED + HaPerSecond(2)
         expected_dec_sky_speed = DecPerSecond(2)
-        combiner.set_sky_speed(expected_ra_sky_speed, expected_dec_sky_speed)
-        _wait_for_tracking_mode(combiner, COMMAND_PROCESS_TIMEOUT_S)
+
+    combiner.set_sky_speed(expected_ra_sky_speed, expected_dec_sky_speed)
+    _wait_for_tracking_mode(combiner, COMMAND_PROCESS_TIMEOUT_S)
 
     if axis_name == "ra":
         direction = SkyDirection.WEST
@@ -481,11 +482,9 @@ def test_hw_combiner_halt_restores_tracking_state(
         assert abs(float(pos_after_tracking.dec) - float(pos_after_halt.dec)) < drift_tolerance
 
     if halt_name == "halt_all":
-        assert combiner.ra._sky_speed == STELLAR_SPEED
-        assert combiner.dec._sky_speed == DecPerSecond(0)
+        assert combiner.ra._sky_speed == STELLAR_SPEED and combiner.dec._sky_speed == DecPerSecond(0)
     else:
-        assert combiner.ra._sky_speed == expected_ra_sky_speed
-        assert combiner.dec._sky_speed == expected_dec_sky_speed
+        assert combiner.ra._sky_speed == expected_ra_sky_speed and combiner.dec._sky_speed == expected_dec_sky_speed
 
 
 def test_hw_combiner_set_sky_speed(combiner: Combiner) -> None:
