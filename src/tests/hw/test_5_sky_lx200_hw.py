@@ -189,6 +189,8 @@ def test_sky_lx200_slew_speed_presets_update_manual_speeds(
     expect_dec_speed: DecPerSecond,
 ) -> None:
     getattr(sky_lx200, set_speed_method)()
+    assert sky_lx200._manual_ra_speed == expect_ra_speed
+    assert sky_lx200._manual_dec_speed == expect_dec_speed
 
     # Execute a small move to ensure that preset speeds are actually used.
     sky_lx200.move_west()
@@ -196,7 +198,7 @@ def test_sky_lx200_slew_speed_presets_update_manual_speeds(
 
     time.sleep(2.0)
     pos = combiner.get_position()
-    assert abs(float(pos.ra)) > RA_DRIFT_TOLERANCE_S
+    assert abs(float(pos.ra)) > 0.5
     assert abs(float(pos.dec)) > DEC_DRIFT_TOLERANCE_AS
 
 
