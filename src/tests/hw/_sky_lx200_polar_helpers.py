@@ -2,7 +2,7 @@ import time
 
 import pytest
 
-from sky.axis import AxisMotionMode
+from sky.axis import AxisMotionMode, PointCoordinates
 from sky.combiner import Combiner
 from sky.lx200 import SkyLX200
 from sky.physics import Dec, DecPerSecond, Ha, HaPerSecond, SkyDirection
