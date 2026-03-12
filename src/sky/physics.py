@@ -16,6 +16,8 @@ This way, we can ensure that the original value of Ha is not changed and we can 
 
 
 class _BasicAriphmetic(ABC):
+    UNIT_NAME: str
+
     @abstractmethod
     def __init__(self, value: float) -> None:
         ...
@@ -103,8 +105,11 @@ class _BasicAriphmetic(ABC):
             return float(self) / float(other)
         raise TypeError(f"Unsupported division: {type(self)} / {type(other)}")
 
+    def __repr__(self) -> str:
+        return f"<{type(self).__name__} {float(self):.6f}{self.UNIT_NAME}>"
 
 class Second(_BasicAriphmetic):
+    UNIT_NAME = "s"
     MILLISECONDS_PER_SECOND = 1000
 
     def __init__(self, seconds: float):
@@ -190,6 +195,7 @@ SECONDS_PER_DAY = Second(_SECONDS_PER_DAY)
 
 
 class Ha(AxisPos):
+    UNIT_NAME = "s"
     __slots__ = ("_total_seconds",)
 
     HOURS_PATTERN = re.compile(r"^(\d{2}):(\d{2}):(\d{2})$")
@@ -281,6 +287,8 @@ class Ha(AxisPos):
 
 
 class HaPerSecond(AxisSpeed):
+    UNIT_NAME = "hs/s"
+
     def __init__(self, seconds_per_second: float):
         self._total_ha_seconds_per_second = float(seconds_per_second)
 
@@ -312,6 +320,8 @@ class HaPerSecond(AxisSpeed):
 
 
 class HaDegPerHour(AxisSpeed):
+    UNIT_NAME = "°/h"
+
     def __init__(self, degrees_per_hour: float):
         self._degrees_per_hour = float(degrees_per_hour)
 
@@ -323,6 +333,8 @@ class HaDegPerHour(AxisSpeed):
 
 
 class Dec(AxisPos):
+    UNIT_NAME = "as"
+
     DEC_PATTERN = re.compile(
         rf"^([+-])(\d{{2}})\*(\d{{2}}):(\d{{2}})$"
     )
@@ -417,6 +429,8 @@ class Dec(AxisPos):
 
 
 class DecPerSecond(AxisSpeed):
+    UNIT_NAME = "as/s"
+
     def __init__(self, arcseconds_per_second: float):
         self._total_arcseconds_per_second = float(arcseconds_per_second)
 
