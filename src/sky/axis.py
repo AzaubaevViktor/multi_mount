@@ -383,12 +383,6 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                     need_to_compensate = False
 
                     self._mc_logger.info("Mode: %s", self._mode)
-                    self._mc_logger.debug("    Sky speed: %.3f", float(self._sky_speed))
-                    self._mc_logger.debug("    Move direction: %s", self._move_direction)
-                    self._mc_logger.debug("    Goto target: %s", self._goto_target)
-                    self._mc_logger.debug("    Goto direction: %s", self._goto_direction)
-                    self._mc_logger.debug("    Last motor position: %.3f", float(self._last_motor_position))
-                    self._mc_logger.debug("    Last motor position update: %s", self._last_motor_position_update_s)
 
                     match self._mode:
                         case AxisMotionMode.STOP:
