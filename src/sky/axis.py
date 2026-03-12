@@ -5,6 +5,7 @@ import queue
 import threading
 from typing import Sequence, cast
 
+from serial_wrapper.wrapper import EXCEPTIONS_TO_CLOSE
 from sky.motor import Motor, MotorDirection, MotorStopRequire
 from sky.physics import AxisPos, AxisSpeed, Dec, DecPerSecond, Ha, HaPerSecond, Second, SkyDirection
 
@@ -152,6 +153,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                 raise ValueError(f"Invalid axis: {self.axis}")
     
     def _get_forward_relative_speed(self, direction: SkyDirection, speed: _SPEED_CLS) -> _SPEED_CLS:
+        """ Get relative speed to forward direction """
         if direction not in self.DIRECTIONS:
             raise ValueError(f"Direction should be one of {self.DIRECTIONS} for {self.axis.value} axis, got {direction}")
 
@@ -159,6 +161,8 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
             return speed
         elif direction == self.BACKWARD_DIRECTION:
             return -speed
+        else:
+            raise ValueError(f"Invalid direction: {direction} for {self.axis.value} axis")
 
     def _do_resume_to_tracking(self) -> None:
         if float(self._sky_speed) == 0:
@@ -213,11 +217,12 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
         
     def _run_change_speed(self, sky_direction: SkyDirection, new_speed: _SPEED_CLS, update_sky_speed: bool) -> None:
         motor_direction, motor_speed = self._get_motor_direction_and_speed(sky_direction, new_speed)
-        
+
         while True:
             try:
-                self._motor.set_direction(motor_direction)
-                self._motor.set_speed(motor_speed)
+                if motor_speed != 0:
+                    self._motor.set_direction(motor_direction)
+                    self._motor.set_speed(motor_speed)
                 self._sky_speed = self._get_forward_relative_speed(sky_direction, new_speed) if update_sky_speed else self._sky_speed
                 
                 if motor_speed == 0:
@@ -303,135 +308,144 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
 
         while self._connected:
             try:
-                command = self._queue.get(timeout=float(self.THREAD_ITERATION_DELAY_S))
-            except queue.Empty:
-                command = None
-
-            return_to_tracking: None | bool = None  # None - not decided, True - return to tracking, False - do not return to tracking
-
-            if command:
                 try:
-                    match command.type:
-                        case AxisCommandType.SET_POSITION:
-                            if not command.position:
-                                raise ValueError("Position is required for SET_POSITION command")
+                    command = self._queue.get(timeout=float(self.THREAD_ITERATION_DELAY_S))
+                except queue.Empty:
+                    command = None
 
-                            with self._motor_lock:
-                                return_to_tracking = self._run_set_position(command.position)
+                return_to_tracking: None | bool = None  # None - not decided, True - return to tracking, False - do not return to tracking
 
-                        case AxisCommandType.CHANGE_SPEED:
-                            if not command.direction:
-                                raise ValueError("Direction is required for CHANGE_SPEED command")
-                            if not command.speed:
-                                raise ValueError("Speed is required for CHANGE_SPEED command")
-                            if not isinstance(command.speed, self.SPEED_CLS):
-                                raise ValueError(f"Speed should be of type {self.SPEED_CLS} for {self.axis.value} axis, got {type(command.speed)}")
+                if command:
+                    try:
+                        match command.type:
+                            case AxisCommandType.SET_POSITION:
+                                if not command.position:
+                                    raise ValueError("Position is required for SET_POSITION command")
 
-                            with self._motor_lock:
-                                self._run_change_speed(command.direction, command.speed, command.update_sky_speed)
-                        
-                        case AxisCommandType.MOVE:
-                            if not command.direction:
-                                raise ValueError("Direction is required for MOVE command")
-                            if not isinstance(command.speed, self.SPEED_CLS):
-                                raise ValueError(f"Speed should be of type {self.SPEED_CLS} for {self.axis.value} axis, got {type(command.speed)}")
+                                with self._motor_lock:
+                                    return_to_tracking = self._run_set_position(command.position)
 
-                            with self._motor_lock:
-                                self._run_move(command.direction, command.speed)
-                        
-                        case AxisCommandType.GOTO_TO:
-                            if not command.position:
-                                raise ValueError("Position is required for GOTO_TO command")
+                            case AxisCommandType.CHANGE_SPEED:
+                                if not command.direction:
+                                    raise ValueError("Direction is required for CHANGE_SPEED command")
+                                if not command.speed:
+                                    raise ValueError("Speed is required for CHANGE_SPEED command")
+                                if not isinstance(command.speed, self.SPEED_CLS):
+                                    raise ValueError(f"Speed should be of type {self.SPEED_CLS} for {self.axis.value} axis, got {type(command.speed)}")
 
-                            with self._motor_lock:
-                                self._run_goto_to(self._get_current_position(command.position))
-                        
-                        case AxisCommandType.HALT_DIRECTION:
-                            if not command.direction:
-                                raise ValueError("Direction is required for HALT_DIRECTION command")
+                                with self._motor_lock:
+                                    self._run_change_speed(command.direction, command.speed, command.update_sky_speed)
                             
-                            if command.direction == self._move_direction:
+                            case AxisCommandType.MOVE:
+                                if not command.direction:
+                                    raise ValueError("Direction is required for MOVE command")
+                                if not isinstance(command.speed, self.SPEED_CLS):
+                                    raise ValueError(f"Speed should be of type {self.SPEED_CLS} for {self.axis.value} axis, got {type(command.speed)}")
+
+                                with self._motor_lock:
+                                    self._run_move(command.direction, command.speed)
+                            
+                            case AxisCommandType.GOTO_TO:
+                                if not command.position:
+                                    raise ValueError("Position is required for GOTO_TO command")
+
+                                with self._motor_lock:
+                                    self._run_goto_to(self._get_current_position(command.position))
+                            
+                            case AxisCommandType.HALT_DIRECTION:
+                                if not command.direction:
+                                    raise ValueError("Direction is required for HALT_DIRECTION command")
+                                
+                                if command.direction == self._move_direction:
+                                    with self._motor_lock:
+                                        return_to_tracking = self._run_halt_direction()
+                            
+                            case AxisCommandType.HALT_ALL:
                                 with self._motor_lock:
                                     return_to_tracking = self._run_halt_direction()
-                        
-                        case AxisCommandType.HALT_ALL:
-                            with self._motor_lock:
-                                return_to_tracking = self._run_halt_direction()
 
-                    if return_to_tracking is not None and return_to_tracking:
-                        self._do_resume_to_tracking()
-                except:
-                    logger.exception("While processing command, skip: %s", command)
+                        if return_to_tracking is not None and return_to_tracking:
+                            self._do_resume_to_tracking()
+                    except EXCEPTIONS_TO_CLOSE:
+                        logger.exception("While processing command, skip: %s", command)
 
-            try:
-                need_to_compensate = False
+                try:
+                    need_to_compensate = False
 
-                match self._mode:
-                    case AxisMotionMode.STOP:
-                        if self._sky_speed == 0:
-                            self._mode = AxisMotionMode.TRACK
-                        else:
-                            need_to_compensate = True
-                    case AxisMotionMode.TRACK:
-                        with self._motor_lock:
-                            # Don't need to change pointing position — its tracking
-                            self._last_motor_position = self._motor.convert_steps_to_position(self._motor.status().steps)
-                            self._last_motor_position_update_s = Second.monotonic()
-                    case AxisMotionMode.SLEW:
-                        need_to_compensate = True
-                    case AxisMotionMode.GOTO:
-                        need_to_compensate = True
-
-                        with self._motor_lock:
-                            if self._goto_target is None or self._goto_direction is None:
-                                self._mode = AxisMotionMode.STOP
+                    match self._mode:
+                        case AxisMotionMode.STOP:
+                            if self._sky_speed == 0:
+                                self._mode = AxisMotionMode.TRACK
                             else:
-                                current_position = self._get_current_position()
+                                need_to_compensate = True
+                        case AxisMotionMode.TRACK:
+                            with self._motor_lock:
+                                # Don't need to change pointing position — its tracking
+                                self._last_motor_position = self._motor.convert_steps_to_position(self._motor.status().steps)
+                                self._last_motor_position_update_s = Second.monotonic()
+                        case AxisMotionMode.SLEW:
+                            need_to_compensate = True
+                        case AxisMotionMode.GOTO:
+                            need_to_compensate = True
 
-                                need_to_stop = False
+                            with self._motor_lock:
+                                if self._goto_target is None or self._goto_direction is None:
+                                    self._mode = AxisMotionMode.STOP
+                                else:
+                                    current_position = self._get_current_position()
 
-                                if abs(current_position - self._goto_target) < self.POS_CLS(self._GOTO_SECONDS_TOLERANCE):
-                                    need_to_stop = True
+                                    need_to_stop = False
 
-                                overshoot = self._motor.FORWARD_POSITION_SIGN * float(current_position - self._goto_target)
-                                if self._goto_direction == self.FORWARD_DIRECTION and overshoot >= 0:
-                                    need_to_stop = True
-                                elif self._goto_direction == self.BACKWARD_DIRECTION and overshoot <= 0:
-                                    need_to_stop = True
-                                
-                                if need_to_stop:
-                                    self._motor.wait_till_stop()
-                                    self._last_motor_position = self._motor.convert_steps_to_position(self._motor.status().steps)
-                                    self._last_motor_position_update_s = Second.monotonic()
                                     if abs(current_position - self._goto_target) < self.POS_CLS(self._GOTO_SECONDS_TOLERANCE):
-                                        self._mode = AxisMotionMode.STOP
-                                        self._goto_target = None
-                                        self._goto_direction = None
-                                        self._do_resume_to_tracking()
-                                    else:
-                                        self._run_goto_to(self._goto_target)
-                
-                if need_to_compensate:
-                    with self._motor_lock:
-                        current_motor_position = self._motor.convert_steps_to_position(self._motor.status().steps)
-                        motor_position_update_s = Second.monotonic()
-                        elapsed_s = motor_position_update_s - self._last_motor_position_update_s
+                                        need_to_stop = True
 
-                        expected_delta = self._sky_speed * elapsed_s
-                        actual_delta = (current_motor_position - self._last_motor_position).moving_wrap()
+                                    overshoot = self._motor.FORWARD_POSITION_SIGN * float(current_position - self._goto_target)
+                                    if self._goto_direction == self.FORWARD_DIRECTION and overshoot >= 0:
+                                        need_to_stop = True
+                                    elif self._goto_direction == self.BACKWARD_DIRECTION and overshoot <= 0:
+                                        need_to_stop = True
+                                    
+                                    if need_to_stop:
+                                        self._motor.wait_till_stop()
+                                        self._last_motor_position = self._motor.convert_steps_to_position(self._motor.status().steps)
+                                        self._last_motor_position_update_s = Second.monotonic()
+                                        if abs(current_position - self._goto_target) < self.POS_CLS(self._GOTO_SECONDS_TOLERANCE):
+                                            self._mode = AxisMotionMode.STOP
+                                            self._goto_target = None
+                                            self._goto_direction = None
+                                            self._do_resume_to_tracking()
+                                        else:
+                                            self._run_goto_to(self._goto_target)
+                    
+                    if need_to_compensate:
+                        with self._motor_lock:
+                            current_motor_position = self._motor.convert_steps_to_position(self._motor.status().steps)
+                            motor_position_update_s = Second.monotonic()
+                            elapsed_s = motor_position_update_s - self._last_motor_position_update_s
 
-                        delta = self.POS_CLS(self._motor.FORWARD_POSITION_SIGN * float(actual_delta - expected_delta))
-                        
-                        # TODO: Add wrapping, if wrap happens in dec axis, we need to add to RA axis +12 hours
-                        self._set_current_position(
-                            self._get_current_position() + delta
-                        )
-                        
-                        self._last_motor_position = current_motor_position
-                        self._last_motor_position_update_s = motor_position_update_s
+                            expected_delta = self._sky_speed * elapsed_s
+                            actual_delta = (current_motor_position - self._last_motor_position).moving_wrap()
 
-            except:
-                logger.exception("While processing step: ")
+                            delta = self.POS_CLS(self._motor.FORWARD_POSITION_SIGN * float(actual_delta - expected_delta))
+                            
+                            # TODO: Add wrapping, if wrap happens in dec axis, we need to add to RA axis +12 hours
+                            self._set_current_position(
+                                self._get_current_position() + delta
+                            )
+                            
+                            self._last_motor_position = current_motor_position
+                            self._last_motor_position_update_s = motor_position_update_s
+
+                except EXCEPTIONS_TO_CLOSE:
+                    logger.exception("While processing mode: %s", self._mode)
+            
+            except Exception:
+                if not self._connected:
+                    logger.debug("Connection is closed, stop working")
+                    break
+                else:
+                    logger.exception("While processing")
+                    raise
 
         logger.info("Stop working")
 

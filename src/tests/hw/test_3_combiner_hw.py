@@ -110,6 +110,7 @@ def _do_reset(comb: Combiner) -> None:
     comb.set_position(ZERO_POSITION)
     # Force polar compensator to reset to default speeds on next iteration
     comb._polar_compensator.last_guide_pulse = Second(0)
+    _wait_while_queue_empty(comb, COMMAND_PROCESS_TIMEOUT_S * 5)
     _wait_for_position_near(
         comb,
         ZERO_POSITION,
@@ -120,6 +121,15 @@ def _do_reset(comb: Combiner) -> None:
     _wait_for_tracking_mode(comb, COMMAND_PROCESS_TIMEOUT_S)
     assert comb.ra.mode() == AxisMotionMode.TRACK
     assert comb.dec.mode() == AxisMotionMode.TRACK
+
+
+def _wait_while_queue_empty(comb: Combiner, timeout_s: float) -> None:
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        if comb.ra._queue.empty() and comb.dec._queue.empty():
+            return
+        time.sleep(POLL_INTERVAL_S)
+    pytest.fail("Queue did not empty in time")
 
 
 def _wait_for_tracking_mode(comb: Combiner, timeout_s: float) -> None:
