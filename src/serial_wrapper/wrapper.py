@@ -78,6 +78,9 @@ class SerialLine:
             time.sleep(0.5)
 
     def connect(self):
+        serial_obj = getattr(self, "serial", None)
+        if serial_obj is not None and serial_obj.is_open:
+            serial_obj.close()
         self.serial = serial.Serial(port=self.port, baudrate=self.baud, timeout=self.timeout_s)
         self.logger.info("Connected to %s:%s (timeout=%d)", self.port, self.baud, self.timeout_s)
 
@@ -103,7 +106,7 @@ class SerialLine:
             if timeout is not None:
                 self.serial.timeout = _timeout
 
-        responce = line.decode(self.encoding)
+        responce = line.decode(self.encoding, errors="ignore")
         self.logger.debug("Receive `%r`", responce)
 
         return responce
@@ -120,7 +123,7 @@ class SerialLine:
                 if timeout is not None:
                     self.serial.timeout = _timeout
             
-            lines = [line.decode(self.encoding) for line in data.split(self.terminator)]
+            lines = [line.decode(self.encoding, errors="ignore") for line in data.split(self.terminator)]
 
             self.logger.debug("Receive all data from input:\n%s", lines)
 
