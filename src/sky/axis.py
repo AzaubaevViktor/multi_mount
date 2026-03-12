@@ -46,6 +46,15 @@ class PointCoordinates:
     
 
 class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
+    """Motor axis with position tracking and motion conversion.
+
+    Invariants:
+    - After any action (SLEW, GOTO, HALT) completes, the axis returns to TRACK mode
+      when _sky_speed != 0. The mount resumes tracking automatically.
+    - _last_motor_position and _last_motor_position_update_s are kept in sync for
+      compensation; they are updated on GOTO completion and in TRACK mode.
+    """
+
     axis: AxisName
     POS_CLS: type[_POS_CLS]
     SPEED_CLS: type[_SPEED_CLS]
@@ -152,6 +161,11 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
             return -speed
 
     def _do_resume_to_tracking(self) -> None:
+        if float(self._sky_speed) == 0:
+            with self._motor_lock:
+                self._motor.wait_till_stop()
+            self._mode = AxisMotionMode.TRACK
+            return
         if float(self._sky_speed) > 0:
             direction = MotorDirection.FORWARD
         elif float(self._sky_speed) < 0:
@@ -321,11 +335,15 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                             with self._motor_lock:
                                 self._motor.wait_till_stop()
                                 self._mode = AxisMotionMode.STOP
+                                self._move_direction = None
+                                self._do_resume_to_tracking()
                     
                     case AxisCommandType.HALT_ALL:
                         with self._motor_lock:
                             self._motor.wait_till_stop()
                             self._mode = AxisMotionMode.STOP
+                            self._move_direction = None
+                            self._do_resume_to_tracking()
 
                 if return_to_tracking is not None and return_to_tracking:
                     self._do_resume_to_tracking()
@@ -368,10 +386,13 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                                 
                                 if need_to_stop:
                                     self._motor.wait_till_stop()
+                                    self._last_motor_position = self._motor.convert_steps_to_position(self._motor.status().steps)
+                                    self._last_motor_position_update_s = Second.monotonic()
                                     if abs(current_position - self._goto_target) < self.POS_CLS(self._GOTO_SECONDS_TOLERANCE):
                                         self._mode = AxisMotionMode.STOP
                                         self._goto_target = None
                                         self._goto_direction = None
+                                        self._do_resume_to_tracking()
                                     else:
                                         self._run_goto_to(self._goto_target)
                 

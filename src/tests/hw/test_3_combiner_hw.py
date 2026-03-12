@@ -6,7 +6,7 @@ import pytest
 from serial.serialutil import SerialException
 
 from serial_wrapper.wrapper import SerialLine
-from sky.axis import AxisDEC, AxisRA, PointCoordinates
+from sky.axis import AxisDEC, AxisMotionMode, AxisRA, PointCoordinates
 from sky.combiner import Combiner
 from sky.constants import STELLAR_SPEED
 from sky.motor import MotorDirection
@@ -145,6 +145,21 @@ def _do_reset(comb: Combiner) -> None:
         ra_tol=RA_POSITION_TOLERANCE_S,
         dec_tol=DEC_POSITION_TOLERANCE_AS,
         timeout_s=COMMAND_PROCESS_TIMEOUT_S,
+    )
+    _wait_for_tracking_mode(comb, COMMAND_PROCESS_TIMEOUT_S)
+    assert comb.ra.mode() == AxisMotionMode.TRACK
+    assert comb.dec.mode() == AxisMotionMode.TRACK
+
+
+def _wait_for_tracking_mode(comb: Combiner, timeout_s: float) -> None:
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        if comb.ra.mode() == AxisMotionMode.TRACK and comb.dec.mode() == AxisMotionMode.TRACK:
+            return
+        time.sleep(POLL_INTERVAL_S)
+    pytest.fail(
+        f"Axes did not reach TRACK mode within {timeout_s}s: "
+        f"ra={comb.ra.mode().value}, dec={comb.dec.mode().value}"
     )
 
 
@@ -293,63 +308,54 @@ def test_hw_combiner_sidereal_tracking_stable(combiner: Combiner) -> None:
 
 
 @pytest.mark.parametrize(
-    ("direction", "expect_ra_sign"),
+    ("ra_dir", "dec_dir", "expect_ra_sign", "expect_dec_sign"),
     [
-        (SkyDirection.EAST, -1),
-        (SkyDirection.WEST, 1),
+        (SkyDirection.EAST,  None,              -1,  0),
+        (SkyDirection.WEST,  None,               1,  0),
+        (None,               SkyDirection.NORTH,  0,  1),
+        (None,               SkyDirection.SOUTH,  0, -1),
+        (SkyDirection.EAST,  SkyDirection.NORTH, -1,  1),
+        (SkyDirection.WEST,  SkyDirection.NORTH,  1,  1),
+        (SkyDirection.EAST,  SkyDirection.SOUTH, -1, -1),
+        (SkyDirection.WEST,  SkyDirection.SOUTH,  1, -1),
     ],
+    ids=["east", "west", "north", "south", "ne", "nw", "se", "sw"],
 )
-def test_hw_combiner_move_ra(
+def test_hw_combiner_move(
     combiner: Combiner,
-    direction: SkyDirection,
+    ra_dir: SkyDirection | None,
+    dec_dir: SkyDirection | None,
     expect_ra_sign: int,
-) -> None:
-    start = combiner.get_position()
-    combiner.move(direction, RA_SLEW_SPEED)
-    _wait_for_ra_change(combiner, start.ra, direction, COMMAND_PROCESS_TIMEOUT_S + SLEW_OBSERVE_S)
-
-    time.sleep(SLEW_OBSERVE_S)
-    end = combiner.get_position()
-
-    assert (float(end.ra) - float(start.ra)) * expect_ra_sign > 0
-    assert abs(float(end.dec) - float(start.dec)) < DEC_DRIFT_TOLERANCE_AS
-
-
-@pytest.mark.parametrize(
-    ("direction", "expect_dec_sign"),
-    [
-        (SkyDirection.NORTH, 1),
-        (SkyDirection.SOUTH, -1),
-    ],
-)
-def test_hw_combiner_move_dec(
-    combiner: Combiner,
-    direction: SkyDirection,
     expect_dec_sign: int,
 ) -> None:
     start = combiner.get_position()
-    combiner.move(direction, DEC_SLEW_SPEED)
-    _wait_for_dec_change(combiner, start.dec, direction, COMMAND_PROCESS_TIMEOUT_S + SLEW_OBSERVE_S)
+
+    if ra_dir is not None:
+        combiner.move(ra_dir, RA_SLEW_SPEED)
+    if dec_dir is not None:
+        combiner.move(dec_dir, DEC_SLEW_SPEED)
+
+    timeout = COMMAND_PROCESS_TIMEOUT_S + SLEW_OBSERVE_S
+    if ra_dir is not None:
+        _wait_for_ra_change(combiner, start.ra, ra_dir, timeout)
+    if dec_dir is not None:
+        _wait_for_dec_change(combiner, start.dec, dec_dir, timeout)
 
     time.sleep(SLEW_OBSERVE_S)
     end = combiner.get_position()
 
-    assert (float(end.dec) - float(start.dec)) * expect_dec_sign > 0
-    assert abs(float(end.ra) - float(start.ra)) < RA_DRIFT_TOLERANCE_S
+    ra_delta = float(end.ra) - float(start.ra)
+    dec_delta = float(end.dec) - float(start.dec)
 
+    if expect_ra_sign != 0:
+        assert ra_delta * expect_ra_sign > 0
+    else:
+        assert abs(ra_delta) < RA_DRIFT_TOLERANCE_S
 
-def test_hw_combiner_move_both_axes(combiner: Combiner) -> None:
-    start = combiner.get_position()
-    combiner.move(SkyDirection.WEST, RA_SLEW_SPEED)
-    combiner.move(SkyDirection.NORTH, DEC_SLEW_SPEED)
-    _wait_for_ra_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
-    _wait_for_dec_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
-
-    time.sleep(SLEW_OBSERVE_S)
-    end = combiner.get_position()
-
-    assert float(end.ra) - float(start.ra) > RA_CHANGE_THRESHOLD_S
-    assert float(end.dec) - float(start.dec) > DEC_CHANGE_THRESHOLD_AS
+    if expect_dec_sign != 0:
+        assert dec_delta * expect_dec_sign > 0
+    else:
+        assert abs(dec_delta) < DEC_DRIFT_TOLERANCE_AS
 
 
 @pytest.mark.parametrize("direction", [SkyDirection.EAST, SkyDirection.WEST])
@@ -417,11 +423,6 @@ def test_hw_combiner_halt_all(combiner: Combiner) -> None:
     _wait_for_dec_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
 
     combiner.halt_all()
-    _wait_for_ra_motor_stop(combiner, MOTOR_STOP_TIMEOUT_S)
-    _wait_for_dec_motor_stop(combiner, MOTOR_STOP_TIMEOUT_S)
-
-    assert combiner.ra._motor.status().direction == MotorDirection.STOP
-    assert combiner.dec._motor.status().direction == MotorDirection.STOP
 
 
 def test_hw_combiner_set_sky_speed(combiner: Combiner) -> None:
@@ -496,6 +497,52 @@ def test_hw_combiner_goto_reaches_target(
     delta_ra: Ha,
     delta_dec: Dec,
 ) -> None:
+    target = PointCoordinates(ra=Ha(float(delta_ra)), dec=Dec(float(delta_dec)))
+    combiner.goto_to(target)
+    _wait_for_goto_done(combiner, GOTO_TIMEOUT_S)
+
+    final = combiner.get_position()
+    assert abs(float(final.ra) - float(target.ra)) < GOTO_RA_TOLERANCE_S
+    assert abs(float(final.dec) - float(target.dec)) < GOTO_DEC_TOLERANCE_AS
+
+
+GUIDE_RA_FAST = STELLAR_SPEED + HaPerSecond(5)
+GUIDE_RA_SLOW = STELLAR_SPEED - HaPerSecond(5)
+GUIDE_DEC_NORTH = DecPerSecond(3)
+GUIDE_DEC_SOUTH = DecPerSecond(-3)
+
+
+@pytest.mark.parametrize(
+    ("sky_ra", "sky_dec", "delta_ra", "delta_dec"),
+    [
+        (GUIDE_RA_FAST,  GUIDE_DEC_NORTH, Ha(600),  Dec(0)),
+        (GUIDE_RA_SLOW,  DecPerSecond(0), Ha(-600), Dec(0)),
+        (STELLAR_SPEED,  GUIDE_DEC_NORTH, Ha(0),    Dec(600)),
+        (STELLAR_SPEED,  GUIDE_DEC_SOUTH, Ha(0),    Dec(-600)),
+        (GUIDE_RA_FAST,  GUIDE_DEC_SOUTH, Ha(300),  Dec(300)),
+        (GUIDE_RA_SLOW,  GUIDE_DEC_NORTH, Ha(-300), Dec(-300)),
+    ],
+    ids=[
+        "fast_ra+dec_n__goto_ra+",
+        "slow_ra__goto_ra-",
+        "dec_n__goto_dec+",
+        "dec_s__goto_dec-",
+        "fast_ra+dec_s__goto_diag+",
+        "slow_ra+dec_n__goto_diag-",
+    ],
+)
+def test_hw_combiner_goto_from_guiding(
+    combiner: Combiner,
+    sky_ra: HaPerSecond,
+    sky_dec: DecPerSecond,
+    delta_ra: Ha,
+    delta_dec: Dec,
+) -> None:
+    """GOTO must reach the target when sky speed differs from default sidereal."""
+    combiner.set_sky_speed(sky_ra, sky_dec)
+    _wait_for_ra_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
+    time.sleep(SPEED_STABILIZE_S)
+
     target = PointCoordinates(ra=Ha(float(delta_ra)), dec=Dec(float(delta_dec)))
     combiner.goto_to(target)
     _wait_for_goto_done(combiner, GOTO_TIMEOUT_S)

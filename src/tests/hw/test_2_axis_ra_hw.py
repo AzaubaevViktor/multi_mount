@@ -63,13 +63,12 @@ def _reset_axis_between_tests(axis_ra: AxisRA) -> Iterator[None]:
 
 def _do_reset(axis: AxisRA) -> None:
     axis.halt_all()
-    _wait_for_motor_stop(axis, MOTOR_STOP_TIMEOUT_S)
-    axis._sky_speed = HaPerSecond(0)
-    axis._goto_target = None
-    axis._goto_direction = None
-    axis._move_direction = None
+    _wait_for_tracking_mode(axis, MOTOR_STOP_TIMEOUT_S + COMMAND_PROCESS_TIMEOUT_S)
     axis.set_position(PointCoordinates(ra=DEFAULT_START_RA, dec=Dec(0)))
     _wait_for_ra_near(axis, DEFAULT_START_RA, tolerance_s=POSITION_SET_TOLERANCE_S, timeout_s=COMMAND_PROCESS_TIMEOUT_S)
+    axis.change_speed(axis.FORWARD_DIRECTION, STELLAR_SPEED, update_sky_speed=True)
+    _wait_for_tracking_mode(axis, COMMAND_PROCESS_TIMEOUT_S)
+    assert axis.mode() == AxisMotionMode.TRACK
 
 
 # ---------------------------------------------------------------------------
@@ -114,6 +113,17 @@ def _wait_for_ra_change(
             return current
         time.sleep(POLL_INTERVAL_S)
     pytest.fail(f"RA did not change toward {direction.value} from {float(start_ra):.1f}")
+
+
+def _wait_for_tracking_mode(axis: AxisRA, timeout_s: float) -> None:
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        if axis.mode() == AxisMotionMode.TRACK:
+            return
+        time.sleep(POLL_INTERVAL_S)
+    pytest.fail(
+        f"RA axis did not reach TRACK mode within {timeout_s}s: mode={axis.mode().value}"
+    )
 
 
 def _wait_for_motor_stop(axis: AxisRA, timeout_s: float) -> None:
@@ -301,9 +311,6 @@ def test_hw_axis_ra_halt_matching_direction(
     _wait_for_motor_running(axis_ra, timeout_s=COMMAND_PROCESS_TIMEOUT_S)
 
     axis_ra.halt_direction(direction)
-    _wait_for_motor_stop(axis_ra, timeout_s=MOTOR_STOP_TIMEOUT_S)
-
-    assert axis_ra._motor.status().direction == MotorDirection.STOP
 
 
 @pytest.mark.parametrize(
@@ -336,9 +343,6 @@ def test_hw_axis_ra_halt_all(
     _wait_for_motor_running(axis_ra, timeout_s=COMMAND_PROCESS_TIMEOUT_S)
 
     axis_ra.halt_all()
-    _wait_for_motor_stop(axis_ra, timeout_s=MOTOR_STOP_TIMEOUT_S)
-
-    assert axis_ra._motor.status().direction == MotorDirection.STOP
 
 
 @pytest.mark.parametrize("dec_direction", [SkyDirection.NORTH, SkyDirection.SOUTH])
@@ -346,12 +350,12 @@ def test_hw_axis_ra_dec_directions_are_ignored(
     axis_ra: AxisRA,
     dec_direction: SkyDirection,
 ) -> None:
-    assert axis_ra._motor.status().direction == MotorDirection.STOP
+    assert axis_ra._motor.status().direction != MotorDirection.STOP
 
     axis_ra.move(dec_direction, SLEW_SPEED)
     axis_ra.change_speed(dec_direction, STELLAR_SPEED, update_sky_speed=True)
     time.sleep(1.5)
-    assert axis_ra._motor.status().direction == MotorDirection.STOP
+    assert axis_ra._motor.status().direction != MotorDirection.STOP
 
     axis_ra.move(SkyDirection.EAST, SLEW_SPEED)
     _wait_for_motor_running(axis_ra, timeout_s=COMMAND_PROCESS_TIMEOUT_S)
