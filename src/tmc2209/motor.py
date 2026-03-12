@@ -97,6 +97,8 @@ class _Status:
 
 class TMC2209Motor(Motor[Dec, DecPerSecond]):
     FORWARD_POSITION_SIGN = 1
+    _READY_RETRIES = 3
+    _READY_TIMEOUT_S = 10.0
 
     def __init__(self, serial: SerialLine) -> None:
         self._serial = serial
@@ -106,11 +108,24 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         self._direction = MotorDirection.STOP
 
     def connect(self):
-        self._serial.connect()
-        ready = self._serial.query(None, timeout=10)
-        if ready.strip() != "ready":
-            raise TMC2209MotorProtocolError(f"device not ready: {ready!r}")
-        self._is_connected = True
+        ready = ""
+        for attempt in range(self._READY_RETRIES):
+            self._serial.connect()
+            self._serial.reset()
+            self._serial.read_all_data()
+
+            deadline = time.monotonic() + self._READY_TIMEOUT_S
+            while time.monotonic() < deadline:
+                ready = self._serial.query(None, timeout=1)
+                if ready and ready.strip() == "ready":
+                    self._is_connected = True
+                    return
+
+            self._serial.close()
+            if attempt < self._READY_RETRIES - 1:
+                time.sleep(0.5)
+
+        raise TMC2209MotorProtocolError(f"device not ready: {ready!r}")
 
     def disconnect(self) -> bool:
         self._is_connected = False

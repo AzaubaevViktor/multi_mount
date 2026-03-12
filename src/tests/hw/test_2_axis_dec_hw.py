@@ -81,7 +81,8 @@ def _do_reset(axis: AxisDEC) -> None:
     _wait_for_tracking_mode(axis, MOTOR_STOP_TIMEOUT_S + COMMAND_PROCESS_TIMEOUT_S)
     axis.set_position(PointCoordinates(ra=Ha(0), dec=DEFAULT_START_DEC))
     _wait_for_dec_near(axis, DEFAULT_START_DEC, tolerance_as=POSITION_SET_TOLERANCE_AS, timeout_s=COMMAND_PROCESS_TIMEOUT_S)
-    axis.change_speed(axis.FORWARD_DIRECTION, DEC_TRACK_SPEED, update_sky_speed=True)
+    axis.change_speed(axis.FORWARD_DIRECTION, DecPerSecond(0), update_sky_speed=True)
+    _wait_for_motor_stop(axis, COMMAND_PROCESS_TIMEOUT_S)
     _wait_for_tracking_mode(axis, COMMAND_PROCESS_TIMEOUT_S)
     assert axis.mode() == AxisMotionMode.TRACK
 
@@ -159,6 +160,19 @@ def _wait_for_motor_running(axis: AxisDEC, timeout_s: float) -> None:
     pytest.fail("Motor did not start running in time")
 
 
+def _wait_for_motor_direction(
+    axis: AxisDEC,
+    expected_direction: MotorDirection,
+    timeout_s: float,
+) -> None:
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        if axis._motor.status().direction == expected_direction:
+            return
+        time.sleep(POLL_INTERVAL_S)
+    pytest.fail(f"Motor did not reach {expected_direction.value} direction in time")
+
+
 def _wait_for_goto_done(axis: AxisDEC, timeout_s: float) -> None:
     deadline = time.monotonic() + timeout_s
     while time.monotonic() < deadline:
@@ -212,7 +226,7 @@ def test_hw_axis_dec_track_at_speed(
     expected_motor_direction: MotorDirection,
 ) -> None:
     axis_dec.change_speed(direction, DEC_TRACK_SPEED, update_sky_speed=True)
-    _wait_for_motor_running(axis_dec, timeout_s=COMMAND_PROCESS_TIMEOUT_S)
+    _wait_for_motor_direction(axis_dec, expected_motor_direction, timeout_s=COMMAND_PROCESS_TIMEOUT_S)
 
     status = axis_dec._motor.status()
     assert status.direction == expected_motor_direction
@@ -340,7 +354,8 @@ def test_hw_axis_dec_halt_non_matching_direction_is_ignored(
     halt_direction: SkyDirection,
 ) -> None:
     axis_dec.move(move_direction, SLEW_SPEED)
-    _wait_for_motor_running(axis_dec, timeout_s=COMMAND_PROCESS_TIMEOUT_S)
+    expected_direction = MotorDirection.FORWARD if move_direction == SkyDirection.NORTH else MotorDirection.BACKWARD
+    _wait_for_motor_direction(axis_dec, expected_direction, timeout_s=COMMAND_PROCESS_TIMEOUT_S)
 
     axis_dec.halt_direction(halt_direction)
     time.sleep(1.5)
@@ -364,15 +379,15 @@ def test_hw_axis_dec_ra_directions_are_ignored(
     axis_dec: AxisDEC,
     ra_direction: SkyDirection,
 ) -> None:
-    assert axis_dec._motor.status().direction != MotorDirection.STOP
+    assert axis_dec._motor.status().direction == MotorDirection.STOP
 
     axis_dec.move(ra_direction, SLEW_SPEED)
     axis_dec.change_speed(ra_direction, DEC_TRACK_SPEED, update_sky_speed=True)
     time.sleep(1.5)
-    assert axis_dec._motor.status().direction != MotorDirection.STOP
+    assert axis_dec._motor.status().direction == MotorDirection.STOP
 
     axis_dec.move(SkyDirection.NORTH, SLEW_SPEED)
-    _wait_for_motor_running(axis_dec, timeout_s=COMMAND_PROCESS_TIMEOUT_S)
+    _wait_for_motor_direction(axis_dec, MotorDirection.FORWARD, timeout_s=COMMAND_PROCESS_TIMEOUT_S)
     axis_dec.halt_direction(ra_direction)
     time.sleep(1.5)
     assert axis_dec._motor.status().direction != MotorDirection.STOP
