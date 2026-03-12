@@ -9,14 +9,20 @@ from sky.constants import STELLAR_SPEED
 from sky.motor import MotorDirection
 from sky.physics import Dec, Ha, HaPerSecond, SkyDirection
 from skywatcher.motor import SkyWatcherMotor
+from tests.hw._axis_motor_helpers import (
+    POLL_INTERVAL_S,
+    _measure_motor_speed_sps,
+    _wait_for_goto_done,
+    _wait_for_motor_running,
+    _wait_for_motor_stop,
+    _wait_for_tracking_mode,
+)
 
 
 DEVICE_PATTERN = "PL2303G-USBtoUART"
 SERIAL_BAUD = 112500
 SERIAL_TIMEOUT_S = 0.2
 SERIAL_NAME = "skywatcher_axis_ra"
-
-POLL_INTERVAL_S = 0.2
 COMMAND_PROCESS_TIMEOUT_S = 5.0
 MOTOR_STOP_TIMEOUT_S = 10.0
 GOTO_TIMEOUT_S = 60.0
@@ -116,59 +122,8 @@ def _wait_for_ra_change(
     pytest.fail(f"RA did not change toward {direction.value} from {float(start_ra):.1f}")
 
 
-def _wait_for_tracking_mode(axis: AxisRA, timeout_s: float) -> None:
-    deadline = time.monotonic() + timeout_s
-    while time.monotonic() < deadline:
-        if axis.mode() == AxisMotionMode.TRACK:
-            return
-        time.sleep(POLL_INTERVAL_S)
-    pytest.fail(
-        f"RA axis did not reach TRACK mode within {timeout_s}s: mode={axis.mode().value}"
-    )
-
-
-def _wait_for_motor_stop(axis: AxisRA, timeout_s: float) -> None:
-    deadline = time.monotonic() + timeout_s
-    while time.monotonic() < deadline:
-        if axis._motor.status().direction == MotorDirection.STOP:
-            return
-        time.sleep(POLL_INTERVAL_S)
-    pytest.fail("Motor did not stop in time")
-
-
-def _wait_for_motor_running(axis: AxisRA, timeout_s: float) -> None:
-    deadline = time.monotonic() + timeout_s
-    while time.monotonic() < deadline:
-        if axis._motor.status().direction != MotorDirection.STOP:
-            return
-        time.sleep(POLL_INTERVAL_S)
-    pytest.fail("Motor did not start running in time")
-
-
 def _wait_for_goto_done(axis: AxisRA, timeout_s: float) -> None:
-    deadline = time.monotonic() + timeout_s
-    # Phase 1: wait for GOTO to actually start (command is async)
-    while time.monotonic() < deadline:
-        if axis.is_moving_to():
-            break
-        time.sleep(POLL_INTERVAL_S)
-    else:
-        pytest.fail("GOTO never started")
-    # Phase 2: wait for GOTO to finish
-    while time.monotonic() < deadline:
-        if not axis.is_moving_to():
-            return
-        time.sleep(POLL_INTERVAL_S)
-    pytest.fail("GOTO did not complete in time")
-
-
-def _measure_motor_speed_sps(axis: AxisRA, duration_s: float) -> float:
-    steps1 = axis._motor.status().steps
-    t1 = time.monotonic()
-    time.sleep(duration_s)
-    steps2 = axis._motor.status().steps
-    t2 = time.monotonic()
-    return abs(steps2 - steps1) / (t2 - t1)
+    _wait_for_goto_done(axis, timeout_s)
 
 
 # ---------------------------------------------------------------------------

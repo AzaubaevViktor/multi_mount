@@ -8,6 +8,14 @@ from serial_wrapper.wrapper import SerialLine
 from sky.axis import AxisMotionMode, AxisDEC, PointCoordinates
 from sky.motor import MotorDirection
 from sky.physics import Dec, DecPerSecond, Ha, SkyDirection
+from tests.hw._axis_motor_helpers import (
+    POLL_INTERVAL_S,
+    _measure_motor_speed_sps,
+    _wait_for_goto_done,
+    _wait_for_motor_running,
+    _wait_for_motor_stop,
+    _wait_for_tracking_mode,
+)
 from tmc2209.motor import TMC2209Motor, TMC2209MotorProtocolError
 
 
@@ -18,7 +26,6 @@ SERIAL_NAME = "tmc2209_axis_dec"
 CONNECT_ATTEMPTS = 3
 READY_TIMEOUT_S = 10.0
 
-POLL_INTERVAL_S = 0.2
 COMMAND_PROCESS_TIMEOUT_S = 5.0
 MOTOR_STOP_TIMEOUT_S = 10.0
 GOTO_TIMEOUT_S = 60.0
@@ -131,35 +138,6 @@ def _wait_for_dec_change(
     pytest.fail(f"DEC did not change toward {direction.value} from {float(start_dec):.1f}")
 
 
-def _wait_for_tracking_mode(axis: AxisDEC, timeout_s: float) -> None:
-    deadline = time.monotonic() + timeout_s
-    while time.monotonic() < deadline:
-        if axis.mode() == AxisMotionMode.TRACK:
-            return
-        time.sleep(POLL_INTERVAL_S)
-    pytest.fail(
-        f"DEC axis did not reach TRACK mode within {timeout_s}s: mode={axis.mode().value}"
-    )
-
-
-def _wait_for_motor_stop(axis: AxisDEC, timeout_s: float) -> None:
-    deadline = time.monotonic() + timeout_s
-    while time.monotonic() < deadline:
-        if axis._motor.status().direction == MotorDirection.STOP:
-            return
-        time.sleep(POLL_INTERVAL_S)
-    pytest.fail("Motor did not stop in time")
-
-
-def _wait_for_motor_running(axis: AxisDEC, timeout_s: float) -> None:
-    deadline = time.monotonic() + timeout_s
-    while time.monotonic() < deadline:
-        if axis._motor.status().direction != MotorDirection.STOP:
-            return
-        time.sleep(POLL_INTERVAL_S)
-    pytest.fail("Motor did not start running in time")
-
-
 def _wait_for_motor_direction(
     axis: AxisDEC,
     expected_direction: MotorDirection,
@@ -171,30 +149,6 @@ def _wait_for_motor_direction(
             return
         time.sleep(POLL_INTERVAL_S)
     pytest.fail(f"Motor did not reach {expected_direction.value} direction in time")
-
-
-def _wait_for_goto_done(axis: AxisDEC, timeout_s: float) -> None:
-    deadline = time.monotonic() + timeout_s
-    while time.monotonic() < deadline:
-        if axis.is_moving_to():
-            break
-        time.sleep(POLL_INTERVAL_S)
-    else:
-        pytest.fail("GOTO never started")
-    while time.monotonic() < deadline:
-        if not axis.is_moving_to():
-            return
-        time.sleep(POLL_INTERVAL_S)
-    pytest.fail("GOTO did not complete in time")
-
-
-def _measure_motor_speed_sps(axis: AxisDEC, duration_s: float) -> float:
-    steps1 = axis._motor.status().steps
-    t1 = time.monotonic()
-    time.sleep(duration_s)
-    steps2 = axis._motor.status().steps
-    t2 = time.monotonic()
-    return abs(steps2 - steps1) / (t2 - t1)
 
 
 # ---------------------------------------------------------------------------
