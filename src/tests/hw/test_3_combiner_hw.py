@@ -485,7 +485,9 @@ def test_hw_combiner_set_sky_speed(combiner: Combiner) -> None:
 
 
 def test_hw_combiner_set_moving_speed(combiner: Combiner) -> None:
-    combiner.set_moving_speed(RA_SLEW_SPEED, DEC_SLEW_SPEED)
+    combiner.move(SkyDirection.EAST, RA_SLEW_SPEED)
+    combiner.move(SkyDirection.NORTH, DEC_SLEW_SPEED)
+
     _wait_for_ra_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
     _wait_for_dec_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
 

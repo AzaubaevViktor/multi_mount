@@ -15,6 +15,7 @@ from tests.hw._axis_motor_helpers import (
     _wait_for_motor_running,
     _wait_for_motor_stop,
     _wait_for_tracking_mode,
+    _wait_for_goto_done,
 )
 
 
