@@ -123,7 +123,7 @@ class PolarCompensator:
         else:
             self.stable_guide_ra_pulses_count = 0
 
-        self.logger.debug("RA (%d/%d) guide speed: %s -> %s", self.stable_guide_ra_pulses_count, self.STABLE_GUIDE_PULSES_COUNT, prev_speed, speed)
+        self.logger.info("RA (%d/%d) guide speed: %s -> %s", self.stable_guide_ra_pulses_count, self.STABLE_GUIDE_PULSES_COUNT, prev_speed, speed)
         
         self.ra_speed = speed
 
@@ -141,7 +141,7 @@ class PolarCompensator:
         else:
             self.stable_guide_dec_pulses_count = 0
         
-        self.logger.debug("DEC (%d/%d) guide speed: %s -> %s", self.stable_guide_dec_pulses_count, self.STABLE_GUIDE_PULSES_COUNT, prev_speed, speed)
+        self.logger.info("DEC (%d/%d) guide speed: %s -> %s", self.stable_guide_dec_pulses_count, self.STABLE_GUIDE_PULSES_COUNT, prev_speed, speed)
 
         self.dec_speed = speed
 
@@ -157,22 +157,27 @@ class PolarCompensator:
         is_stable_guide = self.stable_guide_ra_pulses_count >= self.STABLE_GUIDE_PULSES_COUNT and self.stable_guide_dec_pulses_count >= self.STABLE_GUIDE_PULSES_COUNT
 
         if not is_external_guide and is_stable_guide:
-            if self.eps_E is None or self.eps_N is None:
+            try:
                 self.eps_E, self.eps_N = self.get_polar_offset()
-                self.logger.debug("Polar offset: ε_E: %s, ε_N: %s", self.eps_E, self.eps_N)
+                self.logger.info("Polar offset: ε_E: %s, ε_N: %s", self.eps_E, self.eps_N)
+            except ValueError as e:
+                self.logger.exception("Error getting polar offset:\n    %s", e)
+                return None
 
             ha_speed, dec_speed = compute_guide_speeds(self.eps_E, self.eps_N, self.current_ha, self.current_dec)
-            self.logger.debug("Guide speeds: %s, %s (from ε_E: %s, ε_N: %s) for HA: %s, DEC: %s", ha_speed, dec_speed, self.eps_E, self.eps_N, self.current_ha, self.current_dec)
+            self.logger.info("Guide speeds: %s, %s (from ε_E: %s, ε_N: %s) for HA: %s, DEC: %s", ha_speed, dec_speed, self.eps_E, self.eps_N, self.current_ha, self.current_dec)
             return ha_speed, dec_speed
 
         if not is_stable_guide and not is_external_guide:
             self.ra_speed = STELLAR_SPEED
             self.dec_speed = DecPerSecond(0)
             self.eps_E = None
-            self.eps_N = None
-            self.logger.info("No guide pulses for %.1fs, reset guide speeds to sidereal", Second.monotonic() - self.last_guide_pulse)
-            return STELLAR_SPEED, DecPerSecond(0)
+            if self.eps_N is not None or self.eps_E is not None:
+                self.logger.info("No guide pulses for %.1fs, reset guide speeds to sidereal", Second.monotonic() - self.last_guide_pulse)
+                self.eps_N = None
+                self.eps_E = None
+                return STELLAR_SPEED, DecPerSecond(0)
         
-        self.logger.debug("No guide speeds: external guide: %s, stable guide: %s", is_external_guide, is_stable_guide)
+        self.logger.info("No guide speeds: external guide: %s, stable guide: %s", is_external_guide, is_stable_guide)
 
         return None

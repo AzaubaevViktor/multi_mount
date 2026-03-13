@@ -347,6 +347,12 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
 
                 return_to_tracking: None | bool = None  # None - not decided, True - return to tracking, False - do not return to tracking
 
+                prev_mode = self._mode
+                prev_sky_speed = self._sky_speed
+                prev_goto_target = self._goto_target
+                prev_goto_direction = self._goto_direction
+                prev_position = (self._ra_position, self._dec_position)
+                
                 if command:
                     try:
                         self._mc_logger.info("Processing command: %s", command)
@@ -407,8 +413,20 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                 try:
                     need_to_compensate = False
 
-                    prev_mode = self._mode
-                    self._mc_logger.info("Mode: %s -> %s", prev_mode, self._mode)
+                    if prev_mode != self._mode:
+                        self._mc_logger.info("Mode changed: %s -> %s", prev_mode, self._mode)
+                    
+                    if prev_sky_speed != self._sky_speed:
+                        self._mc_logger.debug("Sky speed: %s -> %s", prev_sky_speed, self._sky_speed)
+
+                    if prev_goto_target != self._goto_target:
+                        self._mc_logger.debug("GOTO target: %s -> %s", prev_goto_target, self._goto_target)
+
+                    if prev_goto_direction != self._goto_direction:
+                        self._mc_logger.debug("GOTO direction: %s -> %s", prev_goto_direction, self._goto_direction)
+                    
+                    if prev_position != (self._ra_position, self._dec_position):
+                        self._mc_logger.debug("RA: %s -> %s, DEC: %s -> %s", prev_position[0], self._ra_position, prev_position[1], self._dec_position)
 
                     match self._mode:
                         case AxisMotionMode.STOP:
@@ -466,7 +484,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                     self._mc_logger.debug("Processing mode done: %s -> %s, need to compensate: %s", prev_mode, self._mode, need_to_compensate)
 
                     if need_to_compensate:
-                        self._mc_logger.info("Compensating tracking")
+                        self._mc_logger.debug("Compensating tracking")
                         with self._motor_lock:
                             current_motor_position = self._motor.convert_steps_to_position(self._motor.status().steps)
                             motor_position_update_s = Second.monotonic()

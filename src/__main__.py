@@ -1,4 +1,12 @@
+from pathlib import Path
+import sys
 import threading
+
+SRC_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SRC_DIR.parent
+for path in (str(PROJECT_ROOT), str(SRC_DIR)):
+    if path not in sys.path:
+        sys.path.insert(0, path)
 
 from logging_setup import setup_logging
 from lx200.base_server import LX200SimpleServer
@@ -28,7 +36,7 @@ if __name__ == "__main__":
     combiner = Combiner(axis_ra, axis_dec)
     sky_lx200 = SkyLX200(combiner)
 
-    web_server = MonitorServer({"skywatcher_ra": sw_ra_motor}, port=8765)
+    web_server = MonitorServer({}, port=8765)
     threading.Thread(target=web_server.serve_forever, name="WEB_CONTROL", daemon=True).start()
 
     server = LX200SimpleServer(sky_lx200)

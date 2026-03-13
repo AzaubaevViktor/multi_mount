@@ -25,7 +25,7 @@ def compute_pole_offset(dec_drift: DecPerSecond, ra_drift: HaPerSecond, ha: Ha, 
 
     tan_dec = math.tan(dec)
     if abs(tan_dec) < 1e-6:
-        raise ValueError("Declination is too close to 0° - RA equation is degenerate")
+        raise ValueError("Move declination from the 0° (equaltor) - RA equation is degenerate")
 
     # Normalized right-hand sides
     rhs_dec = float(dec_drift) / float(STELLAR_SPEED.to_ha_deg_per_hour())  # from Dec equation

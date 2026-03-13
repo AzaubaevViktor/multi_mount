@@ -317,6 +317,11 @@ class HaPerSecond(AxisSpeed):
 
     def __truediv__(self, other: Any) -> Any:
         return super().__truediv__(other)
+    
+    def __repr__(self) -> str:
+        from sky.constants import STELLAR_SPEED
+        return f"<Ha/S (x{(self / STELLAR_SPEED):.1f}🌌) {self._total_ha_seconds_per_second:.6f}ha/s>"
+
 
 
 class HaDegPerHour(AxisSpeed):
