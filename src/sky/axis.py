@@ -231,7 +231,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                 self._mode = AxisMotionMode.STOP
                 self._motor.wait_till_stop()
 
-                if prev_mode != AxisMotionMode.STOP:
+                if prev_mode != AxisMotionMode.STOP and prev_mode != AxisMotionMode.TRACK:
                     return_to_tracking = True
 
         self._ra_position = position.ra
@@ -407,6 +407,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
 
                         if return_to_tracking is not None and return_to_tracking:
                             self._do_resume_to_tracking()
+
                     except EXCEPTIONS_TO_CLOSE:
                         self._mc_logger.exception("While processing command, skip: %s", command)
 
