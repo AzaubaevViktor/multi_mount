@@ -398,6 +398,8 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                                 if command.direction == self._move_direction:
                                     with self._motor_lock:
                                         return_to_tracking = self._run_halt_direction()
+                                else:
+                                    self.logger.warning("Ignore HALT_DIRECTION command for %s, because it's not the current move direction: %s -> %s", self.axis.value, self._move_direction, command.direction)
                             
                             case AxisCommandType.HALT_ALL:
                                 with self._motor_lock:
@@ -548,6 +550,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
     @_raise_if_thread_failed
     def halt_direction(self, direction: SkyDirection) -> None:
         if direction not in self.DIRECTIONS:
+            self.logger.warning("Ignore HALT_DIRECTION command for %s, because it's not the current move direction: %s (now %s from %s)", self.axis.value, direction, self._move_direction, self.DIRECTIONS)
             return
         self._queue.put(AxisCommand(AxisCommandType.HALT_DIRECTION, direction=direction))
     
