@@ -2,7 +2,7 @@ import logging
 import math
 
 from sky.constants import STELLAR_SPEED
-from sky.physics import DecPerSecond, HaPerSecond, Dec, Ha, Second
+from sky.physics import AxisSpeed, DecPerSecond, HaPerSecond, Dec, Ha, Second
 
 """
 Polar misalignment model.
@@ -110,6 +110,11 @@ class PolarCompensator:
     def update_position(self, ha: Ha, dec: Dec) -> None:
         self.current_ha = ha
         self.current_dec = dec
+
+
+    @staticmethod
+    def _clean(prev: AxisSpeed, current: AxisSpeed) -> AxisSpeed:
+        return (prev * 3 + current * 2) / 5
     
     def guide_ra(self, speed: HaPerSecond) -> None:
         prev_speed = self.ra_speed
@@ -128,7 +133,7 @@ class PolarCompensator:
 
         self.logger.info("RA (%d/%d) guide speed: %s -> %s", self.stable_guide_ra_pulses_count, self.STABLE_GUIDE_PULSES_COUNT, prev_speed, speed)
         
-        self.ra_speed = speed
+        self.ra_speed = self._clean(self.ra_speed, speed)
 
     def guide_dec(self, speed: DecPerSecond) -> None:
         prev_speed = self.dec_speed
@@ -147,7 +152,7 @@ class PolarCompensator:
         
         self.logger.info("DEC (%d/%d) guide speed: %s -> %s", self.stable_guide_dec_pulses_count, self.STABLE_GUIDE_PULSES_COUNT, prev_speed, speed)
 
-        self.dec_speed = speed
+        self.dec_speed = self._clean(self.dec_speed, speed)
 
     def get_polar_offset(self) -> tuple[Ha, Dec]:
         if self.stable_guide_ra_pulses_count < self.STABLE_GUIDE_PULSES_COUNT or self.stable_guide_dec_pulses_count < self.STABLE_GUIDE_PULSES_COUNT:
