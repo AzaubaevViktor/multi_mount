@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 import logging
 import queue
+import re
 import threading
 import time
 from typing import Any, Sequence
@@ -117,6 +118,12 @@ class LX200Base:
     
     def get_tracking_rate(self) -> str:
         return "60.0"
+
+    def set_minimum_elevation(self, position: Dec) -> bool:
+        return True
+
+    def set_highest_elevation(self, position: Dec) -> bool:
+        return True
     
     # Telecope control
     def get_telescope_ra(self) -> Ha:
@@ -581,6 +588,8 @@ class LX200Handler(LX200Base):
         self.logger = logging.getLogger(type(self).__name__)
         self._target_ra: Ha = Ha(0)
         self._target_dec: Dec = Dec(0)
+        self._minimum_elevation: Dec = Dec(0)
+        self._highest_elevation: Dec = Dec(90 * 60 * 60)
 
         self._manual_move_directions: list[SkyDirection] = []
 
@@ -689,6 +698,21 @@ class LX200Handler(LX200Base):
             case LX200Commands.SET_LOCAL_DATE, _:
                 result = True
 
+            case LX200Commands.SET_MINIMUM_ELEVATION, position:
+                match = re.fullmatch(r"([+-]?)(\d{2})\*", position)
+                if not match:
+                    result = False
+                else:
+                    sign = -1 if match.group(1) == "-" else 1
+                    result = self.set_minimum_elevation(Dec(sign * int(match.group(2)) * 60 * 60))
+            case LX200Commands.SET_HIGHEST_ELEVATION, position:
+                match = re.fullmatch(r"([+-]?)(\d{2})\*", position)
+                if not match:
+                    result = False
+                else:
+                    sign = -1 if match.group(1) == "-" else 1
+                    result = self.set_highest_elevation(Dec(sign * int(match.group(2)) * 60 * 60))
+
             case LX200Commands.SET_SLEW_TO_GUIDE, _:
                 self.set_slew_to_guide()
                 result = None
@@ -744,6 +768,14 @@ class LX200Handler(LX200Base):
             _logger.warning("Empty responce: %s %s(%s) -> ∅", cmd, cmd.name, argument)
 
         return result
+
+    def set_minimum_elevation(self, position: Dec) -> bool:
+        self._minimum_elevation = position
+        return True
+
+    def set_highest_elevation(self, position: Dec) -> bool:
+        self._highest_elevation = position
+        return True
 
     def stop(self):
         pass
