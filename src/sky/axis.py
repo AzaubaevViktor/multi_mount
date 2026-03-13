@@ -252,8 +252,8 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
 
                 prev_sky_speed = self._sky_speed
                 self._sky_speed = self._get_forward_relative_speed(sky_direction, new_speed) if update_sky_speed else self._sky_speed
-                
-                self._mc_logger.info("New sky speed: %s -> %s", prev_sky_speed, self._sky_speed)
+                if update_sky_speed:
+                    self._mc_logger.info("New sky speed: %s -> %s", prev_sky_speed, self._sky_speed)
                 
                 if motor_speed == 0:
                     self._mode = AxisMotionMode.STOP
