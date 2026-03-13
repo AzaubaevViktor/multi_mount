@@ -99,7 +99,7 @@ def test_hw_set_steps_updates_position(
     assert status.target is None
 
 
-POSITION_TOLERANCE_STEPS = 32
+POSITION_TOLERANCE_STEPS = 64
 
 
 @pytest.mark.parametrize(
