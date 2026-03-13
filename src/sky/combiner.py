@@ -27,18 +27,18 @@ class GuideSpeed[_SPEED_CLS: AxisSpeed]:
 
 
 class Combiner:
-    GUIDE_INTERVAL_S = Second(5)
+    GUIDE_INTERVAL_S = Second(4)
 
     RA_GUIDE_SPEED = GuideSpeed[HaPerSecond](
-        backward=STELLAR_SPEED - HaPerSecond(20),
+        backward=STELLAR_SPEED - HaPerSecond(0.2),
         default=STELLAR_SPEED,
-        forward=STELLAR_SPEED + HaPerSecond(20),
+        forward=STELLAR_SPEED + HaPerSecond(0.2),
     )
 
     DEC_GUIDE_SPEED = GuideSpeed[DecPerSecond](
-        backward=DecPerSecond(-20),
+        backward=DecPerSecond(-2),
         default=DecPerSecond(0),
-        forward=DecPerSecond(20),
+        forward=DecPerSecond(2),
     )
 
     def __init__(self, ra: AxisRA, dec: AxisDEC):
