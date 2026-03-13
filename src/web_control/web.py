@@ -387,11 +387,19 @@ class MonitorRequestHandler(BaseHTTPRequestHandler):
 
 class MonitorServer:
     def __init__(self, monitors: Mapping[str, MonitorMixin], host: str = "127.0.0.1", port: int = 8765, poll_interval_s: float = 0.25) -> None:
+        self._log = logging.getLogger("monitor_server")
         self.registry = MonitorRegistry(monitors, poll_interval_s=poll_interval_s)
         handler = type("BoundMonitorRequestHandler", (MonitorRequestHandler,), {"registry": self.registry})
         self._server = ThreadingHTTPServer((host, port), handler)
+        self.host = host
+        self.port = port
+
+    @property
+    def url(self) -> str:
+        return f"http://{self.host}:{self.port}/"
 
     def serve_forever(self) -> None:
+        self._log.warning("MonitorServer available at %s", self.url)
         self._server.serve_forever()
 
     def server_close(self) -> None:

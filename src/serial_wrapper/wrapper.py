@@ -9,6 +9,8 @@ from typing import Any, Callable
 import serial
 from serial.serialutil import SerialException
 
+from utils.method_call_chain import log_method_call_chain
+
 
 class SerialLineError(Exception):
     pass
@@ -113,7 +115,11 @@ class SerialLine:
         if serial_obj is not None and serial_obj.is_open:
             serial_obj.close()
         self.serial = serial.Serial(port=self.port, baudrate=self.baud, timeout=self.timeout_s)
-        self.logger.info("Connected to %s:%s (timeout=%d)", self.port, self.baud, self.timeout_s)
+        self.logger.info("Port: %s", self.port)
+        self.logger.info("Baudrate: %d", self.baud)
+        self.logger.info("Timeout: %d", self.timeout_s)
+        self.logger.info("Encoding: %s", self.encoding)
+        self.logger.info("Terminator: %s", self.terminator)
 
     @_disconnect_when_error(default="")
     def query(self, payload: str | None, timeout: int | None = None) -> str:
@@ -164,6 +170,7 @@ class SerialLine:
 
         return lines
 
+    @log_method_call_chain(depth=None)
     def close(self):
         if hasattr(self, "serial"):
             serial_obj = self.serial

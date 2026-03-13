@@ -492,14 +492,14 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
             
             except Exception as error:
                 if not self._connected:
-                    self._mc_logger.debug("Connection is closed, stop working")
+                    self._mc_logger.debug("Connection is closed, stop working, it's normal. You need to ")
                     break
                 else:
                     self._motion_convertor_error = error
-                    self._mc_logger.exception("While processing")
+                    self._mc_logger.exception("WHILE PROCESSING")
                     raise
 
-        self._mc_logger.info("Stop working")
+        self._mc_logger.info("STOP WORKING")
 
     @_raise_if_thread_failed
     def get_position(self) -> PointCoordinates:

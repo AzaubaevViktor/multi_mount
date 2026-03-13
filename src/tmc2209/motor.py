@@ -279,7 +279,21 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
 
     def _transact(self, command: str, args: list[str] | None = None) -> _Response:
         payload = command if not args else f"{command} {' '.join(args)}"
-        response = _Response.from_line(self._serial.query(f"{payload}{COMMAND_TERMINATOR}"))
-        if not response.ok:  # TODO: Add retries here?
-            raise TMC2209MotorCommandError(response.error or "tmc2209 error")
-        return response
+        count = 3
+        response = None
+        while count > 0:
+            try:
+                response = _Response.from_line(self._serial.query(f"{payload}{COMMAND_TERMINATOR}"))
+                if not response.ok:
+                    raise TMC2209MotorCommandError(response.error or "tmc2209 error")
+                return response
+            except TMC2209MotorCommandError:
+                count -= 1
+                if count == 0:
+                    raise
+                self._logger.exception("TMC2209 WHILE TRANSACTING: %s(%s) `%s` -> `%s`, %d last", command, args, payload, response, count)
+                self._serial.drop_buffers()
+                data = self._serial.read_all_data(timeout=.5)
+                if data is not None:
+                    self._logger.info("Received data: %s", data)
+                time.sleep(0.1)
