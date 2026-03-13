@@ -202,9 +202,18 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._ensure_not_goto(status, "cannot change speed while GOTO is in progress")
         if steps_per_second <= 0:
             raise ValueError(f"steps_per_second must be positive, got {steps_per_second}")
+        target_speed_mode = self._get_speed_mode_for_speed_sps(steps_per_second)
+        self._set_motion(
+            _MotionStatus(
+                slew_mode=status.slew_mode,
+                direction=status.direction,
+                speed_mode=target_speed_mode,
+            ),
+            status,
+        )
         period = self._period_from_speed_sps(steps_per_second)
         self._transact(_Command.SET_STEP_PERIOD, _Revu24.from_int(period))
-        self._last_speed_sps = self._speed_sps_from_period(period, status.speed_mode)
+        self._last_speed_sps = self._speed_sps_from_period(period, target_speed_mode)
         return self._last_speed_sps
 
     def set_acceleration(self, steps_per_second_square: float) -> bool:
@@ -240,7 +249,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
             return True
         self._zero_target_pending = False
         speed = self._get_goto_speed(delta)
-        target_speed_mode = _SpeedMode.HIGHSPEED if abs(speed) > self._LOWSPEED_SPEED else _SpeedMode.LOWSPEED
+        target_speed_mode = self._get_speed_mode_for_speed_sps(self.convert_speed_to_steps_per_second(abs(speed)))
         self._set_motion(
             _MotionStatus(
                 slew_mode=_SlewMode.GOTO,
@@ -368,6 +377,9 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     def _get_goto_speed(self, delta: Ha) -> HaPerSecond:
         speed = self._HIGHSPEED_SPEED if abs(delta) > self._LOWSPEED_MARGIN else self._LOWSPEED_SPEED
         return speed if delta >= Ha(0) else -speed
+
+    def _get_speed_mode_for_speed_sps(self, speed_sps: int) -> _SpeedMode:
+        return _SpeedMode.HIGHSPEED if speed_sps > self.convert_speed_to_steps_per_second(self._LOWSPEED_SPEED) else _SpeedMode.LOWSPEED
 
     def _period_from_speed_sps(self, speed_sps: int) -> int:
         self._ensure_geometry_ready()
