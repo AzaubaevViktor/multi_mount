@@ -15,9 +15,13 @@ class GuideSpeed[_SPEED_CLS: AxisSpeed]:
         guide_fration = pulse_width_s / guide_interval_s
         match direction:
             case SkyDirection.EAST | SkyDirection.NORTH:
-                return (self.forward - self.default) * guide_fration + self.default
+                if guide_fration <= 0.5:
+                    return (self.default - self.backward) * (guide_fration * 2) + self.backward
+                return (self.forward - self.default) * ((guide_fration - 0.5) * 2) + self.default
             case SkyDirection.WEST | SkyDirection.SOUTH:
-                return self.default - (self.default - self.backward) * guide_fration
+                if guide_fration <= 0.5:
+                    return self.forward - (self.forward - self.default) * (guide_fration * 2)
+                return self.default - (self.default - self.backward) * ((guide_fration - 0.5) * 2)
             case _:
                 raise ValueError(f"Invalid direction: {direction}")
 
