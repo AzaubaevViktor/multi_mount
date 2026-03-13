@@ -15,13 +15,9 @@ class GuideSpeed[_SPEED_CLS: AxisSpeed]:
         guide_fration = pulse_width_s / guide_interval_s
         match direction:
             case SkyDirection.EAST | SkyDirection.NORTH:
-                if guide_fration <= 0.5:
-                    return (self.default - self.backward) * (guide_fration * 2) + self.backward
-                return (self.forward - self.default) * ((guide_fration - 0.5) * 2) + self.default
+                return (self.forward - self.default) * guide_fration + self.default
             case SkyDirection.WEST | SkyDirection.SOUTH:
-                if guide_fration <= 0.5:
-                    return self.forward - (self.forward - self.default) * (guide_fration * 2)
-                return self.default - (self.default - self.backward) * ((guide_fration - 0.5) * 2)
+                return (self.backward - self.default) * guide_fration + self.default
             case _:
                 raise ValueError(f"Invalid direction: {direction}")
 
@@ -30,15 +26,15 @@ class Combiner:
     GUIDE_INTERVAL_S = Second(4)
 
     RA_GUIDE_SPEED = GuideSpeed[HaPerSecond](
-        backward=STELLAR_SPEED - HaPerSecond(0.2),
+        backward=STELLAR_SPEED - HaPerSecond(2),
         default=STELLAR_SPEED,
-        forward=STELLAR_SPEED + HaPerSecond(0.2),
+        forward=STELLAR_SPEED + HaPerSecond(2),
     )
 
     DEC_GUIDE_SPEED = GuideSpeed[DecPerSecond](
-        backward=DecPerSecond(-2),
+        backward=DecPerSecond(-100),
         default=DecPerSecond(0),
-        forward=DecPerSecond(2),
+        forward=DecPerSecond(100),
     )
 
     def __init__(self, ra: AxisRA, dec: AxisDEC):
@@ -111,12 +107,16 @@ class Combiner:
             return self.dec
         raise ValueError(f"Direction {direction} is not supported for both axes")
 
-    def set_sky_speed(self, ra_speed: HaPerSecond, dec_speed: DecPerSecond, update_polar_compensator: bool = True) -> None:
-        self.ra.change_speed(self.ra.FORWARD_DIRECTION, ra_speed, update_sky_speed=True)
-        self.dec.change_speed(self.dec.FORWARD_DIRECTION, dec_speed, update_sky_speed=True)
+    def set_sky_speed(self, ra_speed: HaPerSecond | None, dec_speed: DecPerSecond | None, update_polar_compensator: bool = True) -> None:
+        if ra_speed is not None:
+            self.ra.change_speed(self.ra.FORWARD_DIRECTION, ra_speed, update_sky_speed=True)
+        if dec_speed is not None:
+            self.dec.change_speed(self.dec.FORWARD_DIRECTION, dec_speed, update_sky_speed=True)
         if update_polar_compensator:
-            self._polar_compensator.guide_ra(ra_speed)
-            self._polar_compensator.guide_dec(dec_speed)
+            if ra_speed is not None:
+                self._polar_compensator.guide_ra(ra_speed)
+            if dec_speed is not None:
+                self._polar_compensator.guide_dec(dec_speed)
 
     def move(self, direction: SkyDirection, speed: HaPerSecond | DecPerSecond) -> None:
         axis = self._dispatch_axis(direction)
@@ -144,7 +144,7 @@ class Combiner:
         if isinstance(axis, AxisRA):
             speed = self.RA_GUIDE_SPEED.calculate_speed(direction, Second.from_milliseconds(ms), self.GUIDE_INTERVAL_S)
             axis.change_speed(
-                direction, 
+                axis.FORWARD_DIRECTION, 
                 speed, 
                 update_sky_speed=True,
             )
@@ -152,7 +152,7 @@ class Combiner:
         else:
             speed = self.DEC_GUIDE_SPEED.calculate_speed(direction, Second.from_milliseconds(ms), self.GUIDE_INTERVAL_S)
             axis.change_speed(
-                direction, 
+                axis.FORWARD_DIRECTION, 
                 speed, 
                 update_sky_speed=True,
             )
