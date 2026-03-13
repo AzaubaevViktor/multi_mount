@@ -280,6 +280,6 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
     def _transact(self, command: str, args: list[str] | None = None) -> _Response:
         payload = command if not args else f"{command} {' '.join(args)}"
         response = _Response.from_line(self._serial.query(f"{payload}{COMMAND_TERMINATOR}"))
-        if not response.ok:
+        if not response.ok:  # TODO: Add retries here?
             raise TMC2209MotorCommandError(response.error or "tmc2209 error")
         return response

@@ -100,10 +100,13 @@ class SerialLine:
         with self._lock:
             self.serial.dtr = False
             time.sleep(0.1)
-            self.serial.reset_input_buffer()
-            self.serial.reset_output_buffer()
+            self.drop_buffers()
             self.serial.dtr = True
             time.sleep(0.5)
+    
+    def drop_buffers(self):
+        self.serial.reset_input_buffer()
+        self.serial.reset_output_buffer()
 
     def connect(self):
         serial_obj = getattr(self, "serial", None)

@@ -10,7 +10,9 @@ from sky.physics import Ha, HaPerSecond
 
 
 class SkyWatcherMotorError(Exception):
-    pass
+    def __init__(self, message: str) -> None:
+        self.message = message
+        super().__init__(message)
 
 
 class SkyWatcherMotorProtocolError(SkyWatcherMotorError):
@@ -393,11 +395,27 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         if self._steps_360 <= 0:
             raise SkyWatcherMotorProtocolError("motor geometry is not initialized")
 
+    REPEATS = 3
     def _transact(self, command: _Command, arg: str | None = None) -> str:
         payload = f"{self._LEADING}{command.value}{_Axis.RA}{arg or ''}{self._TRAILING}"
-        response = self._serial.query(payload)
-        if not response.startswith(self._RESPONSE_PREFIX):
-            if response.startswith(self._COMMAND_ERROR_PREFIX):
-                raise SkyWatcherMotorCommandError(response)
-            raise SkyWatcherMotorProtocolError(response)
-        return response[1:-1]
+        count = self.REPEATS
+        response = None
+        while count > 0:
+            try:
+                response = self._serial.query(payload)
+                if not response.startswith(self._RESPONSE_PREFIX):
+                    if response.startswith(self._COMMAND_ERROR_PREFIX):
+                        raise SkyWatcherMotorCommandError(response)
+                    raise SkyWatcherMotorProtocolError(response)
+                return response[1:-1]
+            except SkyWatcherMotorProtocolError:
+                self._logger.exception("While quering %s(%s) `%s` -> `%s`, %d last", command.name, arg, payload, response, count)
+                self._serial.drop_buffers()
+                data = self._serial.read_all_data(timeout=.5)
+                if data is not None:
+                    self._logger.info("Received data: %s", data)
+                count -= 1
+                if count == 0:
+                    raise
+                time.sleep(0.1)
+        raise SkyWatcherMotorProtocolError(f"failed to execute command {command} with payload {payload}")
