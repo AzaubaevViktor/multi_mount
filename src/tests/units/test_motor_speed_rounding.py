@@ -1,7 +1,7 @@
 from types import MethodType
 
 import pytest
-from skywatcher.motor import SkyWatcherMotor, _Direction, _SpeedMode, _Status, _SlewMode
+from skywatcher.motor import SkyWatcherMotor, _Direction, _MotionStatus, _SpeedMode, _Status, _SlewMode
 from tmc2209.motor import TMC2209Motor, _Mode, _Phase, _Status as _TmcStatus
 
 
@@ -22,14 +22,46 @@ def test_skywatcher_set_speed_returns_quantized_speed(speed_sps: float) -> None:
         ),
         motor,
     )
-    written_periods: list[str | None] = []
-    motor._transact = MethodType(lambda self, command, arg=None: written_periods.append(arg) or "", motor)
+    written_commands: list[tuple[object, str | None]] = []
+    motor._transact = MethodType(lambda self, command, arg=None: written_commands.append((command, arg)) or "", motor)
 
     actual_speed = motor.set_speed(speed_sps)
 
     assert actual_speed == motor._speed_sps_from_period(motor._period_from_speed_sps(speed_sps), _SpeedMode.LOWSPEED)
     assert motor._last_speed_sps == actual_speed
-    assert len(written_periods) == 1
+    assert len(written_commands) == 2
+    assert written_commands[0][0].name == "SET_MOTION_MODE"
+    assert written_commands[0][1] == _MotionStatus(_SlewMode.SLEW, _Direction.FORWARD, _SpeedMode.LOWSPEED).to_command()
+    assert written_commands[1][0].name == "SET_STEP_PERIOD"
+
+
+def test_skywatcher_set_speed_switches_to_highspeed_mode_for_fast_speed() -> None:
+    motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
+    motor._steps_360 = 12_489_074
+    motor._steps_worm = 15_400_960
+    motor._highspeed_ratio = 2
+    motor._get_status = MethodType(
+        lambda self: _Status(
+            raw=0,
+            running=False,
+            initialized=True,
+            slew_mode=_SlewMode.SLEW,
+            direction=_Direction.FORWARD,
+            speed_mode=_SpeedMode.LOWSPEED,
+        ),
+        motor,
+    )
+    written_commands: list[tuple[object, str | None]] = []
+    motor._transact = MethodType(lambda self, command, arg=None: written_commands.append((command, arg)) or "", motor)
+
+    speed_sps = motor.convert_speed_to_steps_per_second(motor._LOWSPEED_SPEED) + 1
+
+    actual_speed = motor.set_speed(speed_sps)
+
+    assert actual_speed == motor._speed_sps_from_period(motor._period_from_speed_sps(speed_sps), _SpeedMode.HIGHSPEED)
+    assert written_commands[0][0].name == "SET_MOTION_MODE"
+    assert written_commands[0][1] == _MotionStatus(_SlewMode.SLEW, _Direction.FORWARD, _SpeedMode.HIGHSPEED).to_command()
+    assert written_commands[1][0].name == "SET_STEP_PERIOD"
 
 
 @pytest.mark.parametrize("speed_sps", [-0.1, -1, -10.5])
