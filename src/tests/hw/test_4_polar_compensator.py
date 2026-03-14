@@ -136,11 +136,18 @@ def test_hw_polar_compensator_resets_to_sidereal_without_stable_guiding(combiner
     combiner.guide(SkyDirection.WEST, 2500)
     combiner.guide(SkyDirection.SOUTH, 1000)
 
+    combiner._polar_compensator.last_ra_guide_pulse -= combiner._polar_compensator.STOP_AXIS_AFTER
+    assert combiner._polar_compensator.get_guide_speeds() == (STELLAR_SPEED, None)
+    assert combiner._polar_compensator.ra_speed == STELLAR_SPEED
+
+    combiner._polar_compensator.last_guide_pulse -= combiner._polar_compensator.DROP_GUIDE_PULSES_COUNT_AFTER
     time.sleep(float(combiner._polar_compensator.DROP_GUIDE_PULSES_COUNT_AFTER) + GUIDE_SETTLE_MARGIN_S)
 
-    assert combiner._polar_compensator.get_guide_speeds() == (STELLAR_SPEED, DecPerSecond(0))
+    assert combiner._polar_compensator.get_guide_speeds() is None
     assert combiner._polar_compensator.ra_speed == STELLAR_SPEED
     assert combiner._polar_compensator.dec_speed == DecPerSecond(0)
+    assert combiner._polar_compensator.eps_E is None
+    assert combiner._polar_compensator.eps_N is None
     assert combiner.ra._sky_speed == STELLAR_SPEED
     assert combiner.dec._sky_speed == DecPerSecond(0)
     assert combiner.ra.mode() == AxisMotionMode.TRACK

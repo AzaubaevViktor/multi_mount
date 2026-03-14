@@ -112,15 +112,21 @@ def test_sky_lx200_polar_compensator_resets_to_sidereal_after_new_external_guidi
 
     assert combiner._polar_compensator.get_guide_speeds() is None
 
+    combiner._polar_compensator.last_ra_guide_pulse -= combiner._polar_compensator.STOP_AXIS_AFTER
+    assert combiner._polar_compensator.get_guide_speeds() == (STELLAR_SPEED, None)
+    assert combiner._polar_compensator.ra_speed == STELLAR_SPEED
+
+    combiner._polar_compensator.last_guide_pulse -= combiner._polar_compensator.DROP_GUIDE_PULSES_COUNT_AFTER
     # After guide pulses stop and stability is lost, compensator must reset to sidereal.
     time.sleep(float(combiner._polar_compensator.DROP_GUIDE_PULSES_COUNT_AFTER) + GUIDE_SETTLE_MARGIN_S)
 
     speeds_after = combiner._polar_compensator.get_guide_speeds()
-    assert speeds_after == (STELLAR_SPEED, DecPerSecond(0))
+    assert speeds_after is None
     assert combiner._polar_compensator.ra_speed == STELLAR_SPEED
     assert combiner._polar_compensator.dec_speed == DecPerSecond(0)
+    assert combiner._polar_compensator.eps_E is None
+    assert combiner._polar_compensator.eps_N is None
     assert combiner.ra._sky_speed == STELLAR_SPEED
     assert combiner.dec._sky_speed == DecPerSecond(0)
     assert combiner.ra.mode() == AxisMotionMode.TRACK
     assert combiner.dec.mode() == AxisMotionMode.TRACK
-
