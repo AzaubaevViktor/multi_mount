@@ -39,7 +39,7 @@ ZERO_POSITION: PointCoordinates = PointCoordinates(ra=Ha(0), dec=Dec(0))
 GUIDE_PULSE_MS_VALUES: tuple[int, int] = (2500, 5000)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def combiner() -> Iterator[Combiner]:
     ra_serial = SerialLine(
         port=SerialLine.search(RA_DEVICE_PATTERN),
@@ -67,7 +67,7 @@ def combiner() -> Iterator[Combiner]:
         comb.disconnect()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def sky_lx200(combiner: Combiner) -> Iterator[SkyLX200]:
     handler = SkyLX200(combiner)
     handler.connect()

@@ -17,7 +17,7 @@ RUN_TIMEOUT_S = 8.0
 TARGET_TIMEOUT_S = 30.0
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def skywatcher_motor() -> Iterator[SkyWatcherMotor]:
     serial_line = SerialLine(
         port=SerialLine.search(DEVICE_PATTERN),

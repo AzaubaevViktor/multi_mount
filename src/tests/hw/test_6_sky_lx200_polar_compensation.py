@@ -26,7 +26,7 @@ DEC_SERIAL_BAUD: int = 115200
 DEC_SERIAL_TIMEOUT_S: float = 2.0
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def combiner() -> Iterator[Combiner]:
     ra_serial = SerialLine(
         port=SerialLine.search(RA_DEVICE_PATTERN),

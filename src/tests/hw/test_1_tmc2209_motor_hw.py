@@ -18,7 +18,7 @@ TARGET_TIMEOUT_S = 20.0
 DEFAULT_ACCELERATION_SPS2 = 1_000
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def tmc2209_motor() -> Iterator[TMC2209Motor]:
     port = SerialLine.search(DEVICE_PATTERN)
     serial_line = SerialLine(

@@ -40,7 +40,7 @@ MOTOR_SPEED_REL_TOL = 0.10
 COORD_RATE_ABS_TOL = 0.5
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def axis_ra() -> Iterator[AxisRA]:
     serial_line = SerialLine(
         port=SerialLine.search(DEVICE_PATTERN),

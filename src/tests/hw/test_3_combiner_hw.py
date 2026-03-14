@@ -48,7 +48,7 @@ DEC_SLEW_SPEED = DecPerSecond(20)
 ZERO_POSITION = PointCoordinates(ra=Ha(0), dec=Dec(0))
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def combiner() -> Iterator[Combiner]:
     ra_serial = SerialLine(
         port=SerialLine.search(RA_DEVICE_PATTERN),
