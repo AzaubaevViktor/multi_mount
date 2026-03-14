@@ -428,7 +428,7 @@ class CombinerController:
 
         assert ra_motor_status.motion_mode == MotionMode.RUN
         assert ra_motor_status.direction != MotorDirection.STOP
-        assert dec_motor_status.motion_mode == MotionMode.IDLE
+        assert dec_motor_status.motion_mode in {MotionMode.IDLE, MotionMode.RUN}
         assert dec_motor_status.direction == MotorDirection.STOP
 
         assert (abs(deltas.ra.rate_per_s.mount) < self.TRACKING_MODE_TOLERANCE[0]) and \
@@ -539,7 +539,7 @@ class CombinerController:
         sample_s: float,
         ra_min_mount_rate: float,
         dec_min_mount_rate: float,
-    ) -> bool:
+    ) -> Deltas:
         self.logger.warning(
             "\n==== WAIT UNTIL GOTO STARTED ====\n"
             "TIMEOUT: %.3fs\n"
@@ -571,7 +571,7 @@ class CombinerController:
                     slewing.dec.rate_per_s.mount,
                 )
                 self.logger.debug("%s", slewing)
-                return True
+                return slewing
 
             if time.monotonic() - start > timeout_s:
                 break
@@ -717,14 +717,14 @@ GOTO_MIN_RA_MOVE_S = 60.0
 GOTO_MIN_DEC_MOVE_ARCSEC = 300.0
 
 GOTO_DIRECTION_DELTAS = (
-    pytest.param(400.0, 0.0, id="goto-ra-plus"),
-    pytest.param(-400.0, 0.0, id="goto-ra-minus"),
-    pytest.param(0.0, 1200.0, id="goto-dec-plus"),
-    pytest.param(0.0, -1200.0, id="goto-dec-minus"),
-    pytest.param(400.0, 1200.0, id="goto-ra-plus-dec-plus"),
-    pytest.param(400.0, -1200.0, id="goto-ra-plus-dec-minus"),
-    pytest.param(-400.0, 1200.0, id="goto-ra-minus-dec-plus"),
-    pytest.param(-400.0, -1200.0, id="goto-ra-minus-dec-minus"),
+    pytest.param(400.0, 0.0, 1, 0, id="goto-ra-plus__west"),
+    pytest.param(-400.0, 0.0, -1, 0, id="goto-ra-minus__east"),
+    pytest.param(0.0, 1200.0, 0, 1, id="goto-dec-plus__north"),
+    pytest.param(0.0, -1200.0, 0, -1, id="goto-dec-minus__south"),
+    pytest.param(400.0, 1200.0, 1, 1, id="goto-ra-plus-dec-plus__west-north"),
+    pytest.param(400.0, -1200.0, 1, -1, id="goto-ra-plus-dec-minus__west-south"),
+    pytest.param(-400.0, 1200.0, -1, 1, id="goto-ra-minus-dec-plus__east-north"),
+    pytest.param(-400.0, -1200.0, -1, -1, id="goto-ra-minus-dec-minus__east-south"),
 )
 
 
@@ -777,13 +777,15 @@ def test_coordinate_system_slew_directions(
 
 
 @pytest.mark.parametrize(
-    ("ra_delta_s", "dec_delta_arcsec"),
+    ("ra_delta_s", "dec_delta_arcsec", "ra_sign", "dec_sign"),
     GOTO_DIRECTION_DELTAS,
 )
 def test_goto_command_moves_mount_to_target_coordinates(
     sc: CombinerController,
     ra_delta_s: float,
     dec_delta_arcsec: float,
+    ra_sign: int,
+    dec_sign: int,
 ):
     start_ra, start_dec = sc.sync_known_position("12:00:00", "+20*00:00")
     target_ra = Ha(float(start_ra) + ra_delta_s)
@@ -793,6 +795,23 @@ def test_goto_command_moves_mount_to_target_coordinates(
     sc.set_target_ra(target_ra)
     sc.set_target_dec(target_dec)
     sc.slew()
+
+    moving = sc.wait_until_goto_started(
+        timeout_s=15.0,
+        sample_s=MOTION_SAMPLE_S,
+        ra_min_mount_rate=RA_SLEW_MIN_MOUNT_RATE,
+        dec_min_mount_rate=DEC_SLEW_MIN_MOUNT_RATE,
+    )
+
+    if ra_sign != 0:
+        assert ra_sign * moving.ra.rate_per_s.mount > RA_SLEW_MIN_MOUNT_RATE
+    else:
+        assert abs(moving.ra.rate_per_s.mount) < RA_STABLE_MOUNT_TOLERANCE
+
+    if dec_sign != 0:
+        assert dec_sign * moving.dec.rate_per_s.mount > DEC_SLEW_MIN_MOUNT_RATE
+    else:
+        assert abs(moving.dec.rate_per_s.mount) < sc.TRACKING_MODE_TOLERANCE[1]
 
     sc.wait_until_target_reached(
         target_ra=target_ra,
@@ -805,11 +824,13 @@ def test_goto_command_moves_mount_to_target_coordinates(
 
     final_ra = float(sc.get_ra())
     final_dec = float(sc.get_dec())
+    final_ra_delta = final_ra - float(start_ra)
+    final_dec_delta = final_dec - float(start_dec)
 
-    if ra_delta_s != 0:
-        assert sc.ra_distance_seconds(final_ra, float(start_ra)) > GOTO_MIN_RA_MOVE_S
-    if dec_delta_arcsec != 0:
-        assert abs(final_dec - float(start_dec)) > GOTO_MIN_DEC_MOVE_ARCSEC
+    if ra_sign != 0:
+        assert final_ra_delta * ra_sign > GOTO_MIN_RA_MOVE_S
+    if dec_sign != 0:
+        assert final_dec_delta * dec_sign > GOTO_MIN_DEC_MOVE_ARCSEC
 
 
 MOTION_SETTLE_S = 0.6
@@ -881,13 +902,15 @@ def test_halt_command_returns_to_tracking_from_slew(
 
 
 @pytest.mark.parametrize(
-    ("ra_delta_s", "dec_delta_arcsec"),
+    ("ra_delta_s", "dec_delta_arcsec", "ra_sign", "dec_sign"),
     GOTO_DIRECTION_DELTAS,
 )
 def test_halt_command_returns_to_tracking_from_goto(
     sc: CombinerController,
     ra_delta_s: float,
     dec_delta_arcsec: float,
+    ra_sign: int,
+    dec_sign: int,
 ):
     start_ra, start_dec = sc.sync_known_position("12:00:00", "+20*00:00")
     target_ra = Ha(float(start_ra) + ra_delta_s)
@@ -898,12 +921,22 @@ def test_halt_command_returns_to_tracking_from_goto(
     sc.set_target_dec(target_dec)
     sc.slew()
 
-    sc.wait_until_goto_started(
+    moving = sc.wait_until_goto_started(
         timeout_s=15.0,
         sample_s=MOTION_SAMPLE_S,
         ra_min_mount_rate=RA_SLEW_MIN_MOUNT_RATE,
         dec_min_mount_rate=DEC_SLEW_MIN_MOUNT_RATE,
     )
+
+    if ra_sign != 0:
+        assert ra_sign * moving.ra.rate_per_s.mount > RA_SLEW_MIN_MOUNT_RATE
+    else:
+        assert abs(moving.ra.rate_per_s.mount) < RA_STABLE_MOUNT_TOLERANCE
+
+    if dec_sign != 0:
+        assert dec_sign * moving.dec.rate_per_s.mount > DEC_SLEW_MIN_MOUNT_RATE
+    else:
+        assert abs(moving.dec.rate_per_s.mount) < sc.TRACKING_MODE_TOLERANCE[1]
 
     sc.halt_all()
     sc.wait_while_mount_in_tracking(timeout_s=10.0)
