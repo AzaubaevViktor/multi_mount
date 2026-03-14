@@ -14,6 +14,7 @@ from serial_wrapper.wrapper import SerialLine
 from sky.axis import AxisDEC, AxisRA
 from sky.combiner import Combiner
 from sky.lx200 import SkyLX200
+from stdout_dashboard import StdoutDashboard
 from skywatcher.motor import SkyWatcherMotor
 from tmc2209.motor import TMC2209Motor
 from web_control.web import MonitorServer
@@ -40,5 +41,11 @@ if __name__ == "__main__":
     threading.Thread(target=web_server.serve_forever, name="WEB_CONTROL", daemon=True).start()
 
     server = LX200SimpleServer(sky_lx200)
+    dashboard = StdoutDashboard(combiner, sky_lx200)
+    dashboard.start()
 
-    server.serve_forever()
+    try:
+        server.serve_forever()
+    finally:
+        dashboard.stop()
+        sky_lx200.stop()

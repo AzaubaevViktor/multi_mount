@@ -1,3 +1,4 @@
+from collections import deque
 from dataclasses import dataclass
 from enum import StrEnum
 import logging
@@ -105,6 +106,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
 
         self._last_motor_position: _POS_CLS = self.POS_CLS(0)
         self._last_motor_position_update_s: Second = Second.monotonic()
+        self._processed_commands: deque[tuple[Second, str]] = deque(maxlen=8)
 
     @_raise_if_thread_failed
     def connect(self):
@@ -416,6 +418,17 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                         if return_to_tracking is not None and return_to_tracking:
                             self._do_resume_to_tracking()
 
+                        processed = command.type.value
+                        if command.direction is not None:
+                            processed = f"{processed} {command.direction.value}"
+                        if command.speed is not None:
+                            processed = f"{processed} {command.speed}"
+                        if command.position is not None:
+                            axis_position = command.position.ra if self.axis == AxisName.RA else command.position.dec
+                            processed = f"{processed} {axis_position}"
+                        with self._motor_lock:
+                            self._processed_commands.append((Second.monotonic(), processed))
+
                     except EXCEPTIONS_TO_CLOSE:
                         self._mc_logger.exception("While processing command, skip: %s", command)
 
@@ -569,6 +582,14 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
     @_raise_if_thread_failed
     def is_moving_to(self) -> bool:
         return self._mode == AxisMotionMode.GOTO
+
+    @_raise_if_thread_failed
+    def command_monitor(self) -> dict[str, object]:
+        with self._motor_lock:
+            return {
+                "queue_size": self._queue.qsize(),
+                "processed": list(self._processed_commands),
+            }
 
 
 class AxisRA(Axis[Ha, HaPerSecond]):

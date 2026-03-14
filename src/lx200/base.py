@@ -1,9 +1,11 @@
+from collections import deque
 from enum import StrEnum
 import logging
 import re
+import threading
 from typing import Any
 
-from sky.physics import Dec, Ha, SkyDirection
+from sky.physics import Dec, Ha, Second, SkyDirection
 
 from .protocol import AlignmentMode
 
@@ -160,6 +162,9 @@ class LX200Base:
     def halt_all(self) -> bool:
         raise NotImplementedError()
 
+    def stop_all(self) -> bool:
+        return self.halt_all()
+
     def halt_east(self) -> bool:
         raise NotImplementedError()
 
@@ -189,6 +194,8 @@ class LX200Handler(LX200Base):
     """
     All methods should be fast and non-blocking.
     """
+    DOUBLE_STOP_WINDOW_S = Second(1.0)
+
     def __init__(self) -> None:
         self.logger = logging.getLogger(type(self).__name__)
         self._target_ra = Ha(0)
@@ -196,14 +203,20 @@ class LX200Handler(LX200Base):
         self._minimum_elevation = Dec(0)
         self._highest_elevation = Dec(90 * 60 * 60)
         self._manual_move_directions: list[SkyDirection] = []
+        self._last_halt_all: Second | None = None
+        self._monitor_lock = threading.RLock()
+        self._recent_commands: deque[tuple[Second, str]] = deque(maxlen=8)
+        self._last_guide_command: tuple[Second, str] | None = None
 
         self._is_connected = False
 
     def connect(self) -> None:
         self._is_connected = True
     
-    def _do_handle(self, cmd: LX200Commands, argument: Any) -> Any:
+    def _do_handle(self, cmd: LX200Commands, argument: Any, now: Second | None = None) -> Any:
         result = None
+        if now is None:
+            now = Second.monotonic()
 
         match (cmd, argument):
             case LX200Commands.GET_TELECOPE_RA, _:
@@ -221,24 +234,35 @@ class LX200Handler(LX200Base):
                 self.sync_telescope(self._target_ra, self._target_dec)
                 result = "OK"
             case LX200Commands.SLEW, _:
+                self._last_halt_all = None
                 self.slew_to(self._target_ra, self._target_dec)
                 result = False
                 # LX200 also allows non-zero result codes for below-horizon / above-limit failures.
 
             case LX200Commands.MOVE_EAST, _:
+                self._last_halt_all = None
                 if self.move_east() and SkyDirection.EAST not in self._manual_move_directions:
                     self._manual_move_directions.append(SkyDirection.EAST)
             case LX200Commands.MOVE_NORTH, _:
+                self._last_halt_all = None
                 if self.move_north() and SkyDirection.NORTH not in self._manual_move_directions:
                     self._manual_move_directions.append(SkyDirection.NORTH)
             case LX200Commands.MOVE_SOUTH, _:
+                self._last_halt_all = None
                 if self.move_south() and SkyDirection.SOUTH not in self._manual_move_directions:
                     self._manual_move_directions.append(SkyDirection.SOUTH)
             case LX200Commands.MOVE_WEST, _:
+                self._last_halt_all = None
                 if self.move_west() and SkyDirection.WEST not in self._manual_move_directions:
                     self._manual_move_directions.append(SkyDirection.WEST)
             case LX200Commands.HALT_ALL, _:
-                self.halt_all()
+                if self._last_halt_all is not None and now - self._last_halt_all <= self.DOUBLE_STOP_WINDOW_S:
+                    self.stop_all()
+                    self._last_halt_all = None
+                else:
+                    self.halt_all()
+                    self._last_halt_all = now
+
                 self._manual_move_directions.clear()
             case LX200Commands.HALT_EAST, _:
                 if SkyDirection.EAST in self._manual_move_directions:
@@ -309,6 +333,7 @@ class LX200Handler(LX200Base):
             case LX200Commands.SET_SLEW_TO_MAX, _:
                 self.set_slew_to_max()
             case LX200Commands.GUIDE, data:
+                self._last_halt_all = None
                 direction = data[0].lower()
                 ms = int(data[1:])
 
@@ -338,9 +363,17 @@ class LX200Handler(LX200Base):
             cmd = LX200Commands(_cmd)
         except ValueError as e:
             raise RuntimeError(f"Unknown LX200 command: {_cmd}({argument})") from e
-        _logger.info("Get command %s %s(%s)", cmd, cmd.name, argument)
 
-        result = self._do_handle(cmd, argument)
+        now = Second.monotonic()
+        with self._monitor_lock:
+            if cmd == LX200Commands.GUIDE:
+                self._last_guide_command = (now, full_command)
+            elif cmd not in {LX200Commands.GET_TELECOPE_RA, LX200Commands.GET_TELESCOPE_DEC}:
+                self._recent_commands.append((now, full_command))
+
+            result = self._do_handle(cmd, argument, now)
+
+        _logger.info("Get command %s %s(%s)", cmd, cmd.name, argument)
 
         if isinstance(result, _LX200NotImplementedCommand):
             raise RuntimeError(f"Not implemented LX200 command: {cmd} {cmd.name}({argument})")
@@ -361,3 +394,10 @@ class LX200Handler(LX200Base):
 
     def stop(self) -> None:
         pass
+
+    def command_monitor(self) -> dict[str, object]:
+        with self._monitor_lock:
+            return {
+                "recent": list(self._recent_commands),
+                "guide": self._last_guide_command,
+            }

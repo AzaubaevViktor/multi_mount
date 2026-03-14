@@ -107,6 +107,10 @@ class SkyLX200(LX200Handler):
         self._combiner.halt_all()
         return True
 
+    def stop_all(self) -> bool:
+        self._combiner.stop_all()
+        return True
+
     def halt_east(self) -> bool:
         self._combiner.halt_direction(SkyDirection.EAST)
         return True

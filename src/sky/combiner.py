@@ -173,3 +173,23 @@ class Combiner:
         self.ra.change_speed(self.ra.FORWARD_DIRECTION, STELLAR_SPEED, update_sky_speed=True)
         self.dec.halt_all()
         self.dec.change_speed(self.dec.FORWARD_DIRECTION, DecPerSecond(0), update_sky_speed=True)
+
+    def stop_all(self) -> None:
+        """ Stop all motion including tracking and clear guide state """
+        self.ra.change_speed(self.ra.FORWARD_DIRECTION, HaPerSecond(0), update_sky_speed=True)
+        self.ra.halt_all()
+
+        self.dec.change_speed(self.dec.FORWARD_DIRECTION, DecPerSecond(0), update_sky_speed=True)
+        self.dec.halt_all()
+
+        self._polar_compensator.eps_E = None
+        self._polar_compensator.eps_N = None
+        self._polar_compensator.ra_speed = None
+        self._polar_compensator.dec_speed = None
+        self._polar_compensator.stable_guide_ra_pulses_count = 0
+        self._polar_compensator.stable_guide_dec_pulses_count = 0
+        self._polar_compensator.last_guide_pulse = Second(0)
+        self._polar_compensator.last_ra_guide_pulse = Second(0)
+        self._polar_compensator.last_dec_guide_pulse = Second(0)
+
+        self._guide_updated.set()
