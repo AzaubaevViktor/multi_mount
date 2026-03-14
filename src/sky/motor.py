@@ -44,6 +44,7 @@ class Motor[POS_CLS: AxisPos, SPEED_CLS: AxisSpeed](ABC):
     """
     Abstract class for motor interface. 
     All methods should just inquire action, wait for answer from motor and return answer.
+    Method can raise MotorStopRequire if motor need to be stopped before performing the action.
     Expect methods implemented in this class
     Methods should not wait until inqured action happens!
     Standart session looks like bunch of set's, which should change behaviour, wait till stop if method wants to stop, and send run command if need to run
