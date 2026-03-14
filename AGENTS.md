@@ -1,2 +1,3 @@
 - Don't extract single-use code into separate methods/functions. If logic is used once, keep it inline near the call site.
 - Don't remove blank lines that separate logical blocks of code. Preserve those line breaks when editing files.
+- Preserve architectural boundaries and module invariants. When extending behavior, integrate through the module's existing abstraction boundary instead of adding side paths, duplicating protocol/validation/error-handling logic, or reaching into lower-level internals for a local shortcut.
