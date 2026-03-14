@@ -317,3 +317,16 @@ class TestWithinToleranceBoundary:
         _send_pulse_pair(comp, jumped_ra, DecPerSecond(0), t=2.0)
 
         assert comp.stable_guide_ra_pulses_count == 0
+
+
+class TestAverageGuideSpeeds:
+    def test_keeps_requested_polar_deviations_in_average(self):
+        comp = _make_compensator()
+        target_ra = STELLAR_SPEED * 1.112
+        target_dec = DecPerSecond(-1.0)
+
+        for i in range(PolarCompensator.STABLE_GUIDE_PULSES_COUNT * 10):
+            _send_pulse_pair(comp, target_ra, target_dec, t=1.0 + i)
+
+        assert float(comp.ra_speed) == pytest.approx(float(target_ra), abs=1e-9)
+        assert float(comp.dec_speed) == pytest.approx(float(target_dec), abs=1e-9)
