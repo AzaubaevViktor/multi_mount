@@ -87,10 +87,7 @@ class _BasicAriphmetic(ABC):
         return float(self) >= self._comparison_value(other)
     
     def __eq__(self, value: object) -> bool:
-        try:
-            return float(self) == self._comparison_value(value)
-        except TypeError:
-            return NotImplemented
+        return float(self) == self._comparison_value(value)
     
     @overload
     def __truediv__(self, other: float | int) -> Self: ...

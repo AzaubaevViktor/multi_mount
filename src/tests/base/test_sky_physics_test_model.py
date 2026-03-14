@@ -104,9 +104,11 @@ def test_comparisons_use_normalized_values(left, right):
     [
         Ha(10),
         Dec(10),
+        HaPerSecond(10),
+        DecPerSecond(10),
     ],
 )
-def test_comparisons_reject_unsupported_type(value):
+def test_comparisons_with_unsupported_type(value):
     with pytest.raises(TypeError):
         _ = value < object()
 
