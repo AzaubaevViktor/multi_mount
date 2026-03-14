@@ -63,12 +63,16 @@ class _StubLX200(LX200Handler):
 
 
 class _StubMotor:
-    def __init__(self, status: MotorStatus, position: Ha | Dec) -> None:
+    def __init__(self, status: MotorStatus, position: Ha | Dec, power_v: float | None = None) -> None:
         self._status = status
         self._position = position
+        self._power_v = power_v
 
     def status(self) -> MotorStatus:
         return self._status
+
+    def get_power_v(self) -> float | None:
+        return self._power_v
 
     def convert_steps_to_position(self, steps: int) -> Ha | Dec:
         return self._position
@@ -156,8 +160,10 @@ class _StubCombiner:
                     direction=MotorDirection.FORWARD,
                     target=None,
                     microsteps=None,
+                    power_v=None,
                 ),
                 Ha(3600),
+                power_v=13.4,
             ),
             Ha(3600),
             HaPerSecond(1.0),
@@ -176,9 +182,10 @@ class _StubCombiner:
                     direction=MotorDirection.STOP,
                     target=None,
                     microsteps=None,
-                    power_v=12.8,
+                    power_v=None,
                 ),
                 Dec(1800),
+                power_v=12.8,
             ),
             Dec(1800),
             DecPerSecond(0.0),
@@ -248,9 +255,9 @@ def test_stdout_dashboard_render_fits_30x130(monkeypatch) -> None:
     assert any("current" in line and "+00*30:20" in line for line in lines)
     assert any("ra_track" in line and "+1.000hs" in line for line in lines)
     assert any("dec_track" in line and "+0.00as" in line for line in lines)
+    assert any("ra_bat" in line and "13.40V" in line for line in lines)
     assert any("dec_bat" in line and "12.80V" in line for line in lines)
-    assert "log_1" in lines[-2] and "LX200" in lines[-2]
-    assert "log_2" in lines[-1] and "LX200" in lines[-1]
+    assert all("log_1" not in line and "log_2" not in line for line in lines)
     assert all("GR" not in line and "GD" not in line for line in lines)
 
 
@@ -280,13 +287,10 @@ def test_stdout_dashboard_state_column_shows_goto_details(monkeypatch) -> None:
     assert any("dec_dir" in line and "north" in line for line in lines)
     assert any("dec_tgt" in line and "+00*31:00" in line for line in lines)
     assert any("dec_left" in line and "+00*00:40" in line for line in lines)
-    assert "log_1" in lines[-2]
-    assert "RA chg e 1.0" in lines[-2]
-    assert "log_2" in lines[-1]
-    assert "DEC haltall" in lines[-1]
+    assert all("log_1" not in line and "log_2" not in line for line in lines)
 
 
-def test_stdout_dashboard_clear_screen_mode_sticks_frame_to_bottom(monkeypatch) -> None:
+def test_stdout_dashboard_clear_screen_mode_sticks_frame_to_top(monkeypatch) -> None:
     lx200 = _StubLX200()
     combiner = _StubCombiner()
     dashboard = StdoutDashboard(combiner, lx200, refresh_s=0.01)
@@ -299,8 +303,32 @@ def test_stdout_dashboard_clear_screen_mode_sticks_frame_to_bottom(monkeypatch) 
         lambda *args, **kwargs: os.terminal_size((130, 40)),
     )
 
-    frame = dashboard.render(clear_screen=True)
+    first_frame = dashboard.render(clear_screen=True)
+    second_frame = dashboard.render(clear_screen=True)
 
-    assert frame.startswith("\x1b7")
-    assert "\x1b[11;1H\x1b[2KRA" in frame
-    assert frame.endswith("\x1b8")
+    assert first_frame.startswith("\x1b[31;40r")
+    assert "\x1b[1;1H\x1b[2KRA" in first_frame
+    assert first_frame.endswith("\x1b[31;1H")
+    assert second_frame.startswith("\x1b[31;40r\x1b7")
+    assert second_frame.endswith("\x1b8")
+
+
+def test_stdout_dashboard_wraps_exception_traceback(monkeypatch) -> None:
+    lx200 = _StubLX200()
+    combiner = _StubCombiner()
+    dashboard = StdoutDashboard(combiner, lx200, refresh_s=0.01)
+
+    def _raise_error():
+        raise AttributeError("very long dashboard error message " * 8)
+
+    monkeypatch.setattr(combiner, "get_position", _raise_error)
+    monkeypatch.setattr(stdout_dashboard_module.time, "strftime", lambda _fmt: "12:34:56")
+    monkeypatch.setattr(stdout_dashboard_module.time, "monotonic", lambda: 100.0)
+
+    frame = dashboard.render(clear_screen=False)
+    lines = frame.rstrip("\n").splitlines()
+
+    assert lines[0].startswith("DASHBOARD ERROR")
+    assert any("AttributeError" in line for line in lines)
+    assert sum("very long dashboard error message" in line for line in lines) >= 2
+    assert all(len(line) <= 100 for line in lines)

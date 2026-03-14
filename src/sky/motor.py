@@ -92,6 +92,11 @@ class Motor[POS_CLS: AxisPos, SPEED_CLS: AxisSpeed](ABC):
     def status(self) -> MotorStatus:
         """ Get actual status from motor """
         ...
+
+    @abstractmethod
+    def get_power_v(self) -> float | None:
+        """ Get current motor supply voltage if supported """
+        ...
     
     @abstractmethod
     def set_steps(self, steps: int) -> bool:

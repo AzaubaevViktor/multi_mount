@@ -4,6 +4,8 @@ import time
 from datetime import datetime
 from typing import Iterable
 
+from terminal_output import TERMINAL_OUTPUT_LOCK
+
 
 LOG_DIR_FORMAT = "%Y-%m-%d_%H-%M-%S"
 HANDLER_NAME_PREFIX = "multi_mount_logging_setup"
@@ -77,6 +79,12 @@ class RelativeFormatter(logging.Formatter):
         return super().format(record)
 
 
+class LockedStreamHandler(logging.StreamHandler):
+    def emit(self, record: logging.LogRecord) -> None:
+        with TERMINAL_OUTPUT_LOCK:
+            super().emit(record)
+
+
 def setup_logging(
     *,
     subsystems: Iterable[str] | None = None,
@@ -106,7 +114,7 @@ def setup_logging(
         if handler.name and handler.name.startswith(HANDLER_NAME_PREFIX):
             root_logger.removeHandler(handler)
 
-    stream_handler = logging.StreamHandler()
+    stream_handler = LockedStreamHandler()
     stream_handler.setLevel(logging.INFO)
     stream_handler.setFormatter(formatter)
     stream_handler.name = f"{HANDLER_NAME_PREFIX}_stream"

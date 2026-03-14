@@ -101,6 +101,7 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
     FORWARD_POSITION_SIGN = 1
     _READY_RETRIES = 3
     _READY_TIMEOUT_S = 10.0
+    _POWER_CACHE_TTL_S = 2.0
 
     def __init__(self, serial: SerialLine) -> None:
         self._serial = serial
@@ -108,6 +109,8 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         self._microsteps = 16
         self._is_connected = False
         self._direction = MotorDirection.STOP
+        self._last_power_v: float | None = None
+        self._last_power_v_updated = 0.0
 
     def connect(self):
         ready = ""
@@ -131,6 +134,8 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
 
     def disconnect(self) -> bool:
         self._is_connected = False
+        self._last_power_v = None
+        self._last_power_v_updated = 0.0
         self._serial.close()
         return True
 
@@ -161,8 +166,21 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
             direction=direction,
             target=status.target if status.target_set else None,
             microsteps=self._microsteps,
-            power_v=status.power_v,
+            power_v=None,
         )
+
+    def get_power_v(self) -> float | None:
+        power_v = self._last_power_v
+        now = time.monotonic()
+        if self._is_connected and now - self._last_power_v_updated >= self._POWER_CACHE_TTL_S:
+            try:
+                power_v = self._status().power_v
+                self._last_power_v = power_v
+                self._last_power_v_updated = now
+            except TMC2209MotorError:
+                self._logger.exception("While querying tmc2209 voltage")
+
+        return power_v
 
     def set_steps(self, steps: int) -> bool:
         self._ensure_not_goto(self._status(), "cannot change steps while GOTO is in progress")
@@ -266,6 +284,8 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
 
     def reset(self) -> None:
         self.wait_till_stop(do_stop=True)
+        self._last_power_v = None
+        self._last_power_v_updated = 0.0
 
     def convert_steps_to_speed(self, speed_sps: int | float) -> DecPerSecond:
         return DecPerSecond(float(speed_sps) / self._steps_per_arcsecond())

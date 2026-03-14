@@ -33,6 +33,7 @@ class _Command(StrEnum):
     INQUIRE_CPR = "a"
     INQUIRE_POSITION = "j"
     INQUIRE_STATUS = "f"
+    INQUIRE_VOLTAGE = "fL"
     INQUIRE_HIGHSPEED_RATIO = "g"
     SET_STEP_PERIOD = "I"
     SET_GOTO_TARGET_INCREMENT = "H"
@@ -130,6 +131,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     _LOWSPEED_MARGIN = Ha(10 * 60)
     _LOWSPEED_SPEED = STELLAR_SPEED * 128
     _HIGHSPEED_SPEED = STELLAR_SPEED * 800
+    _POWER_CACHE_TTL_S = 2.0
 
     def __init__(self, serial: SerialLine) -> None:
         self._serial = serial
@@ -144,6 +146,8 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._zero_target_pending = False
         self._mount_position_cache = Ha(0)
         self._mount_position_cache_updated = 0.0
+        self._last_power_v: float | None = None
+        self._last_power_v_updated = 0.0
 
     def connect(self):
         if self._serial.terminator != Protocol.ANSWER_END_BYTE:
@@ -163,6 +167,8 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
 
     def disconnect(self) -> bool:
         self._is_connected = False
+        self._last_power_v = None
+        self._last_power_v_updated = 0.0
         self._serial.close()
         return True
 
@@ -180,6 +186,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
             direction = MotorDirection.FORWARD
         else:
             direction = MotorDirection.BACKWARD
+
         return MotorStatus(
             is_connected=self._is_connected,
             steps=self.convert_position_to_steps(self._get_position()),
@@ -189,7 +196,26 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
             direction=direction,
             target=self._last_target if status.slew_mode == _SlewMode.GOTO else None,
             microsteps=None,
+            power_v=None,
         )
+
+    def get_power_v(self) -> float | None:
+        return -1
+        power_v = self._last_power_v
+        now = time.monotonic()
+        if self._is_connected and now - self._last_power_v_updated >= self._POWER_CACHE_TTL_S:
+            try:
+                encoded_voltage = self._transact(_Command.INQUIRE_VOLTAGE).strip()
+                if not encoded_voltage or len(encoded_voltage) > 2:
+                    raise SkyWatcherMotorProtocolError(f"invalid voltage response: {encoded_voltage!r}")
+
+                power_v = int(encoded_voltage, 16) / 10.0
+                self._last_power_v = power_v
+                self._last_power_v_updated = now
+            except (SkyWatcherMotorError, ValueError):
+                self._logger.exception("While querying skywatcher voltage")
+
+        return power_v
 
     def set_steps(self, steps: int) -> bool:
         status = self._get_status()
@@ -356,6 +382,8 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._last_direction = MotorDirection.STOP
         self._last_target = None
         self._zero_target_pending = False
+        self._last_power_v = None
+        self._last_power_v_updated = 0.0
 
     def _get_status(self) -> _Status:
         return _Status.from_bytes(self._transact(_Command.INQUIRE_STATUS).encode("ascii"))
@@ -414,13 +442,15 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     REPEATS = 3
     def _transact(self, command: _Command, arg: str | None = None) -> str:
         payload = f"{Protocol.COMMAND_PREFIX}{command.value}{_Axis.RA}{arg or ''}{Protocol.COMMAND_TERMINATOR}"
+        response_prefixes = (Protocol.RESPONSE_PREFIX_BYTE, Protocol.COMMAND_ERROR_PREFIX_BYTE)
+
         count = self.REPEATS
         response = None
         while count > 0:
             try:
                 response = self._serial.query(
                     payload,
-                    response_prefixes=(Protocol.RESPONSE_PREFIX_BYTE, Protocol.COMMAND_ERROR_PREFIX_BYTE),
+                    response_prefixes=response_prefixes,
                 )
                 if not response:
                     raise SkyWatcherMotorProtocolError(f"empty response: {response!r}")

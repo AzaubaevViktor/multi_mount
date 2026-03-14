@@ -2,12 +2,15 @@ import shutil
 import sys
 import threading
 import time
+import traceback
+import textwrap
 
 from lx200.base import LX200Handler
 from sky.axis import AxisDEC, AxisRA
 from sky.combiner import Combiner
 from sky.constants import STELLAR_SPEED
 from sky.physics import Dec, DecPerSecond, Ha, HaPerSecond, Second
+from terminal_output import TERMINAL_OUTPUT_LOCK
 
 
 class StdoutDashboard:
@@ -15,7 +18,6 @@ class StdoutDashboard:
     _MID_WIDTH = 32
     _STATE_WIDTH = 34
     _HEIGHT = 30
-    _LOG_LINES = 2
     _TOTAL_WIDTH = _LEFT_WIDTH + _MID_WIDTH + _STATE_WIDTH + 2
 
     def __init__(self, combiner: Combiner, lx200: LX200Handler, refresh_s: float = 0.25) -> None:
@@ -25,6 +27,7 @@ class StdoutDashboard:
         self._stop_event = threading.Event()
         self._thread: threading.Thread | None = None
         self._samples: list[tuple[float, Ha, Dec, Ha, Dec]] = []
+        self._screen_initialized = False
 
     def start(self) -> None:
         if self._thread is not None and self._thread.is_alive():
@@ -38,26 +41,40 @@ class StdoutDashboard:
         self._stop_event.set()
         if self._thread is not None:
             self._thread.join(timeout=self._refresh_s * 2)
+        if self._screen_initialized:
+            with TERMINAL_OUTPUT_LOCK:
+                sys.stdout.write("\x1b[r")
+                sys.stdout.flush()
+            self._screen_initialized = False
 
     def render(self, clear_screen: bool = True) -> str:
         lines = self._render_lines()
         frame = "\n".join(lines)
         if clear_screen:
-            terminal_size = shutil.get_terminal_size((130, self._HEIGHT))
-            top_row = max(1, terminal_size.lines - self._HEIGHT + 1)
-            rendered_lines = ["\x1b7"]
+            terminal_size = shutil.get_terminal_size((130, self._HEIGHT + 1))
+            log_top_row = min(terminal_size.lines, self._HEIGHT + 1)
+            rendered_lines = [f"\x1b[{log_top_row};{terminal_size.lines}r"]
 
-            for row, line in enumerate(lines, start=top_row):
+            if self._screen_initialized:
+                rendered_lines.append("\x1b7")
+
+            for row, line in enumerate(lines, start=1):
                 rendered_lines.append(f"\x1b[{row};1H\x1b[2K{line}")
 
-            rendered_lines.append("\x1b8")
+            if self._screen_initialized:
+                rendered_lines.append("\x1b8")
+            else:
+                rendered_lines.append(f"\x1b[{log_top_row};1H")
+                self._screen_initialized = True
+
             return "".join(rendered_lines)
         return f"{frame}\n"
 
     def _serve_forever(self) -> None:
         while not self._stop_event.is_set():
-            sys.stdout.write(self.render(clear_screen=True))
-            sys.stdout.flush()
+            with TERMINAL_OUTPUT_LOCK:
+                sys.stdout.write(self.render(clear_screen=True))
+                sys.stdout.flush()
             if self._stop_event.wait(self._refresh_s):
                 break
 
@@ -73,6 +90,8 @@ class StdoutDashboard:
             dec_monitor = dec_axis.command_monitor()
             ra_motor_status = ra_axis._motor.status()
             dec_motor_status = dec_axis._motor.status()
+            ra_power_v = ra_axis._motor.get_power_v()
+            dec_power_v = dec_axis._motor.get_power_v()
             ra_motor_position = ra_axis._motor.convert_steps_to_position(ra_motor_status.steps)
             dec_motor_position = dec_axis._motor.convert_steps_to_position(dec_motor_status.steps)
             ra_axis_position = ra_axis.get_position().ra
@@ -189,7 +208,8 @@ class StdoutDashboard:
                 self._pair("ra_mode", ra_mode),
                 self._pair("dec_mode", dec_mode),
                 self._pair("polar", polar_status),
-                self._pair("dec_bat", self._fmt_voltage(dec_motor_status.power_v)),
+                self._pair("ra_bat", self._fmt_voltage(ra_power_v)),
+                self._pair("dec_bat", self._fmt_voltage(dec_power_v)),
                 "",
             ]
 
@@ -231,27 +251,32 @@ class StdoutDashboard:
             else:
                 state_lines.append(self._pair("dec_track", self._fmt_dec_rate(dec_axis._sky_speed)))
 
-            lx200_monitor = self._lx200.command_monitor()
-            log_entries: list[tuple[float, str]] = []
-            if lx200_monitor["guide"] is not None:
-                guide_at, guide_command = lx200_monitor["guide"]
-                log_entries.append((float(guide_at), f"LX200 {guide_command}"))
-            for command_at, command in reversed(lx200_monitor["recent"]):
-                log_entries.append((float(command_at), f"LX200 {command}"))
-            for axis_name, axis in (("RA", ra_axis), ("DEC", dec_axis)):
-                for command_at, command in axis.command_monitor()["processed"]:
-                    log_entries.append((float(command_at), f"{axis_name} {self._short_axis_command(command)}"))
-
-            log_lines = []
-            for index, (command_at, command) in enumerate(sorted(log_entries, reverse=True)[: self._LOG_LINES], start=1):
-                log_lines.append(self._fit(self._pair(f"log_{index}", f"{self._fmt_age(now, Second(command_at))} {command}"), self._TOTAL_WIDTH))
         except Exception as error:
-            left_lines = [f"dashboard error: {type(error).__name__}", str(error)]
-            middle_lines = ["DEC", "-"]
-            state_lines = ["STATE", "-"]
-            log_lines = [
-                self._fit(self._pair("log_1", f"{type(error).__name__}: {error}"), self._TOTAL_WIDTH),
+            error_lines = [
+                self._fit("DASHBOARD ERROR", self._TOTAL_WIDTH),
+                self._fit("-" * self._TOTAL_WIDTH, self._TOTAL_WIDTH),
             ]
+
+            for traceback_block in traceback.format_exception(type(error), error, error.__traceback__):
+                for traceback_line in traceback_block.rstrip("\n").splitlines():
+                    wrapped_lines = textwrap.wrap(
+                        traceback_line,
+                        width=self._TOTAL_WIDTH,
+                        replace_whitespace=False,
+                        drop_whitespace=False,
+                        subsequent_indent="  ",
+                    )
+                    if not wrapped_lines:
+                        error_lines.append(" " * self._TOTAL_WIDTH)
+                        continue
+
+                    for wrapped_line in wrapped_lines:
+                        error_lines.append(self._fit(wrapped_line, self._TOTAL_WIDTH))
+
+            while len(error_lines) < self._HEIGHT:
+                error_lines.append(" " * self._TOTAL_WIDTH)
+
+            return error_lines[: self._HEIGHT]
 
         lines = [
             self._fit("RA", self._LEFT_WIDTH)
@@ -266,7 +291,7 @@ class StdoutDashboard:
             + self._fit("-" * self._STATE_WIDTH, self._STATE_WIDTH),
         ]
 
-        body_height = self._HEIGHT - len(lines) - self._LOG_LINES
+        body_height = self._HEIGHT - len(lines)
         for index in range(body_height):
             left = left_lines[index] if index < len(left_lines) else ""
             middle = middle_lines[index] if index < len(middle_lines) else ""
@@ -278,11 +303,6 @@ class StdoutDashboard:
                 + "|"
                 + self._fit(state, self._STATE_WIDTH)
             )
-
-        while len(log_lines) < self._LOG_LINES:
-            log_lines.append(" " * self._TOTAL_WIDTH)
-
-        lines.extend(log_lines[: self._LOG_LINES])
 
         return lines[: self._HEIGHT]
 

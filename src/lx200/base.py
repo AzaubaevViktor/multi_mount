@@ -80,6 +80,9 @@ class LX200Base:
     def connect(self) -> None:
         raise NotImplementedError()
 
+    def is_connected(self) -> bool:
+        raise NotImplementedError()
+
     def stop(self) -> None:
         raise NotImplementedError()
 
@@ -212,6 +215,9 @@ class LX200Handler(LX200Base):
 
     def connect(self) -> None:
         self._is_connected = True
+
+    def is_connected(self) -> bool:
+        return self._is_connected
     
     def _do_handle(self, cmd: LX200Commands, argument: Any, now: Second | None = None) -> Any:
         result = None

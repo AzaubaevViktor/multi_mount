@@ -27,7 +27,8 @@ class LX200SimpleServer:
         self._connection_id = -1
         
     def serve_forever(self) -> None:
-        self.lx200.connect()
+        if not self.lx200.is_connected():
+            self.lx200.connect()
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as srv:
             srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

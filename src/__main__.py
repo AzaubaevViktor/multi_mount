@@ -42,6 +42,7 @@ if __name__ == "__main__":
 
     server = LX200SimpleServer(sky_lx200)
     dashboard = StdoutDashboard(combiner, sky_lx200)
+    sky_lx200.connect()
     dashboard.start()
 
     try:
