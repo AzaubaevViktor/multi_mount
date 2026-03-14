@@ -9,12 +9,13 @@ from lx200.protocol import AlignmentMode, Protocol
 
 class LX200SimpleServer:
     def __init__(
-            self, 
-            lx200: LX200Handler,
-            host: str = 'localhost', 
-            port: int = 7624, 
-            buffer_size: int = 1,
-            encoding: str = 'ascii') -> None:
+        self,
+        lx200: LX200Handler,
+        host: str = "localhost",
+        port: int = 7624,
+        buffer_size: int = 1,
+        encoding: str = "ascii",
+    ) -> None:
         self.log = logging.getLogger("server")
         self.lx200 = lx200
         self.host = host
@@ -66,7 +67,7 @@ class LX200SimpleServer:
                         response = self.handle_alignment(buf)
 
                         self.log.info("Client asks about alignment mode, responce with %s", response)
-                        conn.sendall((response.value).encode(self.encoding))
+                        conn.sendall(response.value.encode(self.encoding))
                         data = data[idx + 1 :]
                         idx = data.find(Protocol.ALIGNMENT_QUERY_BYTE)
                     if data:
@@ -97,17 +98,12 @@ class LX200SimpleServer:
                         str_response = None
                     elif isinstance(response, bool):
                         str_response = str(int(response))
-                        self.log.debug("Send %s", str_response)
                     else:
                         str_response = str(response) + Protocol.TERMINATOR
-                        
 
                     self.log.debug("Convert %r -> %r", response, str_response)
 
-
-                    if str_response is None:
-                        self.log.debug("Nothing to return")
-                    else:
+                    if str_response is not None:
                         self.log.debug("Send %s", str_response)
 
                         conn.sendall(str_response.encode(self.encoding))
