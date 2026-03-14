@@ -664,6 +664,7 @@ def test_sync_command_updates_mount_coordinates(
     target_dec_text: str,
 ):
     sc.sync_known_position(target_ra_text, target_dec_text)
+    time.sleep(2)
 
 
 def test_mount_in_tracking_mode_by_default(sc: CombinerController):
