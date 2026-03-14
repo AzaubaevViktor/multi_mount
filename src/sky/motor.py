@@ -29,6 +29,7 @@ class MotorStatus:
     direction: MotorDirection
     target: int | None
     microsteps: int | None
+    power_v: float | None = None
 
 
 class MotorStopRequire(Exception):

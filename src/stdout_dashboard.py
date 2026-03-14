@@ -1,3 +1,4 @@
+import shutil
 import sys
 import threading
 import time
@@ -10,10 +11,12 @@ from sky.physics import Dec, DecPerSecond, Ha, HaPerSecond, Second
 
 
 class StdoutDashboard:
-    _LEFT_WIDTH = 42
-    _MID_WIDTH = 42
-    _RIGHT_WIDTH = 42
-    _HEIGHT = 20
+    _LEFT_WIDTH = 32
+    _MID_WIDTH = 32
+    _STATE_WIDTH = 34
+    _HEIGHT = 30
+    _LOG_LINES = 2
+    _TOTAL_WIDTH = _LEFT_WIDTH + _MID_WIDTH + _STATE_WIDTH + 2
 
     def __init__(self, combiner: Combiner, lx200: LX200Handler, refresh_s: float = 0.25) -> None:
         self._combiner = combiner
@@ -40,7 +43,15 @@ class StdoutDashboard:
         lines = self._render_lines()
         frame = "\n".join(lines)
         if clear_screen:
-            return f"\x1b[2J\x1b[H{frame}\n"
+            terminal_size = shutil.get_terminal_size((130, self._HEIGHT))
+            top_row = max(1, terminal_size.lines - self._HEIGHT + 1)
+            rendered_lines = ["\x1b7"]
+
+            for row, line in enumerate(lines, start=top_row):
+                rendered_lines.append(f"\x1b[{row};1H\x1b[2K{line}")
+
+            rendered_lines.append("\x1b8")
+            return "".join(rendered_lines)
         return f"{frame}\n"
 
     def _serve_forever(self) -> None:
@@ -64,6 +75,8 @@ class StdoutDashboard:
             dec_motor_status = dec_axis._motor.status()
             ra_motor_position = ra_axis._motor.convert_steps_to_position(ra_motor_status.steps)
             dec_motor_position = dec_axis._motor.convert_steps_to_position(dec_motor_status.steps)
+            ra_axis_position = ra_axis.get_position().ra
+            dec_axis_position = dec_axis.get_position().dec
             polar_compensator = self._combiner._polar_compensator
 
             self._samples.append((now, mount_position.ra, mount_position.dec, ra_motor_position, dec_motor_position))
@@ -83,8 +96,22 @@ class StdoutDashboard:
                 motor_ra_rate = (ra_motor_position - sample_ra_motor).moving_wrap() / elapsed_s
                 motor_dec_rate = (dec_motor_position - sample_dec_motor).moving_wrap() / elapsed_s
 
-            mount_state = "goto" if ra_axis.is_moving_to() or dec_axis.is_moving_to() else "track"
+            ra_mode = self._abbr_axis_mode(ra_axis.mode())
+            dec_mode = self._abbr_axis_mode(dec_axis.mode())
+            if "goto" in (ra_mode, dec_mode):
+                mount_state = "goto"
+            elif "slew" in (ra_mode, dec_mode):
+                mount_state = "move"
+            elif "track" in (ra_mode, dec_mode):
+                mount_state = "track"
+            else:
+                mount_state = "stop"
+
+            ra_set_speed = ra_axis._motor.get_speed_by_speed_sps(ra_motor_status.speed_sps) if ra_motor_status.speed_sps else HaPerSecond(0)
+            dec_set_speed = dec_axis._motor.get_speed_by_speed_sps(dec_motor_status.speed_sps) if dec_motor_status.speed_sps else DecPerSecond(0)
             polar_external_guide = Second(now) - polar_compensator.last_guide_pulse < polar_compensator.DROP_GUIDE_PULSES_COUNT_AFTER
+            polar_external_guide_ra = Second(now) - polar_compensator.last_ra_guide_pulse < polar_compensator.STOP_AXIS_AFTER
+            polar_external_guide_dec = Second(now) - polar_compensator.last_dec_guide_pulse < polar_compensator.STOP_AXIS_AFTER
             polar_stable_guide = (
                 polar_compensator.stable_guide_ra_pulses_count >= polar_compensator.STABLE_GUIDE_PULSES_COUNT
                 and polar_compensator.stable_guide_dec_pulses_count >= polar_compensator.STABLE_GUIDE_PULSES_COUNT
@@ -100,97 +127,162 @@ class StdoutDashboard:
 
             left_lines = [
                 self._section_header("AXIS", self._LEFT_WIDTH),
-                f"pos   {mount_position.ra} ax={self._abbr_axis_mode(ra_axis.mode())}",
-                f"sky   {self._fmt_ha_rate(ra_axis._sky_speed)}",
-                f"mount {self._fmt_ha_rate(mount_ra_rate)}",
-                f"queue {ra_monitor['queue_size']:>6}",
+                self._pair("position", mount_position.ra),
+                self._pair("mode", ra_mode),
+                self._pair("sky", self._fmt_ha_rate(ra_axis._sky_speed)),
+                self._pair("mount_1s", self._fmt_ha_rate(mount_ra_rate)),
+                self._pair("queue", ra_monitor["queue_size"]),
                 "",
                 self._section_header("MOTOR", self._LEFT_WIDTH),
-                f"pos   {ra_motor_position}",
-                f"mode  {self._abbr_motor_mode(ra_motor_status.motion_mode)} {self._abbr_direction(ra_motor_status.direction)}",
-                f"rate  {self._fmt_ha_rate(motor_ra_rate)}",
-                f"sps   {ra_motor_status.speed_sps:>6} raw {ra_motor_status.steps}",
+                self._pair("position", ra_motor_position),
+                self._pair("mode", self._abbr_motor_mode(ra_motor_status.motion_mode)),
+                self._pair("dir", self._abbr_direction(ra_motor_status.direction)),
+                self._pair("motor_1s", self._fmt_ha_rate(motor_ra_rate)),
+                self._pair("speed", f"{ra_motor_status.speed_sps} sps"),
+                self._pair("raw", ra_motor_status.steps),
                 "",
                 self._section_header("POLAR", self._LEFT_WIDTH),
-                f"guide {self._fmt_ra_guide_rate(polar_compensator.ra_speed)}",
-                f"stable {polar_compensator.stable_guide_ra_pulses_count}/{polar_compensator.STABLE_GUIDE_PULSES_COUNT}",
-                f"eps E {polar_compensator.eps_E or '-'}",
+                self._pair("avg", self._fmt_ra_guide_rate(polar_compensator.ra_speed)),
+                self._pair("samples", len(polar_compensator._ra_speeds)),
+                self._pair("pulse", self._fmt_age(now, polar_compensator.last_ra_guide_pulse)),
+                self._pair(
+                    "flags",
+                    f"e={self._fmt_flag(polar_external_guide)} s={self._fmt_flag(polar_stable_guide)} a={self._fmt_flag(polar_external_guide_ra)}",
+                ),
+                self._pair("current", polar_compensator.current_ha),
+                self._pair("eps", polar_compensator.eps_E or "-"),
             ]
 
             middle_lines = [
                 self._section_header("AXIS", self._MID_WIDTH),
-                f"pos   {mount_position.dec} ax={self._abbr_axis_mode(dec_axis.mode())}",
-                f"sky   {self._fmt_dec_rate(dec_axis._sky_speed)}",
-                f"mount {self._fmt_dec_rate(mount_dec_rate)}",
-                f"queue {dec_monitor['queue_size']:>6}",
+                self._pair("position", mount_position.dec),
+                self._pair("mode", dec_mode),
+                self._pair("sky", self._fmt_dec_rate(dec_axis._sky_speed)),
+                self._pair("mount_1s", self._fmt_dec_rate(mount_dec_rate)),
+                self._pair("queue", dec_monitor["queue_size"]),
                 "",
                 self._section_header("MOTOR", self._MID_WIDTH),
-                f"pos   {dec_motor_position}",
-                f"mode  {self._abbr_motor_mode(dec_motor_status.motion_mode)} {self._abbr_direction(dec_motor_status.direction)}",
-                f"rate  {self._fmt_dec_rate(motor_dec_rate)}",
-                f"sps   {dec_motor_status.speed_sps:>6} raw {dec_motor_status.steps}",
+                self._pair("position", dec_motor_position),
+                self._pair("mode", self._abbr_motor_mode(dec_motor_status.motion_mode)),
+                self._pair("dir", self._abbr_direction(dec_motor_status.direction)),
+                self._pair("motor_1s", self._fmt_dec_rate(motor_dec_rate)),
+                self._pair("speed", f"{dec_motor_status.speed_sps} sps"),
+                self._pair("raw", dec_motor_status.steps),
                 "",
                 self._section_header("POLAR", self._MID_WIDTH),
-                f"guide {self._fmt_dec_rate(polar_compensator.dec_speed)}",
-                f"stable {polar_compensator.stable_guide_dec_pulses_count}/{polar_compensator.STABLE_GUIDE_PULSES_COUNT}",
-                f"eps N {polar_compensator.eps_N or '-'}",
+                self._pair("avg", self._fmt_dec_rate(polar_compensator.dec_speed)),
+                self._pair("samples", len(polar_compensator._dec_speeds)),
+                self._pair("pulse", self._fmt_age(now, polar_compensator.last_dec_guide_pulse)),
+                self._pair(
+                    "flags",
+                    f"e={self._fmt_flag(polar_external_guide)} s={self._fmt_flag(polar_stable_guide)} a={self._fmt_flag(polar_external_guide_dec)}",
+                ),
+                self._pair("current", polar_compensator.current_dec),
+                self._pair("eps", polar_compensator.eps_N or "-"),
             ]
+
+            state_lines = [
+                self._section_header("STATE", self._STATE_WIDTH),
+                self._pair("clock", wall_clock),
+                self._pair("guide", self._fmt_age(now, polar_compensator.last_guide_pulse)),
+                self._pair("mode", mount_state),
+                self._pair("ra_mode", ra_mode),
+                self._pair("dec_mode", dec_mode),
+                self._pair("polar", polar_status),
+                self._pair("dec_bat", self._fmt_voltage(dec_motor_status.power_v)),
+                "",
+            ]
+
+            if ra_mode == "goto":
+                state_lines.extend(
+                    [
+                        self._pair("ra_dir", ra_axis._goto_direction or "-"),
+                        self._pair("ra_vset", self._fmt_ha_rate(ra_set_speed)),
+                        self._pair("ra_tgt", ra_axis._goto_target or "-"),
+                        self._pair("ra_left", abs((ra_axis_position - ra_axis._goto_target).moving_wrap()) if ra_axis._goto_target is not None else "-"),
+                    ]
+                )
+            elif ra_mode == "slew":
+                state_lines.extend(
+                    [
+                        self._pair("ra_dir", ra_axis._move_direction or "-"),
+                        self._pair("ra_vset", self._fmt_ha_rate(ra_set_speed)),
+                    ]
+                )
+            else:
+                state_lines.append(self._pair("ra_track", self._fmt_ha_rate(ra_axis._sky_speed)))
+
+            if dec_mode == "goto":
+                state_lines.extend(
+                    [
+                        self._pair("dec_dir", dec_axis._goto_direction or "-"),
+                        self._pair("dec_vset", self._fmt_dec_rate(dec_set_speed)),
+                        self._pair("dec_tgt", dec_axis._goto_target or "-"),
+                        self._pair("dec_left", abs((dec_axis_position - dec_axis._goto_target).moving_wrap()) if dec_axis._goto_target is not None else "-"),
+                    ]
+                )
+            elif dec_mode == "slew":
+                state_lines.extend(
+                    [
+                        self._pair("dec_dir", dec_axis._move_direction or "-"),
+                        self._pair("dec_vset", self._fmt_dec_rate(dec_set_speed)),
+                    ]
+                )
+            else:
+                state_lines.append(self._pair("dec_track", self._fmt_dec_rate(dec_axis._sky_speed)))
 
             lx200_monitor = self._lx200.command_monitor()
-            lx200_lines = [
-                self._section_header("SYSTEM", self._RIGHT_WIDTH),
-                f"clock {wall_clock}",
-                f"state {mount_state}",
-                f"polar {polar_status}",
-                f"last  {self._fmt_age(now, polar_compensator.last_guide_pulse)}",
-                "",
-                self._section_header("LX200", self._RIGHT_WIDTH),
-            ]
+            log_entries: list[tuple[float, str]] = []
             if lx200_monitor["guide"] is not None:
                 guide_at, guide_command = lx200_monitor["guide"]
-                lx200_lines.append(f"guide {self._fmt_age(now, guide_at)} {guide_command}")
+                log_entries.append((float(guide_at), f"LX200 {guide_command}"))
             for command_at, command in reversed(lx200_monitor["recent"]):
-                lx200_lines.append(f"{self._fmt_age(now, command_at)} {command}")
-
-            axis_lines = ["", self._section_header("AXIS", self._RIGHT_WIDTH)]
-            processed_entries: list[tuple[float, str]] = []
+                log_entries.append((float(command_at), f"LX200 {command}"))
             for axis_name, axis in (("RA", ra_axis), ("DEC", dec_axis)):
                 for command_at, command in axis.command_monitor()["processed"]:
-                    processed_entries.append((float(command_at), f"{axis_name} {self._short_axis_command(command)}"))
-            for command_at, command in sorted(processed_entries, reverse=True)[:8]:
-                axis_lines.append(f"{self._fmt_age(now, Second(command_at))} {command}")
+                    log_entries.append((float(command_at), f"{axis_name} {self._short_axis_command(command)}"))
 
-            right_lines = lx200_lines + axis_lines
+            log_lines = []
+            for index, (command_at, command) in enumerate(sorted(log_entries, reverse=True)[: self._LOG_LINES], start=1):
+                log_lines.append(self._fit(self._pair(f"log_{index}", f"{self._fmt_age(now, Second(command_at))} {command}"), self._TOTAL_WIDTH))
         except Exception as error:
             left_lines = [f"dashboard error: {type(error).__name__}", str(error)]
             middle_lines = ["DEC", "-"]
-            right_lines = ["EVENTS", "-"]
+            state_lines = ["STATE", "-"]
+            log_lines = [
+                self._fit(self._pair("log_1", f"{type(error).__name__}: {error}"), self._TOTAL_WIDTH),
+            ]
 
         lines = [
             self._fit("RA", self._LEFT_WIDTH)
             + "|"
             + self._fit("DEC", self._MID_WIDTH)
             + "|"
-            + self._fit("EVENTS", self._RIGHT_WIDTH),
+            + self._fit("STATE", self._STATE_WIDTH),
             self._fit("-" * self._LEFT_WIDTH, self._LEFT_WIDTH)
             + "|"
             + self._fit("-" * self._MID_WIDTH, self._MID_WIDTH)
             + "|"
-            + self._fit("-" * self._RIGHT_WIDTH, self._RIGHT_WIDTH),
+            + self._fit("-" * self._STATE_WIDTH, self._STATE_WIDTH),
         ]
 
-        body_height = self._HEIGHT - len(lines)
+        body_height = self._HEIGHT - len(lines) - self._LOG_LINES
         for index in range(body_height):
             left = left_lines[index] if index < len(left_lines) else ""
             middle = middle_lines[index] if index < len(middle_lines) else ""
-            right = right_lines[index] if index < len(right_lines) else ""
+            state = state_lines[index] if index < len(state_lines) else ""
             lines.append(
                 self._fit(left, self._LEFT_WIDTH)
                 + "|"
                 + self._fit(middle, self._MID_WIDTH)
                 + "|"
-                + self._fit(right, self._RIGHT_WIDTH)
+                + self._fit(state, self._STATE_WIDTH)
             )
+
+        while len(log_lines) < self._LOG_LINES:
+            log_lines.append(" " * self._TOTAL_WIDTH)
+
+        lines.extend(log_lines[: self._LOG_LINES])
 
         return lines[: self._HEIGHT]
 
@@ -204,6 +296,10 @@ class StdoutDashboard:
     @staticmethod
     def _section_header(title: str, width: int) -> str:
         return f"-- {title} " + "-" * max(0, width - len(title) - 4)
+
+    @staticmethod
+    def _pair(name: str, value: object) -> str:
+        return f"{name:<8}: {value}"
 
     @staticmethod
     def _abbr_motor_mode(mode: object) -> str:
@@ -256,6 +352,14 @@ class StdoutDashboard:
     @staticmethod
     def _fmt_dec_rate(value: DecPerSecond) -> str:
         return f"{float(value):+7.2f}as"
+
+    @staticmethod
+    def _fmt_flag(value: bool) -> str:
+        return "y" if value else "n"
+
+    @staticmethod
+    def _fmt_voltage(value: float | None) -> str:
+        return "-" if value is None else f"{value:.2f}V"
 
     @staticmethod
     def _short_axis_command(command: str) -> str:

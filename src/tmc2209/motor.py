@@ -78,6 +78,7 @@ class _Status:
     speed_sps: float
     actual_speed_sps: float
     accel_steps_per_s: float
+    power_v: float | None = None
 
     @classmethod
     def from_response(cls, response: _Response) -> "_Status":
@@ -92,6 +93,7 @@ class _Status:
             speed_sps=float(response.values["speed"]),
             actual_speed_sps=float(response.values["actual_speed"]),
             accel_steps_per_s=float(response.values["accel_per_s"]),
+            power_v=float(response.values["power_v"]) if "power_v" in response.values else None,
         )
 
 
@@ -159,6 +161,7 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
             direction=direction,
             target=status.target if status.target_set else None,
             microsteps=self._microsteps,
+            power_v=status.power_v,
         )
 
     def set_steps(self, steps: int) -> bool:

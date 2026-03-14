@@ -1,8 +1,10 @@
+import os
+
 import stdout_dashboard as stdout_dashboard_module
 from sky.axis import AxisMotionMode, PointCoordinates
 from sky.constants import STELLAR_SPEED
 from sky.motor import MotionMode, MotorDirection, MotorStatus
-from sky.physics import Dec, DecPerSecond, Ha, HaPerSecond, Second
+from sky.physics import Dec, DecPerSecond, Ha, HaPerSecond, Second, SkyDirection
 from lx200.base import LX200Handler
 from stdout_dashboard import StdoutDashboard
 
@@ -71,27 +73,45 @@ class _StubMotor:
     def convert_steps_to_position(self, steps: int) -> Ha | Dec:
         return self._position
 
+    def get_speed_by_speed_sps(self, speed_sps: int) -> HaPerSecond | DecPerSecond:
+        if isinstance(self._position, Ha):
+            return HaPerSecond(float(speed_sps))
+        return DecPerSecond(float(speed_sps))
+
 
 class _StubAxis:
     def __init__(
         self,
         mode: AxisMotionMode,
         motor: _StubMotor,
+        position: Ha | Dec,
         sky_speed: HaPerSecond | DecPerSecond,
         queue_size: int,
         processed: list[tuple[Second, str]],
+        move_direction: SkyDirection | None = None,
+        goto_target: Ha | Dec | None = None,
+        goto_direction: SkyDirection | None = None,
     ) -> None:
         self._mode = mode
         self._motor = motor
+        self._position = position
         self._sky_speed = sky_speed
         self._queue_size = queue_size
         self._processed = processed
+        self._move_direction = move_direction
+        self._goto_target = goto_target
+        self._goto_direction = goto_direction
 
     def mode(self) -> AxisMotionMode:
         return self._mode
 
     def is_moving_to(self) -> bool:
         return False
+
+    def get_position(self) -> PointCoordinates:
+        if isinstance(self._position, Ha):
+            return PointCoordinates(ra=self._position, dec=Dec(0))
+        return PointCoordinates(ra=Ha(0), dec=self._position)
 
     def command_monitor(self) -> dict[str, object]:
         return {
@@ -103,15 +123,22 @@ class _StubAxis:
 class _StubPolarCompensator:
     STABLE_GUIDE_PULSES_COUNT = 5
     DROP_GUIDE_PULSES_COUNT_AFTER = Second(20)
+    STOP_AXIS_AFTER = Second(4.1)
 
     def __init__(self) -> None:
+        self.current_ha = Ha(7210)
+        self.current_dec = Dec(1820)
         self.eps_E = None
         self.eps_N = None
         self.ra_speed = STELLAR_SPEED * 1.25
         self.dec_speed = DecPerSecond(0.5)
         self.last_guide_pulse = Second(10)
+        self.last_ra_guide_pulse = Second(10)
+        self.last_dec_guide_pulse = Second(10)
         self.stable_guide_ra_pulses_count = 2
         self.stable_guide_dec_pulses_count = 3
+        self._ra_speeds = [STELLAR_SPEED * 1.10, STELLAR_SPEED * 1.25]
+        self._dec_speeds = [DecPerSecond(0.25), DecPerSecond(0.50), DecPerSecond(0.75)]
 
 
 class _StubCombiner:
@@ -132,6 +159,7 @@ class _StubCombiner:
                 ),
                 Ha(3600),
             ),
+            Ha(3600),
             HaPerSecond(1.0),
             0,
             [(now, "change_speed east 1.0")],
@@ -148,9 +176,11 @@ class _StubCombiner:
                     direction=MotorDirection.STOP,
                     target=None,
                     microsteps=None,
+                    power_v=12.8,
                 ),
                 Dec(1800),
             ),
+            Dec(1800),
             DecPerSecond(0.0),
             1,
             [(now, "halt_all")],
@@ -177,7 +207,7 @@ def test_lx200_monitor_filters_gr_gd_and_tracks_guide() -> None:
     assert snapshot["guide"][1] == "Mgw1000"
 
 
-def test_stdout_dashboard_render_fits_20x130(monkeypatch) -> None:
+def test_stdout_dashboard_render_fits_30x130(monkeypatch) -> None:
     lx200 = _StubLX200()
     lx200.handle("MS")
     lx200.handle("Mge0500")
@@ -197,19 +227,80 @@ def test_stdout_dashboard_render_fits_20x130(monkeypatch) -> None:
     frame = dashboard.render(clear_screen=False)
     lines = frame.rstrip("\n").splitlines()
 
-    assert len(lines) <= 20
-    assert all(len(line) <= 130 for line in lines)
+    assert len(lines) <= 30
+    assert all(len(line) <= 100 for line in lines)
     assert lines[0].startswith("RA")
     assert any("-- AXIS " in line for line in lines)
     assert any("-- MOTOR " in line for line in lines)
     assert any("-- POLAR " in line for line in lines)
-    assert any("-- LX200 " in line for line in lines)
-    assert any("polar disabled" in line for line in lines)
-    assert any("mount +10.000hs" in line for line in lines)
-    assert any("mount +20.00as" in line for line in lines)
-    assert any("rate  +5.000hs" in line for line in lines)
-    assert any("rate  +15.00as" in line for line in lines)
-    assert any("guide +1.250x sid" in line for line in lines)
-    assert any("guide   +0.50as" in line for line in lines)
-    assert any("guide" in line for line in lines)
+    assert any("-- STATE " in line for line in lines)
+    assert any("mode" in line and "track" in line for line in lines)
+    assert any("clock" in line and "12:34:56" in line for line in lines)
+    assert any("guide" in line and "1m31" in line for line in lines)
+    assert any("mount_1s" in line and "+10.000hs" in line for line in lines)
+    assert any("mount_1s" in line and "+20.00as" in line for line in lines)
+    assert any("motor_1s" in line and "+5.000hs" in line for line in lines)
+    assert any("motor_1s" in line and "+15.00as" in line for line in lines)
+    assert any("avg" in line and "+1.250x sid" in line for line in lines)
+    assert any("avg" in line and "+0.50as" in line for line in lines)
+    assert any("flags" in line and "e=n s=n a=n" in line for line in lines)
+    assert any("current" in line and "02:00:10" in line for line in lines)
+    assert any("current" in line and "+00*30:20" in line for line in lines)
+    assert any("ra_track" in line and "+1.000hs" in line for line in lines)
+    assert any("dec_track" in line and "+0.00as" in line for line in lines)
+    assert any("dec_bat" in line and "12.80V" in line for line in lines)
+    assert "log_1" in lines[-2] and "LX200" in lines[-2]
+    assert "log_2" in lines[-1] and "LX200" in lines[-1]
     assert all("GR" not in line and "GD" not in line for line in lines)
+
+
+def test_stdout_dashboard_state_column_shows_goto_details(monkeypatch) -> None:
+    lx200 = _StubLX200()
+    combiner = _StubCombiner()
+    combiner.ra._mode = AxisMotionMode.GOTO
+    combiner.ra._goto_direction = SkyDirection.EAST
+    combiner.ra._goto_target = Ha(3660)
+    combiner.ra._position = Ha(3610)
+    combiner.dec._mode = AxisMotionMode.GOTO
+    combiner.dec._goto_direction = SkyDirection.NORTH
+    combiner.dec._goto_target = Dec(1860)
+    combiner.dec._position = Dec(1820)
+
+    dashboard = StdoutDashboard(combiner, lx200, refresh_s=0.01)
+
+    monkeypatch.setattr(stdout_dashboard_module.time, "strftime", lambda _fmt: "12:34:56")
+    monkeypatch.setattr(stdout_dashboard_module.time, "monotonic", lambda: 101.0)
+    frame = dashboard.render(clear_screen=False)
+    lines = frame.rstrip("\n").splitlines()
+
+    assert any("mode" in line and "goto" in line for line in lines)
+    assert any("ra_dir" in line and "east" in line for line in lines)
+    assert any("ra_tgt" in line and "01:01:00" in line for line in lines)
+    assert any("ra_left" in line and "00:00:50" in line for line in lines)
+    assert any("dec_dir" in line and "north" in line for line in lines)
+    assert any("dec_tgt" in line and "+00*31:00" in line for line in lines)
+    assert any("dec_left" in line and "+00*00:40" in line for line in lines)
+    assert "log_1" in lines[-2]
+    assert "RA chg e 1.0" in lines[-2]
+    assert "log_2" in lines[-1]
+    assert "DEC haltall" in lines[-1]
+
+
+def test_stdout_dashboard_clear_screen_mode_sticks_frame_to_bottom(monkeypatch) -> None:
+    lx200 = _StubLX200()
+    combiner = _StubCombiner()
+    dashboard = StdoutDashboard(combiner, lx200, refresh_s=0.01)
+
+    monkeypatch.setattr(stdout_dashboard_module.time, "strftime", lambda _fmt: "12:34:56")
+    monkeypatch.setattr(stdout_dashboard_module.time, "monotonic", lambda: 100.0)
+    monkeypatch.setattr(
+        stdout_dashboard_module.shutil,
+        "get_terminal_size",
+        lambda *args, **kwargs: os.terminal_size((130, 40)),
+    )
+
+    frame = dashboard.render(clear_screen=True)
+
+    assert frame.startswith("\x1b7")
+    assert "\x1b[11;1H\x1b[2KRA" in frame
+    assert frame.endswith("\x1b8")
