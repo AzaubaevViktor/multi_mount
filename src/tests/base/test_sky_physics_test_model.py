@@ -121,5 +121,5 @@ def test_comparisons_with_unsupported_type(value):
     with pytest.raises(TypeError):
         _ = value >= object()
 
-    with pytest.raises(TypeError):
-        _ = (value == object())
+    assert (value == object()) is False
+    assert (value != object()) is True
