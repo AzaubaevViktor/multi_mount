@@ -180,6 +180,7 @@ class AxisRecorder:
     position: Ha | Dec
     tracking_speed: HaPerSecond | DecPerSecond
     moves: list[tuple[object, AxisMotionMode]]
+    speed_changes: list[HaPerSecond | DecPerSecond] | None = None
     halted: int = 0
     mode: AxisMotionMode = AxisMotionMode.STOPPED
 
@@ -198,6 +199,8 @@ class AxisRecorder:
 
     def change_speed(self, speed: HaPerSecond | DecPerSecond) -> None:
         self.tracking_speed = speed
+        if self.speed_changes is not None:
+            self.speed_changes.append(speed)
 
     def move(self, speed: HaPerSecond | DecPerSecond, mode: AxisMotionMode = AxisMotionMode.SLEW) -> None:
         self.moves.append((speed, mode))

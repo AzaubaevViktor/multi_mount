@@ -2,18 +2,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from threading import Event, RLock, Thread, Timer
-from time import monotonic, sleep
+from threading import Event, RLock, Thread
+from time import sleep
 from typing import Any
 
 from .axis import AxisDEC, AxisMotionMode, AxisRA
 from .constants import (
     CENTER_RATE_MULTIPLIER,
     FIND_RATE_MULTIPLIER,
+    GUIDE_INTERVAL_SECONDS,
     GUIDE_RATE_MULTIPLIER,
-    GUIDE_SPEED_BASELINE_MS,
-    GUIDE_SPEED_MAX_SCALE,
-    GUIDE_SPEED_MIN_SCALE,
     MAX_RATE_MULTIPLIER,
     SIDEREAL_RATE_DEGREES_PER_SECOND,
     SIDEREAL_RATE_HOURS_PER_SECOND,
@@ -36,6 +34,27 @@ class SlewPreset:
     dec_rate: DecPerSecond
 
 
+@dataclass(frozen=True, slots=True)
+class GuideSpeedProfile:
+    backward: HaPerSecond | DecPerSecond
+    default: HaPerSecond | DecPerSecond
+    forward: HaPerSecond | DecPerSecond
+
+    def calculate_speed(self, direction: GuideDirection, milliseconds: int) -> HaPerSecond | DecPerSecond:
+        fraction = max(0.0, min(1.0, milliseconds / (GUIDE_INTERVAL_SECONDS * 1000.0)))
+        if direction in {GuideDirection.EAST, GuideDirection.NORTH}:
+            start = float(self.default.hours_per_second if isinstance(self.default, HaPerSecond) else self.default.degrees_per_second)
+            finish = float(self.forward.hours_per_second if isinstance(self.forward, HaPerSecond) else self.forward.degrees_per_second)
+        else:
+            start = float(self.default.hours_per_second if isinstance(self.default, HaPerSecond) else self.default.degrees_per_second)
+            finish = float(self.backward.hours_per_second if isinstance(self.backward, HaPerSecond) else self.backward.degrees_per_second)
+
+        value = start + (finish - start) * fraction
+        if isinstance(self.default, HaPerSecond):
+            return HaPerSecond(value)
+        return DecPerSecond(value)
+
+
 class Combiner:
     def __init__(self, ra_axis: AxisRA, dec_axis: AxisDEC, polar_compensator: PolarCompensator | None = None) -> None:
         self.ra_axis = ra_axis
@@ -44,9 +63,6 @@ class Combiner:
         self._lock = RLock()
         self._stop_event = Event()
         self._polar_thread: Thread | None = None
-        self._external_guiding_until = 0.0
-        self._polar_ra_correction = HaPerSecond(0.0)
-        self._polar_dec_correction = DecPerSecond(0.0)
         self._preset = "guide"
         self._presets = {
             "guide": SlewPreset(
@@ -70,6 +86,17 @@ class Combiner:
                 dec_rate=DecPerSecond(SIDEREAL_RATE_DEGREES_PER_SECOND * MAX_RATE_MULTIPLIER),
             ),
         }
+        guide_preset = self._presets["guide"]
+        self._ra_guide_speed = GuideSpeedProfile(
+            backward=HaPerSecond(SIDEREAL_RATE_HOURS_PER_SECOND - guide_preset.ra_rate.hours_per_second),
+            default=HaPerSecond(SIDEREAL_RATE_HOURS_PER_SECOND),
+            forward=HaPerSecond(SIDEREAL_RATE_HOURS_PER_SECOND + guide_preset.ra_rate.hours_per_second),
+        )
+        self._dec_guide_speed = GuideSpeedProfile(
+            backward=DecPerSecond(-guide_preset.dec_rate.degrees_per_second),
+            default=DecPerSecond(0.0),
+            forward=DecPerSecond(guide_preset.dec_rate.degrees_per_second),
+        )
 
     def connect(self) -> None:
         self.ra_axis.connect()
@@ -94,15 +121,11 @@ class Combiner:
 
     def sync_to(self, coordinates: PointCoordinates) -> None:
         self.polar_compensator.reset()
-        self._polar_ra_correction = HaPerSecond(0.0)
-        self._polar_dec_correction = DecPerSecond(0.0)
         self.ra_axis.sync_to(coordinates.ra)
         self.dec_axis.sync_to(coordinates.dec)
 
     def goto_to(self, coordinates: PointCoordinates) -> None:
         self.polar_compensator.reset()
-        self._polar_ra_correction = HaPerSecond(0.0)
-        self._polar_dec_correction = DecPerSecond(0.0)
         self.ra_axis.goto_to(coordinates.ra)
         self.dec_axis.goto_to(coordinates.dec)
 
@@ -114,9 +137,21 @@ class Combiner:
     def current_preset(self) -> SlewPreset:
         return self._presets[self._preset]
 
-    def set_sky_speed(self, ra_speed: HaPerSecond, dec_speed: DecPerSecond) -> None:
-        self.ra_axis.change_speed(HaPerSecond(ra_speed.hours_per_second + self._polar_ra_correction.hours_per_second))
-        self.dec_axis.change_speed(DecPerSecond(dec_speed.degrees_per_second + self._polar_dec_correction.degrees_per_second))
+    def set_sky_speed(
+        self,
+        ra_speed: HaPerSecond | None,
+        dec_speed: DecPerSecond | None,
+        update_polar_compensator: bool = True,
+    ) -> None:
+        if ra_speed is not None:
+            self.ra_axis.change_speed(ra_speed)
+            if update_polar_compensator:
+                self.polar_compensator.guide_ra(ra_speed)
+
+        if dec_speed is not None:
+            self.dec_axis.change_speed(dec_speed)
+            if update_polar_compensator:
+                self.polar_compensator.guide_dec(dec_speed)
 
     def move(self, direction: GuideDirection) -> None:
         preset = self.current_preset()
@@ -142,28 +177,19 @@ class Combiner:
         self.dec_axis.halt()
 
     def guide_speed(self, direction: GuideDirection, milliseconds: int) -> HaPerSecond | DecPerSecond:
-        scale = max(GUIDE_SPEED_MIN_SCALE, min(GUIDE_SPEED_MAX_SCALE, milliseconds / GUIDE_SPEED_BASELINE_MS))
-        preset = self._presets["guide"]
         if direction in {GuideDirection.EAST, GuideDirection.WEST}:
-            sign = -1.0 if direction == GuideDirection.EAST else 1.0
-            return HaPerSecond(preset.ra_rate.hours_per_second * scale * sign)
+            return self._ra_guide_speed.calculate_speed(direction, milliseconds)
 
-        sign = 1.0 if direction == GuideDirection.NORTH else -1.0
-        return DecPerSecond(preset.dec_rate.degrees_per_second * scale * sign)
+        return self._dec_guide_speed.calculate_speed(direction, milliseconds)
 
     def guide(self, direction: GuideDirection, milliseconds: int) -> None:
-        now = monotonic()
-        self._external_guiding_until = max(self._external_guiding_until, now + milliseconds / 1000.0)
         current_position = self.position()
+        self.polar_compensator.update_position(current_position)
         speed = self.guide_speed(direction, milliseconds)
         if direction in {GuideDirection.EAST, GuideDirection.WEST}:
-            self.polar_compensator.record_guide_speeds(speed, DecPerSecond(0.0), current_position)
-            self.ra_axis.move(speed, mode=AxisMotionMode.GUIDE)
-            Timer(milliseconds / 1000.0, self.ra_axis.halt).start()
+            self.set_sky_speed(speed, None, update_polar_compensator=True)
         else:
-            self.polar_compensator.record_guide_speeds(HaPerSecond(0.0), speed, current_position)
-            self.dec_axis.move(speed, mode=AxisMotionMode.GUIDE)
-            Timer(milliseconds / 1000.0, self.dec_axis.halt).start()
+            self.set_sky_speed(None, speed, update_polar_compensator=True)
 
     def monitor_groups(self) -> list[dict[str, Any]]:
         position = self.position()
@@ -181,8 +207,6 @@ class Combiner:
     def _polar_loop(self) -> None:
         while not self._stop_event.is_set():
             sleep(0.2)
-            if monotonic() < self._external_guiding_until:
-                continue
 
             ra_status = self.ra_axis.status()
             dec_status = self.dec_axis.status()
@@ -191,9 +215,10 @@ class Combiner:
             if dec_status.mode in {AxisMotionMode.GOTO, AxisMotionMode.SLEW, AxisMotionMode.GUIDE}:
                 continue
 
-            correction = self.polar_compensator.takeover_speeds(self.position())
-            if correction is None:
+            current_position = self.position()
+            self.polar_compensator.update_position(current_position)
+            speeds = self.polar_compensator.takeover_speeds(current_position)
+            if speeds is None:
                 continue
 
-            self._polar_ra_correction, self._polar_dec_correction = correction
-            self.set_sky_speed(self.ra_axis.status().tracking_speed, self.dec_axis.status().tracking_speed)
+            self.set_sky_speed(*speeds, update_polar_compensator=False)

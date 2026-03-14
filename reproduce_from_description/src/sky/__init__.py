@@ -3,7 +3,7 @@ from .combiner import Combiner, GuideDirection
 from .constants import SIDEREAL_DAY_SECONDS, SIDEREAL_RATE_DEGREES_PER_SECOND, SIDEREAL_RATE_HOURS_PER_SECOND
 from .lx200 import SkyLX200
 from .physics import Dec, DecPerSecond, Ha, HaPerSecond, PointCoordinates, Second
-from .polar_compensator import PolarCompensator
+from .polar_compensator import PolarCompensator, compute_guide_speeds, compute_pole_offset
 
 __all__ = [
     "AxisDEC",
@@ -22,4 +22,6 @@ __all__ = [
     "SIDEREAL_RATE_DEGREES_PER_SECOND",
     "SIDEREAL_RATE_HOURS_PER_SECOND",
     "SkyLX200",
+    "compute_guide_speeds",
+    "compute_pole_offset",
 ]
