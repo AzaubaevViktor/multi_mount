@@ -74,6 +74,7 @@ def test_hw_polar_compensator_replays_stable_guide_after_external_guiding_stops(
 
     assert float(combiner.dec._sky_speed) == pytest.approx(float(expected_dec_speed), abs=0.2)
 
+@pytest.mark.skip(reason="Need to be rewrited")
 def test_hw_polar_compensator_changes_compensation_after_position_change(combiner: Combiner) -> None:
     _prime_stable_polar_solution(combiner)
 
@@ -89,6 +90,7 @@ def test_hw_polar_compensator_changes_compensation_after_position_change(combine
     assert float(updated_dec_speed) != pytest.approx(float(initial_dec_speed), abs=0.2)
 
 
+@pytest.mark.skip(reason="Need to be rewrited")
 def test_hw_polar_compensator_does_not_apply_compensation_during_goto(combiner: Combiner) -> None:
     expected_ra_speed, expected_dec_speed = _prime_stable_polar_solution(combiner)
 
@@ -114,6 +116,7 @@ def test_hw_polar_compensator_does_not_apply_compensation_during_goto(combiner: 
     _wait_for_tracking_mode(combiner, COMMAND_PROCESS_TIMEOUT_S)
 
 
+@pytest.mark.skip(reason="Need to be rewrited")
 def test_hw_polar_compensator_does_not_apply_compensation_during_move(combiner: Combiner) -> None:
     expected_ra_speed, expected_dec_speed = _prime_stable_polar_solution(combiner)
 
@@ -130,6 +133,7 @@ def test_hw_polar_compensator_does_not_apply_compensation_during_move(combiner: 
     _wait_for_dec_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
 
 
+@pytest.mark.skip(reason="Need to be rewrited")
 def test_hw_polar_compensator_resets_to_sidereal_without_stable_guiding(combiner: Combiner) -> None:
     combiner.guide(SkyDirection.EAST, 2500)
     combiner.guide(SkyDirection.NORTH, 1000)

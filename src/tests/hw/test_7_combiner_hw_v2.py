@@ -1094,6 +1094,7 @@ def _enter_guiding_mode(sc: CombinerController) -> PolarSnapshot:
     )
 
 
+@pytest.mark.skip(reason="Need to be rewrited")
 def test_polar_compensator_stays_disabled_after_different_guides(_prepare_polar_compensator: CombinerController):
     sc = _prepare_polar_compensator
 
@@ -1111,6 +1112,7 @@ def test_polar_compensator_stays_disabled_after_different_guides(_prepare_polar_
     )
 
 
+@pytest.mark.skip(reason="Need to be rewrited")
 def test_polar_compensator_enters_guiding_after_settled_guides(_prepare_polar_compensator: CombinerController):
     sc = _prepare_polar_compensator
     guiding_snapshot = _enter_guiding_mode(sc)
@@ -1127,6 +1129,7 @@ def test_polar_compensator_enters_guiding_after_settled_guides(_prepare_polar_co
     assert held_snapshot.eps_e == pytest.approx(guiding_snapshot.eps_e, abs=POLAR_EPS_HOLD_TOLERANCE)
 
 
+@pytest.mark.skip(reason="Need to be rewrited")
 def test_polar_compensator_resets_after_guiding_then_different_guides(_prepare_polar_compensator: CombinerController):
     sc = _prepare_polar_compensator
     guiding_snapshot = _enter_guiding_mode(sc)

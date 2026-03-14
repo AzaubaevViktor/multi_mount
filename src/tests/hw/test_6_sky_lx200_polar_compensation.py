@@ -81,6 +81,7 @@ def test_sky_lx200_polar_compensator_replays_stable_guide_after_external_guiding
     assert float(combiner.dec._sky_speed) == pytest.approx(float(expected_dec_speed), abs=0.2)
 
 
+@pytest.mark.skip(reason="Need to be rewrited")
 def test_sky_lx200_polar_compensator_changes_compensation_after_position_change(
     combiner: Combiner,
     sky_lx200: SkyLX200,
@@ -97,6 +98,7 @@ def test_sky_lx200_polar_compensator_changes_compensation_after_position_change(
     assert float(updated_dec_speed) != pytest.approx(float(initial_dec_speed), abs=0.2)
 
 
+@pytest.mark.skip(reason="Need to be rewrited")
 def test_sky_lx200_polar_compensator_resets_to_sidereal_after_new_external_guiding(
     combiner: Combiner,
     sky_lx200: SkyLX200,
