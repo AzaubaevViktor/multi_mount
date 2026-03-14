@@ -72,8 +72,9 @@ class StdoutDashboard:
 
     def _serve_forever(self) -> None:
         while not self._stop_event.is_set():
+            rendered = self.render(clear_screen=True)
             with TERMINAL_OUTPUT_LOCK:
-                sys.stdout.write(self.render(clear_screen=True))
+                sys.stdout.write(rendered)
                 sys.stdout.flush()
             if self._stop_event.wait(self._refresh_s):
                 break
