@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hybrid Mount Monitor</title>
+    <link rel="stylesheet" href="/app.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="hero">
+        <p class="kicker">Hybrid Mount</p>
+        <h1>Runtime Monitor</h1>
+        <p class="lede">Two physical axes, one LX200 surface, live state streamed over SSE.</p>
+      </header>
+      <section class="statusbar">
+        <div>
+          <span class="label">Snapshot</span>
+          <strong id="version">0</strong>
+        </div>
+        <div>
+          <span class="label">Transport</span>
+          <strong id="stream">connecting</strong>
+        </div>
+      </section>
+      <section id="cards" class="cards"></section>
+    </main>
+    <script src="/app.js" defer></script>
+  </body>
+</html>
