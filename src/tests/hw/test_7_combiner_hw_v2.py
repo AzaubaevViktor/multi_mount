@@ -138,9 +138,6 @@ class CombinerController:
         self.set_target_dec(target_dec)
         self.sync()
 
-        synced_ra = float(self.get_ra())
-        synced_dec = float(self.get_dec())
-
         self.wait_until_target_reached(
             target_ra=target_ra,
             target_dec=target_dec,
@@ -149,6 +146,9 @@ class CombinerController:
             timeout_s=SYNC_TIMEOUT_S,
             poll_interval_s=SYNC_POLL_INTERVAL_S,
         )
+
+        synced_ra = float(self.get_ra())
+        synced_dec = float(self.get_dec())
 
         assert self.ra_distance_seconds(synced_ra, float(target_ra)) <= SYNC_RA_TOLERANCE_S
         assert abs(synced_dec - float(target_dec)) <= SYNC_DEC_TOLERANCE_ARCSEC

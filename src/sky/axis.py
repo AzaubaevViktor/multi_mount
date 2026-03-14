@@ -136,12 +136,14 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
         
         self._connected = False
 
-        with self._motor_lock:  # Wait while motor available
-            self._motor.reset()
-            self._motor.disconnect()
+        try:
+            if self._motion_convertor_thread is not None:
+                self._motion_convertor_thread.join(float(self.THREAD_ITERATION_DELAY_S))
+        finally:
+            with self._motor_lock:  # Wait while motor available
+                self._motor.reset()
+                self._motor.disconnect()
         
-        if self._motion_convertor_thread is not None:
-            self._motion_convertor_thread.join(float(self.THREAD_ITERATION_DELAY_S))
     
     @_raise_if_thread_failed
     def mode(self) -> AxisMotionMode:
@@ -189,6 +191,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
             raise ValueError(f"Invalid direction: {direction} for {self.axis.value} axis")
 
     def _do_resume_to_tracking(self) -> None:
+        self.logger.info("Resume to tracking mode with sky_speed %s", self._sky_speed)
         if float(self._sky_speed) == 0:
             with self._motor_lock:
                 self._motor.wait_till_stop()
@@ -211,6 +214,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                     self._motor.run()
                     
                     self._mode = AxisMotionMode.TRACK
+                    self.logger.info("Axis now in tracking mode")
                     break
                 except MotorStopRequire:
                     self._mode = AxisMotionMode.STOP
@@ -242,7 +246,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
     def _run_change_speed(self, sky_direction: SkyDirection, new_speed: _SPEED_CLS, update_sky_speed: bool) -> None:
         motor_direction, motor_speed = self._get_motor_direction_and_speed(sky_direction, new_speed)
 
-        self._mc_logger.info("Run change speed: %s, %s, %s", sky_direction, new_speed, update_sky_speed)
+        self._mc_logger.info("Change speed: %s, %s, update_sky_speed=%s", sky_direction, new_speed, update_sky_speed)
 
         while True:
             try:
@@ -405,7 +409,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                                 with self._motor_lock:
                                     return_to_tracking = self._run_halt_direction()
                         
-                        self._mc_logger.info("Command precessed, return to tracking required: %s", return_to_tracking)
+                        self._mc_logger.info("Command %s processed, return to tracking: %s", command, return_to_tracking)
 
                         if return_to_tracking is not None and return_to_tracking:
                             self._do_resume_to_tracking()
@@ -484,11 +488,13 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                                             self.logger.info("GOTO rerun to %s", self._goto_target)
                                             self._run_goto_to(self._goto_target)
 
-                    self._mc_logger.debug("Processing mode done: %s -> %s, need to compensate: %s", prev_mode, self._mode, need_to_compensate)
+                    if prev_mode != self._mode or need_to_compensate:
+                        self._mc_logger.debug("Processing mode done: %s -> %s, need to compensate: %s", prev_mode, self._mode, need_to_compensate)
 
                     if need_to_compensate:
                         self._mc_logger.debug("Compensating tracking")
                         with self._motor_lock:
+                            prev_motor_position = self._last_motor_position
                             current_motor_position = self._motor.convert_steps_to_position(self._motor.status().steps)
                             motor_position_update_s = Second.monotonic()
                             elapsed_s = motor_position_update_s - self._last_motor_position_update_s
@@ -506,7 +512,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                             self._last_motor_position = current_motor_position
                             self._last_motor_position_update_s = motor_position_update_s
                         
-                        self._mc_logger.debug("Compensating tracking done")
+                        self._mc_logger.debug("Compensating tracking done: %s -> %s, %s -> %s", prev_position, self._get_current_position(), prev_motor_position, current_motor_position)
 
                 except EXCEPTIONS_TO_CLOSE:
                     self._mc_logger.exception("While processing mode: %s", self._mode)

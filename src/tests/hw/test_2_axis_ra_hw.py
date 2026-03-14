@@ -55,8 +55,11 @@ def axis_ra() -> Iterator[AxisRA]:
     try:
         yield axis
     finally:
-        axis.halt_all()
-        time.sleep(2.0)
+        try:
+            axis.halt_all()
+        finally:
+            time.sleep(2.0)
+
         axis.disconnect()
 
 
