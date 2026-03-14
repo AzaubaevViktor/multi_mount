@@ -147,7 +147,8 @@ class PolarCompensator:
         return type(values[0])(sum(float(x) for x in values) / len(values))
     
     def guide_ra(self, speed: HaPerSecond) -> None:
-        prev_speed = self.ra_speed
+        prev_speed = self._ra_speeds[-1]
+        prev_average_speed = self.ra_speed
         now = Second.monotonic()
 
         if now - self.last_guide_pulse > self.DROP_GUIDE_PULSES_COUNT_AFTER:
@@ -156,19 +157,22 @@ class PolarCompensator:
         self.last_guide_pulse = now
         self.last_ra_guide_pulse = now
 
-        percent_delta = (speed - prev_speed) / (prev_speed if prev_speed != 0 else 1) * 100
+        percent_delta = (speed - prev_speed) / (prev_speed if prev_speed != 0 else (speed if speed != 0 else 1)) * 100
 
-        if percent_delta < self.RA_SPEED_TOLERANCE_PERCENT:
+        if self.stable_guide_ra_pulses_count == 0 and prev_speed == STELLAR_SPEED:
+            self.stable_guide_ra_pulses_count = 1
+        elif abs(percent_delta) < self.RA_SPEED_TOLERANCE_PERCENT:
             self.stable_guide_ra_pulses_count += 1
         else:
             self.stable_guide_ra_pulses_count = 0
 
         self.ra_speed = speed
         
-        self.logger.info("RA (%d/%d) Δ%.3f%% guide speed: \n%s (added %s) -> %s", self.stable_guide_ra_pulses_count, self.STABLE_GUIDE_PULSES_COUNT, percent_delta, prev_speed, speed, self.ra_speed)
+        self.logger.info("RA (%d/%d) Δ%.3f%% guide speed: \n%s (added %s) -> %s", self.stable_guide_ra_pulses_count, self.STABLE_GUIDE_PULSES_COUNT, percent_delta, prev_average_speed, speed, self.ra_speed)
 
     def guide_dec(self, speed: DecPerSecond) -> None:
-        prev_speed = self.dec_speed
+        prev_speed = self._dec_speeds[-1]
+        prev_average_speed = self.dec_speed
         now = Second.monotonic()
 
         if now - self.last_guide_pulse > self.DROP_GUIDE_PULSES_COUNT_AFTER:
@@ -177,16 +181,18 @@ class PolarCompensator:
         self.last_guide_pulse = now
         self.last_dec_guide_pulse = now
 
-        percent_delta = (speed - prev_speed) / (prev_speed if prev_speed != 0 else 1) * 100
+        percent_delta = (speed - prev_speed) / (prev_speed if prev_speed != 0 else (speed if speed != 0 else 1)) * 100
 
-        if percent_delta < self.DEC_SPEED_TOLERANCE_PERCENT:
+        if self.stable_guide_dec_pulses_count == 0 and prev_speed == DecPerSecond(0):
+            self.stable_guide_dec_pulses_count = 1
+        elif abs(percent_delta) < self.DEC_SPEED_TOLERANCE_PERCENT:
             self.stable_guide_dec_pulses_count += 1
         else:
             self.stable_guide_dec_pulses_count = 0
         
         self.dec_speed = speed
 
-        self.logger.info("DEC (%d/%d) Δ%.3f%% guide speed: \n%s (added %s) -> %s", self.stable_guide_dec_pulses_count, self.STABLE_GUIDE_PULSES_COUNT, percent_delta, prev_speed, speed, self.dec_speed)
+        self.logger.info("DEC (%d/%d) Δ%.3f%% guide speed: \n%s (added %s) -> %s", self.stable_guide_dec_pulses_count, self.STABLE_GUIDE_PULSES_COUNT, percent_delta, prev_average_speed, speed, self.dec_speed)
 
     def get_polar_offset(self) -> tuple[Ha, Dec]:
         if self.stable_guide_ra_pulses_count < self.STABLE_GUIDE_PULSES_COUNT or self.stable_guide_dec_pulses_count < self.STABLE_GUIDE_PULSES_COUNT:
@@ -205,12 +211,12 @@ class PolarCompensator:
         if is_external_guide:
             if not is_external_guide_ra and is_external_guide_dec and self.ra_speed != STELLAR_SPEED:
                 self.logger.info("No RA guide pulse for %.1fs while DEC external guide is active, stop RA axis", now - self.last_ra_guide_pulse)
-                self.ra_speed = STELLAR_SPEED
+                self.ra_speed = None
                 return STELLAR_SPEED, None
 
             if not is_external_guide_dec and is_external_guide_ra and self.dec_speed != DecPerSecond(0):
                 self.logger.info("No DEC guide pulse for %.1fs while RA external guide is active, stop DEC axis", now - self.last_dec_guide_pulse)
-                self.dec_speed = DecPerSecond(0)
+                self.dec_speed = None
                 return None, DecPerSecond(0)
 
         if not is_external_guide and is_stable_guide:
@@ -228,8 +234,8 @@ class PolarCompensator:
             return ha_speed, dec_speed
 
         if not is_stable_guide and not is_external_guide:
-            self.ra_speed = STELLAR_SPEED
-            self.dec_speed = DecPerSecond(0)
+            self.ra_speed = None
+            self.dec_speed = None
             self.eps_E = None
             if self.eps_N is not None or self.eps_E is not None:
                 self.logger.info("No guide pulses for %.1fs, reset guide speeds to sidereal", Second.monotonic() - self.last_guide_pulse)

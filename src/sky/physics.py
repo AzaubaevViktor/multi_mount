@@ -482,5 +482,4 @@ class Direction(IntEnum):
     BACKWARD = -1
     STOP = 0
 
-# TODO: Add StepsPerSecond
-# TODO: Add StepsPerHa / StepsPerDec
+# TODO: Add dedicated step-based unit types such as StepsPerSecond and per-axis step ratios.

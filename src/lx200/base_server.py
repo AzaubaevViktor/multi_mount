@@ -34,7 +34,7 @@ class LX200SimpleServer:
             srv.bind((self.host, self.port))
             srv.listen(1)
             self._socket = srv
-            self.log.info("Dummy server listening on %s:%s", self.host, self.port)
+            self.log.info("LX200 server listening on %s:%s", self.host, self.port)
             while True:
                 conn, addr = srv.accept()
                 self.log.info("Client connected: %s", addr)
@@ -42,8 +42,8 @@ class LX200SimpleServer:
                 thread.start()
     
     def _handle_client(self, conn: socket.socket) -> None:
-        # TODO: Don't allow multiple connections
-        # TODO: Detect disconnection and run self.handle_disconnect
+        # Current limitation: multiple clients can talk to the same LX200 handler concurrently.
+        # EOF only stops this client thread; there is no connection-level disconnect hook yet.
         with conn:
             self._connection_id += 1
 

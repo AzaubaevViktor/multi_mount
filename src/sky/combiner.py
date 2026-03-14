@@ -90,7 +90,7 @@ class Combiner:
         pos_from_ra = self.ra.get_position()
         pos_from_dec = self.dec.get_position()
 
-        # If wrap happens in dec axis, we need to add to RA axis +12 hours
+        # TODO: When DEC reflection crosses the pole, mirror RA by +12h as well.
         ra = (pos_from_ra.ra + pos_from_dec.ra)
         dec = pos_from_dec.dec + pos_from_ra.dec
 

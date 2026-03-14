@@ -223,8 +223,7 @@ class LX200Handler(LX200Base):
             case LX200Commands.SLEW, _:
                 self.slew_to(self._target_ra, self._target_dec)
                 result = False
-                # But 1<below horison>#
-                # But 2<below higher>#
+                # LX200 also allows non-zero result codes for below-horizon / above-limit failures.
 
             case LX200Commands.MOVE_EAST, _:
                 if self.move_east() and SkyDirection.EAST not in self._manual_move_directions:

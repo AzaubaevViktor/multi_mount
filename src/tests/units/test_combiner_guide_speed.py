@@ -50,7 +50,7 @@ def test_dec_guide_north_half_interval_uses_midpoint_speed() -> None:
         Combiner.GUIDE_INTERVAL_S,
     )
 
-    assert speed == DecPerSecond(1)
+    assert speed == DecPerSecond(50)
 
 
 def test_dec_guide_north_full_interval_uses_forward_speed() -> None:
@@ -100,7 +100,7 @@ def test_dec_guide_south_half_interval_uses_midpoint_speed() -> None:
         Combiner.GUIDE_INTERVAL_S,
     )
 
-    assert speed == DecPerSecond(-1)
+    assert speed == DecPerSecond(-50)
 
 
 def test_dec_guide_south_small_pulse_produces_negative_speed() -> None:

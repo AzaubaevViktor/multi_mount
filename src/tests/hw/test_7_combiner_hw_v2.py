@@ -411,9 +411,8 @@ class CombinerController:
             deltas.dec.rate_per_s.mount, self.TRACKING_MODE_TOLERANCE[1],
         )
 
-        # TODO: Calculate from motor tracking rate ticks
         assert (abs(deltas.ra.rate_per_s.motor - deltas.ra.tracking_rate_tick_per_s) < self.TRACKING_MODE_MOTOR_TOLERANCE[0]) and \
-                (abs(deltas.dec.rate_per_s.mount) < self.TRACKING_MODE_MOTOR_TOLERANCE[1])
+                (abs(deltas.dec.rate_per_s.motor) < self.TRACKING_MODE_MOTOR_TOLERANCE[1])
 
         self.logger.warning(
             "\n==== MOTOR IN TRACKING MODE ====\n" 

@@ -498,7 +498,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
 
                             delta = self.POS_CLS(self._motor.FORWARD_POSITION_SIGN * float(actual_delta - expected_delta))
                             
-                            # TODO: Add wrapping, if wrap happens in dec axis, we need to add to RA axis +12 hours
+                            # TODO: When DEC reflection crosses the pole, mirror RA by +12h as well.
                             self._set_current_position(
                                 self._get_current_position() + delta
                             )

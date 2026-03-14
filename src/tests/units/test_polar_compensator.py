@@ -147,9 +147,10 @@ class TestPolarCompensatorInitial:
     def test_get_guide_speeds_returns_sidereal(self):
         comp = _make_compensator()
         with patch("time.monotonic", return_value=1.0):
-            ra, dec = comp.get_guide_speeds()
-        assert float(ra) == pytest.approx(float(STELLAR_SPEED), abs=1e-9)
-        assert float(dec) == pytest.approx(0.0, abs=1e-9)
+            speeds = comp.get_guide_speeds()
+        assert speeds is None
+        assert float(comp.ra_speed) == pytest.approx(float(STELLAR_SPEED), abs=1e-9)
+        assert float(comp.dec_speed) == pytest.approx(0.0, abs=1e-9)
 
 
 class TestStablePulseCounting:
@@ -237,12 +238,15 @@ class TestGetGuideSpeeds:
     def test_returns_last_known_speeds_when_unstable(self):
         comp = _make_compensator()
         _send_stable_pulses(comp, self.RA_SPEED, self.DEC_SPEED, count=2, t0=1.0)
+        current_ra = comp.ra_speed
+        current_dec = comp.dec_speed
 
         with patch("time.monotonic", return_value=3.5):
-            ra, dec = comp.get_guide_speeds()
+            speeds = comp.get_guide_speeds()
 
-        assert float(ra) == pytest.approx(float(self.RA_SPEED), abs=1e-9)
-        assert float(dec) == pytest.approx(float(self.DEC_SPEED), abs=1e-9)
+        assert speeds is None
+        assert float(comp.ra_speed) == pytest.approx(float(current_ra), abs=1e-9)
+        assert float(comp.dec_speed) == pytest.approx(float(current_dec), abs=1e-9)
 
     def test_resets_to_sidereal_after_timeout_when_unstable(self):
         comp = _make_compensator()
@@ -250,10 +254,11 @@ class TestGetGuideSpeeds:
 
         t_late = 100.0
         with patch("time.monotonic", return_value=t_late):
-            ra, dec = comp.get_guide_speeds()
+            speeds = comp.get_guide_speeds()
 
-        assert float(ra) == pytest.approx(float(STELLAR_SPEED), abs=1e-9)
-        assert float(dec) == pytest.approx(0.0, abs=1e-9)
+        assert speeds is None
+        assert float(comp.ra_speed) == pytest.approx(float(STELLAR_SPEED), abs=1e-9)
+        assert float(comp.dec_speed) == pytest.approx(0.0, abs=1e-9)
 
     def test_computes_from_polar_offset_when_stable(self):
         comp = _make_compensator()
@@ -262,9 +267,10 @@ class TestGetGuideSpeeds:
         _send_stable_pulses(comp, self.RA_SPEED, self.DEC_SPEED,
                             count=PolarCompensator.STABLE_GUIDE_PULSES_COUNT, t0=1.0)
 
-        ra, dec = comp.get_guide_speeds()
+        with patch("time.monotonic", return_value=100.0):
+            ra, dec = comp.get_guide_speeds()
 
-        eps_E, eps_N = compute_pole_offset(self.DEC_SPEED, self.RA_SPEED, self.HA, self.DEC)
+        eps_E, eps_N = comp.get_polar_offset()
         expected_ra, expected_dec = compute_guide_speeds(eps_E, eps_N, self.HA, self.DEC)
 
         assert float(ra) == pytest.approx(float(expected_ra), abs=1e-9)
@@ -292,7 +298,7 @@ class TestWithinToleranceBoundary:
         comp.update_position(Ha(6 * 3600), Dec(45 * 3600))
 
         base_ra = STELLAR_SPEED
-        shifted_ra = STELLAR_SPEED + PolarCompensator.RA_SPEED_TOLERANCE * 0.99
+        shifted_ra = HaPerSecond(float(STELLAR_SPEED) * (1 + (PolarCompensator.RA_SPEED_TOLERANCE_PERCENT * 0.99 / 100)))
 
         _send_pulse_pair(comp, base_ra, DecPerSecond(0), t=1.0)
         _send_stable_pulses(comp, shifted_ra, DecPerSecond(0),
@@ -307,7 +313,7 @@ class TestWithinToleranceBoundary:
 
         _send_pulse_pair(comp, base_ra, DecPerSecond(0), t=1.0)
 
-        jumped_ra = STELLAR_SPEED + PolarCompensator.RA_SPEED_TOLERANCE * 1.01
+        jumped_ra = HaPerSecond(float(STELLAR_SPEED) * (1 + (PolarCompensator.RA_SPEED_TOLERANCE_PERCENT * 1.01 / 100)))
         _send_pulse_pair(comp, jumped_ra, DecPerSecond(0), t=2.0)
 
         assert comp.stable_guide_ra_pulses_count == 0

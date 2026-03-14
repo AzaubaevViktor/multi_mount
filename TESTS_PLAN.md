@@ -2,258 +2,188 @@
 
 ## Назначение
 
-Этот документ фиксирует текущий тестовый план проекта по уже существующим тестам в `src/tests`.
-Это не roadmap новых тестов, а сводка того, что реально проверяется сейчас, как запускать наборы и где остаются видимые пробелы.
+Этот документ фиксирует фактическую текущую раскладку тестов в репозитории. Здесь нет старого roadmap-а: только то, что реально лежит в дереве, что собирает `pytest` по умолчанию и какие пробелы уже видны.
 
-## Как устроены тесты
+## Что реально запускается по умолчанию
 
-- Test runner: `pytest`
-- Основной путь: `src/tests`
-- Конфигурация: `pytest.ini`
-- `pythonpath = src`, поэтому тесты импортируют runtime-модули напрямую
-- В наборе есть два типа проверок:
-  - быстрые unit/math/protocol тесты без железа
-  - hardware/integration тесты, завязанные на реальные устройства и последовательные порты
+- test runner: `pytest`
+- конфигурация: `pytest.ini`
+- `pythonpath = src`
+- default `testpaths`:
+  - `src/tests/hw`
+  - `src/tests/units`
 
-## Матрица покрытия
+Это важно: каталог `src/tests/old` не участвует в обычном прогоне и служит архивом прежних тестов/экспериментов.
 
-### 1. Координаты, типы и астроматематика
+## Активные быстрые тесты
 
-#### `src/tests/test_ra_dec_containers.py`
+### `src/tests/units/test_combiner_guide_speed.py`
 
-Проверяет контейнеры RA/DEC:
+Проверяет расчёт guide speed в `Combiner`:
 
-- парсинг валидных строковых представлений RA и DEC
-- отбрасывание невалидных форматов
-- конвертацию из секунд, часов, градусов и угловых секунд
-- округление строкового представления на границах
-- roundtrip-переходы между внутренним числом и текстом
+- соответствие длительности pulse итоговой скорости;
+- знак скоростей для north/south;
+- маршрутизацию guide-команд в правильное направление оси.
 
-#### `src/tests/test_sky_physics.py`
+### `src/tests/units/test_lx200_limits.py`
 
-Проверяет базовую физику и типы из `sky.physics`:
+Проверяет базовые LX200 limit-команды:
 
-- sidereal/stellar speed
-- нормализацию и wrap для `Ha`
-- signed shortest delta для движения по RA
-- арифметику `Ha`, `Dec`, `HaPerSecond`, `DecPerSecond`
-- negation и type preservation
-- ошибки при неподдерживаемых операциях
+- `SET_HIGHEST_ELEVATION`;
+- `SET_MINIMUM_ELEVATION`.
 
-#### `src/tests/test_sky_physics_test_model.py`
+### `src/tests/units/test_motor_speed_rounding.py`
 
-Проверяет тестовую модель физики/координат:
+Проверяет low-level договорённости двух motor backend'ов:
 
-- согласованность преобразований в модельных сценариях
-- roundtrip и инварианты для вспомогательной физической логики
+- квантизацию и округление speed;
+- переключение SkyWatcher в highspeed mode;
+- отказ на отрицательных скоростях.
 
-#### `src/tests/test_guide_compensator.py`
+### `src/tests/units/test_polar_compensator.py`
 
-Проверяет полярную компенсацию:
+Проверяет математику `PolarCompensator`:
 
-- модельную реакцию компенсатора на polar misalignment для набора параметров
+- `compute_pole_offset`;
+- `compute_guide_speeds`;
+- поведение компенсатора при стабильных и нестабильных guide pulse;
+- сброс счётчиков и состояния после таймаутов/скачков скоростей.
 
-### 2. SkyWatcher RA axis
+## Активные hardware / integration тесты
 
-#### `src/tests/test_skywatcher_revu24.py`
+### `src/tests/hw/test_1_skywatcher_motor_hw.py`
 
-Проверяет формат `revu24`:
+Низкоуровневые проверки реального `SkyWatcherMotor`:
 
-- кодирование/декодирование значений
-- roundtrip случайных значений
-- обработку невалидных входов
+- установка позиции;
+- relative GOTO;
+- run mode и направление;
+- фактическая скорость;
+- ограничения в GOTO mode.
 
-#### `src/tests/test_skywatcher_status_roundtrip.py`
+### `src/tests/hw/test_1_tmc2209_motor_hw.py`
 
-Проверяет сериализацию статуса SkyWatcher:
+Низкоуровневые проверки реального `TMC2209Motor`:
 
-- преобразование status bytes в команды
-- обратное кодирование команд движения
-- игнорирование runtime-флагов, не влияющих на motion-status
+- установка позиции;
+- target move;
+- run mode;
+- достижение целевой скорости;
+- ограничения в GOTO mode.
 
-#### `src/tests/test_skywatcher_goto_math.py`
+### `src/tests/hw/test_2_axis_ra_hw.py`
 
-Проверяет математику GOTO для SkyWatcher:
+Проверяет `AxisRA` на реальном железе:
 
-- вычисления, связанные с выбором направления и параметров GOTO
+- set/get позиции;
+- tracking и drift;
+- ручные east/west движения;
+- соответствие моторной скорости запрошенной;
+- GOTO и возврат в TRACK.
 
-#### `src/tests/test_skywatcher_set_ra_rate.py`
+### `src/tests/hw/test_2_axis_dec_hw.py`
 
-Проверяет управление RA rate:
+Проверяет `AxisDEC` на реальном железе:
 
-- остановку мотора при нулевой скорости
-- запуск мотора при смене rate из idle
-- запрет лишнего старта в `GOTO`-режиме
-- остановку оси перед сменой motion mode
+- set/get позиции;
+- north/south tracking;
+- ручные движения;
+- соответствие моторной скорости;
+- GOTO и возврат в TRACK.
 
-#### `src/tests/test_skywatcher.py`
+### `src/tests/hw/test_3_combiner_hw.py`
 
-Hardware-oriented тесты для реального SkyWatcher mount:
+Проверяет двухосевой `Combiner` напрямую:
 
-- roundtrip установки/чтения HA
-- `slew_delta` в обе стороны и на разных дистанциях
-- запрет ручного движения во время GOTO
-- корректную скорость и направление при `move_ra`
-- корректную скорость и направление при tracking
-- остановку мотора при нулевом tracking rate
+- совместную работу RA и DEC;
+- общую позицию;
+- `set_sky_speed`, `move`, `goto_to`, `halt_*`;
+- возврат обеих осей в tracking.
 
-### 3. TMC2209 DEC axis
+### `src/tests/hw/test_4_polar_compensator.py`
 
-#### `src/tests/test_tmc2209_adapter.py`
+Проверяет поведение `PolarCompensator` на реальной двухосевой системе:
 
-Проверяет Python adapter для DEC-контроллера:
+- захват стабильной guide-последовательности;
+- takeover после прекращения внешнего guiding;
+- обновление компенсации после смены позиции;
+- запрет компенсации во время `GOTO` и `SLEW`;
+- сброс обратно к sidereal/zero без стабильного guiding.
 
-- парсинг строковых ответов протокола
-- обработку ошибок и невалидных префиксов
-- нормализацию ключей параметров
-- форматирование bool/value команд
-- диапазоны speed и acceleration
-- преобразование DEC в шаги мотора
-- обработку некорректных microsteps и `steps_per_rev`
+### `src/tests/hw/test_5_sky_lx200_hw.py`
 
-#### `src/tests/test_tmc2209_lx200.py`
+Проверяет `SkyLX200` поверх реального `Combiner`:
 
-Проверяет LX200-обвязку над TMC2209:
+- `handle_alignment`;
+- `sync_telescope`;
+- чтение координат;
+- preset-скорости guide/center/find/max;
+- `move_*`, `halt_*`, `guide_*`, `slew_to`.
 
-- знак tracking rate
-- соответствие между rate и направлением north/south
+### `src/tests/hw/test_6_sky_lx200_polar_compensation.py`
 
-#### `src/tests/test_tmc2209_adapter_hw.py`
+Проверяет ту же полярную компенсацию, но уже через LX200 surface:
 
-Hardware-oriented тесты для реального TMC2209 adapter:
+- replay стабильного guiding;
+- изменение компенсации после `sync_telescope`;
+- отключение компенсации после нового внешнего guiding.
 
-- установку позиции
-- relative move через `slew_delta` в обе стороны
-- special-case для нулевого delta
-- run speed/direction
-- stop во время continuous run
-- stop во время target move
+### `src/tests/hw/test_7_combiner_hw_v2.py`
 
-### 4. Комбинированная логика осей и splitter
+Крупный end-to-end harness для текущего runtime:
 
-#### `src/tests/test_axis_guide_logic.py`
+- снимки состояния mount и motors;
+- tracking mode допуски;
+- `SYNC`, `SLEW`, `GOTO`, `HALT`;
+- guide-команды по всем направлениям;
+- текущий жизненный цикл polar compensation.
 
-Проверяет комбинированную guide-логику:
+## Архивные тесты
 
-- противоположные rate/sign для east-west guide
-- противоположные rate/sign для north-south guide
-- обновление current/sky tracking rate
-- немедленное применение команд без ожидания compensate interval
-- независимость RA/DEC команд в splitter-сценариях
+`src/tests/old` содержит тесты, которые раньше покрывали:
 
-#### `src/tests/test_x_splitter_hw_v2.py`
+- `sky.physics` и контейнеры координат;
+- `serial_wrapper`;
+- старые web-control проверки;
+- раннюю guide/splitter логику.
 
-Крупный hardware/integration набор для `LX200Splitter`:
-
-- `SYNC` обновляет координаты mount
-- mount стартует в tracking mode по умолчанию
-- направления `SLEW` в разных системах координат
-- `GOTO` переводит mount к целевой точке
-- `HALT` возвращает систему из `SLEW` и `GOTO` обратно в tracking
-- RA guiding rates для разных направлений
-- поведение polar compensator:
-  - остается выключенным после несогласованных guide-команд
-  - входит в guiding mode после стабильных guide-последовательностей
-  - сбрасывается после смены guide-паттерна
-
-### 5. LX200/web/utility
-
-#### `src/tests/test_serial_line_search.py`
-
-Проверяет поиск serial line:
-
-- успешный поиск по шаблону
-- ситуацию not found
-- невалидный pattern
-- ошибку при передаче директории
-- требование обязательного pattern
-
-#### `src/tests/test_web_control.py`
-
-Проверяет web control example/registry:
-
-- структуру monitor/action API
-- обновление registry после записи в field
-
-## Текущий охват по уровням
-
-### Unit / fast
-
-Стабильно покрыты:
-
-- парсинг и форматирование координат
-- численная астроматематика и скорость слежения
-- кодирование/декодирование протоколов
-- преобразования статусов и motion modes
-- логика rate/sign/direction
-- часть splitter/guide-логики на моках и тестовых double-объектах
-
-### Hardware / integration
-
-Покрыты реальные сценарии для:
-
-- SkyWatcher RA mount
-- TMC2209 DEC controller
-- end-to-end splitter с командами `SYNC`, `SLEW`, `GOTO`, `HALT`, `GUIDE`
-
-Эти тесты полезны как регрессия реального поведения, но зависят от:
-
-- подключенного железа
-- корректных serial device names
-- стабильного физического состояния mount/motor
-- допусков по времени и скорости
+Они полезны как reference material, но по текущему `pytest.ini` не запускаются.
 
 ## Рекомендуемый запуск
 
-### Быстрый локальный прогон без железа
+### Быстрый прогон без железа
 
 ```bash
-pytest -q \
-  src/tests/test_ra_dec_containers.py \
-  src/tests/test_sky_physics.py \
-  src/tests/test_sky_physics_test_model.py \
-  src/tests/test_guide_compensator.py \
-  src/tests/test_serial_line_search.py \
-  src/tests/test_tmc2209_adapter.py \
-  src/tests/test_tmc2209_lx200.py \
-  src/tests/test_axis_guide_logic.py \
-  src/tests/test_skywatcher_revu24.py \
-  src/tests/test_skywatcher_status_roundtrip.py \
-  src/tests/test_skywatcher_goto_math.py \
-  src/tests/test_skywatcher_set_ra_rate.py \
-  src/tests/test_web_control.py
+.venv/bin/python -m pytest -q src/tests/units
 ```
 
-### Прогон hardware-наборов
+### Полный hardware-прогон
 
 ```bash
-pytest -q \
-  src/tests/test_skywatcher.py \
-  src/tests/test_tmc2209_adapter_hw.py \
-  src/tests/test_x_splitter_hw_v2.py
+.venv/bin/python -m pytest -q src/tests/hw
+```
+
+### Проверка только коллекции
+
+```bash
+.venv/bin/python -m pytest --collect-only -q
 ```
 
 ## Видимые пробелы
 
-По текущему репозиторию уже видно, что не хватает или покрыто слабо:
+По текущему дереву видно несколько слабых мест:
 
-- явного разделения hardware-тестов через `pytest` markers
-- единого smoke-набора, который всегда безопасно гонять в CI
-- отдельных unit-тестов для `lx200.protocol` и `lx200.base/base_server`
-- более полного покрытия `web_control/web.py`, а не только example/registry
-- edge-case сценариев, которые уже перечислены в `README.md`:
-  - goto между разными удаленными точками `A -> B`
-  - slews из крайних положений
-  - длинные цепочки `SYNC -> GOTO/SLEW -> HALT -> verify`
-  - дополнительные комбинации guide/slew/goto состояний
+- активный fast-suite почти не покрывает `sky.physics`, `serial_wrapper` и `web_control`;
+- часть исторических unit-тестов живёт только в `src/tests/old`;
+- нет marker-based разделения hardware-наборов по типам оборудования;
+- нет отдельного CI-safe smoke profile поверх активных тестов.
 
 ## Итог
 
-Существующий тестовый набор уже хорошо покрывает:
+Сейчас проект лучше всего покрыт на уровнях:
 
-- математику координат и скоростей
-- RA/DEC протоколы и адаптеры
-- критическую guide/tracking логику
-- реальные end-to-end сценарии на железе
+- реального поведения моторов и осей на железе;
+- полярной компенсации;
+- интеграции `Combiner` и `SkyLX200`.
 
-Основной следующий шаг для зрелости набора не в добавлении еще одного общего плана, а в разделении быстрых и hardware-тестов на уровне маркеров/CI-профилей.
+Быстрый unit-layer есть, но он значительно уже исторического набора и уже не покрывает несколько вспомогательных модулей, которые остаются только в архиве.

@@ -1,23 +1,43 @@
 # Multi-mount astro
-Connect DIY lx200-like servo mount based on arduino and SynScan RA-only mount (SkyWatcher Star Adventurer 2i)
+Connect a hybrid LX200-like mount where RA is driven by a SkyWatcher SynScan mount and DEC by a DIY Arduino + TMC2209 controller.
 
 ## About this project
 
-This repository implements a hybrid telescope control stack that exposes one LX200-compatible endpoint while driving two different physical axes. Right Ascension (RA) is delegated to a SynScan-compatible SkyWatcher mount, and Declination (DEC) is delegated to a DIY Arduino + TMC2209 motor controller. The `LX200Splitter` composes both axis handlers behind one command surface so INDI clients can treat the setup as a single mount.
+This repository exposes one LX200-compatible endpoint while coordinating two different physical axes:
 
-The Python runtime is organized around a socket server (`LX200SimpleServer`) and protocol/domain layers for LX200 command parsing, coordinate containers (`LX200Ha`, `LX200Dec`), and axis-specific control loops. RA behavior is implemented in `SkyWatcherMount` and `SkyWatcherLX200` with tracking, slewing, guiding, and GOTO supervision. DEC behavior is implemented in `TMC2209Adapter` and `TMC2209LX200` with a serial command protocol, motion profiles, and synchronized telescope/motor position updates.
+- RA is driven by `AxisRA` on top of `SkyWatcherMotor`.
+- DEC is driven by `AxisDEC` on top of `TMC2209Motor`.
+- `Combiner` joins both axes and feeds `SkyLX200`, so INDI clients can treat the setup as one mount.
 
-The project includes broad automated coverage for parsing, coordinate math, motion-status conversions, rate control, and serial error handling, plus hardware-oriented test suites for SkyWatcher, TMC2209, and end-to-end splitter behavior (`SYNC`, `SLEW`, `GOTO`, `HALT`, guiding in all directions). Firmware for the DEC controller lives in `telescope_dec/src/main.cpp`, where a lightweight line protocol (`status/get/set/position/delta/run/stop/mode`) powers the Python adapter and keeps command latency low on embedded hardware.
+The current Python runtime is built from:
+
+- `LX200SimpleServer` for TCP/LX200 framing;
+- `LX200Handler` / `SkyLX200` for LX200 command dispatch;
+- `Combiner` for two-axis coordination and polar-compensation feedback;
+- `AxisRA` and `AxisDEC` for mount-position tracking, motion queuing, and motor compensation;
+- `SerialLine` for the low-level serial transport to both controllers.
+
+The DEC firmware lives in `telescope_dec/src/main.cpp`. It exposes a small line-based protocol (`status`, `position`, `speed`, `acceleration`, `direction`, `delta`, `run`, `stop`, `mode`, `set`) that the Python `TMC2209Motor` backend uses directly.
 
 ## Scheme
-```
-kstars
-v
-ekos
-v
-INDI --LX200--> MultiMount
-                 `--RA--> SkyWatcherAdapter --SynScan--> SkyWatcher 2i
-                 `--DEC--> TMC2209Adapter --LX200--> Arduino --> TMC2209 --> Motor --> Mount dec throught gears
+```text
+KStars / Ekos / INDI
+        |
+        v
+   LX200 client
+        |
+        v
+ LX200SimpleServer
+        |
+        v
+     SkyLX200
+        |
+        v
+     Combiner
+      |     |
+      |     `--> AxisDEC --> TMC2209Motor --> Arduino firmware --> TMC2209 --> DEC axis
+      |
+      `--------> AxisRA  --> SkyWatcherMotor --> SynScan mount
 ```
 
 ## Coordinate system
@@ -33,153 +53,40 @@ INDI --LX200--> MultiMount
 | **GUIDE**                      |         |          |          |          |           |           |
 | East guide                     | 0..1    | ↑ < T    | const    | 0        | const     | const     |
 | West guide                     | > 1     | ↑ > T    | const    | 0        | const     | const     |
-| North slew                     | 1       | ↑        | const    | > ~0     | ↑         | 0         |
-| South slew                     | 1       | ↑        | const    | < ~0     | ↓         | 0         |
+| North guide                    | 1       | ↑        | const    | > ~0     | ↑         | 0         |
+| South guide                    | 1       | ↑        | const    | < ~0     | ↓         | 0         |
 
 RA: `00:00:00` .. `23:59:59`
 DEC: `-90*00:00` .. `90*00:00`
 
-Mount shoud be in tracking mode by default
-SYNC command should update mount coordinate
-GOTO command should move mount to target coordinates
-HALT command must resume mount to tracking mode from SLEW / GOTO / GUIDE (?)
+Expected runtime behavior:
 
-## Already here
-- ✅ Remove AI-generated slop
-- INDI
-    - ✅ Connect with LX200
-- Implement commands
-    - Base
-        - ✅ Mocks: Site, Long/Lat, Time/Date, etc
-        - ✅ Moving
-        - ✅ Stop
-        - ✅ Tracking
-        - ✅ Guiding
-- SkyWatcher
-    - ✅ Connect with mount
-    - ✅ Move
-    - ✅ Read position
-    - ✅ Slew to position
-    - ✅  Sideral tracking
-    - ✅ Guiding
-    - ✅ Tracking model
-- Arduino-based dec mount
-    - ✅ Connect Arduino to motor
-    - ✅ Control motor
-    - ✅ Control with LX200
-- Combine
-    - ✅ Tests for LX200 protocol
-    - ✅ Send RA to SkyWatcher
-    - ✅ Send DEC to Arduino
-- Check with INDI
-    - ✅ Sync
-    - ✅ Slew
-    - ✅ GOTO
-    - ✅ Guide
-- Place on mount
-    - ✅ Board scheme
-    - ✅ Optimise traces
-    - Board
-        - ✅ Solder
-        - ✅* Status lights
-        - ✅ Reset button
-        - ✅ Voltage measure
-    - ✅ 3d printed case for board
+- the mount starts in tracking mode;
+- `SYNC` updates the logical mount coordinates;
+- `GOTO` moves both axes toward the target;
+- `HALT` returns the affected axis back to tracking.
 
-## TODO
-Upper - more priority
-- Fixes
-    - Find correct ratio for DEC
+## Repository layout
 
-- Edge cases
-    - DEC more 90 -> RA + 12
+- `src/lx200`: LX200 protocol parsing and TCP server.
+- `src/sky`: axis state machine, combiner, polar compensation, coordinate math.
+- `src/skywatcher/motor.py`: SkyWatcher/SynScan RA backend.
+- `src/tmc2209/motor.py`: Python backend for the Arduino DEC controller.
+- `src/web_control`: standalone web monitor infrastructure.
+- `telescope_dec/src/main.cpp`: AVR firmware for the DEC controller.
+- `src/tests/hw`: active hardware and end-to-end tests.
+- `src/tests/units`: active fast tests.
+- `src/tests/old`: archived tests that are kept for reference and are not collected by default.
 
-- New Sky class for tracking
-    - Dynamic guides and find real North based on guiding or two-points
-    - Control star, lunar, solar tracking by real North and by control speed rates
+## Current TODO / known gaps
 
-- Motor-mount connection
-    - ✅ Reprint gears with better axis and free rotation
-    - Reprint middle-plate with more fixation and hole for polarscope
+- Pole crossing is still incomplete: when DEC reflection crosses the pole, RA should be mirrored by `+12h` as well.
+- `LX200SimpleServer` still allows multiple concurrent clients against the same handler and has no connection-level disconnect hook.
+- `MS` still returns a simplified boolean status instead of a full LX200 slew result code.
+- Step-based typed units such as `steps/s` are not modeled explicitly in `sky.physics` yet.
+- RA and DEC backend status contracts are still similar but not fully unified.
+- The web monitor server is started separately and currently uses an empty registry in `src/__main__.py`.
 
-- Tests for different goto's (A->B)
-- Tests for slews from edge positions
-- Long tests
-    - Sync -> GOTO -> (halt?) -> Check
-    - Sync -> Slew -> (halt?) -> Check
-    - More tests for cases combination
-- Security
-    - Watchdog
-    - Stop after signals
-- Fixes
-    - RA motor stop sometimes
-    - Slow reaction to manual slew
+## Tests
 
-## Improvements
-- Status interface
-    - Maybe throught INDI?
-    - LX200: raw + commands + answers
-        - coordinates get/sync/slew
-        - aux
-        - guiding
-    - Splitter?
-    - RA/DEC:
-        - mount position, speed, tracking rate, moving rate
-        - motor position, speed, tracking rate, moving rate
-            - RA: some parameters
-            - DEC: speed, actual speed, accel, ...
-        - voltages
-        - correction thread: delta, expected, real motor
-        - guiding thread: last X timings, movavg
-    - Guiding
-        - real polar delta
-        - guiding delta
-
-- Rewrite tmc2209 to binary protocol
-
-## Better layers (TODO)
-### Types
-- `HA sec` for RA, 0:00:00 .. 23:59:59
-- `Dec arcsec` for DEC, -90 .. +90
-- `sec` for seconds
-- `HA sec/sec` for RA speed
-- `Dec arcsec/sec` for DEC speed
-
-### Data layer
-Serial wrapper with transactions and blockings
-
-### Motor layer
-- Check current status
-- Send queries to motor
-- Return errors if query can't be done
-- Set speed, acceleration, microsteps in steps
-- Run and stop motor
-
-### Mount layer
-Recalculate current point in the sky periodically:
-- Update current motor position
-- Store current sky rate (mount axis relative speed)
-- Set and store current speed in sec/sec 
-    - convert to steps/sec
-- Stop motor when motion change (if motor need to be stopped)
-- Move mount in direction, stop moving
-
-### Real North layer
-- Check real north by two-axis stable guiding or by manual set
-- Store real north relative position
-- Update sky_rate for mount layer periodically
-
-### Tracking layer
-- Select current tracking mode
-    - Star
-    - Lunar
-    - Solar
-    - Comet?
-    - Manual trajectory?
-- Change rate relative to sky periodically based on:
-    - Next coordinate
-    - Current coordinate
-    - Previous error*
-- LX200
-    - Handle lx200 command
-
+Default `pytest` discovery uses `src/tests/hw` and `src/tests/units`. Hardware suites expect real devices and serial ports; fast checks live under `src/tests/units`. A more detailed overview is kept in `TESTS_PLAN.md`.
