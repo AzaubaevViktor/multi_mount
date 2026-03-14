@@ -7,9 +7,6 @@ from typing import Any, Callable
 
 import pytest
 
-from logging_setup import LOG_DIR_FORMAT
-
-
 SESSION_LOG_FILENAME = "pytest.log"
 TEST_LOG_DIRNAME = "tests"
 NODEID_HASH_LENGTH = 8
@@ -19,6 +16,8 @@ HANDLER_NAME_PREFIX = "multi_mount_pytest_logging"
 SAFE_NODEID_CHARS = frozenset("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-")
 LIFECYCLE_LOGGER_NAME = "pytest.lifecycle"
 SESSION_NODEID = "<session>"
+SESSION_DATE_DIR_FORMAT = "%Y-%m-%d"
+SESSION_TIME_DIR_FORMAT = "%H-%M-%S"
 
 
 class PytestSessionLoggingError(Exception):
@@ -43,14 +42,16 @@ def _resolve_log_level(log_level: str) -> int:
 
 
 def _build_unique_session_dir(logs_root: Path) -> Path:
-    timestamp = datetime.now().strftime(LOG_DIR_FORMAT)
-    session_dir = logs_root / timestamp
+    current_time = datetime.now()
+    session_date_dir = logs_root / current_time.strftime(SESSION_DATE_DIR_FORMAT)
+    session_time_dirname = current_time.strftime(SESSION_TIME_DIR_FORMAT)
+    session_dir = session_date_dir / session_time_dirname
     if not session_dir.exists():
         return session_dir
 
     suffix_index = 1
     while True:
-        session_dir = logs_root / f"{timestamp}_{suffix_index:02d}"
+        session_dir = session_date_dir / f"{session_time_dirname}_{suffix_index:02d}"
         if not session_dir.exists():
             return session_dir
         suffix_index += 1
@@ -94,7 +95,7 @@ class SessionLogsManager:
         return self._session_dir
 
     def start(self) -> None:
-        self._logs_root.mkdir(parents=True, exist_ok=True)
+        self._session_dir.parent.mkdir(parents=True, exist_ok=True)
         self._session_dir.mkdir(parents=False, exist_ok=False)
         self._test_logs_dir.mkdir(parents=False, exist_ok=False)
 
@@ -236,6 +237,9 @@ class SessionLogsPlugin:
 
 def pytest_configure(config: pytest.Config) -> None:
     if config.pluginmanager.has_plugin(PLUGIN_NAME):
+        return
+
+    if getattr(config.option, "collectonly", False):
         return
 
     config.pluginmanager.register(SessionLogsPlugin(config), PLUGIN_NAME)
