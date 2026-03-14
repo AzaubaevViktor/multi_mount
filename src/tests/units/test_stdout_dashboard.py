@@ -1,5 +1,6 @@
 import stdout_dashboard as stdout_dashboard_module
 from sky.axis import AxisMotionMode, PointCoordinates
+from sky.constants import STELLAR_SPEED
 from sky.motor import MotionMode, MotorDirection, MotorStatus
 from sky.physics import Dec, DecPerSecond, Ha, HaPerSecond, Second
 from lx200.base import LX200Handler
@@ -106,7 +107,7 @@ class _StubPolarCompensator:
     def __init__(self) -> None:
         self.eps_E = None
         self.eps_N = None
-        self.ra_speed = HaPerSecond(1.25)
+        self.ra_speed = STELLAR_SPEED * 1.25
         self.dec_speed = DecPerSecond(0.5)
         self.last_guide_pulse = Second(10)
         self.stable_guide_ra_pulses_count = 2
@@ -198,13 +199,17 @@ def test_stdout_dashboard_render_fits_20x130(monkeypatch) -> None:
 
     assert len(lines) <= 20
     assert all(len(line) <= 130 for line in lines)
-    assert "[MOUNT] RA" in lines[2]
-    assert "[MOUNT] DEC" in lines[3]
-    assert any("[MOUNT]" in line for line in lines)
-    assert any("[MOTOR]" in line for line in lines)
-    assert any("[POLAR COMPENSATOR]" in line for line in lines)
-    assert any("status=disabled" in line for line in lines)
-    assert any("mount ra" in line and "+10.000hs" in line and "+20.00as" in line for line in lines)
-    assert any("motor ra" in line and "+5.000hs" in line and "+15.00as" in line for line in lines)
+    assert lines[0].startswith("RA")
+    assert any("-- AXIS " in line for line in lines)
+    assert any("-- MOTOR " in line for line in lines)
+    assert any("-- POLAR " in line for line in lines)
+    assert any("-- LX200 " in line for line in lines)
+    assert any("polar disabled" in line for line in lines)
+    assert any("mount +10.000hs" in line for line in lines)
+    assert any("mount +20.00as" in line for line in lines)
+    assert any("rate  +5.000hs" in line for line in lines)
+    assert any("rate  +15.00as" in line for line in lines)
+    assert any("guide +1.250x sid" in line for line in lines)
+    assert any("guide   +0.50as" in line for line in lines)
     assert any("guide" in line for line in lines)
     assert all("GR" not in line and "GD" not in line for line in lines)
