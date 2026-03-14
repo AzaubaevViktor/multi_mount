@@ -2,11 +2,9 @@ import time
 from collections.abc import Iterator
 
 import pytest
-from serial.serialutil import SerialException
 
 from sky.motor import MotionMode, MotorDirection, MotorStateError, MotorStopRequire
 from serial_wrapper.wrapper import SerialLine
-from tmc2209.motor import TMC2209MotorProtocolError
 from tmc2209.motor import TMC2209Motor
 
 
@@ -14,8 +12,6 @@ DEVICE_PATTERN = r"^tty\.usbserial.*$"
 SERIAL_BAUD = 115200
 SERIAL_TIMEOUT_S = 2.0
 SERIAL_NAME = "tmc2209_motor"
-CONNECT_ATTEMPTS = 3
-READY_TIMEOUT_S = 10.0
 POLL_INTERVAL_S = 0.05
 RUN_TIMEOUT_S = 5.0
 TARGET_TIMEOUT_S = 20.0
@@ -32,38 +28,8 @@ def tmc2209_motor() -> Iterator[TMC2209Motor]:
         name=SERIAL_NAME,
         terminator="\n",
     )
-    motor: TMC2209Motor | None = None
-    for attempt in range(CONNECT_ATTEMPTS):
-        try:
-            serial_line.connect()
-            serial_line.reset()
-            time.sleep(0.5)
-            deadline = time.monotonic() + READY_TIMEOUT_S
-            while time.monotonic() < deadline:
-                try:
-                    ready = serial_line.query(None, timeout=1).strip()
-                except SerialException:
-                    break
-                if ready == "ready":
-                    motor = TMC2209Motor(serial_line)
-                    motor._is_connected = True
-                    break
-            if motor is not None:
-                break
-            else:
-                raise TMC2209MotorProtocolError("device did not report ready in time")
-        except (SerialException, TMC2209MotorProtocolError):
-            try:
-                serial_line.close()
-            except Exception:
-                pass
-            if attempt == CONNECT_ATTEMPTS - 1:
-                raise
-            time.sleep(0.5)
-        else:
-            raise AssertionError("unreachable")
-    if motor is None:
-        raise AssertionError("motor fixture failed to initialize")
+    motor = TMC2209Motor(serial_line)
+    motor.connect()
     try:
         yield motor
     finally:

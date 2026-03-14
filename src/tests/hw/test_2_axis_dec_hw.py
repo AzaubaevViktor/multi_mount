@@ -2,7 +2,6 @@ import time
 from collections.abc import Iterator
 
 import pytest
-from serial.serialutil import SerialException
 
 from serial_wrapper.wrapper import SerialLine
 from sky.axis import AxisMotionMode, AxisDEC, PointCoordinates
@@ -16,15 +15,13 @@ from tests.hw._axis_motor_helpers import (
     _wait_for_motor_stop,
     _wait_for_tracking_mode,
 )
-from tmc2209.motor import TMC2209Motor, TMC2209MotorProtocolError
+from tmc2209.motor import TMC2209Motor
 
 
 DEVICE_PATTERN = r"^tty\.usbserial.*$"
 SERIAL_BAUD = 115200
 SERIAL_TIMEOUT_S = 2.0
 SERIAL_NAME = "tmc2209_axis_dec"
-CONNECT_ATTEMPTS = 3
-READY_TIMEOUT_S = 10.0
 
 COMMAND_PROCESS_TIMEOUT_S = 5.0
 MOTOR_STOP_TIMEOUT_S = 10.0
@@ -56,18 +53,7 @@ def axis_dec() -> Iterator[AxisDEC]:
     )
     motor: TMC2209Motor = TMC2209Motor(serial_line)
     axis = AxisDEC(motor)
-    for attempt in range(CONNECT_ATTEMPTS):
-        try:
-            axis.connect()
-            break
-        except (SerialException, TMC2209MotorProtocolError):
-            try:
-                serial_line.close()
-            except Exception:
-                pass
-            if attempt == CONNECT_ATTEMPTS - 1:
-                raise
-            time.sleep(1)
+    axis.connect()
     try:
         yield axis
     finally:
