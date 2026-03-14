@@ -228,6 +228,25 @@ def test_hw_run_mode_moves_in_requested_direction(
     assert signed_delta > 0 if direction == MotorDirection.FORWARD else signed_delta < 0
 
 
+def test_hw_set_steps_while_running_raises_stop_require(
+    skywatcher_motor: SkyWatcherMotor,
+) -> None:
+    assert skywatcher_motor.set_motion_mode(MotionMode.RUN) is True
+    assert skywatcher_motor.set_speed(128) == 128
+    assert skywatcher_motor.set_direction(MotorDirection.FORWARD) is True
+    assert skywatcher_motor.run() is True
+
+    _wait_for_position_change(
+        skywatcher_motor,
+        start_position=0,
+        direction=MotorDirection.FORWARD,
+        timeout_s=RUN_TIMEOUT_S,
+    )
+
+    with pytest.raises(MotorStopRequire, match="cannot change steps while motor is moving"):
+        skywatcher_motor.set_steps(1000)
+
+
 @pytest.mark.parametrize("requested_speed_sps", [32.4, 32.6, 127.6])
 def test_hw_set_speed_rounds_fractional_value(
     skywatcher_motor: SkyWatcherMotor,

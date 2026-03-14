@@ -192,7 +192,10 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         )
 
     def set_steps(self, steps: int) -> bool:
-        self._ensure_not_goto(self._get_status(), "cannot change steps while GOTO is in progress")
+        status = self._get_status()
+        self._ensure_not_goto(status, "cannot change steps while GOTO is in progress")
+        if status.running:
+            raise MotorStopRequire("cannot change steps while motor is moving")
         self._transact(_Command.SET_AXIS_POSITION, _Revu24.from_int((steps + self._POSITION_OFFSET) % self._steps_360))
         self._mount_position_cache = self.convert_steps_to_position(steps)
         self._mount_position_cache_updated = time.monotonic()

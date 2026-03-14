@@ -206,6 +206,16 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
 
         with self._motor_lock:
             speed = self._motor.convert_speed_to_steps_per_second(abs(self._sky_speed))
+            status = self._motor.status()
+
+            if (
+                status.motion_mode == MotionMode.RUN
+                and status.direction == direction
+                and status.speed_sps == speed
+            ):
+                self._mode = AxisMotionMode.TRACK
+                self.logger.info("Axis already in tracking mode")
+                return
 
             while True:
                 try:
@@ -221,7 +231,8 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                     self._motor.wait_till_stop()
 
     def _run_set_position(self, position: PointCoordinates) -> bool:
-        return_to_tracking = False
+        prev_mode = self._mode
+        return_to_tracking = prev_mode == AxisMotionMode.TRACK
         new_position = self._get_current_position(position)
         
         while True:
@@ -231,11 +242,10 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                 )
                 break
             except MotorStopRequire:
-                prev_mode = self._mode
                 self._mode = AxisMotionMode.STOP
                 self._motor.wait_till_stop()
 
-                if prev_mode != AxisMotionMode.STOP and prev_mode != AxisMotionMode.TRACK:
+                if prev_mode != AxisMotionMode.STOP:
                     return_to_tracking = True
 
         self._ra_position = position.ra

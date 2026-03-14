@@ -7,10 +7,11 @@ from typing import Callable
 
 import pytest
 from serial_wrapper.wrapper import SerialLine
-from sky.axis import AxisDEC, AxisRA
+from sky.axis import AxisDEC, AxisMotionMode, AxisRA
 from sky.combiner import Combiner
 from sky.constants import STELLAR_SPEED
 from sky.lx200 import SkyLX200
+from sky.motor import MotionMode, MotorDirection
 from sky.physics import Dec, DecPerSecond, Ha, SkyDirection
 from sky.polar_compensator import PolarCompensator
 from skywatcher.motor import SkyWatcherMotor
@@ -394,11 +395,41 @@ class CombinerController:
     def check_mount_in_tracking_mode(self, delta_s: float = 2.):
         self.logger.warning("\n==== CHECK MOUNT AND MOTOR IN TRACKING MODE ====")
         deltas = self.get_deltas(delta_s)
+        ra_mode = self.ra.mode()
+        dec_mode = self.dec.mode()
+
+        with self._with_position_locks():
+            ra_motor_status = self.ra._motor.status()
+            dec_motor_status = self.dec._motor.status()
 
         self.logger.debug("\nDELTAS: %s", deltas)
 
+        self.logger.warning(
+            "\n==== TRACKING STATE SNAPSHOT ====\n"
+            "RA AXIS MODE: %s\n"
+            "DEC AXIS MODE: %s\n"
+            "RA MOTOR: mode=%s direction=%s speed_sps=%s\n"
+            "DEC MOTOR: mode=%s direction=%s speed_sps=%s",
+            ra_mode,
+            dec_mode,
+            ra_motor_status.motion_mode,
+            ra_motor_status.direction,
+            ra_motor_status.speed_sps,
+            dec_motor_status.motion_mode,
+            dec_motor_status.direction,
+            dec_motor_status.speed_sps,
+        )
+
+        assert ra_mode == AxisMotionMode.TRACK
+        assert dec_mode == AxisMotionMode.TRACK
+
         assert deltas.ra.tracking_rate_tick_per_s > 0
         assert deltas.dec.tracking_rate_tick_per_s == 0
+
+        assert ra_motor_status.motion_mode == MotionMode.RUN
+        assert ra_motor_status.direction != MotorDirection.STOP
+        assert dec_motor_status.motion_mode == MotionMode.IDLE
+        assert dec_motor_status.direction == MotorDirection.STOP
 
         assert (abs(deltas.ra.rate_per_s.mount) < self.TRACKING_MODE_TOLERANCE[0]) and \
                 (abs(deltas.dec.rate_per_s.mount) < self.TRACKING_MODE_TOLERANCE[1])
@@ -557,6 +588,8 @@ class CombinerController:
 
 SYNC_RA_TOLERANCE_S = 8.0
 SYNC_DEC_TOLERANCE_ARCSEC = 120.0
+SYNC_TRACKING_SETTLE_S = 1.0
+SYNC_TRACKING_SAMPLE_S = 3.0
 
 fixture_logger = logging.getLogger("fixtures")
 
@@ -663,8 +696,13 @@ def test_sync_command_updates_mount_coordinates(
     target_ra_text: str,
     target_dec_text: str,
 ):
+    assert sc.check_mount_in_tracking_mode(delta_s=SYNC_TRACKING_SAMPLE_S)
     sc.sync_known_position(target_ra_text, target_dec_text)
-    time.sleep(2)
+
+    # Let the SkyWatcher position cache expire before sampling motor tracking again.
+    time.sleep(SYNC_TRACKING_SETTLE_S)
+
+    assert sc.check_mount_in_tracking_mode(delta_s=SYNC_TRACKING_SAMPLE_S)
 
 
 def test_mount_in_tracking_mode_by_default(sc: CombinerController):
