@@ -233,20 +233,12 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
     def _run_set_position(self, position: PointCoordinates) -> bool:
         prev_mode = self._mode
         return_to_tracking = prev_mode == AxisMotionMode.TRACK
-        new_position = self._get_current_position(position)
-        
-        while True:
-            try:
-                self._motor.set_steps(
-                    self._motor.convert_position_to_steps(new_position)
-                )
-                break
-            except MotorStopRequire:
-                self._mode = AxisMotionMode.STOP
-                self._motor.wait_till_stop()
+        self._get_current_position(position)
 
-                if prev_mode != AxisMotionMode.STOP:
-                    return_to_tracking = True
+        self.logger.info("Skip motor position update during set_position")
+
+        self._last_motor_position = self._motor.convert_steps_to_position(self._motor.status().steps)
+        self._last_motor_position_update_s = Second.monotonic()
 
         self._ra_position = position.ra
         self._dec_position = position.dec
