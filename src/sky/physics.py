@@ -67,11 +67,19 @@ class _BasicAriphmetic(ABC):
             return self.__class__(float(self) + float(other))
         raise TypeError(f"Unsupported addition: {type(self)} + {type(other)}")
 
-    def _comparison_value(self, other: Any) -> float:
+    @overload
+    def _comparison_value(self, other: Any) -> float: ...
+
+    @overload
+    def _comparison_value(self, other: Any, support_none: bool) -> float | None: ...
+
+    def _comparison_value(self, other: Any, support_none: bool = False) -> float | None:
         if isinstance(other, self.__class__):
             return float(other)
         if isinstance(other, (float, int)):
             return float(other)
+        if other is None and support_none:
+            return None
         raise TypeError(f"Unsupported comparison: {type(self)} and {type(other)}")
     
     def __lt__(self, other: Self | float | int):
@@ -87,7 +95,7 @@ class _BasicAriphmetic(ABC):
         return float(self) >= self._comparison_value(other)
     
     def __eq__(self, value: object) -> bool:
-        return float(self) == self._comparison_value(value)
+        return float(self) == self._comparison_value(value, support_none=True)
     
     @overload
     def __truediv__(self, other: float | int) -> Self: ...
