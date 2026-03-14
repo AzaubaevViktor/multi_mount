@@ -692,8 +692,8 @@ GOTO_DIRECTION_DELTAS = (
 @pytest.mark.parametrize(
     ("ra_sign", "dec_sign"),
     (
-        pytest.param(-1, 0, id="east"),
-        pytest.param(1, 0, id="west"),
+        pytest.param(1, 0, id="east"),
+        pytest.param(-1, 0, id="west"),
         pytest.param(0, 1, id="north"),
         pytest.param(0, -1, id="south"),
         pytest.param(1, 1, id="east-north"),
