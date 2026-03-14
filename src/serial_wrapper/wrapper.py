@@ -4,7 +4,7 @@ import os
 import re
 import threading
 import time
-from typing import Any, Callable
+from typing import Any, Callable, TypeVar
 
 import serial
 from serial.serialutil import SerialException
@@ -35,10 +35,13 @@ class SerialLineSearchNotFound(SerialLineSearchError):
 EXCEPTIONS_TO_CLOSE = (SerialException, SerialLineError)
 
 
-def _disconnect_when_error(default: Any) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
-    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+T = TypeVar("T")
+
+
+def _disconnect_when_error(default: T) -> Callable[[Callable[..., T]], Callable[..., T]]:
+    def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @functools.wraps(func)
-        def wrapper(self: "SerialLine", *args: Any, **kwargs: Any) -> Any:
+        def wrapper(self: "SerialLine", *args: Any, **kwargs: Any) -> T:
             try:
                 return func(self, *args, **kwargs)
             except EXCEPTIONS_TO_CLOSE:
@@ -122,7 +125,12 @@ class SerialLine:
         self.logger.info("Terminator: %s", self.terminator)
 
     @_disconnect_when_error(default="")
-    def query(self, payload: str | None, timeout: int | None = None) -> str:
+    def query(
+        self,
+        payload: str | None,
+        timeout: float | None = None,
+        response_prefixes: tuple[bytes, ...] | None = None,
+    ) -> str:
         with self._lock:
             if payload is not None:
                 # self.logger.debug("Send `%r`", payload)
@@ -133,15 +141,35 @@ class SerialLine:
                 # self.logger.debug("Just wait for answer")
                 pass
 
-            return self._read_line(timeout=timeout)
+            return self._read_line(timeout=timeout, response_prefixes=response_prefixes)
     
     @_disconnect_when_error(default="")
-    def _read_line(self, timeout: int | None = None) -> str:
+    def _read_line(
+        self,
+        timeout: float | None = None,
+        response_prefixes: tuple[bytes, ...] | None = None,
+    ) -> str:
         _timeout = self.serial.timeout
         if timeout is not None:
             self.serial.timeout = timeout
         try:
-            line = self.serial.read_until(self.terminator, 1024)
+            if response_prefixes is None:
+                line = self.serial.read_until(self.terminator, 1024)
+            else:
+                skipped = bytearray()
+                prefix = b""
+                while True:
+                    byte = self.serial.read(1)
+                    if not byte:
+                        line = bytes(skipped)
+                        break
+                    if byte in response_prefixes:
+                        prefix = byte
+                        break
+                    skipped.extend(byte)
+
+                if prefix:
+                    line = prefix + self.serial.read_until(self.terminator, 1024)
         finally:
             if timeout is not None:
                 self.serial.timeout = _timeout
@@ -152,7 +180,7 @@ class SerialLine:
         return responce
     
     @_disconnect_when_error(default=None)
-    def read_all_data(self, timeout: int | None = None) -> list[str] | None:
+    def read_all_data(self, timeout: float | None = None) -> list[str] | None:
         with self._lock:
             _timeout = self.serial.timeout
             if timeout is not None:

@@ -1,0 +1,10 @@
+class Protocol:
+    COMMAND_PREFIX = ":"
+    COMMAND_TERMINATOR = "\r"
+    RESPONSE_PREFIX = "="
+    COMMAND_ERROR_PREFIX = "!"
+    ANSWER_END = "\r"
+
+    RESPONSE_PREFIX_BYTE = RESPONSE_PREFIX.encode("ascii")
+    COMMAND_ERROR_PREFIX_BYTE = COMMAND_ERROR_PREFIX.encode("ascii")
+    ANSWER_END_BYTE = ANSWER_END.encode("ascii")

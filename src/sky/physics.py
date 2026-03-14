@@ -71,15 +71,15 @@ class _BasicAriphmetic(ABC):
     def _comparison_value(self, other: Any) -> float: ...
 
     @overload
-    def _comparison_value(self, other: Any, support_none: bool) -> float | None: ...
+    def _comparison_value(self, other: Any, support_forwarding: bool) -> float | None: ...
 
-    def _comparison_value(self, other: Any, support_none: bool = False) -> float | None:
+    def _comparison_value(self, other: Any, support_forwarding: bool = False) -> Any:
         if isinstance(other, self.__class__):
             return float(other)
         if isinstance(other, (float, int)):
             return float(other)
-        if other is None and support_none:
-            return None
+        if support_forwarding:
+            return other
         raise TypeError(f"Unsupported comparison: {type(self)} and {type(other)}")
     
     def __lt__(self, other: Self | float | int):
@@ -95,7 +95,7 @@ class _BasicAriphmetic(ABC):
         return float(self) >= self._comparison_value(other)
     
     def __eq__(self, value: object) -> bool:
-        return float(self) == self._comparison_value(value, support_none=True)
+        return float(self) == self._comparison_value(value, support_forwarding=True)
     
     @overload
     def __truediv__(self, other: float | int) -> Self: ...

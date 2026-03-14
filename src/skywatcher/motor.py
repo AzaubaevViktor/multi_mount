@@ -7,6 +7,7 @@ from serial_wrapper.wrapper import SerialLine
 from sky.constants import STELLAR_DAY, STELLAR_SPEED
 from sky.motor import MotionMode, Motor, MotorDirection, MotorStateError, MotorStatus, MotorStopRequire
 from sky.physics import Ha, HaPerSecond
+from skywatcher.protocol import Protocol
 
 
 class SkyWatcherMotorError(Exception):
@@ -125,10 +126,6 @@ class _Revu24:
 class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     FORWARD_POSITION_SIGN = -1
 
-    _LEADING = ":"
-    _TRAILING = "\r"
-    _RESPONSE_PREFIX = "="
-    _COMMAND_ERROR_PREFIX = "!"
     _POSITION_OFFSET = 0x800000
     _LOWSPEED_MARGIN = Ha(10 * 60)
     _LOWSPEED_SPEED = STELLAR_SPEED * 128
@@ -149,6 +146,10 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._mount_position_cache_updated = 0.0
 
     def connect(self):
+        if self._serial.terminator != Protocol.ANSWER_END_BYTE:
+            raise SkyWatcherMotorProtocolError(
+                f"invalid SerialLine terminator: expected {Protocol.ANSWER_END_BYTE!r}, got {self._serial.terminator!r}"
+            )
         self._serial.connect()
         self._transact(_Command.INITIALIZE)
         self._steps_360 = _Revu24.from_mount(self._transact(_Command.INQUIRE_CPR))
@@ -409,17 +410,26 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
 
     REPEATS = 3
     def _transact(self, command: _Command, arg: str | None = None) -> str:
-        payload = f"{self._LEADING}{command.value}{_Axis.RA}{arg or ''}{self._TRAILING}"
+        payload = f"{Protocol.COMMAND_PREFIX}{command.value}{_Axis.RA}{arg or ''}{Protocol.COMMAND_TERMINATOR}"
         count = self.REPEATS
         response = None
         while count > 0:
             try:
-                response = self._serial.query(payload)
-                if not response.startswith(self._RESPONSE_PREFIX):
-                    if response.startswith(self._COMMAND_ERROR_PREFIX):
-                        raise SkyWatcherMotorCommandError(response)
-                    raise SkyWatcherMotorProtocolError(response)
-                return response[1:-1]
+                response = self._serial.query(
+                    payload,
+                    response_prefixes=(Protocol.RESPONSE_PREFIX_BYTE, Protocol.COMMAND_ERROR_PREFIX_BYTE),
+                )
+                if not response:
+                    raise SkyWatcherMotorProtocolError(f"empty response: {response!r}")
+                if not response.endswith(Protocol.ANSWER_END):
+                    raise SkyWatcherMotorProtocolError(f"unterminated response: {response!r}")
+                if response[0] == Protocol.COMMAND_ERROR_PREFIX:
+                    raise SkyWatcherMotorCommandError(f"command error: {response!r}")
+                if response[0] != Protocol.RESPONSE_PREFIX:
+                    raise SkyWatcherMotorProtocolError(f"invalid response: {response!r}")
+
+                return response[1:-len(Protocol.ANSWER_END)]
+
             except SkyWatcherMotorProtocolError:
                 self._logger.exception("While quering %s(%s) `%s` -> `%s`, %d last", command.name, arg, payload, response, count)
                 self._serial.drop_buffers()
