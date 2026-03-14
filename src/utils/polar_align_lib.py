@@ -53,15 +53,21 @@ Usage sketch
         PlateSolve(ra_hours=5.25, dec_deg=20.0, timestamp=datetime.now(timezone.utc))
     )
     print(verify.remaining_error_arcmin)
+
+Interactive CLI
+---------------
+Run `python polar_align.py` to enter an interactive session that collects
+three solves, computes the polar correction, and lets you verify the live adjustment.
 """
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum, auto
 from math import acos, asin, atan2, cos, degrees, pi, radians, sin, sqrt
-from typing import Iterable, List, Optional, Sequence, Tuple
+from typing import Callable, List, Optional, Sequence, Tuple
 
 
 # =========================
@@ -648,6 +654,261 @@ def describe_knob_guidance(delta_alt_deg: float, delta_az_deg: float) -> str:
     )
 
 
+SOLUTION_COORDS_PATTERN = re.compile(
+    r"RA\s*\(\s*(?P<ra_h>\d+)\s*h\s*(?P<ra_m>\d+)\s*m\s*(?P<ra_s>\d+(?:\.\d*)?)\s*s\s*\)"
+    r"\s*DEC\s*\(\s*(?P<dec_sign>[+-])?\s*(?P<dec_d>\d+)\D+"
+    r"(?P<dec_m>\d+)\D+(?P<dec_s>\d+(?:\.\d*)?)\s*\"?\s*\)",
+    re.IGNORECASE,
+)
+
+
+INTERACTIVE_HELP = """Commands:
+  solve    add the next calibration plate solve, including pasted 'Solution coordinates' lines
+  compute  solve the 3-point polar alignment and enter adjustment mode
+  verify   compare a new plate solve against the target point
+  show     print current solves, result, and workflow state
+  reset    clear the current session
+  help     print this command list
+  quit     exit the program
+"""
+
+
+def parse_timestamp(raw_value: str) -> datetime:
+    text = raw_value.strip()
+    if not text:
+        return datetime.now(timezone.utc)
+
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+
+    timestamp = datetime.fromisoformat(text)
+    if timestamp.tzinfo is None:
+        raise ValueError("Timestamp must include timezone offset, for example +00:00")
+    return timestamp
+
+
+def parse_solution_coordinates(raw_value: str) -> EquatorialCoord:
+    match = SOLUTION_COORDS_PATTERN.search(raw_value)
+    if match is None:
+        raise ValueError(
+            "Expected a line like: Solution coordinates: RA (14h 41m 57s) DEC ( 41° 24' 42\")"
+        )
+
+    ra_hours = (
+        int(match.group("ra_h"))
+        + int(match.group("ra_m")) / 60.0
+        + float(match.group("ra_s")) / 3600.0
+    )
+    dec_deg = (
+        int(match.group("dec_d"))
+        + int(match.group("dec_m")) / 60.0
+        + float(match.group("dec_s")) / 3600.0
+    )
+    if match.group("dec_sign") == "-":
+        dec_deg *= -1.0
+    return EquatorialCoord(ra_hours=ra_hours, dec_deg=dec_deg)
+
+
+def format_ra_hms(ra_hours: float) -> str:
+    total_seconds = int(round((ra_hours % 24.0) * 3600.0)) % (24 * 3600)
+    hours, rem = divmod(total_seconds, 3600)
+    minutes, seconds = divmod(rem, 60)
+    return f"{hours:02d}h {minutes:02d}m {seconds:02d}s"
+
+
+def format_dec_dms(dec_deg: float) -> str:
+    total_seconds = int(round(abs(dec_deg) * 3600.0))
+    degrees_abs, rem = divmod(total_seconds, 3600)
+    minutes, seconds = divmod(rem, 60)
+    sign = "+" if dec_deg >= 0 else "-"
+    return f"{sign}{degrees_abs:02d}° {minutes:02d}' {seconds:02d}\""
+
+
+def format_solution_coordinates(ra_hours: float, dec_deg: float) -> str:
+    return f"Solution coordinates: RA ({format_ra_hms(ra_hours)}) DEC ({format_dec_dms(dec_deg)})"
+
+
+def prompt_float(
+    input_fn: Callable[[str], str],
+    output_fn: Callable[[str], None],
+    prompt: str,
+) -> float:
+    while True:
+        try:
+            return float(input_fn(prompt).strip())
+        except ValueError:
+            output_fn("Enter a valid number.")
+
+
+def prompt_plate_solve(
+    input_fn: Callable[[str], str],
+    output_fn: Callable[[str], None],
+    default_label: str,
+) -> PlateSolve:
+    line = input_fn("Plate solve line [paste 'Solution coordinates ...' or leave blank for manual]: ").strip()
+    label = default_label
+
+    if line:
+        coord = parse_solution_coordinates(line)
+        ra_hours = coord.ra_hours
+        dec_deg = coord.dec_deg
+        output_fn(f"Parsed {format_solution_coordinates(ra_hours, dec_deg)}")
+    else:
+        label = input_fn(f"Label [{default_label}]: ").strip() or default_label
+        ra_hours = prompt_float(input_fn, output_fn, "RA hours: ")
+        dec_deg = prompt_float(input_fn, output_fn, "Dec degrees: ")
+
+    while True:
+        try:
+            timestamp = parse_timestamp(input_fn("Timestamp ISO-8601 with timezone [now UTC]: "))
+            return PlateSolve(
+                ra_hours=ra_hours,
+                dec_deg=dec_deg,
+                timestamp=timestamp,
+                label=label,
+            )
+        except ValueError as exc:
+            output_fn(str(exc))
+
+
+def interactive_main(
+    input_fn: Callable[[str], str] = input,
+    output_fn: Callable[[str], None] = print,
+) -> int:
+    output_fn("Polar alignment interactive session")
+    output_fn("Enter site coordinates once, then collect 3 calibration solves.")
+    output_fn("Timestamp format: 2026-03-14T20:15:00+00:00 or blank for current UTC.")
+    output_fn("For each solve you can paste: Solution coordinates: RA (14h 41m 57s) DEC ( 41° 24' 42\")")
+    output_fn("")
+
+    latitude_deg = prompt_float(input_fn, output_fn, "Observer latitude in degrees: ")
+    longitude_deg = prompt_float(input_fn, output_fn, "Observer longitude in degrees (east positive): ")
+    session = PolarAlignmentSession(ObserverSite(latitude_deg=latitude_deg, longitude_deg=longitude_deg))
+
+    output_fn("")
+    output_fn(INTERACTIVE_HELP.rstrip())
+
+    while True:
+        command = input_fn("polar-align> ").strip().lower()
+
+        if not command:
+            continue
+
+        if command in ("quit", "exit"):
+            output_fn("Exiting polar alignment session.")
+            return 0
+
+        if command == "help":
+            output_fn(INTERACTIVE_HELP.rstrip())
+            continue
+
+        if command == "reset":
+            session.reset()
+            output_fn("Session reset.")
+            continue
+
+        if command == "show":
+            output_fn(f"State: {session.state.name}")
+            output_fn(f"Collected solves: {len(session.solves)} / 3")
+
+            for idx, solve in enumerate(session.solves, start=1):
+                output_fn(
+                    f"  #{idx} {solve.label}: RA={solve.ra_hours:.6f}h "
+                    f"Dec={solve.dec_deg:+.6f}deg Time={solve.timestamp.isoformat()}"
+                )
+                output_fn(f"     {format_solution_coordinates(solve.ra_hours, solve.dec_deg)}")
+
+            if session.result is not None:
+                output_fn(f"Polar error: {session.result.axis.angular_error_arcmin:.2f} arcmin")
+                output_fn(
+                    f"Correction: ALT {format_arcmin(session.result.axis.delta_alt_deg)}, "
+                    f"AZ {format_arcmin(session.result.axis.delta_az_deg)}"
+                )
+                output_fn(
+                    f"Target: RA={session.result.target.target_ra_hours:.6f}h "
+                    f"Dec={session.result.target.target_dec_deg:+.6f}deg"
+                )
+                output_fn(
+                    f"        {format_solution_coordinates(session.result.target.target_ra_hours, session.result.target.target_dec_deg)}"
+                )
+
+            if session.log.messages:
+                output_fn(f"Last log: {session.log.messages[-1]}")
+            continue
+
+        if command == "solve":
+            if len(session.solves) >= 3:
+                output_fn("Three calibration solves are already collected. Run 'compute' or 'reset'.")
+                continue
+
+            solve = prompt_plate_solve(input_fn, output_fn, f"solve-{len(session.solves) + 1}")
+            session.add_solve(solve)
+            output_fn(f"Added {solve.label}.")
+
+            if session.state == AlignmentState.READY_TO_SOLVE:
+                output_fn("Three solves collected. Run 'compute' to estimate polar error.")
+            else:
+                output_fn(f"Need {3 - len(session.solves)} more solve(s).")
+            continue
+
+        if command == "compute":
+            if len(session.solves) != 3:
+                output_fn("Collect exactly three solves before running 'compute'.")
+                continue
+
+            try:
+                result = session.solve_alignment()
+            except ValueError as exc:
+                output_fn(str(exc))
+                continue
+
+            output_fn(f"Polar error: {result.axis.angular_error_arcmin:.2f} arcmin")
+            output_fn(f"Fit residual: {result.axis.fit_residual_deg:.4f} deg")
+            output_fn(
+                f"Base correction: ALT {format_arcmin(result.axis.delta_alt_deg)}, "
+                f"AZ {format_arcmin(result.axis.delta_az_deg)}"
+            )
+            output_fn(describe_knob_guidance(result.axis.delta_alt_deg, result.axis.delta_az_deg))
+            output_fn(
+                f"Reference point before adjustment: RA={result.current_before_adjust.ra_hours:.6f}h "
+                f"Dec={result.current_before_adjust.dec_deg:+.6f}deg "
+                f"Alt={result.current_before_adjust_altaz.alt_deg:.4f}deg "
+                f"Az={result.current_before_adjust_altaz.az_deg:.4f}deg"
+            )
+            output_fn(
+                f"Target after successful adjustment: RA={result.target.target_ra_hours:.6f}h "
+                f"Dec={result.target.target_dec_deg:+.6f}deg "
+                f"Alt={result.target.target_alt_deg:.4f}deg "
+                f"Az={result.target.target_az_deg:.4f}deg"
+            )
+            output_fn(format_solution_coordinates(result.target.target_ra_hours, result.target.target_dec_deg))
+
+            session.begin_adjustment()
+            output_fn("Entered live adjustment mode. Use 'verify' after another plate solve.")
+            continue
+
+        if command == "verify":
+            if session.result is None:
+                output_fn("Run 'compute' before verification.")
+                continue
+
+            solve = prompt_plate_solve(input_fn, output_fn, "verification")
+            verify = session.verify_against_target(solve)
+            output_fn(f"Remaining error: {verify.remaining_error_arcmin:.2f} arcmin")
+            output_fn(
+                f"Delta to target: ALT {format_arcmin(verify.delta_alt_deg)}, "
+                f"AZ {format_arcmin(verify.delta_az_deg)}"
+            )
+
+            if session.state == AlignmentState.VERIFIED:
+                output_fn("Alignment is within 2 arcmin of the target.")
+            else:
+                output_fn("Still outside the 2 arcmin target. Adjust more and run 'verify' again.")
+            continue
+
+        output_fn(f"Unknown command: {command}. Type 'help' for the list of commands.")
+
+
 __all__ = [
     "AlignmentResult",
     "AlignmentState",
@@ -671,13 +932,18 @@ __all__ = [
     "estimate_cone_fit_residual_deg",
     "estimate_ra_axis_from_three_solves",
     "format_arcmin",
+    "format_dec_dms",
+    "format_ra_hms",
+    "format_solution_coordinates",
     "gmst_rad",
+    "interactive_main",
     "julian_date",
     "live_remaining_error_deg",
     "lst_rad",
     "north_celestial_pole_enu",
     "north_celestial_pole_eq",
     "normalize_signed_degrees",
+    "parse_solution_coordinates",
     "ra_hours_to_rad",
     "rad_to_ra_hours",
     "radec_to_altaz",
@@ -687,3 +953,7 @@ __all__ = [
     "rotation_to_move_axis",
     "vec_to_radec",
 ]
+
+
+if __name__ == "__main__":
+    raise SystemExit(interactive_main())
