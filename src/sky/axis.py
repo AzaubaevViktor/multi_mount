@@ -10,7 +10,6 @@ from typing import Callable, Concatenate, ParamSpec, Protocol, Sequence, TypeVar
 from serial_wrapper.wrapper import EXCEPTIONS_TO_CLOSE
 from sky.motor import MotionMode, Motor, MotorDirection, MotorStopRequire
 from sky.physics import AxisPos, AxisSpeed, Dec, DecPerSecond, Ha, HaPerSecond, Second, SkyDirection
-from utils.method_call_chain import log_method_call_chain
 
 
 class AxisName(StrEnum):
@@ -266,7 +265,6 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
         return return_to_tracking
 
     @_raise_if_thread_failed
-    @log_method_call_chain()
     def change_speed(self, direction: SkyDirection, speed: _SPEED_CLS, update_sky_speed: bool = False) -> None:
         if direction not in self.DIRECTIONS:
             return
