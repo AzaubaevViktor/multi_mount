@@ -1,10 +1,11 @@
 from collections import deque
 from dataclasses import dataclass
 from enum import StrEnum
+from functools import wraps
 import logging
 import queue
 import threading
-from typing import Callable, ParamSpec, Sequence, TypeVar, cast
+from typing import Callable, Concatenate, ParamSpec, Protocol, Sequence, TypeVar, cast
 
 from serial_wrapper.wrapper import EXCEPTIONS_TO_CLOSE
 from sky.motor import MotionMode, Motor, MotorDirection, MotorStopRequire
@@ -50,11 +51,20 @@ class PointCoordinates:
 
 _AXIS_PARAMS = ParamSpec("_AXIS_PARAMS")
 _AXIS_RETURN = TypeVar("_AXIS_RETURN")
+_AXIS_SELF = TypeVar("_AXIS_SELF", bound="_AxisThreadFailureCheck")
 
 
-def _raise_if_thread_failed(method: Callable[_AXIS_PARAMS, _AXIS_RETURN]):
+class _AxisThreadFailureCheck(Protocol):
+    axis: AxisName
+    _motion_convertor_error: Exception | None
+
+
+def _raise_if_thread_failed(
+    method: Callable[Concatenate[_AXIS_SELF, _AXIS_PARAMS], _AXIS_RETURN],
+) -> Callable[Concatenate[_AXIS_SELF, _AXIS_PARAMS], _AXIS_RETURN]:
+    @wraps(method)
     def wrapped(
-        self: "Axis[AxisPos, AxisSpeed]",
+        self: _AXIS_SELF,
         *args: _AXIS_PARAMS.args,
         **kwargs: _AXIS_PARAMS.kwargs,
     ) -> _AXIS_RETURN:
@@ -232,6 +242,14 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                     self._mode = AxisMotionMode.STOP
                     self._motor.wait_till_stop()
 
+    @_raise_if_thread_failed
+    def get_position(self) -> PointCoordinates:
+        return PointCoordinates(ra=self._ra_position, dec=self._dec_position)
+    
+    @_raise_if_thread_failed
+    def set_position(self, position: PointCoordinates) -> None:
+        self._queue.put(AxisCommand(AxisCommandType.SET_POSITION, position=position))
+
     def _run_set_position(self, position: PointCoordinates) -> bool:
         prev_mode = self._mode
         return_to_tracking = prev_mode == AxisMotionMode.TRACK
@@ -246,7 +264,14 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
         self._dec_position = position.dec
 
         return return_to_tracking
-        
+
+    @_raise_if_thread_failed
+    @log_method_call_chain()
+    def change_speed(self, direction: SkyDirection, speed: _SPEED_CLS, update_sky_speed: bool = False) -> None:
+        if direction not in self.DIRECTIONS:
+            return
+        self._queue.put(AxisCommand(AxisCommandType.CHANGE_SPEED, direction=direction, speed=speed, update_sky_speed=update_sky_speed))
+
     def _run_change_speed(self, sky_direction: SkyDirection, new_speed: _SPEED_CLS, update_sky_speed: bool) -> None:
         motor_direction, motor_speed = self._get_motor_direction_and_speed(sky_direction, new_speed)
 
@@ -279,6 +304,12 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                 self._mode = AxisMotionMode.STOP
                 self._motor.wait_till_stop()
 
+    @_raise_if_thread_failed
+    def move(self, direction: SkyDirection, speed: _SPEED_CLS) -> None:
+        if direction not in self.DIRECTIONS:
+            return
+        self._queue.put(AxisCommand(AxisCommandType.MOVE, direction=direction, speed=speed))
+
     def _run_move(self, sky_direction: SkyDirection, move_speed: _SPEED_CLS) -> None:
         motor_direction, motor_speed = self._get_motor_direction_and_speed(sky_direction, move_speed)
         
@@ -298,6 +329,10 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
             except MotorStopRequire:
                 self._mode = AxisMotionMode.STOP
                 self._motor.wait_till_stop()
+
+    @_raise_if_thread_failed
+    def goto_to(self, position: PointCoordinates) -> None:
+        self._queue.put(AxisCommand(AxisCommandType.GOTO_TO, position=position))
 
     def _run_goto_to(self, position: _POS_CLS) -> None:
         # This is fastest path; It will be calculated at higher level
@@ -332,6 +367,17 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                 except MotorStopRequire:
                     self._mode = AxisMotionMode.STOP
                     self._motor.wait_till_stop()
+
+    @_raise_if_thread_failed
+    def halt_direction(self, direction: SkyDirection) -> None:
+        if direction not in self.DIRECTIONS:
+            self.logger.warning("Ignore HALT_DIRECTION command for %s, because it's not the current move direction: %s (now %s from %s)", self.axis.value, direction, self._move_direction, self.DIRECTIONS)
+            return
+        self._queue.put(AxisCommand(AxisCommandType.HALT_DIRECTION, direction=direction))
+    
+    @_raise_if_thread_failed
+    def halt_all(self) -> None:
+        self._queue.put(AxisCommand(AxisCommandType.HALT_ALL))
 
     def _run_halt_direction(self) -> bool:
         self._motor.wait_till_stop()
@@ -542,42 +588,6 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                     raise
 
         self._mc_logger.info("STOP WORKING")
-
-    @_raise_if_thread_failed
-    def get_position(self) -> PointCoordinates:
-        return PointCoordinates(ra=self._ra_position, dec=self._dec_position)
-    
-    @_raise_if_thread_failed
-    def set_position(self, position: PointCoordinates) -> None:
-        self._queue.put(AxisCommand(AxisCommandType.SET_POSITION, position=position))
-
-    @_raise_if_thread_failed
-    @log_method_call_chain()
-    def change_speed(self, direction: SkyDirection, speed: _SPEED_CLS, update_sky_speed: bool = False) -> None:
-        if direction not in self.DIRECTIONS:
-            return
-        self._queue.put(AxisCommand(AxisCommandType.CHANGE_SPEED, direction=direction, speed=speed, update_sky_speed=update_sky_speed))
-
-    @_raise_if_thread_failed
-    def move(self, direction: SkyDirection, speed: _SPEED_CLS) -> None:
-        if direction not in self.DIRECTIONS:
-            return
-        self._queue.put(AxisCommand(AxisCommandType.MOVE, direction=direction, speed=speed))
-
-    @_raise_if_thread_failed
-    def goto_to(self, position: PointCoordinates) -> None:
-        self._queue.put(AxisCommand(AxisCommandType.GOTO_TO, position=position))
-    
-    @_raise_if_thread_failed
-    def halt_direction(self, direction: SkyDirection) -> None:
-        if direction not in self.DIRECTIONS:
-            self.logger.warning("Ignore HALT_DIRECTION command for %s, because it's not the current move direction: %s (now %s from %s)", self.axis.value, direction, self._move_direction, self.DIRECTIONS)
-            return
-        self._queue.put(AxisCommand(AxisCommandType.HALT_DIRECTION, direction=direction))
-    
-    @_raise_if_thread_failed
-    def halt_all(self) -> None:
-        self._queue.put(AxisCommand(AxisCommandType.HALT_ALL))
 
     @_raise_if_thread_failed
     def is_moving_to(self) -> bool:
