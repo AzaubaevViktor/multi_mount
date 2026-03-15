@@ -95,6 +95,8 @@ class PolarCompensator:
 
         self.current_ha: Ha = Ha(0)
         self.current_dec: Dec = Dec(0)
+        # TODO: var: type declarations without values
+
         self.reset(last_guide_pulse=Second.monotonic())
     
     def update_position(self, ha: Ha, dec: Dec) -> None:
