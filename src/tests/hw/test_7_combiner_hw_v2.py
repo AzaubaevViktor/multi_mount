@@ -731,14 +731,14 @@ GOTO_DIRECTION_DELTAS = (
 @pytest.mark.parametrize(
     ("ra_sign", "dec_sign"),
     (
-        pytest.param(1, 0, id="east"),
-        pytest.param(-1, 0, id="west"),
+        pytest.param(-1, 0, id="east"),
+        pytest.param(1, 0, id="west"),
         pytest.param(0, 1, id="north"),
         pytest.param(0, -1, id="south"),
-        pytest.param(1, 1, id="east-north"),
-        pytest.param(1, -1, id="east-south"),
-        pytest.param(-1, 1, id="west-north"),
-        pytest.param(-1, -1, id="west-south"),
+        pytest.param(-1, 1, id="east-north"),
+        pytest.param(-1, -1, id="east-south"),
+        pytest.param(1, 1, id="west-north"),
+        pytest.param(1, -1, id="west-south"),
     ),
 )
 def test_coordinate_system_slew_directions(
@@ -746,6 +746,7 @@ def test_coordinate_system_slew_directions(
     ra_sign: int,
     dec_sign: int,
 ):
+    sc.set_slew_to_find()
     baseline = sc.get_deltas(MOTION_SAMPLE_S)
 
     if ra_sign > 0:
@@ -863,6 +864,8 @@ def test_halt_command_returns_to_tracking_from_slew(
     ra_sign: int,
     dec_sign: int,
 ):
+    sc.set_slew_to_find()
+
     if ra_sign > 0:
         sc.move_west()
     elif ra_sign < 0:
