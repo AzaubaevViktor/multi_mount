@@ -182,14 +182,6 @@ class Combiner:
         self.dec.halt_all()
         self.dec.change_speed(self.dec.FORWARD_DIRECTION, DecPerSecond(0), update_sky_speed=False)
 
-        self._polar_compensator.eps_E = None
-        self._polar_compensator.eps_N = None
-        self._polar_compensator.ra_speed = None
-        self._polar_compensator.dec_speed = None
-        self._polar_compensator.stable_guide_ra_pulses_count = 0
-        self._polar_compensator.stable_guide_dec_pulses_count = 0
-        self._polar_compensator.last_guide_pulse = Second(0)
-        self._polar_compensator.last_ra_guide_pulse = Second(0)
-        self._polar_compensator.last_dec_guide_pulse = Second(0)
+        self._polar_compensator.reset()
 
         self._guide_updated.set()

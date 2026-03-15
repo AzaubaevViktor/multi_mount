@@ -95,25 +95,25 @@ class PolarCompensator:
 
         self.current_ha: Ha = Ha(0)
         self.current_dec: Dec = Dec(0)
-
-        self.eps_E: Ha | None = None
-        self.eps_N: Dec | None = None
-        
-        self._ra_speeds: list[HaPerSecond] = []
-        self.ra_speed: HaPerSecond | None = STELLAR_SPEED
-
-        self._dec_speeds: list[DecPerSecond] = []
-        self.dec_speed: DecPerSecond | None = DecPerSecond(0)
-
-        self.last_guide_pulse: Second = Second.monotonic()
-        self.last_ra_guide_pulse: Second = self.last_guide_pulse
-        self.last_dec_guide_pulse: Second = self.last_guide_pulse
-        self.stable_guide_ra_pulses_count = 0
-        self.stable_guide_dec_pulses_count = 0
+        self.reset(last_guide_pulse=Second.monotonic())
     
     def update_position(self, ha: Ha, dec: Dec) -> None:
         self.current_ha = ha
         self.current_dec = dec
+
+    def reset(self, last_guide_pulse: Second = Second(0)) -> None:
+        self.eps_E = None
+        self.eps_N = None
+
+        self.ra_speed = None
+        self.dec_speed = None
+
+        self.stable_guide_ra_pulses_count = 0
+        self.stable_guide_dec_pulses_count = 0
+
+        self.last_guide_pulse = last_guide_pulse
+        self.last_ra_guide_pulse = last_guide_pulse
+        self.last_dec_guide_pulse = last_guide_pulse
 
     @property
     def ra_speed(self) -> HaPerSecond:
@@ -234,13 +234,11 @@ class PolarCompensator:
             return ha_speed, dec_speed
 
         if not is_stable_guide and not is_external_guide:
-            self.ra_speed = None
-            self.dec_speed = None
-            self.eps_E = None
-            if self.eps_N is not None or self.eps_E is not None:
-                self.logger.info("No guide pulses for %.1fs, reset guide speeds to sidereal", Second.monotonic() - self.last_guide_pulse)
-                self.eps_N = None
-                self.eps_E = None
+            had_solution = self.eps_E is not None or self.eps_N is not None
+            idle_for = now - self.last_guide_pulse
+            self.reset()
+            if had_solution:
+                self.logger.info("No guide pulses for %.1fs, reset guide speeds to sidereal", idle_for)
                 return STELLAR_SPEED, DecPerSecond(0)
         
         self.logger.info("No guide speeds: ra: %s, dec: %s, external guide: %s, stable guide: %s", is_external_guide_ra, is_external_guide_dec, is_external_guide, is_stable_guide)

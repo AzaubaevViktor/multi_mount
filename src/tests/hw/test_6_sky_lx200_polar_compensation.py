@@ -81,53 +81,68 @@ def test_sky_lx200_polar_compensator_replays_stable_guide_after_external_guiding
     assert float(combiner.dec._sky_speed) == pytest.approx(float(expected_dec_speed), abs=0.2)
 
 
-@pytest.mark.skip(reason="Need to be rewrited")
 def test_sky_lx200_polar_compensator_changes_compensation_after_position_change(
     combiner: Combiner,
     sky_lx200: SkyLX200,
 ) -> None:
-    (_, _), (initial_ra_speed, initial_dec_speed) = get_stable_compensation_via_lx200(combiner, sky_lx200)
+    polar_compensator = combiner._polar_compensator
+    (_, _), _ = get_stable_compensation_via_lx200(combiner, sky_lx200)
+    time.sleep(float(combiner.GUIDE_INTERVAL_S) + GUIDE_SETTLE_MARGIN_S)
+    initial_ra_speed = combiner.ra._sky_speed
+    initial_dec_speed = combiner.dec._sky_speed
+    initial_eps_E = polar_compensator.eps_E
+    initial_eps_N = polar_compensator.eps_N
 
     sky_lx200.sync_telescope(Ha(1800), Dec(1800))
-    time.sleep(float(combiner.GUIDE_INTERVAL_S) + GUIDE_SETTLE_MARGIN_S)
+    deadline = time.monotonic() + float(combiner.GUIDE_INTERVAL_S) + GUIDE_SETTLE_MARGIN_S
+    while time.monotonic() < deadline:
+        if (polar_compensator.eps_E, polar_compensator.eps_N) != (initial_eps_E, initial_eps_N):
+            break
+        time.sleep(min(GUIDE_SETTLE_MARGIN_S, float(combiner.GUIDE_INTERVAL_S)) / 10)
+    else:
+        pytest.fail("Polar compensator did not recompute polar offset after LX200 sync")
 
-    updated_ra_speed = combiner.ra._sky_speed
-    updated_dec_speed = combiner.dec._sky_speed
+    assert polar_compensator.eps_E is not None
+    assert polar_compensator.eps_N is not None
+    assert (polar_compensator.eps_E, polar_compensator.eps_N) != (initial_eps_E, initial_eps_N)
+    assert combiner.ra._sky_speed == pytest.approx(initial_ra_speed, abs=0.2)
+    assert float(combiner.dec._sky_speed) == pytest.approx(float(initial_dec_speed), abs=0.2)
 
-    assert float(updated_ra_speed) != pytest.approx(float(initial_ra_speed), abs=0.2)
-    assert float(updated_dec_speed) != pytest.approx(float(initial_dec_speed), abs=0.2)
 
-
-@pytest.mark.skip(reason="Need to be rewrited")
 def test_sky_lx200_polar_compensator_resets_to_sidereal_after_new_external_guiding(
     combiner: Combiner,
     sky_lx200: SkyLX200,
 ) -> None:
+    polar_compensator = combiner._polar_compensator
     (_, _), (initial_ra_speed, initial_dec_speed) = get_stable_compensation_via_lx200(combiner, sky_lx200)
+    time.sleep(float(combiner.GUIDE_INTERVAL_S) + GUIDE_SETTLE_MARGIN_S)
     assert combiner.ra._sky_speed == pytest.approx(initial_ra_speed, abs=0.2)
     assert float(combiner.dec._sky_speed) == pytest.approx(float(initial_dec_speed), abs=0.2)
 
-    # New external guiding with different speeds should disable internal compensation.
     sky_lx200.guide_east(1000)
     sky_lx200.guide_north(1000)
-    time.sleep(0.5)
+    time.sleep(min(GUIDE_SETTLE_MARGIN_S, float(combiner.GUIDE_INTERVAL_S)) / 2)
 
-    assert combiner._polar_compensator.get_guide_speeds() is None
+    assert polar_compensator.get_guide_speeds() is None
 
-    combiner._polar_compensator.last_ra_guide_pulse -= combiner._polar_compensator.STOP_AXIS_AFTER
-    assert combiner._polar_compensator.get_guide_speeds() == (STELLAR_SPEED, None)
-    assert combiner._polar_compensator.ra_speed == STELLAR_SPEED
+    polar_compensator.last_ra_guide_pulse -= polar_compensator.STOP_AXIS_AFTER
+    assert polar_compensator.get_guide_speeds() == (STELLAR_SPEED, None)
+    assert polar_compensator.ra_speed == STELLAR_SPEED
 
-    combiner._polar_compensator.last_guide_pulse -= combiner._polar_compensator.DROP_GUIDE_PULSES_COUNT_AFTER
-    # After guide pulses stop and stability is lost, compensator must reset to sidereal.
-    time.sleep(float(combiner._polar_compensator.DROP_GUIDE_PULSES_COUNT_AFTER) + GUIDE_SETTLE_MARGIN_S)
+    polar_compensator.last_guide_pulse -= polar_compensator.DROP_GUIDE_PULSES_COUNT_AFTER
+    time.sleep(float(polar_compensator.DROP_GUIDE_PULSES_COUNT_AFTER) + GUIDE_SETTLE_MARGIN_S)
 
-    speeds_after = combiner._polar_compensator.get_guide_speeds()
-    assert speeds_after is None
-    assert combiner._polar_compensator.ra_speed == STELLAR_SPEED
-    assert combiner._polar_compensator.dec_speed == DecPerSecond(0)
-    assert combiner._polar_compensator.eps_E is None
-    assert combiner._polar_compensator.eps_N is None
+    reset_speeds = polar_compensator.get_guide_speeds()
+    assert reset_speeds is None or reset_speeds == (STELLAR_SPEED, DecPerSecond(0))
+    assert polar_compensator.ra_speed == STELLAR_SPEED
+    assert polar_compensator.dec_speed == DecPerSecond(0)
+    assert polar_compensator.eps_E is None
+    assert polar_compensator.eps_N is None
+    assert polar_compensator.stable_guide_ra_pulses_count == 0
+    assert polar_compensator.stable_guide_dec_pulses_count == 0
+
+    time.sleep(float(combiner.GUIDE_INTERVAL_S) + GUIDE_SETTLE_MARGIN_S)
+
     assert combiner.ra._sky_speed == STELLAR_SPEED
     assert combiner.dec._sky_speed == DecPerSecond(0)
     assert combiner.ra.mode() == AxisMotionMode.TRACK

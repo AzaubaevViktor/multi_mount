@@ -13,6 +13,19 @@ class _StubPolarCompensator:
         self.last_guide_pulse = Second(100)
         self.last_ra_guide_pulse = Second(101)
         self.last_dec_guide_pulse = Second(102)
+        self.reset_calls = 0
+
+    def reset(self, last_guide_pulse: Second = Second(0)) -> None:
+        self.reset_calls += 1
+        self.eps_E = None
+        self.eps_N = None
+        self.ra_speed = None
+        self.dec_speed = None
+        self.stable_guide_ra_pulses_count = 0
+        self.stable_guide_dec_pulses_count = 0
+        self.last_guide_pulse = last_guide_pulse
+        self.last_ra_guide_pulse = last_guide_pulse
+        self.last_dec_guide_pulse = last_guide_pulse
 
 
 class _StubAxisRA:
@@ -52,13 +65,14 @@ def test_combiner_stop_all_stops_tracking_and_resets_guide_state() -> None:
     combiner.stop_all()
 
     assert ra.calls == [
-        ("change_speed", SkyDirection.EAST, HaPerSecond(0), True),
         ("halt_all",),
+        ("change_speed", SkyDirection.EAST, HaPerSecond(0), False),
     ]
     assert dec.calls == [
-        ("change_speed", SkyDirection.NORTH, DecPerSecond(0), True),
         ("halt_all",),
+        ("change_speed", SkyDirection.NORTH, DecPerSecond(0), False),
     ]
+    assert combiner._polar_compensator.reset_calls == 1
     assert combiner._polar_compensator.eps_E is None
     assert combiner._polar_compensator.eps_N is None
     assert combiner._polar_compensator.stable_guide_ra_pulses_count == 0

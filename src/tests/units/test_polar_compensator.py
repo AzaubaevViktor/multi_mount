@@ -152,6 +152,31 @@ class TestPolarCompensatorInitial:
         assert float(comp.ra_speed) == pytest.approx(float(STELLAR_SPEED), abs=1e-9)
         assert float(comp.dec_speed) == pytest.approx(0.0, abs=1e-9)
 
+    def test_reset_clears_solution_and_guide_history(self):
+        comp = _make_compensator()
+        comp.update_position(Ha(6 * 3600), Dec(45 * 3600))
+        _send_stable_pulses(
+            comp,
+            STELLAR_SPEED + HaPerSecond(0.01),
+            DecPerSecond(0.02),
+            count=PolarCompensator.STABLE_GUIDE_PULSES_COUNT,
+            t0=1.0,
+        )
+        comp.eps_E = Ha(10)
+        comp.eps_N = Dec(20)
+
+        comp.reset(Second(123))
+
+        assert comp.eps_E is None
+        assert comp.eps_N is None
+        assert comp.stable_guide_ra_pulses_count == 0
+        assert comp.stable_guide_dec_pulses_count == 0
+        assert comp.last_guide_pulse == Second(123)
+        assert comp.last_ra_guide_pulse == Second(123)
+        assert comp.last_dec_guide_pulse == Second(123)
+        assert float(comp.ra_speed) == pytest.approx(float(STELLAR_SPEED), abs=1e-9)
+        assert float(comp.dec_speed) == pytest.approx(0.0, abs=1e-9)
+
 
 class TestStablePulseCounting:
     RA_SPEED = STELLAR_SPEED + HaPerSecond(0.01)

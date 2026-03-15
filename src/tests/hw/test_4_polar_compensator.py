@@ -74,25 +74,39 @@ def test_hw_polar_compensator_replays_stable_guide_after_external_guiding_stops(
 
     assert float(combiner.dec._sky_speed) == pytest.approx(float(expected_dec_speed), abs=0.2)
 
-@pytest.mark.skip(reason="Need to be rewrited")
 def test_hw_polar_compensator_changes_compensation_after_position_change(combiner: Combiner) -> None:
+    polar_compensator = combiner._polar_compensator
     _prime_stable_polar_solution(combiner)
 
-    initial_ra_speed, initial_dec_speed = _wait_for_compensation_takeover(combiner)
+    _wait_for_compensation_takeover(combiner)
+    time.sleep(float(combiner.GUIDE_INTERVAL_S) + GUIDE_SETTLE_MARGIN_S)
+    initial_ra_speed = combiner.ra._sky_speed
+    initial_dec_speed = combiner.dec._sky_speed
+    initial_eps_E = polar_compensator.eps_E
+    initial_eps_N = polar_compensator.eps_N
 
     combiner.set_position(PointCoordinates(ra=Ha(1800), dec=Dec(1800)))
-    time.sleep(float(combiner.GUIDE_INTERVAL_S) + GUIDE_SETTLE_MARGIN_S)
+    _wait_for_tracking_mode(combiner, COMMAND_PROCESS_TIMEOUT_S)
 
-    updated_ra_speed = combiner.ra._sky_speed
-    updated_dec_speed = combiner.dec._sky_speed
+    deadline = time.monotonic() + float(combiner.GUIDE_INTERVAL_S) + GUIDE_SETTLE_MARGIN_S
+    while time.monotonic() < deadline:
+        if (polar_compensator.eps_E, polar_compensator.eps_N) != (initial_eps_E, initial_eps_N):
+            break
+        time.sleep(POLL_INTERVAL_S)
+    else:
+        pytest.fail("Polar compensator did not recompute polar offset after position change")
 
-    assert float(updated_ra_speed) != pytest.approx(float(initial_ra_speed), abs=0.2)
-    assert float(updated_dec_speed) != pytest.approx(float(initial_dec_speed), abs=0.2)
+    assert polar_compensator.eps_E is not None
+    assert polar_compensator.eps_N is not None
+    assert (polar_compensator.eps_E, polar_compensator.eps_N) != (initial_eps_E, initial_eps_N)
+    assert combiner.ra._sky_speed == pytest.approx(initial_ra_speed, abs=0.2)
+    assert float(combiner.dec._sky_speed) == pytest.approx(float(initial_dec_speed), abs=0.2)
 
 
-@pytest.mark.skip(reason="Need to be rewrited")
 def test_hw_polar_compensator_does_not_apply_compensation_during_goto(combiner: Combiner) -> None:
-    expected_ra_speed, expected_dec_speed = _prime_stable_polar_solution(combiner)
+    _prime_stable_polar_solution(combiner)
+    _wait_for_compensation_takeover(combiner)
+    time.sleep(float(combiner.GUIDE_INTERVAL_S) + GUIDE_SETTLE_MARGIN_S)
 
     target = PointCoordinates(ra=Ha(600), dec=Dec(600))
     combiner.goto_to(target)
@@ -105,54 +119,82 @@ def test_hw_polar_compensator_does_not_apply_compensation_during_goto(combiner: 
     else:
         pytest.fail("GOTO never started")
 
+    polar_compensator = combiner._polar_compensator
+    frozen_ra_speed = combiner.ra._sky_speed
+    frozen_dec_speed = combiner.dec._sky_speed
+    frozen_ha = polar_compensator.current_ha
+    frozen_dec = polar_compensator.current_dec
+    frozen_eps_E = polar_compensator.eps_E
+    frozen_eps_N = polar_compensator.eps_N
+
     time.sleep(float(combiner.GUIDE_INTERVAL_S) + GUIDE_SETTLE_MARGIN_S)
 
     assert combiner.is_moving_to() is True
     assert combiner.ra.mode() == AxisMotionMode.GOTO or combiner.dec.mode() == AxisMotionMode.GOTO
-    assert combiner.ra._sky_speed == pytest.approx(expected_ra_speed, abs=0.2)
-    assert combiner.dec._sky_speed == pytest.approx(expected_dec_speed, abs=0.2)
+    assert combiner.ra._sky_speed == pytest.approx(frozen_ra_speed, abs=0.2)
+    assert float(combiner.dec._sky_speed) == pytest.approx(float(frozen_dec_speed), abs=0.2)
+    assert polar_compensator.current_ha == frozen_ha
+    assert polar_compensator.current_dec == frozen_dec
+    assert polar_compensator.eps_E == frozen_eps_E
+    assert polar_compensator.eps_N == frozen_eps_N
 
     _wait_for_goto_done(combiner, COMMAND_PROCESS_TIMEOUT_S * 4)
     _wait_for_tracking_mode(combiner, COMMAND_PROCESS_TIMEOUT_S)
 
 
-@pytest.mark.skip(reason="Need to be rewrited")
 def test_hw_polar_compensator_does_not_apply_compensation_during_move(combiner: Combiner) -> None:
-    expected_ra_speed, expected_dec_speed = _prime_stable_polar_solution(combiner)
+    _prime_stable_polar_solution(combiner)
+    _wait_for_compensation_takeover(combiner)
+    time.sleep(float(combiner.GUIDE_INTERVAL_S) + GUIDE_SETTLE_MARGIN_S)
 
     combiner.move(SkyDirection.WEST, RA_SLEW_SPEED)
     _wait_for_ra_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
+
+    polar_compensator = combiner._polar_compensator
+    frozen_ra_speed = combiner.ra._sky_speed
+    frozen_dec_speed = combiner.dec._sky_speed
+    frozen_ha = polar_compensator.current_ha
+    frozen_dec = polar_compensator.current_dec
+    frozen_eps_E = polar_compensator.eps_E
+    frozen_eps_N = polar_compensator.eps_N
+
     time.sleep(float(combiner.GUIDE_INTERVAL_S) + GUIDE_SETTLE_MARGIN_S)
 
     assert combiner.ra.mode() == AxisMotionMode.SLEW
-    assert combiner.ra._sky_speed == pytest.approx(expected_ra_speed, abs=0.2)
-    assert combiner.dec._sky_speed == pytest.approx(expected_dec_speed, abs=0.2)
+    assert combiner.ra._sky_speed == pytest.approx(frozen_ra_speed, abs=0.2)
+    assert float(combiner.dec._sky_speed) == pytest.approx(float(frozen_dec_speed), abs=0.2)
+    assert polar_compensator.current_ha == frozen_ha
+    assert polar_compensator.current_dec == frozen_dec
+    assert polar_compensator.eps_E == frozen_eps_E
+    assert polar_compensator.eps_N == frozen_eps_N
 
     combiner.halt_direction(SkyDirection.WEST)
     _wait_for_tracking_mode(combiner, COMMAND_PROCESS_TIMEOUT_S)
-    _wait_for_dec_motor_running(combiner, COMMAND_PROCESS_TIMEOUT_S)
 
 
-@pytest.mark.skip(reason="Need to be rewrited")
 def test_hw_polar_compensator_resets_to_sidereal_without_stable_guiding(combiner: Combiner) -> None:
-    combiner.guide(SkyDirection.EAST, 2500)
-    combiner.guide(SkyDirection.NORTH, 1000)
-    combiner.guide(SkyDirection.WEST, 2500)
-    combiner.guide(SkyDirection.SOUTH, 1000)
+    polar_compensator = combiner._polar_compensator
+    polar_compensator.reset()
 
-    combiner._polar_compensator.last_ra_guide_pulse -= combiner._polar_compensator.STOP_AXIS_AFTER
-    assert combiner._polar_compensator.get_guide_speeds() == (STELLAR_SPEED, None)
-    assert combiner._polar_compensator.ra_speed == STELLAR_SPEED
+    combiner.guide(GUIDE_RA_DIRECTION, GUIDE_PULSE_MS)
+    combiner.guide(GUIDE_DEC_DIRECTION, GUIDE_PULSE_MS)
 
-    combiner._polar_compensator.last_guide_pulse -= combiner._polar_compensator.DROP_GUIDE_PULSES_COUNT_AFTER
-    time.sleep(float(combiner._polar_compensator.DROP_GUIDE_PULSES_COUNT_AFTER) + GUIDE_SETTLE_MARGIN_S)
+    assert polar_compensator.stable_guide_ra_pulses_count < polar_compensator.STABLE_GUIDE_PULSES_COUNT
+    assert polar_compensator.stable_guide_dec_pulses_count < polar_compensator.STABLE_GUIDE_PULSES_COUNT
 
-    assert combiner._polar_compensator.get_guide_speeds() is None
-    assert combiner._polar_compensator.ra_speed == STELLAR_SPEED
-    assert combiner._polar_compensator.dec_speed == DecPerSecond(0)
-    assert combiner._polar_compensator.eps_E is None
-    assert combiner._polar_compensator.eps_N is None
-    assert combiner.ra._sky_speed == STELLAR_SPEED
-    assert combiner.dec._sky_speed == DecPerSecond(0)
+    polar_compensator.last_ra_guide_pulse -= polar_compensator.STOP_AXIS_AFTER
+    assert polar_compensator.get_guide_speeds() == (STELLAR_SPEED, None)
+    assert polar_compensator.ra_speed == STELLAR_SPEED
+
+    polar_compensator.last_guide_pulse -= polar_compensator.DROP_GUIDE_PULSES_COUNT_AFTER
+    time.sleep(float(polar_compensator.DROP_GUIDE_PULSES_COUNT_AFTER) + GUIDE_SETTLE_MARGIN_S)
+
+    assert polar_compensator.get_guide_speeds() is None
+    assert polar_compensator.ra_speed == STELLAR_SPEED
+    assert polar_compensator.dec_speed == DecPerSecond(0)
+    assert polar_compensator.eps_E is None
+    assert polar_compensator.eps_N is None
+    assert polar_compensator.stable_guide_ra_pulses_count < polar_compensator.STABLE_GUIDE_PULSES_COUNT
+    assert polar_compensator.stable_guide_dec_pulses_count < polar_compensator.STABLE_GUIDE_PULSES_COUNT
     assert combiner.ra.mode() == AxisMotionMode.TRACK
     assert combiner.dec.mode() == AxisMotionMode.TRACK
