@@ -90,12 +90,20 @@ class PolarCompensator:
     RA_SPEED_TOLERANCE_PERCENT = 5
     DEC_SPEED_TOLERANCE_PERCENT = 5
 
-    def __init__(self):
-        self.logger = logging.getLogger("PolarCompensator")
+    def __init__(self) -> None:
+        self.logger: logging.Logger = logging.getLogger("PolarCompensator")
 
         self.current_ha: Ha = Ha(0)
         self.current_dec: Dec = Dec(0)
-        # TODO: var: type declarations without values
+        self.eps_E: Ha | None
+        self.eps_N: Dec | None
+        self._ra_speeds: list[HaPerSecond]
+        self._dec_speeds: list[DecPerSecond]
+        self.stable_guide_ra_pulses_count: int
+        self.stable_guide_dec_pulses_count: int
+        self.last_guide_pulse: Second
+        self.last_ra_guide_pulse: Second
+        self.last_dec_guide_pulse: Second
 
         self.reset(last_guide_pulse=Second.monotonic())
     
