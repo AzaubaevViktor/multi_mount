@@ -14,7 +14,9 @@ MICROSTEPS_ALLOWED = {1, 2, 4, 8, 16, 32, 64, 128, 256}
 DEGREES_PER_REV = 360.0
 STEPS_PER_REV = 200
 GEAR_RATIO_1 = 44 / 26
-GEAR_RATIO_2 = 117.4145
+# Calibrated from DEC under-travel: start 47d23m15s, expected 43d06m14s,
+# actual 43d23m00s, so the DEC scale needs 1.069788414846x more travel.
+GEAR_RATIO_2 = 125.608671834894
 
 
 class TMC2209MotorError(Exception):

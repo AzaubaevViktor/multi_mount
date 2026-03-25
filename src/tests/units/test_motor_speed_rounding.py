@@ -1,6 +1,7 @@
 from types import MethodType
 
 import pytest
+from sky.physics import Dec
 from skywatcher.motor import SkyWatcherMotor, _Direction, _MotionStatus, _SpeedMode, _Status, _SlewMode
 from tmc2209.motor import TMC2209Motor, _Mode, _Phase, _Status as _TmcStatus
 
@@ -131,3 +132,12 @@ def test_tmc2209_set_speed_rejects_negative_values(speed_sps: float) -> None:
 
     with pytest.raises(ValueError, match="steps_per_second must be non-negative"):
         motor.set_speed(speed_sps)
+
+
+def test_tmc2209_dec_position_conversion_uses_calibrated_scale() -> None:
+    motor = TMC2209Motor(object())  # type: ignore[arg-type]
+
+    one_degree_steps = motor.convert_position_to_steps(Dec(3600))
+
+    assert one_degree_steps == 1889
+    assert float(motor.convert_steps_to_position(one_degree_steps)) == pytest.approx(3600.0, abs=1.0)
