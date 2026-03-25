@@ -218,6 +218,44 @@ class LX200Handler(LX200Base):
 
     def is_connected(self) -> bool:
         return self._is_connected
+
+    @staticmethod
+    def _get_opposite_manual_direction(direction: SkyDirection) -> SkyDirection:
+        match direction:
+            case SkyDirection.EAST:
+                return SkyDirection.WEST
+            case SkyDirection.WEST:
+                return SkyDirection.EAST
+            case SkyDirection.NORTH:
+                return SkyDirection.SOUTH
+            case SkyDirection.SOUTH:
+                return SkyDirection.NORTH
+
+    def _remember_manual_move_direction(self, direction: SkyDirection) -> None:
+        opposite_direction = self._get_opposite_manual_direction(direction)
+        if opposite_direction in self._manual_move_directions:
+            self._manual_move_directions.remove(opposite_direction)
+
+        if direction not in self._manual_move_directions:
+            self._manual_move_directions.append(direction)
+
+    def _halt_manual_direction_if_active(self, *directions: SkyDirection) -> None:
+        for direction in directions:
+            if direction not in self._manual_move_directions:
+                continue
+
+            match direction:
+                case SkyDirection.EAST:
+                    self.halt_east()
+                case SkyDirection.WEST:
+                    self.halt_west()
+                case SkyDirection.NORTH:
+                    self.halt_north()
+                case SkyDirection.SOUTH:
+                    self.halt_south()
+
+            self._manual_move_directions.remove(direction)
+            break
     
     def _do_handle(self, cmd: LX200Commands, argument: Any, now: Second | None = None) -> Any:
         result = None
@@ -247,20 +285,20 @@ class LX200Handler(LX200Base):
 
             case LX200Commands.MOVE_EAST, _:
                 self._last_halt_all = None
-                if self.move_east() and SkyDirection.EAST not in self._manual_move_directions:
-                    self._manual_move_directions.append(SkyDirection.EAST)
+                if self.move_east():
+                    self._remember_manual_move_direction(SkyDirection.EAST)
             case LX200Commands.MOVE_NORTH, _:
                 self._last_halt_all = None
-                if self.move_north() and SkyDirection.NORTH not in self._manual_move_directions:
-                    self._manual_move_directions.append(SkyDirection.NORTH)
+                if self.move_north():
+                    self._remember_manual_move_direction(SkyDirection.NORTH)
             case LX200Commands.MOVE_SOUTH, _:
                 self._last_halt_all = None
-                if self.move_south() and SkyDirection.SOUTH not in self._manual_move_directions:
-                    self._manual_move_directions.append(SkyDirection.SOUTH)
+                if self.move_south():
+                    self._remember_manual_move_direction(SkyDirection.SOUTH)
             case LX200Commands.MOVE_WEST, _:
                 self._last_halt_all = None
-                if self.move_west() and SkyDirection.WEST not in self._manual_move_directions:
-                    self._manual_move_directions.append(SkyDirection.WEST)
+                if self.move_west():
+                    self._remember_manual_move_direction(SkyDirection.WEST)
             case LX200Commands.HALT_ALL, _:
                 if self._last_halt_all is not None and now - self._last_halt_all <= self.DOUBLE_STOP_WINDOW_S:
                     self.stop_all()
@@ -271,21 +309,13 @@ class LX200Handler(LX200Base):
 
                 self._manual_move_directions.clear()
             case LX200Commands.HALT_EAST, _:
-                if SkyDirection.EAST in self._manual_move_directions:
-                    self.halt_east()
-                    self._manual_move_directions.remove(SkyDirection.EAST)
+                self._halt_manual_direction_if_active(SkyDirection.WEST, SkyDirection.EAST)
             case LX200Commands.HALT_NORTH, _:
-                if SkyDirection.NORTH in self._manual_move_directions:
-                    self.halt_north()
-                    self._manual_move_directions.remove(SkyDirection.NORTH)
+                self._halt_manual_direction_if_active(SkyDirection.NORTH)
             case LX200Commands.HALT_SOUTH, _:
-                if SkyDirection.SOUTH in self._manual_move_directions:
-                    self.halt_south()
-                    self._manual_move_directions.remove(SkyDirection.SOUTH)
+                self._halt_manual_direction_if_active(SkyDirection.SOUTH)
             case LX200Commands.HALT_WEST, _:
-                if SkyDirection.WEST in self._manual_move_directions:
-                    self.halt_west()
-                    self._manual_move_directions.remove(SkyDirection.WEST)
+                self._halt_manual_direction_if_active(SkyDirection.EAST, SkyDirection.WEST)
             case LX200Commands.GET_CALENDAR_FORMAT, _:
                 result = self.get_calendar_format()
             case LX200Commands.GET_SITE1_NAME, _:

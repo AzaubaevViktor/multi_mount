@@ -105,3 +105,49 @@ def test_motion_resets_double_halt_all_window(monkeypatch) -> None:
     handler.handle("Q")
 
     assert handler.calls == ["halt_all", "move_east", "halt_all"]
+
+
+def test_ra_halt_commands_support_lx200_client_mapping() -> None:
+    handler = _RecordingLX200()
+
+    handler.handle("Me")
+    handler.handle("Qw")
+    handler.handle("Mw")
+    handler.handle("Qe")
+
+    assert handler.calls == [
+        "move_east",
+        "halt_east",
+        "move_west",
+        "halt_west",
+    ]
+
+
+def test_ra_halt_commands_keep_legacy_same_direction_mapping() -> None:
+    handler = _RecordingLX200()
+
+    handler.handle("Me")
+    handler.handle("Qe")
+    handler.handle("Mw")
+    handler.handle("Qw")
+
+    assert handler.calls == [
+        "move_east",
+        "halt_east",
+        "move_west",
+        "halt_west",
+    ]
+
+
+def test_new_ra_manual_move_replaces_stale_opposite_direction() -> None:
+    handler = _RecordingLX200()
+
+    handler.handle("Mw")
+    handler.handle("Me")
+    handler.handle("Qw")
+
+    assert handler.calls == [
+        "move_west",
+        "move_east",
+        "halt_east",
+    ]
