@@ -242,6 +242,7 @@ class LX200Handler(LX200Base):
     def _halt_manual_direction_if_active(self, *directions: SkyDirection) -> None:
         for direction in directions:
             if direction not in self._manual_move_directions:
+                self.logger.warning("Wrong direction halt: %s, need one of %s", direction, self._manual_move_directions)
                 continue
 
             match direction:
