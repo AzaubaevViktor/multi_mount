@@ -43,8 +43,6 @@ class Deltas:
 @dataclass
 class PolarSnapshot:
     status: str
-    eps_n: float
-    eps_e: float
     ra_sky_rate: float
     dec_sky_rate: float
 
@@ -183,9 +181,7 @@ class CombinerController:
     def get_polar_snapshot(self) -> PolarSnapshot:
         polar_compensator = self.polar_compensator()
         return PolarSnapshot(
-            status="guiding" if polar_compensator.eps_E is not None and polar_compensator.eps_N is not None else "disabled",
-            eps_n=float(polar_compensator.eps_N or Dec(0)),
-            eps_e=float(polar_compensator.eps_E or Ha(0)),
+            status="guiding" if polar_compensator.is_guiding else "disabled",
             ra_sky_rate=float(self.ra._sky_speed),
             dec_sky_rate=float(self.dec._sky_speed),
         )
@@ -999,8 +995,6 @@ POLAR_GUIDE_DELAY_S = 5.0
 POLAR_GUIDING_HOLD_S = 2.0
 POLAR_IDLE_RESET_TIMEOUT_S = float(PolarCompensator.DROP_GUIDE_PULSES_COUNT_AFTER) + float(Combiner.GUIDE_INTERVAL_S) + 2.0
 POLAR_TAKEOVER_TIMEOUT_S = float(PolarCompensator.DROP_GUIDE_PULSES_COUNT_AFTER) + float(Combiner.GUIDE_INTERVAL_S) + 2.0
-POLAR_EPS_TOLERANCE = 1e-6
-POLAR_EPS_HOLD_TOLERANCE = 0.01
 POLAR_RA_SKY_RATE_TOLERANCE = 0.25
 POLAR_DEC_SKY_RATE_TOLERANCE = 1.0
 POLAR_DEC_GUIDE_RATE_DELTA_MIN = 5.0
@@ -1016,19 +1010,13 @@ POLAR_DIFFERENT_GUIDES = (
 def _polar_snapshot_is_disabled(sc: CombinerController, snapshot: PolarSnapshot) -> bool:
     return (
         snapshot.status == "disabled"
-        and abs(snapshot.eps_n) <= POLAR_EPS_TOLERANCE
-        and abs(snapshot.eps_e) <= POLAR_EPS_TOLERANCE
         and abs(snapshot.ra_sky_rate - float(STELLAR_SPEED)) <= POLAR_RA_SKY_RATE_TOLERANCE
         and abs(snapshot.dec_sky_rate) <= POLAR_DEC_SKY_RATE_TOLERANCE
     )
 
 
 def _polar_snapshot_has_no_solution(snapshot: PolarSnapshot) -> bool:
-    return (
-        snapshot.status == "disabled"
-        and abs(snapshot.eps_n) <= POLAR_EPS_TOLERANCE
-        and abs(snapshot.eps_e) <= POLAR_EPS_TOLERANCE
-    )
+    return snapshot.status == "disabled"
 
 
 @pytest.fixture
@@ -1070,8 +1058,6 @@ def _assert_guide_applies_quickly(sc: CombinerController, direction: str, pulse_
         snapshot = sc.wait_for_polar_condition(
             lambda item: (
                 item.status == "disabled"
-                and abs(item.eps_n) <= POLAR_EPS_TOLERANCE
-                and abs(item.eps_e) <= POLAR_EPS_TOLERANCE
                 and abs(item.ra_sky_rate - before.ra_sky_rate) > RA_GUIDE_RATE_DELTA_MIN
                 and (
                     abs(item.dec_sky_rate - before.dec_sky_rate) <= POLAR_DEC_SKY_RATE_TOLERANCE
@@ -1085,8 +1071,6 @@ def _assert_guide_applies_quickly(sc: CombinerController, direction: str, pulse_
         snapshot = sc.wait_for_polar_condition(
             lambda item: (
                 item.status == "disabled"
-                and abs(item.eps_n) <= POLAR_EPS_TOLERANCE
-                and abs(item.eps_e) <= POLAR_EPS_TOLERANCE
                 and abs(item.dec_sky_rate - before.dec_sky_rate) > POLAR_DEC_GUIDE_RATE_DELTA_MIN
                 and (
                     abs(item.ra_sky_rate - before.ra_sky_rate) <= POLAR_RA_SKY_RATE_TOLERANCE
@@ -1123,8 +1107,8 @@ def _enter_guiding_mode(sc: CombinerController) -> PolarSnapshot:
     return sc.wait_for_polar_condition(
         lambda snapshot: (
             snapshot.status == "guiding"
-            and abs(snapshot.eps_n) > POLAR_EPS_TOLERANCE
-            and abs(snapshot.eps_e) > POLAR_EPS_TOLERANCE
+            and abs(snapshot.ra_sky_rate - float(STELLAR_SPEED)) > RA_GUIDE_RATE_DELTA_MIN
+            and abs(snapshot.dec_sky_rate) > POLAR_DEC_GUIDE_RATE_DELTA_MIN
             and polar_compensator.stable_guide_ra_pulses_count >= polar_compensator.STABLE_GUIDE_PULSES_COUNT
             and polar_compensator.stable_guide_dec_pulses_count >= polar_compensator.STABLE_GUIDE_PULSES_COUNT
         ),
@@ -1173,8 +1157,8 @@ def test_polar_compensator_enters_guiding_after_settled_guides(_prepare_polar_co
         description="polar compensator stays in guiding without new guide pulses",
     )
 
-    assert held_snapshot.eps_n == pytest.approx(guiding_snapshot.eps_n, abs=POLAR_EPS_HOLD_TOLERANCE)
-    assert held_snapshot.eps_e == pytest.approx(guiding_snapshot.eps_e, abs=POLAR_EPS_HOLD_TOLERANCE)
+    assert held_snapshot.ra_sky_rate == pytest.approx(guiding_snapshot.ra_sky_rate, abs=POLAR_RA_SKY_RATE_TOLERANCE)
+    assert held_snapshot.dec_sky_rate == pytest.approx(guiding_snapshot.dec_sky_rate, abs=POLAR_DEC_SKY_RATE_TOLERANCE)
 
 
 def test_polar_compensator_resets_after_guiding_then_different_guides(_prepare_polar_compensator: CombinerController):
@@ -1190,8 +1174,8 @@ def test_polar_compensator_resets_after_guiding_then_different_guides(_prepare_p
         description="polar compensator stays in guiding before different-guide reset",
     )
 
-    assert held_snapshot.eps_n == pytest.approx(guiding_snapshot.eps_n, abs=POLAR_EPS_HOLD_TOLERANCE)
-    assert held_snapshot.eps_e == pytest.approx(guiding_snapshot.eps_e, abs=POLAR_EPS_HOLD_TOLERANCE)
+    assert held_snapshot.ra_sky_rate == pytest.approx(guiding_snapshot.ra_sky_rate, abs=POLAR_RA_SKY_RATE_TOLERANCE)
+    assert held_snapshot.dec_sky_rate == pytest.approx(guiding_snapshot.dec_sky_rate, abs=POLAR_DEC_SKY_RATE_TOLERANCE)
 
     sc.logger.warning("\n==== DIFFERENT GUIDES SHOULD BREAK STABILITY BUT KEEP LAST SOLUTION UNTIL TIMEOUT ====\n")
     _send_guide_sequence(sc, POLAR_DIFFERENT_GUIDES)
@@ -1205,8 +1189,8 @@ def test_polar_compensator_resets_after_guiding_then_different_guides(_prepare_p
         description="different guides break stability before idle-timeout reset",
     )
 
-    assert guiding_after_reset_guides.eps_n == pytest.approx(guiding_snapshot.eps_n, abs=POLAR_EPS_HOLD_TOLERANCE)
-    assert guiding_after_reset_guides.eps_e == pytest.approx(guiding_snapshot.eps_e, abs=POLAR_EPS_HOLD_TOLERANCE)
+    assert guiding_after_reset_guides.ra_sky_rate == pytest.approx(guiding_snapshot.ra_sky_rate, abs=POLAR_RA_SKY_RATE_TOLERANCE)
+    assert guiding_after_reset_guides.dec_sky_rate == pytest.approx(guiding_snapshot.dec_sky_rate, abs=POLAR_DEC_SKY_RATE_TOLERANCE)
 
     sc.logger.warning("\n==== AFTER IDLE TIMEOUT THE POLAR COMPENSATOR SHOULD RETURN TO DISABLED ====\n")
     disabled_snapshot = sc.wait_for_polar_condition(
@@ -1215,5 +1199,5 @@ def test_polar_compensator_resets_after_guiding_then_different_guides(_prepare_p
         description="different guides reset guiding state back to disabled after idle timeout",
     )
 
-    assert abs(disabled_snapshot.eps_n) <= POLAR_EPS_TOLERANCE
-    assert abs(disabled_snapshot.eps_e) <= POLAR_EPS_TOLERANCE
+    assert abs(disabled_snapshot.ra_sky_rate - float(STELLAR_SPEED)) <= POLAR_RA_SKY_RATE_TOLERANCE
+    assert abs(disabled_snapshot.dec_sky_rate) <= POLAR_DEC_SKY_RATE_TOLERANCE

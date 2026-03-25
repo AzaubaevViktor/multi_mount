@@ -74,7 +74,7 @@ def test_hw_polar_compensator_replays_stable_guide_after_external_guiding_stops(
 
     assert float(combiner.dec._sky_speed) == pytest.approx(float(expected_dec_speed), abs=0.2)
 
-def test_hw_polar_compensator_changes_compensation_after_position_change(combiner: Combiner) -> None:
+def test_hw_polar_compensator_keeps_replaying_last_speeds_after_position_change(combiner: Combiner) -> None:
     polar_compensator = combiner._polar_compensator
     _prime_stable_polar_solution(combiner)
 
@@ -82,23 +82,13 @@ def test_hw_polar_compensator_changes_compensation_after_position_change(combine
     time.sleep(float(combiner.GUIDE_INTERVAL_S) + GUIDE_SETTLE_MARGIN_S)
     initial_ra_speed = combiner.ra._sky_speed
     initial_dec_speed = combiner.dec._sky_speed
-    initial_eps_E = polar_compensator.eps_E
-    initial_eps_N = polar_compensator.eps_N
 
     combiner.set_position(PointCoordinates(ra=Ha(1800), dec=Dec(1800)))
     _wait_for_tracking_mode(combiner, COMMAND_PROCESS_TIMEOUT_S)
+    time.sleep(float(combiner.GUIDE_INTERVAL_S) + GUIDE_SETTLE_MARGIN_S)
 
-    deadline = time.monotonic() + float(combiner.GUIDE_INTERVAL_S) + GUIDE_SETTLE_MARGIN_S
-    while time.monotonic() < deadline:
-        if (polar_compensator.eps_E, polar_compensator.eps_N) != (initial_eps_E, initial_eps_N):
-            break
-        time.sleep(POLL_INTERVAL_S)
-    else:
-        pytest.fail("Polar compensator did not recompute polar offset after position change")
-
-    assert polar_compensator.eps_E is not None
-    assert polar_compensator.eps_N is not None
-    assert (polar_compensator.eps_E, polar_compensator.eps_N) != (initial_eps_E, initial_eps_N)
+    assert polar_compensator.eps_E is None
+    assert polar_compensator.eps_N is None
     assert combiner.ra._sky_speed == pytest.approx(initial_ra_speed, abs=0.2)
     assert float(combiner.dec._sky_speed) == pytest.approx(float(initial_dec_speed), abs=0.2)
 
@@ -122,10 +112,6 @@ def test_hw_polar_compensator_does_not_apply_compensation_during_goto(combiner: 
     polar_compensator = combiner._polar_compensator
     frozen_ra_speed = combiner.ra._sky_speed
     frozen_dec_speed = combiner.dec._sky_speed
-    frozen_ha = polar_compensator.current_ha
-    frozen_dec = polar_compensator.current_dec
-    frozen_eps_E = polar_compensator.eps_E
-    frozen_eps_N = polar_compensator.eps_N
 
     time.sleep(float(combiner.GUIDE_INTERVAL_S) + GUIDE_SETTLE_MARGIN_S)
 
@@ -133,10 +119,8 @@ def test_hw_polar_compensator_does_not_apply_compensation_during_goto(combiner: 
     assert combiner.ra.mode() == AxisMotionMode.GOTO or combiner.dec.mode() == AxisMotionMode.GOTO
     assert combiner.ra._sky_speed == pytest.approx(frozen_ra_speed, abs=0.2)
     assert float(combiner.dec._sky_speed) == pytest.approx(float(frozen_dec_speed), abs=0.2)
-    assert polar_compensator.current_ha == frozen_ha
-    assert polar_compensator.current_dec == frozen_dec
-    assert polar_compensator.eps_E == frozen_eps_E
-    assert polar_compensator.eps_N == frozen_eps_N
+    assert polar_compensator.eps_E is None
+    assert polar_compensator.eps_N is None
 
     _wait_for_goto_done(combiner, COMMAND_PROCESS_TIMEOUT_S * 4)
     _wait_for_tracking_mode(combiner, COMMAND_PROCESS_TIMEOUT_S)
@@ -153,20 +137,14 @@ def test_hw_polar_compensator_does_not_apply_compensation_during_move(combiner: 
     polar_compensator = combiner._polar_compensator
     frozen_ra_speed = combiner.ra._sky_speed
     frozen_dec_speed = combiner.dec._sky_speed
-    frozen_ha = polar_compensator.current_ha
-    frozen_dec = polar_compensator.current_dec
-    frozen_eps_E = polar_compensator.eps_E
-    frozen_eps_N = polar_compensator.eps_N
 
     time.sleep(float(combiner.GUIDE_INTERVAL_S) + GUIDE_SETTLE_MARGIN_S)
 
     assert combiner.ra.mode() == AxisMotionMode.SLEW
     assert combiner.ra._sky_speed == pytest.approx(frozen_ra_speed, abs=0.2)
     assert float(combiner.dec._sky_speed) == pytest.approx(float(frozen_dec_speed), abs=0.2)
-    assert polar_compensator.current_ha == frozen_ha
-    assert polar_compensator.current_dec == frozen_dec
-    assert polar_compensator.eps_E == frozen_eps_E
-    assert polar_compensator.eps_N == frozen_eps_N
+    assert polar_compensator.eps_E is None
+    assert polar_compensator.eps_N is None
 
     combiner.halt_direction(SkyDirection.WEST)
     _wait_for_tracking_mode(combiner, COMMAND_PROCESS_TIMEOUT_S)

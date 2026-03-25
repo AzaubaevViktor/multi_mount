@@ -130,10 +130,11 @@ class _StubPolarCompensator:
     STOP_AXIS_AFTER = Second(4.1)
 
     def __init__(self) -> None:
-        self.current_ha = Ha(7210)
-        self.current_dec = Dec(1820)
+        self.current_ha = None
+        self.current_dec = None
         self.eps_E = None
         self.eps_N = None
+        self.is_guiding = True
         self.ra_speed = STELLAR_SPEED * 1.25
         self.dec_speed = DecPerSecond(0.5)
         self.last_guide_pulse = Second(10)
@@ -251,8 +252,7 @@ def test_stdout_dashboard_render_fits_30x130(monkeypatch) -> None:
     assert any("avg" in line and "+1.250x sid" in line for line in lines)
     assert any("avg" in line and "+0.50as" in line for line in lines)
     assert any("flags" in line and "e=n s=n a=n" in line for line in lines)
-    assert any("current" in line and "02:00:10" in line for line in lines)
-    assert any("current" in line and "+00*30:20" in line for line in lines)
+    assert any("current" in line and "-" in line for line in lines)
     assert any("ra_track" in line and "+1.000hs" in line for line in lines)
     assert any("dec_track" in line and "+0.00as" in line for line in lines)
     assert any("ra_bat" in line and "13.40V" in line for line in lines)

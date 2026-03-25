@@ -138,7 +138,7 @@ class StdoutDashboard:
             )
             if polar_external_guide:
                 polar_status = "external"
-            elif polar_stable_guide and polar_compensator.eps_E is not None and polar_compensator.eps_N is not None:
+            elif polar_compensator.is_guiding:
                 polar_status = "guiding"
             elif polar_stable_guide:
                 polar_status = "stable"
@@ -169,8 +169,8 @@ class StdoutDashboard:
                     "flags",
                     f"e={self._fmt_flag(polar_external_guide)} s={self._fmt_flag(polar_stable_guide)} a={self._fmt_flag(polar_external_guide_ra)}",
                 ),
-                self._pair("current", polar_compensator.current_ha),
-                self._pair("eps", polar_compensator.eps_E or "-"),
+                self._pair("current", "-"),
+                self._pair("eps", "-"),
             ]
 
             middle_lines = [
@@ -197,8 +197,8 @@ class StdoutDashboard:
                     "flags",
                     f"e={self._fmt_flag(polar_external_guide)} s={self._fmt_flag(polar_stable_guide)} a={self._fmt_flag(polar_external_guide_dec)}",
                 ),
-                self._pair("current", polar_compensator.current_dec),
-                self._pair("eps", polar_compensator.eps_N or "-"),
+                self._pair("current", "-"),
+                self._pair("eps", "-"),
             ]
 
             state_lines = [

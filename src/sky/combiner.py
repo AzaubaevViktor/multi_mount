@@ -59,9 +59,6 @@ class Combiner:
             if self.ra.mode() in self._POLAR_SKIP_MODES or self.dec.mode() in self._POLAR_SKIP_MODES:
                 self._guide_updated.clear()
                 continue
-            
-            pos = self.get_position()
-            self._polar_compensator.update_position(pos.ra, pos.dec)
 
             speeds = self._polar_compensator.get_guide_speeds()
             if speeds is not None:

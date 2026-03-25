@@ -81,7 +81,7 @@ def test_sky_lx200_polar_compensator_replays_stable_guide_after_external_guiding
     assert float(combiner.dec._sky_speed) == pytest.approx(float(expected_dec_speed), abs=0.2)
 
 
-def test_sky_lx200_polar_compensator_changes_compensation_after_position_change(
+def test_sky_lx200_polar_compensator_keeps_replaying_last_speeds_after_position_change(
     combiner: Combiner,
     sky_lx200: SkyLX200,
 ) -> None:
@@ -90,21 +90,12 @@ def test_sky_lx200_polar_compensator_changes_compensation_after_position_change(
     time.sleep(float(combiner.GUIDE_INTERVAL_S) + GUIDE_SETTLE_MARGIN_S)
     initial_ra_speed = combiner.ra._sky_speed
     initial_dec_speed = combiner.dec._sky_speed
-    initial_eps_E = polar_compensator.eps_E
-    initial_eps_N = polar_compensator.eps_N
 
     sky_lx200.sync_telescope(Ha(1800), Dec(1800))
-    deadline = time.monotonic() + float(combiner.GUIDE_INTERVAL_S) + GUIDE_SETTLE_MARGIN_S
-    while time.monotonic() < deadline:
-        if (polar_compensator.eps_E, polar_compensator.eps_N) != (initial_eps_E, initial_eps_N):
-            break
-        time.sleep(min(GUIDE_SETTLE_MARGIN_S, float(combiner.GUIDE_INTERVAL_S)) / 10)
-    else:
-        pytest.fail("Polar compensator did not recompute polar offset after LX200 sync")
+    time.sleep(float(combiner.GUIDE_INTERVAL_S) + GUIDE_SETTLE_MARGIN_S)
 
-    assert polar_compensator.eps_E is not None
-    assert polar_compensator.eps_N is not None
-    assert (polar_compensator.eps_E, polar_compensator.eps_N) != (initial_eps_E, initial_eps_N)
+    assert polar_compensator.eps_E is None
+    assert polar_compensator.eps_N is None
     assert combiner.ra._sky_speed == pytest.approx(initial_ra_speed, abs=0.2)
     assert float(combiner.dec._sky_speed) == pytest.approx(float(initial_dec_speed), abs=0.2)
 
