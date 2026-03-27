@@ -89,6 +89,7 @@ class StdoutDashboard:
             dec_axis: AxisDEC = self._combiner.dec
             ra_monitor = ra_axis.command_monitor()
             dec_monitor = dec_axis.command_monitor()
+            lx200_monitor = self._lx200.command_monitor()
             ra_motor_status = ra_axis._motor.status()
             dec_motor_status = dec_axis._motor.status()
             ra_power_v = ra_axis._motor.get_power_v()
@@ -251,6 +252,20 @@ class StdoutDashboard:
                 )
             else:
                 state_lines.append(self._pair("dec_track", self._fmt_dec_rate(dec_axis._sky_speed)))
+
+            command_stats = lx200_monitor.get("stats", [])
+            if command_stats:
+                state_lines.extend(
+                    [
+                        "",
+                        self._section_header("LX200", self._STATE_WIDTH),
+                    ]
+                )
+
+                for command, count, last_at, argument in command_stats:
+                    state_lines.append(
+                        f"{command:<3} {count:>4}x {self._fmt_age(now, last_at):>5} {(argument or '-')}"
+                    )
 
         except Exception as error:
             error_lines = [

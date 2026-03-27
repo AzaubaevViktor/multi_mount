@@ -213,6 +213,31 @@ def test_lx200_monitor_filters_gr_gd_and_tracks_guide() -> None:
     assert [command for _at, command in snapshot["recent"]] == ["MS"]
     assert snapshot["guide"] is not None
     assert snapshot["guide"][1] == "Mgw1000"
+    stats = {command: (count, argument) for command, count, _last_at, argument in snapshot["stats"]}
+
+    assert stats == {
+        "GET_TELECOPE_RA": (1, ""),
+        "GET_TELESCOPE_DEC": (1, ""),
+        "SLEW": (1, ""),
+        "GUIDE": (1, "w1000"),
+    }
+
+
+def test_lx200_monitor_sorts_stats_by_count_and_tracks_last_arguments() -> None:
+    lx200 = _StubLX200()
+
+    lx200.handle("GR")
+    lx200.handle("GR")
+    lx200.handle("Sr16:42:39")
+    lx200.handle("Sr17:17:57")
+    lx200.handle("MS")
+
+    snapshot = lx200.command_monitor()
+
+    assert [count for _command, count, _last_at, _argument in snapshot["stats"]] == [2, 2, 1]
+    assert {snapshot["stats"][0][0], snapshot["stats"][1][0]} == {"GET_TELECOPE_RA", "SET_TELESCOPE_RA"}
+    assert snapshot["stats"][2][0] == "SLEW"
+    assert {snapshot["stats"][0][3], snapshot["stats"][1][3]} == {"", "17:17:57"}
 
 
 def test_stdout_dashboard_render_fits_30x130(monkeypatch) -> None:
@@ -288,6 +313,31 @@ def test_stdout_dashboard_state_column_shows_goto_details(monkeypatch) -> None:
     assert any("dec_tgt" in line and "+00*31:00" in line for line in lines)
     assert any("dec_left" in line and "+00*00:40" in line for line in lines)
     assert all("log_1" not in line and "log_2" not in line for line in lines)
+
+
+def test_stdout_dashboard_state_column_shows_lx200_command_stats(monkeypatch) -> None:
+    lx200 = _StubLX200()
+    lx200.handle("GR")
+    lx200.handle("GR")
+    lx200.handle("Sr16:42:39")
+    lx200.handle("Sr17:17:57")
+    lx200.handle("MS")
+
+    combiner = _StubCombiner()
+    dashboard = StdoutDashboard(combiner, lx200, refresh_s=0.01)
+
+    monkeypatch.setattr(stdout_dashboard_module.time, "strftime", lambda _fmt: "12:34:56")
+    monkeypatch.setattr(stdout_dashboard_module.time, "monotonic", lambda: 101.0)
+    frame = dashboard.render(clear_screen=False)
+    lines = frame.rstrip("\n").splitlines()
+
+    assert any("-- LX200 " in line for line in lines)
+    gr_index = next(index for index, line in enumerate(lines) if "GET_TELECOPE_RA" in line and "2x" in line)
+    sr_index = next(index for index, line in enumerate(lines) if "SET_TELESCOPE_RA" in line and "2x" in line)
+    ms_index = next(index for index, line in enumerate(lines) if "SLEW" in line and "1x" in line)
+
+    assert gr_index < ms_index
+    assert sr_index < ms_index
 
 
 def test_stdout_dashboard_clear_screen_mode_sticks_frame_to_top(monkeypatch) -> None:

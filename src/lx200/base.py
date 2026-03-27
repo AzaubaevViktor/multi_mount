@@ -207,6 +207,7 @@ class LX200Handler(LX200Base):
         self._monitor_lock = threading.RLock()
         self._recent_commands: deque[tuple[Second, str]] = deque(maxlen=8)
         self._last_guide_command: tuple[Second, str] | None = None
+        self._command_stats: dict[str, tuple[int, Second, str]] = {}
 
         self._is_connected = False
 
@@ -392,6 +393,9 @@ class LX200Handler(LX200Base):
 
         now = Second.monotonic()
         with self._monitor_lock:
+            count, _last_at, _last_argument = self._command_stats.get(cmd.value, (0, now, argument))
+            self._command_stats[cmd.value] = (count + 1, now, argument)
+
             if cmd == LX200Commands.GUIDE:
                 self._last_guide_command = (now, full_command)
             elif cmd not in {LX200Commands.GET_TELECOPE_RA, LX200Commands.GET_TELESCOPE_DEC}:
@@ -426,4 +430,11 @@ class LX200Handler(LX200Base):
             return {
                 "recent": list(self._recent_commands),
                 "guide": self._last_guide_command,
+                "stats": [
+                    (LX200Commands(command).name, count, last_at, argument)
+                    for command, (count, last_at, argument) in sorted(
+                        self._command_stats.items(),
+                        key=lambda item: (-item[1][0], -float(item[1][1]), item[0]),
+                    )
+                ],
             }
