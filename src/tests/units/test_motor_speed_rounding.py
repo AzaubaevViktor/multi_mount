@@ -2,8 +2,9 @@ from types import MethodType
 
 import pytest
 from sky.constants import STELLAR_DAY, STELLAR_SPEED
+from sky.motor import MotorDirection
 from sky.physics import Dec
-from skywatcher.motor import SkyWatcherMotor, _Direction, _MotionStatus, _Revu24, _SpeedMode, _Status, _SlewMode
+from skywatcher.motor import SkyWatcherMotor, _Command, _Direction, _MotionStatus, _Revu24, _SpeedMode, _Status, _SlewMode
 from tmc2209.motor import TMC2209Motor, _Mode, _Phase, _Status as _TmcStatus
 
 
@@ -110,6 +111,36 @@ def test_skywatcher_set_speed_clamps_highspeed_period_to_mount_minimum() -> None
     assert motor._last_speed_sps == actual_speed
     assert written_commands[1][0].name == "SET_STEP_PERIOD"
     assert written_commands[1][1] == _Revu24.from_int(motor._min_period)
+
+
+def test_skywatcher_set_direction_preserves_highspeed_mode_from_last_speed() -> None:
+    motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
+    motor._steps_360 = 12_489_074
+    motor._steps_worm = 15_400_960
+    motor._highspeed_ratio = 11
+    motor._last_speed_sps = motor.convert_speed_to_steps_per_second(motor._HIGHSPEED_SPEED)
+    motor._get_status = MethodType(
+        lambda self: _Status(
+            raw=0,
+            running=False,
+            initialized=True,
+            slew_mode=_SlewMode.SLEW,
+            direction=_Direction.FORWARD,
+            speed_mode=_SpeedMode.LOWSPEED,
+        ),
+        motor,
+    )
+    written_commands: list[tuple[object, str | None]] = []
+    motor._transact = MethodType(lambda self, command, arg=None: written_commands.append((command, arg)) or "", motor)
+
+    assert motor.set_direction(MotorDirection.FORWARD) is True
+
+    assert written_commands == [
+        (
+            _Command.SET_MOTION_MODE,
+            _MotionStatus(_SlewMode.SLEW, _Direction.FORWARD, _SpeedMode.HIGHSPEED).to_command(),
+        )
+    ]
 
 
 @pytest.mark.parametrize("speed_sps", [-0.1, -1, -10.5])

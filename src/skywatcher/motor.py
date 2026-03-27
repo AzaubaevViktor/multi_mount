@@ -233,6 +233,11 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
             "highspeed_ratio": self._highspeed_ratio or "-",
         }
 
+    def _get_preferred_speed_mode(self, fallback: _SpeedMode) -> _SpeedMode:
+        if self._last_speed_sps > 0:
+            return self._get_speed_mode_for_speed_sps(self._last_speed_sps)
+        return fallback
+
     def set_steps(self, steps: int) -> bool:
         status = self._get_status()
         self._ensure_not_goto(status, "cannot change steps while GOTO is in progress")
@@ -278,7 +283,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
             _MotionStatus(
                 slew_mode=_SlewMode.SLEW,
                 direction=_Direction.FORWARD if direction == MotorDirection.FORWARD else _Direction.BACKWARD,
-                speed_mode=status.speed_mode,
+                speed_mode=self._get_preferred_speed_mode(status.speed_mode),
             ),
             status,
         )
@@ -330,7 +335,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
                 _MotionStatus(
                     slew_mode=_SlewMode.SLEW,
                     direction=_Direction.FORWARD if self._last_direction != MotorDirection.BACKWARD else _Direction.BACKWARD,
-                    speed_mode=status.speed_mode,
+                    speed_mode=self._get_preferred_speed_mode(status.speed_mode),
                 ),
                 status,
             )
@@ -340,7 +345,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
                 _MotionStatus(
                     slew_mode=_SlewMode.GOTO,
                     direction=_Direction.FORWARD if self._last_direction != MotorDirection.BACKWARD else _Direction.BACKWARD,
-                    speed_mode=status.speed_mode,
+                    speed_mode=self._get_preferred_speed_mode(status.speed_mode),
                 ),
                 status,
             )

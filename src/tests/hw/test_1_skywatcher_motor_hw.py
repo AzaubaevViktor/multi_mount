@@ -5,6 +5,8 @@ import pytest
 
 from sky.motor import MotionMode, MotorDirection, MotorStateError, MotorStopRequire
 from serial_wrapper.wrapper import SerialLine
+from sky.constants import STELLAR_SPEED
+from sky.physics import HaPerSecond
 from skywatcher.motor import SkyWatcherMotor
 
 
@@ -309,6 +311,68 @@ def test_hw_run_speed_matches_requested_value(
     assert measured_steps > 0 if direction == MotorDirection.FORWARD else measured_steps < 0
     assert sample_end_status.speed_sps == speed_sps
     assert measured_speed_sps == pytest.approx(speed_sps, rel=SPEED_TOLERANCE_RATIO, abs=SPEED_TOLERANCE_ABS)
+
+
+STEADY_STATE_SETTLE_S = 3.0
+STEADY_STATE_MEASURE_INTERVAL_S = 2.0
+STEADY_STATE_TOLERANCE_RATIO = 0.15
+STEADY_STATE_TOLERANCE_ABS = 128.0
+
+
+@pytest.mark.parametrize(
+    ("rate_name", "rate_x_sidereal"),
+    [
+        ("sidereal", 1.0),
+        ("log_3p44", 140.0 ** 0.25),
+        ("log_11p83", 140.0 ** 0.5),
+        ("log_40p67", 140.0 ** 0.75),
+        ("x75", 75.0),
+        ("x80", 80.0),
+        ("find", 140.0),
+        ("max", 800.0),
+    ],
+)
+def test_hw_run_speed_matches_effective_speed_for_skywatcher_rates(
+    skywatcher_motor: SkyWatcherMotor,
+    rate_name: str,
+    rate_x_sidereal: float,
+) -> None:
+    requested_speed_sps = skywatcher_motor.convert_speed_to_steps_per_second(
+        HaPerSecond(rate_x_sidereal * float(STELLAR_SPEED))
+    )
+
+    assert skywatcher_motor.set_motion_mode(MotionMode.RUN) is True
+    effective_speed_sps = skywatcher_motor.set_speed(requested_speed_sps)
+    assert skywatcher_motor.set_direction(MotorDirection.FORWARD) is True
+    assert skywatcher_motor.run() is True
+
+    _wait_for_position_change(
+        skywatcher_motor,
+        start_position=0,
+        direction=MotorDirection.FORWARD,
+        timeout_s=RUN_TIMEOUT_S,
+    )
+    time.sleep(STEADY_STATE_SETTLE_S)
+
+    sample_start_steps = skywatcher_motor.status().steps
+    sample_start_time = time.monotonic()
+    time.sleep(STEADY_STATE_MEASURE_INTERVAL_S)
+    sample_end_status = skywatcher_motor.status()
+    measured_steps = sample_end_status.steps - sample_start_steps
+    if measured_steps > skywatcher_motor._steps_360 // 2:
+        measured_steps -= skywatcher_motor._steps_360
+    if measured_steps < -(skywatcher_motor._steps_360 // 2):
+        measured_steps += skywatcher_motor._steps_360
+    measured_speed_sps = abs(measured_steps) / (time.monotonic() - sample_start_time)
+
+    assert sample_end_status.direction == MotorDirection.FORWARD
+    assert measured_steps > 0, f"{rate_name} did not move forward"
+    assert sample_end_status.speed_sps == effective_speed_sps
+    assert measured_speed_sps == pytest.approx(
+        effective_speed_sps,
+        rel=STEADY_STATE_TOLERANCE_RATIO,
+        abs=STEADY_STATE_TOLERANCE_ABS,
+    )
 
 
 @pytest.mark.parametrize("delta_steps", [0, 10_000, -10_000, 50_000, -50_000, 200_000, -200_000])
