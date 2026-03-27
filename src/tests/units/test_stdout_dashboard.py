@@ -63,10 +63,17 @@ class _StubLX200(LX200Handler):
 
 
 class _StubMotor:
-    def __init__(self, status: MotorStatus, position: Ha | Dec, power_v: float | None = None) -> None:
+    def __init__(
+        self,
+        status: MotorStatus,
+        position: Ha | Dec,
+        power_v: float | None = None,
+        protocol_snapshot: dict[str, object] | None = None,
+    ) -> None:
         self._status = status
         self._position = position
         self._power_v = power_v
+        self._protocol_snapshot = protocol_snapshot or {}
 
     def status(self) -> MotorStatus:
         return self._status
@@ -81,6 +88,9 @@ class _StubMotor:
         if isinstance(self._position, Ha):
             return HaPerSecond(float(speed_sps))
         return DecPerSecond(float(speed_sps))
+
+    def protocol_monitor(self) -> dict[str, object]:
+        return dict(self._protocol_snapshot)
 
 
 class _StubAxis:
@@ -165,6 +175,7 @@ class _StubCombiner:
                 ),
                 Ha(3600),
                 power_v=13.4,
+                protocol_snapshot={"speed_mode": "highspeed(1)", "highspeed_ratio": 11},
             ),
             Ha(3600),
             HaPerSecond(1.0),
@@ -261,13 +272,18 @@ def test_stdout_dashboard_render_fits_30x130(monkeypatch) -> None:
     lines = frame.rstrip("\n").splitlines()
 
     assert len(lines) <= 30
-    assert all(len(line) <= 100 for line in lines)
+    assert all(len(line) <= dashboard._TOTAL_WIDTH for line in lines)
     assert lines[0].startswith("RA")
     assert any("-- AXIS " in line for line in lines)
     assert any("-- MOTOR " in line for line in lines)
     assert any("-- POLAR " in line for line in lines)
     assert any("-- STATE " in line for line in lines)
     assert any("mode" in line and "track" in line for line in lines)
+    assert any("ra_mmot" in line and "run" in line for line in lines)
+    assert any("ra_smod" in line and "highspeed(1)" in line for line in lines)
+    assert any("ra_hrat" in line and "11" in line for line in lines)
+    assert any("dec_mode" in line and "track" in line for line in lines)
+    assert any("dec_mmot" in line and "idle" in line for line in lines)
     assert any("clock" in line and "12:34:56" in line for line in lines)
     assert any("guide" in line and "1m31" in line for line in lines)
     assert any("mount_1s" in line and "+10.000hs" in line for line in lines)
@@ -381,4 +397,4 @@ def test_stdout_dashboard_wraps_exception_traceback(monkeypatch) -> None:
     assert lines[0].startswith("DASHBOARD ERROR")
     assert any("AttributeError" in line for line in lines)
     assert sum("very long dashboard error message" in line for line in lines) >= 2
-    assert all(len(line) <= 100 for line in lines)
+    assert all(len(line) <= dashboard._TOTAL_WIDTH for line in lines)

@@ -16,7 +16,7 @@ from terminal_output import TERMINAL_OUTPUT_LOCK
 class StdoutDashboard:
     _LEFT_WIDTH = 32
     _MID_WIDTH = 32
-    _STATE_WIDTH = 34
+    _STATE_WIDTH = 51
     _HEIGHT = 30
     _TOTAL_WIDTH = _LEFT_WIDTH + _MID_WIDTH + _STATE_WIDTH + 2
 
@@ -94,6 +94,7 @@ class StdoutDashboard:
             dec_motor_status = dec_axis._motor.status()
             ra_power_v = ra_axis._motor.get_power_v()
             dec_power_v = dec_axis._motor.get_power_v()
+            ra_protocol_monitor = ra_axis._motor.protocol_monitor() if hasattr(ra_axis._motor, "protocol_monitor") else {}
             ra_motor_position = ra_axis._motor.convert_steps_to_position(ra_motor_status.steps)
             dec_motor_position = dec_axis._motor.convert_steps_to_position(dec_motor_status.steps)
             ra_axis_position = ra_axis.get_position().ra
@@ -149,14 +150,16 @@ class StdoutDashboard:
             left_lines = [
                 self._section_header("AXIS", self._LEFT_WIDTH),
                 self._pair("position", mount_position.ra),
-                self._pair("mode", ra_mode),
                 self._pair("sky", self._fmt_ha_rate(ra_axis._sky_speed)),
                 self._pair("mount_1s", self._fmt_ha_rate(mount_ra_rate)),
                 self._pair("queue", ra_monitor["queue_size"]),
                 "",
                 self._section_header("MOTOR", self._LEFT_WIDTH),
                 self._pair("position", ra_motor_position),
-                self._pair("mode", self._abbr_motor_mode(ra_motor_status.motion_mode)),
+                self._pair("ra_mode", ra_mode),
+                self._pair("ra_mmot", self._abbr_motor_mode(ra_motor_status.motion_mode)),
+                self._pair("ra_smod", ra_protocol_monitor.get("speed_mode", "-")),
+                self._pair("ra_hrat", ra_protocol_monitor.get("highspeed_ratio", "-")),
                 self._pair("dir", self._abbr_direction(ra_motor_status.direction)),
                 self._pair("motor_1s", self._fmt_ha_rate(motor_ra_rate)),
                 self._pair("speed", f"{ra_motor_status.speed_sps} sps"),
@@ -177,14 +180,14 @@ class StdoutDashboard:
             middle_lines = [
                 self._section_header("AXIS", self._MID_WIDTH),
                 self._pair("position", mount_position.dec),
-                self._pair("mode", dec_mode),
                 self._pair("sky", self._fmt_dec_rate(dec_axis._sky_speed)),
                 self._pair("mount_1s", self._fmt_dec_rate(mount_dec_rate)),
                 self._pair("queue", dec_monitor["queue_size"]),
                 "",
                 self._section_header("MOTOR", self._MID_WIDTH),
                 self._pair("position", dec_motor_position),
-                self._pair("mode", self._abbr_motor_mode(dec_motor_status.motion_mode)),
+                self._pair("dec_mode", dec_mode),
+                self._pair("dec_mmot", self._abbr_motor_mode(dec_motor_status.motion_mode)),
                 self._pair("dir", self._abbr_direction(dec_motor_status.direction)),
                 self._pair("motor_1s", self._fmt_dec_rate(motor_dec_rate)),
                 self._pair("speed", f"{dec_motor_status.speed_sps} sps"),
@@ -207,8 +210,6 @@ class StdoutDashboard:
                 self._pair("clock", wall_clock),
                 self._pair("guide", self._fmt_age(now, polar_compensator.last_guide_pulse)),
                 self._pair("mode", mount_state),
-                self._pair("ra_mode", ra_mode),
-                self._pair("dec_mode", dec_mode),
                 self._pair("polar", polar_status),
                 self._pair("ra_bat", self._fmt_voltage(ra_power_v)),
                 self._pair("dec_bat", self._fmt_voltage(dec_power_v)),

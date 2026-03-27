@@ -1,8 +1,9 @@
 from types import MethodType
 
 import pytest
+from sky.constants import STELLAR_DAY, STELLAR_SPEED
 from sky.physics import Dec
-from skywatcher.motor import SkyWatcherMotor, _Direction, _MotionStatus, _SpeedMode, _Status, _SlewMode
+from skywatcher.motor import SkyWatcherMotor, _Direction, _MotionStatus, _Revu24, _SpeedMode, _Status, _SlewMode
 from tmc2209.motor import TMC2209Motor, _Mode, _Phase, _Status as _TmcStatus
 
 
@@ -63,6 +64,52 @@ def test_skywatcher_set_speed_switches_to_highspeed_mode_for_fast_speed() -> Non
     assert written_commands[0][0].name == "SET_MOTION_MODE"
     assert written_commands[0][1] == _MotionStatus(_SlewMode.SLEW, _Direction.FORWARD, _SpeedMode.HIGHSPEED).to_command()
     assert written_commands[1][0].name == "SET_STEP_PERIOD"
+
+
+def test_skywatcher_highspeed_period_uses_lowspeed_threshold_not_ratio() -> None:
+    motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
+    motor._steps_360 = 12_489_074
+    motor._steps_worm = 15_400_960
+    motor._highspeed_ratio = 256
+
+    speed_sps = motor.convert_speed_to_steps_per_second(motor._LOWSPEED_SPEED) + 1
+
+    period = motor._period_from_speed_sps(speed_sps)
+    rate = speed_sps * (24 * 60 * 60) / motor._steps_360 / float(STELLAR_SPEED)
+    expected = int(float(STELLAR_DAY) * motor._steps_worm / motor._steps_360 / (rate / motor._highspeed_ratio))
+
+    assert period == expected
+
+
+def test_skywatcher_set_speed_clamps_highspeed_period_to_mount_minimum() -> None:
+    motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
+    motor._steps_360 = 12_489_074
+    motor._steps_worm = 15_400_960
+    motor._highspeed_ratio = 11
+    motor._get_status = MethodType(
+        lambda self: _Status(
+            raw=0,
+            running=False,
+            initialized=True,
+            slew_mode=_SlewMode.SLEW,
+            direction=_Direction.FORWARD,
+            speed_mode=_SpeedMode.LOWSPEED,
+        ),
+        motor,
+    )
+    written_commands: list[tuple[object, str | None]] = []
+    motor._transact = MethodType(lambda self, command, arg=None: written_commands.append((command, arg)) or "", motor)
+
+    speed_sps = motor.convert_speed_to_steps_per_second(motor._HIGHSPEED_SPEED)
+    unclamped_period = motor._period_from_speed_sps(speed_sps)
+    motor._min_period = unclamped_period + 123
+
+    actual_speed = motor.set_speed(speed_sps)
+
+    assert actual_speed == motor._speed_sps_from_period(motor._min_period, _SpeedMode.HIGHSPEED)
+    assert motor._last_speed_sps == actual_speed
+    assert written_commands[1][0].name == "SET_STEP_PERIOD"
+    assert written_commands[1][1] == _Revu24.from_int(motor._min_period)
 
 
 @pytest.mark.parametrize("speed_sps", [-0.1, -1, -10.5])

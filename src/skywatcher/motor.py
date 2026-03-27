@@ -31,6 +31,7 @@ class SkyWatcherMotorTimeoutError(SkyWatcherMotorError, TimeoutError):
 class _Command(StrEnum):
     INQUIRE_TIMER_FREQ = "b"
     INQUIRE_CPR = "a"
+    INQUIRE_MOTOR_BOARD_VERSION = "e"
     INQUIRE_POSITION = "j"
     INQUIRE_STATUS = "f"
     INQUIRE_VOLTAGE = "fL"
@@ -128,6 +129,10 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     FORWARD_POSITION_SIGN = -1
 
     _POSITION_OFFSET = 0x800000
+    _DEFAULT_MIN_PERIOD = 6
+    _MOUNT_CODE_MIN_PERIODS: dict[int, int] = {
+        0xF0: 12,
+    }
     _LOWSPEED_MARGIN = Ha(10 * 60)
     _LOWSPEED_SPEED = STELLAR_SPEED * 128
     _HIGHSPEED_SPEED = STELLAR_SPEED * 800
@@ -140,6 +145,9 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._steps_360 = 0
         self._steps_worm = 0
         self._highspeed_ratio = 0
+        self._mount_code: int | None = None
+        self._min_period = self._DEFAULT_MIN_PERIOD
+        self._last_status: _Status | None = None
         self._last_speed_sps = 0
         self._last_direction = MotorDirection.STOP
         self._last_target: int | None = None
@@ -156,6 +164,9 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
             )
         self._serial.connect()
         self._transact(_Command.INITIALIZE)
+        mount_version = _Revu24.from_mount(self._transact(_Command.INQUIRE_MOTOR_BOARD_VERSION))
+        self._mount_code = mount_version & 0xFF
+        self._min_period = self._MOUNT_CODE_MIN_PERIODS.get(self._mount_code, self._DEFAULT_MIN_PERIOD)
         self._steps_360 = _Revu24.from_mount(self._transact(_Command.INQUIRE_CPR))
         self._steps_worm = _Revu24.from_mount(self._transact(_Command.INQUIRE_TIMER_FREQ))
         self._highspeed_ratio = _Revu24.from_mount(self._transact(_Command.INQUIRE_HIGHSPEED_RATIO))
@@ -200,7 +211,6 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         )
 
     def get_power_v(self) -> float | None:
-        return -1
         power_v = self._last_power_v
         now = time.monotonic()
         if self._is_connected and now - self._last_power_v_updated >= self._POWER_CACHE_TTL_S:
@@ -216,6 +226,12 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
                 self._logger.exception("While querying skywatcher voltage")
 
         return power_v
+
+    def protocol_monitor(self) -> dict[str, object]:
+        return {
+            "speed_mode": "-" if self._last_status is None else f"{self._last_status.speed_mode.name.lower()}({int(self._last_status.speed_mode)})",
+            "highspeed_ratio": self._highspeed_ratio or "-",
+        }
 
     def set_steps(self, steps: int) -> bool:
         status = self._get_status()
@@ -241,7 +257,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
             ),
             status,
         )
-        period = self._period_from_speed_sps(steps_per_second)
+        period = self._clamp_period(self._period_from_speed_sps(steps_per_second), target_speed_mode)
         self._transact(_Command.SET_STEP_PERIOD, _Revu24.from_int(period))
         self._last_speed_sps = self._speed_sps_from_period(period, target_speed_mode)
         return self._last_speed_sps
@@ -288,8 +304,10 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
             ),
             status,
         )
-        self._last_speed_sps = self.convert_speed_to_steps_per_second(abs(speed))
-        self._transact(_Command.SET_STEP_PERIOD, _Revu24.from_int(self._period_from_speed_sps(self._last_speed_sps)))
+        requested_speed_sps = self.convert_speed_to_steps_per_second(abs(speed))
+        period = self._clamp_period(self._period_from_speed_sps(requested_speed_sps), target_speed_mode)
+        self._last_speed_sps = self._speed_sps_from_period(period, target_speed_mode)
+        self._transact(_Command.SET_STEP_PERIOD, _Revu24.from_int(period))
         self._last_target = abs(delta_steps) % self._steps_360
         self._transact(_Command.SET_GOTO_TARGET_INCREMENT, _Revu24.from_int(self._last_target))
         self._transact(_Command.SET_BREAK_POINT_INCREMENT, _Revu24.from_int(min(200, self._last_target)))
@@ -386,7 +404,8 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._last_power_v_updated = 0.0
 
     def _get_status(self) -> _Status:
-        return _Status.from_bytes(self._transact(_Command.INQUIRE_STATUS).encode("ascii"))
+        self._last_status = _Status.from_bytes(self._transact(_Command.INQUIRE_STATUS).encode("ascii"))
+        return self._last_status
 
     def _get_position(self) -> Ha:
         self._ensure_geometry_ready()
@@ -418,9 +437,14 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         if speed_sps <= 0:
             raise MotorStateError("speed must be positive")
         rate = speed_sps * (24 * 60 * 60) / self._steps_360 / float(STELLAR_SPEED)
-        if rate > self._highspeed_ratio:
+        if self._get_speed_mode_for_speed_sps(speed_sps) == _SpeedMode.HIGHSPEED:
             rate /= self._highspeed_ratio
         return int(STELLAR_DAY * self._steps_worm / self._steps_360 / rate)
+
+    def _clamp_period(self, period: int, speed_mode: _SpeedMode) -> int:
+        if speed_mode == _SpeedMode.HIGHSPEED and period < self._min_period:
+            return self._min_period
+        return period
 
     def _speed_sps_from_period(self, period: int, speed_mode: _SpeedMode) -> int:
         self._ensure_geometry_ready()
@@ -441,8 +465,14 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
 
     REPEATS = 3
     def _transact(self, command: _Command, arg: str | None = None) -> str:
-        payload = f"{Protocol.COMMAND_PREFIX}{command.value}{_Axis.RA}{arg or ''}{Protocol.COMMAND_TERMINATOR}"
-        response_prefixes = (Protocol.RESPONSE_PREFIX_BYTE, Protocol.COMMAND_ERROR_PREFIX_BYTE)
+        if command == _Command.INQUIRE_VOLTAGE:
+            payload = f"{Protocol.COMMAND_PREFIX}{command.value}#"
+            response_prefixes = None
+            response_terminator: bytes | str | None = "#"
+        else:
+            payload = f"{Protocol.COMMAND_PREFIX}{command.value}{_Axis.RA}{arg or ''}{Protocol.COMMAND_TERMINATOR}"
+            response_prefixes = (Protocol.RESPONSE_PREFIX_BYTE, Protocol.COMMAND_ERROR_PREFIX_BYTE)
+            response_terminator = None
 
         count = self.REPEATS
         response = None
@@ -451,11 +481,14 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
                 response = self._serial.query(
                     payload,
                     response_prefixes=response_prefixes,
+                    response_terminator=response_terminator,
                 )
                 if not response:
                     raise SkyWatcherMotorProtocolError(f"empty response: {response!r}")
-                if not response.endswith(Protocol.ANSWER_END):
+                if not response.endswith(response_terminator or Protocol.ANSWER_END):
                     raise SkyWatcherMotorProtocolError(f"unterminated response: {response!r}")
+                if command == _Command.INQUIRE_VOLTAGE:
+                    return response[:-1]
                 if response[0] == Protocol.COMMAND_ERROR_PREFIX:
                     raise SkyWatcherMotorCommandError(f"command error: {response!r}")
                 if response[0] != Protocol.RESPONSE_PREFIX:
