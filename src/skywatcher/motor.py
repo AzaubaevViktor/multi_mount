@@ -131,6 +131,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     _POSITION_OFFSET = 0x800000
     _DEFAULT_MIN_PERIOD = 6
     _MOUNT_CODE_MIN_PERIODS: dict[int, int] = {
+        0x0A: 0x0600,
         0xF0: 12,
     }
     _LOWSPEED_MARGIN = Ha(10 * 60)
@@ -165,6 +166,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._serial.connect()
         self._transact(_Command.INITIALIZE)
         mount_version = _Revu24.from_mount(self._transact(_Command.INQUIRE_MOTOR_BOARD_VERSION))
+        mount_version = ((mount_version & 0xFF) << 16) | (mount_version & 0xFF00) | ((mount_version & 0xFF0000) >> 16)
         self._mount_code = mount_version & 0xFF
         self._min_period = self._MOUNT_CODE_MIN_PERIODS.get(self._mount_code, self._DEFAULT_MIN_PERIOD)
         self._steps_360 = _Revu24.from_mount(self._transact(_Command.INQUIRE_CPR))
@@ -447,7 +449,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         return int(STELLAR_DAY * self._steps_worm / self._steps_360 / rate)
 
     def _clamp_period(self, period: int, speed_mode: _SpeedMode) -> int:
-        if speed_mode == _SpeedMode.HIGHSPEED and period < self._min_period:
+        if period < self._min_period:
             return self._min_period
         return period
 

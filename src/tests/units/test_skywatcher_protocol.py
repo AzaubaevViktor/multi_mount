@@ -109,6 +109,34 @@ def test_skywatcher_connect_rejects_wrong_serial_terminator() -> None:
         motor.connect()
 
 
+def test_skywatcher_connect_parses_mcversion_with_board_byte_order() -> None:
+    class _ConnectSerial(_FakeSkyWatcherSerial):
+        def __init__(self) -> None:
+            super().__init__(
+                "=000000\r",
+                responses_by_payload={
+                    ":F1\r": "=000000\r",
+                    ":e1\r": "=03110A\r",
+                    ":a1\r": "=12A7BE\r",
+                    ":b1\r": "=2400F4\r",
+                    ":g1\r": "=010000\r",
+                },
+            )
+            self.connected = False
+
+        def connect(self) -> None:
+            self.connected = True
+
+    serial = _ConnectSerial()
+    motor = SkyWatcherMotor(serial)  # type: ignore[arg-type]
+
+    motor.connect()
+
+    assert serial.connected is True
+    assert motor._mount_code == 0x0A
+    assert motor._min_period == 0x0600
+
+
 def test_skywatcher_transact_requests_prefixed_response_and_strips_answer_end() -> None:
     serial = _FakeSkyWatcherSerial("=010203\r")
     motor = SkyWatcherMotor(serial)  # type: ignore[arg-type]
