@@ -1,3 +1,5 @@
+import time
+
 import pytest
 
 import lx200.base_server as base_server_module
@@ -68,6 +70,9 @@ class _RecordingLX200(LX200Handler):
 
 
 class _FakeServerSocket:
+    def __init__(self) -> None:
+        self.closed = False
+
     def __enter__(self) -> "_FakeServerSocket":
         return self
 
@@ -84,7 +89,12 @@ class _FakeServerSocket:
         self.backlog = backlog
 
     def accept(self):
+        if self.closed:
+            raise OSError("socket closed")
         raise KeyboardInterrupt()
+
+    def close(self) -> None:
+        self.closed = True
 
 
 def test_server_connects_lx200_when_disconnected(monkeypatch) -> None:
@@ -111,3 +121,33 @@ def test_server_skips_connect_when_lx200_already_connected(monkeypatch) -> None:
         server.serve_forever()
 
     assert handler.connect_calls == 1
+
+
+class _BlockingFakeServerSocket(_FakeServerSocket):
+    def accept(self):
+        while not self.closed:
+            time.sleep(0.01)
+        raise OSError("socket closed")
+
+
+def test_server_can_run_in_background_and_stop(monkeypatch) -> None:
+    handler = _RecordingLX200()
+    server = LX200SimpleServer(handler)
+    fake_socket = _BlockingFakeServerSocket()
+
+    monkeypatch.setattr(base_server_module.socket, "socket", lambda *args, **kwargs: fake_socket)
+
+    assert server.start_background() is True
+
+    deadline = time.monotonic() + 0.5
+    while time.monotonic() < deadline:
+        if server.is_running():
+            break
+        time.sleep(0.01)
+    else:
+        raise AssertionError("server did not start in background")
+
+    server.stop(join_timeout_s=0.5)
+
+    assert server.is_running() is False
+    assert fake_socket.closed is True
