@@ -197,8 +197,6 @@ class LX200Handler(LX200Base):
     """
     All methods should be fast and non-blocking.
     """
-    DOUBLE_STOP_WINDOW_S = Second(1.0)
-
     def __init__(self) -> None:
         self.logger = logging.getLogger(type(self).__name__)
         self._target_ra = Ha(0)
@@ -206,7 +204,6 @@ class LX200Handler(LX200Base):
         self._minimum_elevation = Dec(0)
         self._highest_elevation = Dec(90 * 60 * 60)
         self._manual_move_directions: list[SkyDirection] = []
-        self._last_halt_all: Second | None = None
         self._monitor_lock = threading.RLock()
         self._recent_commands: deque[tuple[Second, str]] = deque(maxlen=8)
         self._last_guide_command: tuple[Second, str] | None = None
@@ -242,7 +239,6 @@ class LX200Handler(LX200Base):
     def _halt_manual_direction_if_active(self, *directions: SkyDirection) -> None:
         for direction in directions:
             if direction not in self._manual_move_directions:
-                self.logger.warning("Wrong direction halt: %s, need one of %s", direction, self._manual_move_directions)
                 continue
 
             match direction:
@@ -257,6 +253,10 @@ class LX200Handler(LX200Base):
 
             self._manual_move_directions.remove(direction)
             break
+        else:
+            self.logger.debug("No active manual direction for %s, fallback to halt_all", directions)
+            self.halt_all()
+            self._manual_move_directions.clear()
     
     def _do_handle(self, cmd: LX200Commands, argument: Any, now: Second | None = None) -> Any:
         result = None
@@ -279,35 +279,25 @@ class LX200Handler(LX200Base):
                 self.sync_telescope(self._target_ra, self._target_dec)
                 result = "OK"
             case LX200Commands.SLEW, _:
-                self._last_halt_all = None
+                self._manual_move_directions.clear()
                 self.slew_to(self._target_ra, self._target_dec)
                 result = False
                 # LX200 also allows non-zero result codes for below-horizon / above-limit failures.
 
             case LX200Commands.MOVE_EAST, _:
-                self._last_halt_all = None
                 if self.move_east():
                     self._remember_manual_move_direction(SkyDirection.EAST)
             case LX200Commands.MOVE_NORTH, _:
-                self._last_halt_all = None
                 if self.move_north():
                     self._remember_manual_move_direction(SkyDirection.NORTH)
             case LX200Commands.MOVE_SOUTH, _:
-                self._last_halt_all = None
                 if self.move_south():
                     self._remember_manual_move_direction(SkyDirection.SOUTH)
             case LX200Commands.MOVE_WEST, _:
-                self._last_halt_all = None
                 if self.move_west():
                     self._remember_manual_move_direction(SkyDirection.WEST)
             case LX200Commands.HALT_ALL, _:
-                if self._last_halt_all is not None and now - self._last_halt_all <= self.DOUBLE_STOP_WINDOW_S:
-                    self.stop_all()
-                    self._last_halt_all = None
-                else:
-                    self.halt_all()
-                    self._last_halt_all = now
-
+                self.halt_all()
                 self._manual_move_directions.clear()
             case LX200Commands.HALT_EAST, _:
                 self._halt_manual_direction_if_active(SkyDirection.WEST, SkyDirection.EAST)
@@ -370,7 +360,6 @@ class LX200Handler(LX200Base):
             case LX200Commands.SET_SLEW_TO_MAX, _:
                 self.set_slew_to_max()
             case LX200Commands.GUIDE, data:
-                self._last_halt_all = None
                 direction = data[0].lower()
                 ms = int(data[1:])
 

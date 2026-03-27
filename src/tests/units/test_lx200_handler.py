@@ -1,6 +1,5 @@
-import lx200.base as lx200_base_module
 from lx200.base import LX200Handler
-from sky.physics import Dec, Ha, Second
+from sky.physics import Dec, Ha
 
 
 class _RecordingLX200(LX200Handler):
@@ -18,6 +17,7 @@ class _RecordingLX200(LX200Handler):
         return Dec(0)
 
     def slew_to(self, ra: Ha, dec: Dec) -> bool:
+        self.calls.append("slew_to")
         return True
 
     def move_east(self) -> bool:
@@ -73,21 +73,8 @@ class _RecordingLX200(LX200Handler):
         return None
 
 
-def test_double_halt_all_stops_all(monkeypatch) -> None:
+def test_repeated_halt_all_never_stops_tracking() -> None:
     handler = _RecordingLX200()
-    timestamps = iter((Second(10.0), Second(10.1)))
-    monkeypatch.setattr(lx200_base_module.Second, "monotonic", classmethod(lambda cls: next(timestamps)))
-
-    handler.handle("Q")
-    handler.handle("Q")
-
-    assert handler.calls == ["halt_all", "stop_all"]
-
-
-def test_second_halt_all_after_window_is_regular_halt(monkeypatch) -> None:
-    handler = _RecordingLX200()
-    timestamps = iter((Second(20.0), Second(21.3)))
-    monkeypatch.setattr(lx200_base_module.Second, "monotonic", classmethod(lambda cls: next(timestamps)))
 
     handler.handle("Q")
     handler.handle("Q")
@@ -95,16 +82,23 @@ def test_second_halt_all_after_window_is_regular_halt(monkeypatch) -> None:
     assert handler.calls == ["halt_all", "halt_all"]
 
 
-def test_motion_resets_double_halt_all_window(monkeypatch) -> None:
+def test_motion_does_not_change_halt_all_behavior() -> None:
     handler = _RecordingLX200()
-    timestamps = iter((Second(30.0), Second(30.1), Second(30.2)))
-    monkeypatch.setattr(lx200_base_module.Second, "monotonic", classmethod(lambda cls: next(timestamps)))
 
     handler.handle("Q")
     handler.handle("Me")
     handler.handle("Q")
 
     assert handler.calls == ["halt_all", "move_east", "halt_all"]
+
+
+def test_directional_halt_without_manual_move_falls_back_to_halt_all() -> None:
+    handler = _RecordingLX200()
+
+    handler.handle("Qw")
+    handler.handle("Qs")
+
+    assert handler.calls == ["halt_all", "halt_all"]
 
 
 def test_ra_halt_commands_support_lx200_client_mapping() -> None:
@@ -150,4 +144,18 @@ def test_new_ra_manual_move_replaces_stale_opposite_direction() -> None:
         "move_west",
         "move_east",
         "halt_east",
+    ]
+
+
+def test_slew_clears_stale_manual_directions_before_directional_halt() -> None:
+    handler = _RecordingLX200()
+
+    handler.handle("Me")
+    handler.handle("MS")
+    handler.handle("Qw")
+
+    assert handler.calls == [
+        "move_east",
+        "slew_to",
+        "halt_all",
     ]

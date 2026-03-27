@@ -41,3 +41,29 @@ def test_locked_stream_handler_uses_terminal_output_lock(monkeypatch) -> None:
     assert stream.getvalue() == "hello\n"
     assert lock.enter_count == 1
     assert lock.exit_count == 1
+
+
+def test_setup_logging_can_disable_stream_handler(tmp_path) -> None:
+    root_logger = logging.getLogger()
+    existing_handlers = list(root_logger.handlers)
+
+    try:
+        logging_setup.setup_logging(
+            logs_root=str(tmp_path),
+            base_path=str(tmp_path),
+            stream_level=None,
+        )
+
+        assert not any(
+            handler.name == f"{logging_setup.HANDLER_NAME_PREFIX}_stream"
+            for handler in root_logger.handlers
+        )
+        assert any(
+            handler.name == f"{logging_setup.HANDLER_NAME_PREFIX}_debug"
+            for handler in root_logger.handlers
+        )
+    finally:
+        for handler in list(root_logger.handlers):
+            if handler not in existing_handlers:
+                root_logger.removeHandler(handler)
+                handler.close()

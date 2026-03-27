@@ -174,10 +174,10 @@ class Combiner:
     def stop_all(self) -> None:
         """ Stop all motion including tracking and clear guide state """
         self.ra.halt_all()
-        self.ra.change_speed(self.ra.FORWARD_DIRECTION, HaPerSecond(0), update_sky_speed=False)
+        self.ra.change_speed(self.ra.FORWARD_DIRECTION, HaPerSecond(0), update_sky_speed=True)
 
         self.dec.halt_all()
-        self.dec.change_speed(self.dec.FORWARD_DIRECTION, DecPerSecond(0), update_sky_speed=False)
+        self.dec.change_speed(self.dec.FORWARD_DIRECTION, DecPerSecond(0), update_sky_speed=True)
 
         self._polar_compensator.reset()
 

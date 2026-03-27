@@ -90,6 +90,7 @@ def setup_logging(
     subsystems: Iterable[str] | None = None,
     logs_root: str = "logs",
     base_path: str | None = None,
+    stream_level: int | None = logging.INFO,
 ) -> dict[str, logging.Logger]:
     if not logs_root or not str(logs_root).strip():
         raise LoggingSetupError("logs_root must not be empty.")
@@ -114,11 +115,12 @@ def setup_logging(
         if handler.name and handler.name.startswith(HANDLER_NAME_PREFIX):
             root_logger.removeHandler(handler)
 
-    stream_handler = LockedStreamHandler()
-    stream_handler.setLevel(logging.INFO)
-    stream_handler.setFormatter(formatter)
-    stream_handler.name = f"{HANDLER_NAME_PREFIX}_stream"
-    root_logger.addHandler(stream_handler)
+    if stream_level is not None:
+        stream_handler = LockedStreamHandler()
+        stream_handler.setLevel(stream_level)
+        stream_handler.setFormatter(formatter)
+        stream_handler.name = f"{HANDLER_NAME_PREFIX}_stream"
+        root_logger.addHandler(stream_handler)
 
     debug_handler = logging.FileHandler(
         os.path.join(log_dir, "debug.log"), encoding="utf-8"

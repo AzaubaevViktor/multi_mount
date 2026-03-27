@@ -66,11 +66,11 @@ def test_combiner_stop_all_stops_tracking_and_resets_guide_state() -> None:
 
     assert ra.calls == [
         ("halt_all",),
-        ("change_speed", SkyDirection.EAST, HaPerSecond(0), False),
+        ("change_speed", SkyDirection.EAST, HaPerSecond(0), True),
     ]
     assert dec.calls == [
         ("halt_all",),
-        ("change_speed", SkyDirection.NORTH, DecPerSecond(0), False),
+        ("change_speed", SkyDirection.NORTH, DecPerSecond(0), True),
     ]
     assert combiner._polar_compensator.reset_calls == 1
     assert combiner._polar_compensator.eps_E is None

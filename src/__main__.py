@@ -25,7 +25,7 @@ from tmc2209.motor import TMC2209Motor
 from web_control.web import MonitorServer
 
 
-setup_logging()
+setup_logging(stream_level=None)
     
 
 if __name__ == "__main__":

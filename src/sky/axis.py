@@ -456,6 +456,8 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                             case AxisCommandType.HALT_ALL:
                                 with self._motor_lock:
                                     return_to_tracking = self._run_halt_direction()
+                                    self._goto_target = None
+                                    self._goto_direction = None
                         
                         self._mc_logger.info("Command %s processed, return to tracking: %s", command, return_to_tracking)
 
