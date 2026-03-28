@@ -15,10 +15,10 @@ class SkyLX200(LX200Handler):
     CENTER_RA_SPEED = HaPerSecond(20 * float(STELLAR_SPEED))
     CENTER_DEC_SPEED = DecPerSecond(100)
 
-    FIND_RA_SPEED = HaPerSecond(140 * float(STELLAR_SPEED))
+    FIND_RA_SPEED = HaPerSecond(40 * float(STELLAR_SPEED))
     FIND_DEC_SPEED = DecPerSecond(1000)
 
-    MAX_RA_SPEED = HaPerSecond(800 * float(STELLAR_SPEED))
+    MAX_RA_SPEED = HaPerSecond(80 * float(STELLAR_SPEED))
     MAX_DEC_SPEED = DecPerSecond(2000)
 
     def __init__(self, combiner: Combiner) -> None:
