@@ -56,7 +56,9 @@ class SerialLineCloseMeta:
     at_monotonic_s: float
 
 
-EXCEPTIONS_TO_CLOSE = (SerialException, SerialLineError)
+# A raw OSError (ENXIO/EIO/ENODEV on USB-serial unplug) means the device is gone just like a
+# SerialException does: the line has to be closed and the caller has to degrade, not to die.
+EXCEPTIONS_TO_CLOSE = (SerialException, SerialLineError, OSError)
 
 
 T = TypeVar("T")

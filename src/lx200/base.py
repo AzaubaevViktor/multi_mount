@@ -403,12 +403,16 @@ class LX200Handler(LX200Base):
 
             result = self._do_handle(cmd, argument, now)
 
-        _logger.info("Get command %s %s(%s)", cmd, cmd.name, argument)
+        # Clients poll GR/GD/D at ~1 Hz, that is thousands of records per session which bury the
+        # meaningful commands (PLAN.md §1 П7). Everything else stays visible on INFO.
+        level = logging.DEBUG if cmd in {LX200Commands.GET_TELECOPE_RA, LX200Commands.GET_TELESCOPE_DEC, LX200Commands.GET_DISTANCE} else logging.INFO
+
+        _logger.log(level, "Get command %s %s(%s)", cmd, cmd.name, argument)
 
         if isinstance(result, _LX200NotImplementedCommand):
             raise RuntimeError(f"Not implemented LX200 command: {cmd} {cmd.name}({argument})")
         if result is not None:
-            _logger.info("Answer command %s %s(%s) -> %s", cmd, cmd.name, argument, result)
+            _logger.log(level, "Answer command %s %s(%s) -> %s", cmd, cmd.name, argument, result)
         else:
             _logger.warning("Empty responce: %s %s(%s) -> ∅", cmd, cmd.name, argument)
 

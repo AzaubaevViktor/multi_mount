@@ -63,7 +63,7 @@ class RelativeFormatter(logging.Formatter):
     def __init__(self, *, start_time: float, base_path: str) -> None:
         super().__init__(
             fmt=(
-                "%(asctime_date)s [%(levelname)6s] %(elapsed)s %(asctime_time)s %(name)s  "
+                "%(asctime_date)s [%(levelname)8s] %(elapsed)s %(asctime_time)s %(name)s  "
                 " %(relpath)s:%(lineno)d %(funcName)s: %(message)s"
             )
         )
@@ -76,7 +76,11 @@ class RelativeFormatter(logging.Formatter):
         record.asctime_date = created.strftime("%Y-%m-%d")
         record.asctime_time = created.strftime("%H:%M:%S")
         record.relpath = _safe_relpath(record.pathname, self._base_path)
-        return super().format(record)
+
+        # One record = one physical line: traceback and multi-line payload continuations carry no
+        # timestamp and break grep/parsing. Line breaks are escaped, not dropped, so the traceback
+        # stays recoverable (`sed 's/\\n/\n/g'`).
+        return super().format(record).replace("\r\n", "\\n").replace("\r", "\\r").replace("\n", "\\n")
 
 
 class LockedStreamHandler(logging.StreamHandler):

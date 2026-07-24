@@ -138,6 +138,9 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     _LOWSPEED_SPEED = STELLAR_SPEED * 128
     _HIGHSPEED_SPEED = STELLAR_SPEED * 800
     _POWER_CACHE_TTL_S = 2.0
+    _POWER_UNSUPPORTED_BACKOFF_S = 60.0
+    _CONNECT_ATTEMPTS = 3
+    _CONNECT_RETRY_DELAY_S = 0.25
 
     def __init__(self, serial: SerialLine) -> None:
         self._serial = serial
@@ -157,6 +160,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._mount_position_cache_updated = 0.0
         self._last_power_v: float | None = None
         self._last_power_v_updated = 0.0
+        self._power_v_retry_at = 0.0
 
     def connect(self):
         if self._serial.terminator != Protocol.ANSWER_END_BYTE:
@@ -164,7 +168,22 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
                 f"invalid SerialLine terminator: expected {Protocol.ANSWER_END_BYTE!r}, got {self._serial.terminator!r}"
             )
         self._serial.connect()
-        self._transact(_Command.INITIALIZE)
+
+        # A mount that stays silent right after the port opens is usually transient (PLAN.md §1 П3):
+        # retry the handshake a bounded number of times before declaring the mount unreachable.
+        for attempt in range(self._CONNECT_ATTEMPTS):
+            try:
+                self._transact(_Command.INITIALIZE)
+                break
+            except SkyWatcherMotorError as error:
+                if attempt + 1 >= self._CONNECT_ATTEMPTS:
+                    raise SkyWatcherMotorProtocolError(
+                        f"mount is not responding on {self._serial.port}: no answer to INITIALIZE after {self._CONNECT_ATTEMPTS} attempts"
+                    ) from error
+
+                self._logger.warning("Mount is not responding on %s, attempt %d/%d: %s", self._serial.port, attempt + 1, self._CONNECT_ATTEMPTS, error)
+                time.sleep(self._CONNECT_RETRY_DELAY_S * 2 ** attempt)
+
         mount_version = _Revu24.from_mount(self._transact(_Command.INQUIRE_MOTOR_BOARD_VERSION))
         mount_version = ((mount_version & 0xFF) << 16) | (mount_version & 0xFF00) | ((mount_version & 0xFF0000) >> 16)
         self._mount_code = mount_version & 0xFF
@@ -182,6 +201,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._is_connected = False
         self._last_power_v = None
         self._last_power_v_updated = 0.0
+        self._power_v_retry_at = 0.0
         self._serial.close()
         return True
 
@@ -215,7 +235,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     def get_power_v(self) -> float | None:
         power_v = self._last_power_v
         now = time.monotonic()
-        if self._is_connected and now - self._last_power_v_updated >= self._POWER_CACHE_TTL_S:
+        if self._is_connected and now >= self._power_v_retry_at and now - self._last_power_v_updated >= self._POWER_CACHE_TTL_S:
             try:
                 encoded_voltage = self._transact(_Command.INQUIRE_VOLTAGE).strip()
                 if not encoded_voltage or len(encoded_voltage) > 2:
@@ -224,8 +244,13 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
                 power_v = int(encoded_voltage, 16) / 10.0
                 self._last_power_v = power_v
                 self._last_power_v_updated = now
-            except (SkyWatcherMotorError, ValueError):
-                self._logger.exception("While querying skywatcher voltage")
+                self._power_v_retry_at = 0.0
+            except (SkyWatcherMotorError, ValueError) as error:
+                # Many boards simply do not implement `:fL#` and answer nothing. Back off instead of
+                # re-probing (and re-logging a traceback) on every dashboard tick; a board that starts
+                # answering is picked up again after the backoff.
+                self._power_v_retry_at = now + self._POWER_UNSUPPORTED_BACKOFF_S
+                self._logger.warning("Skywatcher voltage is unavailable, next try in %.0fs: %s", self._POWER_UNSUPPORTED_BACKOFF_S, error)
 
         return power_v
 
@@ -409,6 +434,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._zero_target_pending = False
         self._last_power_v = None
         self._last_power_v_updated = 0.0
+        self._power_v_retry_at = 0.0
 
     def _get_status(self) -> _Status:
         self._last_status = _Status.from_bytes(self._transact(_Command.INQUIRE_STATUS).encode("ascii"))
@@ -504,7 +530,9 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
                 return response[1:-len(Protocol.ANSWER_END)]
 
             except SkyWatcherMotorProtocolError:
-                self._logger.exception("While quering %s(%s) `%s` -> `%s`, %d last", command.name, arg, payload, response, count)
+                # An in-transaction retry is a recoverable transient: the caller decides whether the
+                # final failure is worth an error record, so keep the per-attempt trace on DEBUG.
+                self._logger.debug("While quering %s(%s) `%s` -> `%s`, %d last", command.name, arg, payload, response, count, exc_info=True)
                 self._serial.drop_buffers()
                 data = self._serial.read_all_data(timeout=.5)
                 if data is not None:
