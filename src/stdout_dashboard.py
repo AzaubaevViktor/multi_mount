@@ -160,6 +160,9 @@ class StdoutDashboard:
                 self._pair("ra_mmot", self._abbr_motor_mode(ra_motor_status.motion_mode)),
                 self._pair("ra_smod", ra_protocol_monitor.get("speed_mode", "-")),
                 self._pair("ra_hrat", ra_protocol_monitor.get("highspeed_ratio", "-")),
+                # RA_PROTOCOL.md §11/§12.2: the board's initialization flag goes down on
+                # its own after an ill-timed `:E` and after a controller reboot.
+                self._pair("ra_init", ra_protocol_monitor.get("initialized", "-")),
                 self._pair("dir", self._abbr_direction(ra_motor_status.direction)),
                 self._pair("motor_1s", self._fmt_ha_rate(motor_ra_rate)),
                 self._pair("speed", f"{ra_motor_status.speed_sps} sps"),

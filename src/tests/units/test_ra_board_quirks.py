@@ -13,7 +13,7 @@ import pytest
 
 from sim import Clock, SimSerialLine, SkyWatcherSim
 from sky.constants import STELLAR_SPEED
-from sky.motor import MotionMode, MotorDirection
+from sky.motor import MotionMode, MotorDirection, MotorStopRequire
 from sky.physics import Ha
 from skywatcher.motor import SkyWatcherMotor, SkyWatcherMotorTimeoutError
 
@@ -32,6 +32,58 @@ def _spin_up(clock: Clock, motor: SkyWatcherMotor, times_sidereal: int = 128) ->
     motor.set_motion_mode(MotionMode.RUN)
     motor.run()
     clock.advance(1.0)
+
+
+class _FlagDroppingSerial:
+    """Board that loses its initialization flag 0.3s after any `:E`, as §11 describes.
+
+    The drop is asynchronous on purpose: a driver that re-reads `:f1` right away
+    sees the flag still up, exactly as the live board behaved when the same
+    command sequence lost the flag in one run and kept it in the next.
+    """
+
+    terminator = b"\r"
+    DROP_DELAY_S = 0.3
+
+    def __init__(self, clock: Clock) -> None:
+        self._clock = clock
+        self.payloads: list[tuple[float, str]] = []
+        self.initialized = True
+        self._drop_at: float | None = None
+
+    def connect(self) -> None:
+        pass
+
+    def close(self) -> None:
+        pass
+
+    def query(
+        self,
+        payload: str | None,
+        timeout: float | None = None,
+        response_prefixes: tuple[bytes, ...] | None = None,
+        response_terminator: bytes | str | None = None,
+    ) -> str:
+        payload = payload or ""
+        self.payloads.append((self._clock.now, payload))
+        if self._drop_at is not None and self._clock.now >= self._drop_at:
+            self.initialized = False
+            self._drop_at = None
+        if payload.startswith(":E"):
+            self._drop_at = self._clock.now + self.DROP_DELAY_S
+            return "=\r"
+        if payload.startswith(":F"):
+            self.initialized = True
+            return "=\r"
+        if payload.startswith(":f"):
+            return f"=10{1 if self.initialized else 0}\r"
+        return "=\r"
+
+    def drop_buffers(self) -> None:
+        pass
+
+    def read_all_data(self, timeout: float | None = None) -> list[str] | None:
+        return None
 
 
 class _StuckAxisSerial:
@@ -146,3 +198,77 @@ def test_wait_till_stop_without_braking_waits_for_the_goto_to_finish() -> None:
 
     assert sim.running is False, "wait_till_stop(do_stop=False) returned mid-GOTO"
     assert motor.status().steps == delta_steps
+
+
+# ---------------------------------------------------------------------------
+# §11 -- `:E` on the move, and the initialization flag it takes down
+# ---------------------------------------------------------------------------
+
+
+def test_set_steps_refuses_to_send_set_position_while_the_axis_moves() -> None:
+    """The board accepts `:E` on the move with `=`; the guard has to be here.
+
+    This is the one firmware defect the protocol survey found (5 runs out of 5),
+    and the driver's only protection against it is this check — the spec's
+    `!2 Motor not Stopped` never arrives.
+    """
+    clock, sim, motor = _make_ra()
+    motor.connect()
+    _spin_up(clock, motor)
+    position_before = sim.position
+
+    with pytest.raises(MotorStopRequire):
+        motor.set_steps(0)
+
+    assert sim.position != 0, "the board was told a new position while it was moving"
+    assert sim.position >= position_before
+    assert sim.initialized is True
+
+
+def test_set_steps_reinitializes_the_axis_when_the_flag_drops_after_set_position() -> None:
+    """§11.3/§11.4: re-read `:f1` after `:E` — late enough to see the drop — and re-send `:F1`."""
+    clock = Clock()
+    serial = _FlagDroppingSerial(clock)
+    motor = SkyWatcherMotor(serial, clock)  # type: ignore[arg-type]
+    motor._steps_360 = 12_492_146
+
+    assert motor.set_steps(1000) is True
+
+    commands = [payload for _, payload in serial.payloads]
+    set_position_at = next(i for i, payload in enumerate(commands) if payload.startswith(":E"))
+    tail = commands[set_position_at:]
+
+    assert tail[1].startswith(":f"), f"the flag was not re-read right after `:E`: {tail}"
+    assert ":F1\r" in tail, f"the dropped initialization flag was never restored: {tail}"
+    assert tail.index(":F1\r") > 1, "`:F1` was sent without looking at the flag first"
+
+    set_position_time = serial.payloads[set_position_at][0]
+    re_read_time = serial.payloads[set_position_at + 1][0]
+    assert re_read_time - set_position_time >= _FlagDroppingSerial.DROP_DELAY_S, (
+        f"the flag was re-read {re_read_time - set_position_time:.3f}s after `:E`, before the board "
+        f"had a chance to drop it — the check would always pass"
+    )
+    assert serial.initialized is True
+
+
+def test_set_steps_leaves_a_healthy_board_alone() -> None:
+    """No spurious `:F1`: re-initializing is a reaction to a dropped flag, not a ritual."""
+    clock, sim, motor = _make_ra()
+    motor.connect()
+
+    assert motor.set_steps(1000) is True
+
+    assert sim.initialized is True
+    assert motor.status().steps == 1000
+
+
+def test_status_reports_the_initialization_flag() -> None:
+    """The flag is parsed to be used: it has to reach the layer above."""
+    clock, sim, motor = _make_ra()
+    motor.connect()
+    assert motor.status().initialized is True
+
+    sim.initialized = False
+
+    assert motor.status().initialized is False
+    assert motor.protocol_monitor()["initialized"] == "NO"

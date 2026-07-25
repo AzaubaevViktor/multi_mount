@@ -150,6 +150,9 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     # is an order of magnitude above it, so it only fires when the axis is really stuck.
     _STOP_TIMEOUT_S = 10.0
     _STOP_POLL_S = 0.05
+    # §11: the initialization flag drops "asynchronously, hundreds of milliseconds" after
+    # an `:E`. The board was seen taking ~0.3s; the check waits longer than that on purpose.
+    _INIT_FLAG_SETTLE_S = 0.5
 
     def __init__(self, serial: SerialLine, clock: Clock = REAL_CLOCK) -> None:
         self._serial = serial
@@ -235,6 +238,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
             target=self._last_target if status.slew_mode == _SlewMode.GOTO else None,
             microsteps=None,
             power_v=None,
+            initialized=status.initialized,
         )
 
     def get_power_v(self) -> float | None:
@@ -255,6 +259,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         return {
             "speed_mode": "-" if self._last_status is None else f"{self._last_status.speed_mode.name.lower()}({int(self._last_status.speed_mode)})",
             "highspeed_ratio": self._highspeed_ratio or "-",
+            "initialized": "-" if self._last_status is None else ("yes" if self._last_status.initialized else "NO"),
         }
 
     def _get_preferred_speed_mode(self, fallback: _SpeedMode) -> _SpeedMode:
@@ -266,11 +271,31 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         status = self._get_status()
         self._ensure_not_goto(status, "cannot change steps while GOTO is in progress")
         if status.running:
+            # §11, the one firmware defect found on this board: `:E` sent while the axis
+            # moves is *accepted* with `=` (the spec's `!2` never comes) and then clears
+            # the initialization flag asynchronously, 5 runs out of 5. The board offers no
+            # protection, so this host-side check is the whole of it.
             raise MotorStopRequire("cannot change steps while motor is moving")
         self._transact(_Command.SET_AXIS_POSITION, _Revu24.from_int((steps + self._POSITION_OFFSET) % self._steps_360))
         self._mount_position_cache = self.convert_steps_to_position(steps)
         self._mount_position_cache_updated = self._clock.monotonic()
+        self._recover_initialization_after_set_position()
         return True
+
+    def _recover_initialization_after_set_position(self) -> None:
+        # §11 requirements 3 and 4: after *any* `:E` re-read `:f1` and re-initialize if the
+        # flag went down — and do the re-read late, because the flag drops hundreds of
+        # milliseconds after the command was acknowledged. An immediate check would pass
+        # while the flag is still up and miss the very thing it is there to catch.
+        self._clock.sleep(self._INIT_FLAG_SETTLE_S)
+        if self._get_status().initialized:
+            return
+        self._logger.warning(
+            "Initialization flag went down after SET_AXIS_POSITION (RA_PROTOCOL.md §11), re-initializing the axis"
+        )
+        self._transact(_Command.INITIALIZE)
+        if not self._get_status().initialized:
+            raise SkyWatcherMotorProtocolError("axis stays uninitialized after re-sending INITIALIZE")
 
     def set_speed(self, steps_per_second: int) -> int:
         status = self._get_status()

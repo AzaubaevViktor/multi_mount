@@ -31,6 +31,14 @@ class MotorStatus:
     target: int | None
     microsteps: int | None
     power_v: float | None = None
+    initialized: bool | None = None
+    """Board-reported "initialization done" flag, or None if the board has no such flag.
+
+    On the SkyWatcher RA board it is not decoration: `:E` sent while the axis moves is
+    accepted with `=` and clears this flag a few hundred milliseconds later
+    (RA_PROTOCOL.md §11), and the same flag is one of the three signs of a controller
+    reboot (§12.2). A driver that parses it and never reports it cannot detect either.
+    """
 
 
 class MotorStopRequire(Exception):
