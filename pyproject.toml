@@ -155,8 +155,8 @@ ignore = [
 # pasted back into it. So Cyrillic sits next to ASCII command names in the same
 # string, and RUF001/RUF003 fire on the homoglyphs (`у`, `с`, `×`). That mixture
 # is the point of these files, not a confusable-character attack.
-"src/ra_conformance/*.py" = ["RUF001", "RUF003"]
-"src/tests/units/test_ra_conformance.py" = ["RUF001", "RUF003"]
+"src/ra_conformance/*.py" = ["RUF001", "RUF002", "RUF003"]
+"src/tests/units/test_ra_conformance.py" = ["RUF001", "RUF002", "RUF003"]
 "src/tests/hw/test_ra_conformance_hw.py" = ["RUF001", "RUF002", "RUF003"]
 "src/tools/ra_conformance.py" = ["RUF001", "RUF002", "RUF003"]
 

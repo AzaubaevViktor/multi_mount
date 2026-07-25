@@ -83,6 +83,8 @@ class Wire(Protocol):
 
     def pause(self, seconds: float) -> None: ...
 
+    def now(self) -> float: ...
+
 
 class SerialWire:
     """A wire over any :class:`Line`. Used as-is for the simulator.
@@ -103,6 +105,9 @@ class SerialWire:
 
     def pause(self, seconds: float) -> None:
         self._clock.sleep(seconds)
+
+    def now(self) -> float:
+        return self._clock.monotonic()
 
     def _guard(self, payload: bytes | None, safety: Safety) -> None:
         """No restrictions against a simulator: the point of it is to be safe."""
@@ -206,12 +211,22 @@ def run_case(wire: Wire, case: Case) -> CaseResult:
             if isinstance(step, Pause):
                 wire.pause(step.seconds)
                 continue
+            started_at = wire.now()
             actual = wire.exchange(step.send, case.safety, step.timeout_s)
+            elapsed = wire.now() - started_at
             ok = step.expect.match(actual)
-            steps.append(StepResult(step.send, step.expect.text, actual, ok))
+            steps.append(StepResult(step.send, step.expect.text, actual, ok, elapsed))
             if not ok:
                 status = Status.MISMATCH
                 detail = f"шаг {len(steps)}: ожидалось {step.expect.text}, получено {render_bytes(actual)}"
+                break
+            if case.timing_s is not None and not case.timing_s[0] <= elapsed <= case.timing_s[1]:
+                status = Status.MISMATCH
+                detail = (
+                    f"шаг {len(steps)}: ответ за {elapsed * 1000:.2f} мс, "
+                    f"а §9 обещает {case.timing_s[0] * 1000:.1f}..{case.timing_s[1] * 1000:.1f} мс"
+                )
+                steps[-1] = dataclasses.replace(steps[-1], ok=False)
                 break
         else:
             if case.check is not None:

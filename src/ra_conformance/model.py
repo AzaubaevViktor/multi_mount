@@ -117,6 +117,11 @@ class Case:
     steps: tuple[Step, ...]
     note: str = ""
     check: Check | None = None
+    # Bounds, in seconds, that every exchange of the case must answer within.
+    # §9 is the one part of the protocol document that is not about bytes: the
+    # board's own processing time is ~1 ms and never longer than a few, and §12.3
+    # leans on exactly that to tell a rebooted board from a dead link.
+    timing_s: tuple[float, float] | None = None
     # Sent after the case whatever happened to it, replies ignored: this is what
     # returns the board to the power-on state, and for a motion case it is also
     # the guaranteed stop.
@@ -140,6 +145,7 @@ class StepResult:
     expected: str
     actual: bytes
     ok: bool
+    elapsed_s: float = 0.0
 
 
 @dataclasses.dataclass(frozen=True)

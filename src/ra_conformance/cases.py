@@ -393,6 +393,72 @@ def _window_cases() -> list[Case]:
     ]
 
 
+def _window_sweep_case() -> Case:
+    """§6.8: the whole window 0x00–0x3F holds exactly four non-zero bytes."""
+    steps: list[Step] = []
+    for address in range(0x40):
+        steps.append(Exchange(b":C1%02X00\r" % address, exact(b"=\r")))
+        steps.append(Exchange(b":n1\r", matching(_HEX_BYTE, "один байт")))
+
+    def check(replies: tuple[bytes, ...]) -> str | None:
+        nonzero = {index // 2 for index, reply in enumerate(replies) if index % 2 == 1 and reply[1:3] != b"00"}
+        expected = {0x04, 0x05, 0x1C, 0x1D}
+        if nonzero != expected:
+            return (
+                "ненулевые адреса окна "
+                + ", ".join(f"0x{address:02X}" for address in sorted(nonzero))
+                + ", а §6.8 нашёл ровно 0x04, 0x05, 0x1C, 0x1D"
+            )
+        return None
+
+    return Case(
+        name="window_sweep_0x00_0x3F",
+        section="§6.8, §6.2",
+        safety=Safety.WRITE,
+        steps=tuple(steps),
+        note="сплошной обход окна: живые только два напряжения, остальное нули",
+        check=check,
+        teardown=(b":C10000\r",),
+    )
+
+
+def _extended_inquire_sweep_case() -> Case:
+    """§5: of the low-byte IDs only 1..5 answer, everything else is `!0`."""
+    steps: tuple[Step, ...] = tuple(
+        Exchange(b":q1%02X0000\r" % identifier, exact(b"!0\r")) for identifier in range(0x06, 0x20)
+    )
+    return Case(
+        name="extended_inquire_sweep_06_1F",
+        section="§5",
+        safety=Safety.READ,
+        steps=steps,
+        note="перебор младшего байта ID выше 5: ни один не отвечает",
+    )
+
+
+def _timing_case() -> Case:
+    """§9: the board's own processing time, the discriminator of §12.3.
+
+    The lower bound is the load-bearing one. A reply that arrives in no time at
+    all is not a serial board answering — it is a model of one, and §12.3 says
+    the *only* way to tell a rebooted board from a dead link is how long the
+    answer took. The simulator does not model this at all: see the note in
+    ``src/tests/units/test_ra_conformance.py``.
+    """
+    steps: list[Step] = []
+    for _ in range(5):
+        steps.append(Exchange(b":f1\r", one_of(b"=100\r", b"=101\r")))
+        steps.append(Exchange(b":j1\r", exact(b"=000080\r")))
+    return Case(
+        name="reply_time_is_milliseconds_not_zero",
+        section="§9, §12.3",
+        safety=Safety.READ,
+        steps=tuple(steps),
+        note="собственное время обработки платы ≈1.0–1.2 мс; замеры §9 дали 1.8–4.7 мс на команду",
+        timing_s=(0.001, 0.020),
+    )
+
+
 # --------------------------------------------------------------------------- #
 # §10.5 — the board clamps the step period at 100x sidereal, whatever is written
 # --------------------------------------------------------------------------- #
@@ -872,8 +938,11 @@ def build_cases() -> tuple[Case, ...]:
     cases.append(_brake_point_case())
     cases.append(_drifting_extended_id_case())
     cases.append(_unused_letters_case())
+    cases.append(_extended_inquire_sweep_case())
+    cases.append(_timing_case())
     cases.extend(_framing_cases())
     cases.extend(_window_cases())
+    cases.append(_window_sweep_case())
     cases.extend(_clamp_cases())
     cases.extend(_status_bits_cases())
     cases.extend(_motion_cases())
