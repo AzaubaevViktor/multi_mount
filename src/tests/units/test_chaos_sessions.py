@@ -41,6 +41,7 @@ from skywatcher.codec import Command, SkyWatcherCodec
 from skywatcher.motor import SkyWatcherMotor, SkyWatcherMotorError
 from skywatcher.session import SkyWatcherSession
 from tmc2209.motor import TMC2209Motor, TMC2209MotorError
+from tmc2209.protocol import Op
 
 _RA_CPR = 8_000_000
 _RA_TIMER_FREQ = 64935
@@ -809,3 +810,51 @@ def test_dec_only_raises_its_own_error_types() -> None:
         chaos = Chaos(seed=seed, profile=_LOSSY)
         guard = _dec_session(chaos)
         assert not guard.leaked, f"seed={seed}: {guard.leaked}"
+
+
+def test_dec_delta_is_not_re_sent_when_its_answer_is_lost() -> None:
+    """INV5 on the other axis: `delta` latches a target too, and is not repeated.
+
+    The DEC firmware computes ``target = round(position) + delta`` at the moment
+    it *receives* the command (`sim/tmc_sim.py`, `Op.DELTA`), exactly as the RA
+    board does for `:J1`. So the DEC protocol has a non-idempotent command of its
+    own -- and no machinery like the RA session's `_NON_IDEMPOTENT`.
+
+    It does not need one, and this test is what says so out loud: the two drivers
+    retry *opposite* classes of failure. The RA session repeats a command whose
+    answer was unusable (a protocol error) and refuses to repeat the board's own
+    "no"; the DEC driver repeats the controller's explicit ``error=`` reply --
+    which proves the command did not take effect -- and never repeats a command
+    whose answer was lost or damaged. A lost answer to `delta` therefore reaches
+    the caller as an error, with the target latched exactly once.
+
+    Widening the DEC retry to protocol errors would silently import the RA defect
+    onto this axis, so this test guards a boundary that is easy to cross by
+    accident while "unifying the two drivers".
+    """
+    clock = Clock()
+    sim = TMC2209Sim(clock)
+    line = SimSerialLine(sim, clock, port="sim://dec", timeout_s=0, name="chaos-dec", terminator="\n")
+    motor = TMC2209Motor(line, clock)
+    motor.connect()
+
+    applied_ops: list[int] = []
+    original_apply = sim._apply
+
+    def _counting_apply(op, arg):
+        applied_ops.append(op)
+        return original_apply(op, arg)
+
+    sim._apply = _counting_apply  # type: ignore[method-assign]
+
+    sim.position = 1000.0
+    # The controller acts on the command; only its answer never leaves the board.
+    # Scripted on `delta` alone: `set_delta` reads the status first, and a
+    # controller that is mute to everything would never reach the command at all.
+    sim.faults.push(FaultKind.EMPTY, command="delta")
+
+    with pytest.raises(TMC2209MotorError):
+        motor.set_delta(500)
+
+    assert applied_ops.count(Op.DELTA) == 1, "a command that re-latches the target was sent more than once"
+    assert sim.target == 1500
