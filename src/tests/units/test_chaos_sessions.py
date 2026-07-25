@@ -225,24 +225,17 @@ def _ra_session(chaos: Chaos) -> _Guard:
 
         guard.call("goto", lambda: motor.set_delta(delta_steps))
         goto_set = guard.last_ok
-        trace_mark = len(chaos.trace)
         guard.call("goto_run", motor.run)
         clock.advance(60)
         _settle(sim, b":f1\r")
 
-        # How many START_MOTION commands actually reached the board: a lost answer
-        # makes the driver re-send one, and the board then re-arms the GOTO from
-        # wherever it is by now (see the xfail'ed defect at the bottom).
-        starts = sum(1 for kind, payload in chaos.trace[trace_mark:] if kind == "write" and payload == b":J1\r")
-
         if goto_set and guard.last_ok and was_resting and not sim.running:
-            # INV5: a GOTO accepted end to end lands on the requested target —
-            # no undershoot from a half-applied increment.
+            # INV5: a GOTO accepted end to end lands on the requested target — no
+            # undershoot from a half-applied increment, and no overshoot from a
+            # `:J1` re-sent after its answer was lost (the board would re-arm the
+            # increment from wherever the axis is by then).
             travelled = sim.position - started_at
-            if starts <= 1:
-                guard.check(abs(travelled - delta_steps) <= 2, f"GOTO travelled {travelled:.0f} steps, was asked for {delta_steps}")
-            else:
-                guard.check(travelled >= delta_steps - 2, f"GOTO travelled {travelled:.0f} steps, less than the {delta_steps} asked for")
+            guard.check(abs(travelled - delta_steps) <= 2, f"GOTO travelled {travelled:.0f} steps, was asked for {delta_steps}")
             status = guard.call("status_after_goto", motor.status)
             if guard.last_ok:
                 guard.check(
@@ -499,6 +492,118 @@ def test_ra_truncated_position_is_rejected_instead_of_zero_extended() -> None:
 
 
 # ---------------------------------------------------------------------------
+# `:J1` is the one command that must not be repeated blindly. The driver may
+# only re-send it after establishing that the board did *not* execute it, and
+# each of the three tests below is the sole witness of one half of that
+# reasoning — the running flag, the distance travelled, and the freshness of the
+# position it is measured against.
+# ---------------------------------------------------------------------------
+
+
+def _ra_start_motion_rig(drop_first_start: bool = False) -> tuple[Clock, SkyWatcherSim, SkyWatcherMotor, list[bytes]]:
+    """A connected RA motor plus the log of every ``:J1`` that reached the board.
+
+    ``drop_first_start`` eats the first start on the way *to* the board, which is
+    the other half of the pair: with ``FaultKind.EMPTY`` the board runs and only
+    its ``=`` is lost, here the board never hears the command at all. The driver
+    cannot tell the two apart from the silence alone, and it has to get both right.
+    """
+    clock = Clock()
+    sim = SkyWatcherSim(clock, cpr=_RA_CPR, timer_freq=_RA_TIMER_FREQ, highspeed_ratio=_RA_HIGHSPEED_RATIO)
+    starts: list[bytes] = []
+    to_drop = [b":J1\r"] if drop_first_start else []
+
+    def watch_starts(data: bytes) -> bytes:
+        if data != b":J1\r":
+            return data
+        if to_drop:
+            to_drop.pop()
+            return b""
+        starts.append(data)
+        return data
+
+    line = SimSerialLine(
+        sim, clock, transport=Transport(on_write=watch_starts), port="sim://ra", timeout_s=0, name="chaos-ra", terminator="\r"
+    )
+    motor = SkyWatcherMotor(line, clock)
+    motor.connect()
+    return clock, sim, motor, starts
+
+
+def test_ra_start_motion_is_not_re_sent_while_the_axis_is_running() -> None:
+    """The running flag: the axis is moving, but too slowly to prove it by position.
+
+    A GOTO slowed down to 2 steps/s covers a single step during the half second
+    the driver spends draining the line, i.e. less than the noise floor of the
+    position comparison. Only ``:f1`` can tell that the board is already running,
+    and if the driver misses that it re-arms the increment from wherever the axis
+    is — which at this speed is not visible in the final position either, so the
+    number of starts that reached the board is what the invariant is about.
+    """
+    clock, sim, motor, starts = _ra_start_motion_rig()
+    delta_steps = motor.convert_position_to_steps(Ha(60))
+    motor.set_delta(delta_steps)
+    motor.set_speed(2)
+    started_at = sim.position
+    sim.faults.push(FaultKind.EMPTY, command="J")
+
+    assert motor.run() is True
+
+    assert starts == [b":J1\r"], "the board was told to start a second time while it was already running"
+    clock.advance(delta_steps)  # 2 steps/s, so a second per two steps
+    _settle(sim, b":f1\r")
+    assert sim.position - started_at == pytest.approx(delta_steps, abs=2)
+
+
+def test_ra_start_motion_is_not_re_sent_after_a_goto_that_already_finished() -> None:
+    """The distance travelled: the run is over before the driver gets to ask.
+
+    A GOTO of half a minute of hour angle takes a quarter of a second, and the
+    retry handler drains the line for half a second before it looks. ``:f1`` then
+    says "stopped, tracking" — exactly what it says about a start that never
+    happened. The distance is the only difference, and without it the driver
+    re-runs the whole move.
+    """
+    clock, sim, motor, starts = _ra_start_motion_rig()
+    delta_steps = motor.convert_position_to_steps(Ha(30))
+    motor.set_delta(delta_steps)
+    started_at = sim.position
+    sim.faults.push(FaultKind.EMPTY, command="J")
+
+    assert motor.run() is True
+
+    assert starts == [b":J1\r"], "a finished GOTO was mistaken for a start that never happened"
+    clock.advance(60)
+    _settle(sim, b":f1\r")
+    assert sim.position - started_at == pytest.approx(delta_steps, abs=2)
+
+
+def test_ra_start_motion_that_never_reached_the_board_is_re_sent() -> None:
+    """The freshness: a 0.25s-old position cache is not evidence about the board.
+
+    The command is lost on the way out, so the axis stands still and the driver
+    must send it again. What can make it believe otherwise is its own position
+    cache: `status()` fills it, and the board may move — or, after the brownout
+    reboot of §12, jump — between that fill and the start. Comparing the fresh
+    reading against a cached one then shows a shift that this command never
+    caused, and the GOTO is dropped on the floor while `run()` reports success.
+    """
+    clock, sim, motor, starts = _ra_start_motion_rig(drop_first_start=True)
+    delta_steps = motor.convert_position_to_steps(Ha(1800))
+    motor.set_delta(delta_steps)
+    motor.status()  # fills the 0.25s position cache
+    sim.position += 100_000
+    started_at = sim.position
+
+    assert motor.run() is True
+
+    assert starts == [b":J1\r"], "the lost start was never re-sent, so the axis stayed put"
+    clock.advance(60)
+    _settle(sim, b":f1\r")
+    assert sim.position - started_at == pytest.approx(delta_steps, abs=2)
+
+
+# ---------------------------------------------------------------------------
 # Fuzz: many seeds, invariants only, failing seed printed
 # ---------------------------------------------------------------------------
 
@@ -600,15 +705,15 @@ def test_dec_never_reports_a_speed_the_controller_never_applied() -> None:
             assert abs(sim.speed_sps - applied) <= 1, f"seed={seed}: set_speed reported {applied}, controller runs at {sim.speed_sps}"
 
 
-@pytest.mark.xfail(strict=True, reason="DEFECT: a retried START_MOTION re-arms the GOTO from the current position, so the axis overshoots by whatever it travelled during the retry")
 def test_ra_retried_start_motion_does_not_extend_the_goto_target() -> None:
-    """The one command in this protocol that is not safe to repeat.
+    """INV5 (was a defect until ``_NON_IDEMPOTENT``): ``:J1`` is not re-sent blindly.
 
     ``_transact`` re-sends after any unusable answer, which is right for the
     queries and the set-value commands but not for ``:J1``: the board latches
     ``position + increment`` when it starts, so a resend two tenths of a second
-    later moves the target that far ahead. Losing just the answer to ``:J1`` is
+    later moved the target that far ahead. Losing just the answer to ``:J1`` is
     enough — no chaos profile needed, a single scripted empty reply reproduces it.
+    The driver now confirms the start with ``:f1`` and the position instead.
     """
     clock = Clock()
     sim = SkyWatcherSim(clock, cpr=_RA_CPR)

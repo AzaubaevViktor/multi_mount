@@ -628,14 +628,34 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._last_status = _Status.from_bytes(self._transact(_Command.INQUIRE_STATUS).encode("ascii"))
         return self._last_status
 
-    def _get_position(self) -> Ha:
+    def _get_position(self, fresh: bool = False) -> Ha:
         self._ensure_geometry_ready()
-        if self._clock.monotonic() - self._mount_position_cache_updated <= 0.25:
+        if not fresh and self._clock.monotonic() - self._mount_position_cache_updated <= 0.25:
             return self._mount_position_cache
         ticks = (_Revu24.from_mount(self._transact(_Command.INQUIRE_POSITION)) - self._POSITION_OFFSET) % self._steps_360
         self._mount_position_cache = self.convert_steps_to_position(ticks).wrap()
         self._mount_position_cache_updated = self._clock.monotonic()
         return self._mount_position_cache
+
+    def _position_steps(self, fresh: bool = False) -> int:
+        return self.convert_position_to_steps(self._get_position(fresh=fresh)) % self._steps_360
+
+    def _steps_distance(self, one: int, other: int) -> int:
+        return min((one - other) % self._steps_360, (other - one) % self._steps_360)
+
+    def _motion_started(self, position_before: int) -> bool:
+        """Did the axis really start, or was only the acknowledgement lost?
+
+        Both questions asked here are queries, so asking them costs nothing but time
+        even if the guess is wrong. The Running bit answers most of the cases; the
+        position answers the rest, because a GOTO short enough to finish inside one
+        retry window (the drain alone is half a second) is over by the time this runs
+        and reports itself as stopped — indistinguishable from never having started
+        except by the distance travelled.
+        """
+        if self._get_status().running:
+            return True
+        return self._steps_distance(self._position_steps(fresh=True), position_before) > self._MOTION_CONFIRM_STEPS
 
     def _set_motion(self, target: _MotionStatus, current: _Status) -> None:
         if current.running and (
@@ -697,12 +717,30 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
             )
 
     REPEATS = 3
+    # The one command in this protocol that is not safe to repeat. The board latches
+    # `position + increment` at the moment it *receives* `:J1` (§7), so a resend a
+    # couple of tenths of a second later does not repeat the start — it re-arms the
+    # GOTO from wherever the axis has crawled to meanwhile, and the axis overshoots by
+    # exactly the distance it covered during the retry. Everything else this driver
+    # sends is a query or a set-value command, i.e. free to repeat, so "may be
+    # repeated" is a property of the command and lives here rather than as a special
+    # case in `run()`: the next non-idempotent command joins this set and inherits the
+    # whole handling.
+    _NON_IDEMPOTENT = frozenset({_Command.START_MOTION})
+    # Below this the axis has not started: the position answers of two reads taken
+    # around one round trip may legitimately differ by a step of rounding.
+    _MOTION_CONFIRM_STEPS = 2
+
     def _transact(self, command: _Command, arg: str | None = None) -> str:
         # Every command this board understands has the same frame: `:<cmd><channel><data>\r`,
         # answered with `=<data>\r` or `!<code>\r`. There is no second framing (§8: only `\r`
         # terminates anything), so there is no second branch here either.
         payload = f"{Protocol.COMMAND_PREFIX}{command.value}{_Axis.RA}{arg or ''}{Protocol.COMMAND_TERMINATOR}"
         response_prefixes = (Protocol.RESPONSE_PREFIX_BYTE, Protocol.COMMAND_ERROR_PREFIX_BYTE)
+        # Where the axis stood before the first attempt is the only evidence there will
+        # be afterwards, and it has to be read *fresh*: a cached position from before
+        # the axis stopped would look like movement caused by this very command.
+        position_before = self._position_steps(fresh=True) if command in self._NON_IDEMPOTENT else None
 
         count = self.REPEATS
         response = None
@@ -732,6 +770,17 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
                 if data:
                     self._logger.info("Discarding %d leftover byte-groups after a protocol error: %s", len(data), data)
                 self._serial.drop_buffers()
+                # The line has had the same recovery an ordinary retry gives it; only then
+                # is the board asked what happened. A command that must not be repeated is
+                # repeated only after the board has been shown *not* to have executed it —
+                # silence alone does not distinguish "never arrived" from "answered, and
+                # the answer was eaten".
+                if position_before is not None and self._motion_started(position_before):
+                    self._logger.info(
+                        "%s reached the board and only its answer was lost, not re-sending it", command.name
+                    )
+                    # `:J1` is acknowledged with a bare `=`: there is no body to restore.
+                    return ""
                 count -= 1
                 if count == 0:
                     raise
