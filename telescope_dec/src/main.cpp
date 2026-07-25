@@ -967,6 +967,152 @@ static void updateMotionStateV2() {
 
 }
 
+// ---------- TMC2209 link diagnostics ----------
+// The chip answers nothing at either plausible address (DEC_PROTOCOL.md §12.8), and
+// with the board sealed the remaining suspects are all on this side of the wire. This
+// command interrogates them without a screwdriver.
+//
+// Three numbers per baud rate, and it is the *first* that is new:
+//
+//   raw   bytes seen on the RX pin after a hand-built read datagram is sent. The link
+//         is single-wire: TX reaches PDN_UART through a resistor and RX sits on the
+//         same node, so the MCU always hears its own 4 bytes back if the two pins are
+//         connected at all. 0 = RX hears nothing, ever. 4 = only the echo, i.e. the
+//         wiring is fine and the *chip* is silent. 12 = echo plus an 8-byte reply.
+//         No other probe here separates "dead wire" from "dead chip".
+//   ver   TMCStepper's VERSION field, 0x21 on a healthy TMC2209.
+//   ifcnt how much the chip's own write counter moved across one harmless write. It
+//         is the only proof of a *write* that does not involve turning the shaft and
+//         asking a human to count revolutions.
+static const uint32_t TMC_SCAN_BAUDS[] PROGMEM = {4800, 9600, 19200, 38400, 57600, 115200};
+static const uint8_t TMC_SCAN_COUNT = 6;
+
+// CRC-8 of the TMC UART datagram (poly 0x07, LSB first) — the datasheet's
+// swuart_calcCRC. Written out here because TMCStepper keeps its copy protected.
+static uint8_t tmcCrc8V2(const uint8_t* data, uint8_t len) {
+  uint8_t crc = 0;
+  for (uint8_t i = 0; i < len; i++) {
+    uint8_t current = data[i];
+    for (uint8_t j = 0; j < 8; j++) {
+      if ((crc >> 7) ^ (current & 0x01)) crc = (uint8_t)((crc << 1) ^ 0x07);
+      else crc = (uint8_t)(crc << 1);
+      current = (uint8_t)(current >> 1);
+    }
+  }
+  return crc;
+}
+
+// Send one read request by hand and count whatever comes back, without letting
+// TMCStepper consume it. Deliberately does not check the answer: the count alone
+// is the wiring diagnosis.
+static uint8_t tmcRawProbeV2(uint32_t baud) {
+  TMCSerial.end();
+  TMCSerial.begin(baud);
+  delay(2);
+  while (TMCSerial.available()) TMCSerial.read();
+
+  uint8_t datagram[4] = {0x05, DRIVER_ADDRESS, 0x06 | 0x00, 0x00};  // 0x06 = IOIN, read
+  datagram[3] = tmcCrc8V2(datagram, 3);
+  for (uint8_t i = 0; i < 4; i++) TMCSerial.write(datagram[i]);
+
+  // Long enough for 12 bytes even at 4800 baud (25 ms) plus the chip's turnaround.
+  const uint32_t deadline = millis() + 40;
+  uint8_t count = 0;
+  while ((int32_t)(millis() - deadline) < 0) {
+    if (TMCSerial.available()) {
+      TMCSerial.read();
+      if (count < 255) count++;
+    }
+  }
+  return count;
+}
+
+static void tmcScanV2() {
+  respondStartV2(true);
+  for (uint8_t i = 0; i < TMC_SCAN_COUNT; i++) {
+    const uint32_t baud = pgm_read_dword(&TMC_SCAN_BAUDS[i]);
+    const uint8_t raw = tmcRawProbeV2(baud);
+
+    // The first datagram after a speed change is the one the chip measures its
+    // baud from, so its answer is not trusted; ask again for the reported value.
+    driver.IOIN();
+    const uint8_t ver = driver.version();
+    const uint8_t before = driver.IFCNT();
+    driver.TPOWERDOWN(20);
+    const uint8_t delta = (uint8_t)(driver.IFCNT() - before);
+
+    outAppendCharV2('b');
+    outAppendNumU32V2(baud);
+    outAppendCharV2('=');
+    outAppendNumU32V2(raw);
+    outAppendCharV2('/');
+    outAppendNumU32V2(ver);
+    outAppendCharV2('/');
+    outAppendNumU32V2(delta);
+    outAppendCharV2(';');
+  }
+  TMCSerial.end();
+  TMCSerial.begin(TMC_BAUD);
+  respondEndV2();
+}
+
+// Continuity between the two UART pins, measured as plain DC and without going
+// through AltSoftSerial at all. `tmc_scan` says nothing ever comes back on RX, and
+// that has two very different causes — a wire that is not there, or a library that
+// never transmitted. Driving one pin and reading the other tells them apart, because
+// it uses neither the library nor the chip.
+//
+// The two pads on the driver module join at its single PDN_UART node (one of them
+// through the module's series resistor), so on a correctly wired board pin 8 must
+// follow pin 8's neighbour: drive pin 9 low and pin 8 goes low, through 1k against a
+// ~40k internal pull-up. If pin 8 stays high no matter what pin 9 does, the two pins
+// share no copper and no amount of firmware will fix it.
+static void tmcWireV2() {
+  TMCSerial.end();
+
+  pinMode(TMC_TX_PIN, OUTPUT);
+  pinMode(TMC_RX_PIN, INPUT_PULLUP);
+  digitalWrite(TMC_TX_PIN, HIGH);
+  delay(2);
+  const uint8_t rxAtTx1 = (uint8_t)digitalRead(TMC_RX_PIN);
+  digitalWrite(TMC_TX_PIN, LOW);
+  delay(2);
+  const uint8_t rxAtTx0 = (uint8_t)digitalRead(TMC_RX_PIN);
+  digitalWrite(TMC_TX_PIN, HIGH);
+  delay(2);
+
+  // The mirror direction, in case exactly one of the two wires is off.
+  pinMode(TMC_RX_PIN, OUTPUT);
+  pinMode(TMC_TX_PIN, INPUT_PULLUP);
+  digitalWrite(TMC_RX_PIN, HIGH);
+  delay(2);
+  const uint8_t txAtRx1 = (uint8_t)digitalRead(TMC_TX_PIN);
+  digitalWrite(TMC_RX_PIN, LOW);
+  delay(2);
+  const uint8_t txAtRx0 = (uint8_t)digitalRead(TMC_TX_PIN);
+
+  // Both released: an idle UART line is held high by the chip, so a floating read
+  // that comes back low says nothing is holding it at all.
+  pinMode(TMC_RX_PIN, INPUT);
+  pinMode(TMC_TX_PIN, INPUT);
+  delay(5);
+  const uint8_t rxHiZ = (uint8_t)digitalRead(TMC_RX_PIN);
+  const uint8_t txHiZ = (uint8_t)digitalRead(TMC_TX_PIN);
+
+  respondStartV2(true);
+  respondKeyValueU32V2("rx_hi", rxAtTx1);
+  respondKeyValueU32V2("rx_lo", rxAtTx0);
+  respondKeyValueU32V2("tx_hi", txAtRx1);
+  respondKeyValueU32V2("tx_lo", txAtRx0);
+  respondKeyValueU32V2("rx_z", rxHiZ);
+  respondKeyValueU32V2("tx_z", txHiZ);
+  // The one line that reads as a verdict: connected means RX followed TX down.
+  respondKeyValueBoolV2("linked", rxAtTx1 == 1 && rxAtTx0 == 0);
+  respondEndV2();
+
+  TMCSerial.begin(TMC_BAUD);
+}
+
 static void handleLineV2(char* s) {
   while (*s == ' ' || *s == '\t') s++;
   if (!*s) return;
@@ -989,6 +1135,16 @@ static void handleLineV2(char* s) {
     respondKeyValueFloatV2("power_v", ledStateV2.supplyVoltageV, 2);
     respondKeyValueU32V2("tx_overflow", txOverflowCountV2);
     respondEndV2();
+    return;
+  }
+
+  if (!strcmp(cmd, "tmc_scan")) {
+    tmcScanV2();
+    return;
+  }
+
+  if (!strcmp(cmd, "tmc_wire")) {
+    tmcWireV2();
     return;
   }
 
