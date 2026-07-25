@@ -1127,32 +1127,49 @@ def phase_gotoarrive(board: Board, out: list[dict[str, Any]]) -> None:
     row["outcome"] = outcome
     row["elapsed_s"] = round(board.now() - started, 3)
     row["profile"] = profile
-    board.pause(0.5)
-    if not silent:
-        volts.append(_voltage_row(board, board.now() - started, "just_after"))
-    board.pause(2.0)
-    row["position_after"] = board.position()
-    row["travelled"] = _signed((row["position_after"] - start_position) % 0x1000000)
-    row["target_after"] = board.target()
-    row["period_after"] = board.period()
-    row["status_after"] = board.status().as_dict()
-    volts.append(_voltage_row(board, board.now() - started, "after"))
     row["voltages"] = volts
-    # Nothing in this phase sends `:E`, so on this board a cleared flag can only
-    # be a restart (§12 of step 2).
-    row["survived"] = bool(row["status_after"]["init"]) and not silent
-    row["undershoot"] = _ARRIVE_STEPS - abs(row["travelled"])
+    # The row goes into the results **before** the after-the-fact reads, and the
+    # reads are allowed to fail: the run of 2026-07-25 19:29 lost its whole
+    # profile because the board stopped answering and the tidy-up raised on the
+    # way out. A phase whose only job is to record an event may not lose the
+    # record of it.
     out.append(row)
-    LOGGER.critical(
-        "прибытие: прошло %+d из %d (недобор %+d) за %.2f с, статус %s, цель %s, период %s — %s",
-        row["travelled"], _ARRIVE_STEPS, row["undershoot"], row["elapsed_s"],
-        row["status_after"]["raw"],
-        "цела" if row["target_after"] == row["target"] else "сброшена",
-        row["period_after"],
-        "ПЛАТА ЖИВА" if row["survived"] else "ПЕРЕЗАГРУЗКА",
-    )
-    _say("Плата жива." if row["survived"] else "Перезагрузка. Как и ожидалось.")
-    out.append(_snapshot(board, "after_arrival_run"))
+    try:
+        board.pause(0.5)
+        if not silent:
+            volts.append(_voltage_row(board, board.now() - started, "just_after"))
+        # Long enough for the `:C`/`:n` window to stop lying, if the board did
+        # restart: it comes back with zeros (and once with 4.83 V on a channel
+        # that has batteries reading 6.03) for about a second (§19).
+        board.pause(2.0)
+        row["position_after"] = board.position()
+        row["travelled"] = _signed((row["position_after"] - start_position) % 0x1000000)
+        row["target_after"] = board.target()
+        row["period_after"] = board.period()
+        row["status_after"] = board.status().as_dict()
+        volts.append(_voltage_row(board, board.now() - started, "after"))
+        # Nothing in this phase sends `:E`, so on this board a cleared flag can
+        # only be a restart (§12 of step 2). Note that this is **not** the same
+        # question as "did the line stay up": run C of §23 went silent for 15 s
+        # in the last 700 counts and still arrived with the flag, the target and
+        # the mode intact — a lost line is not a lost controller.
+        row["survived"] = bool(row["status_after"]["init"])
+        row["undershoot"] = _ARRIVE_STEPS - abs(row["travelled"])
+        LOGGER.critical(
+            "прибытие: прошло %+d из %d (недобор %+d) за %.2f с, статус %s, цель %s, период %s — %s%s",
+            row["travelled"], _ARRIVE_STEPS, row["undershoot"], row["elapsed_s"],
+            row["status_after"]["raw"],
+            "цела" if row["target_after"] == row["target"] else "сброшена",
+            row["period_after"],
+            "ПЛАТА ЖИВА" if row["survived"] else "ПЕРЕЗАГРУЗКА",
+            " (но линия молчала)" if silent else "",
+        )
+        _say("Плата жива." if row["survived"] else "Перезагрузка.")
+        out.append(_snapshot(board, "after_arrival_run"))
+    except BoardSatDown as error:
+        row["after_error"] = str(error)
+        LOGGER.critical("плата не отвечает и после хода: %s", error)
+        _say("Плата не отвечает и после хода.")
 
 
 PHASES = {
