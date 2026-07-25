@@ -1,0 +1,2191 @@
+00000000001d0ff8 <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)>:
+  1d0ff8: d10303ff     	sub	sp, sp, #0xc0
+  1d0ffc: a9077bfd     	stp	x29, x30, [sp, #0x70]
+  1d1000: f90043f9     	str	x25, [sp, #0x80]
+  1d1004: a9095ff8     	stp	x24, x23, [sp, #0x90]
+  1d1008: a90a57f6     	stp	x22, x21, [sp, #0xa0]
+  1d100c: a90b4ff4     	stp	x20, x19, [sp, #0xb0]
+  1d1010: 9101c3fd     	add	x29, sp, #0x70
+  1d1014: d53bd056     	mrs	x22, TPIDR_EL0
+  1d1018: aa0103f5     	mov	x21, x1
+  1d101c: aa1f03e1     	mov	x1, xzr
+  1d1020: f94016c8     	ldr	x8, [x22, #0x28]
+  1d1024: aa0003f3     	mov	x19, x0
+  1d1028: f81f83a8     	stur	x8, [x29, #-0x8]
+  1d102c: 9403c075     	bl	0x2c1200 <_ZN7QObjectC2EPS_@plt>  ;;; CALL QObject::QObject(QObject*)
+  1d1030: f0000828     	adrp	x8, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1d1034: aa1303f4     	mov	x20, x19
+  1d1038: f945bd08     	ldr	x8, [x8, #0xb78]
+  1d103c: 91004108     	add	x8, x8, #0x10
+  1d1040: f9000268     	str	x8, [x19]
+  1d1044: f94002a8     	ldr	x8, [x21]
+  1d1048: f8010e88     	str	x8, [x20, #0x10]!
+  1d104c: f94006a8     	ldr	x8, [x21, #0x8]
+  1d1050: f9000e68     	str	x8, [x19, #0x18]
+  1d1054: b4000088     	cbz	x8, 0x1d1064 <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x6c>
+  1d1058: 91002101     	add	x1, x8, #0x8
+  1d105c: 52800020     	mov	w0, #0x1                // =1
+  1d1060: 9403b0a4     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1d1064: f9400aa8     	ldr	x8, [x21, #0x10]
+  1d1068: f9001268     	str	x8, [x19, #0x20]
+  1d106c: f9400ea8     	ldr	x8, [x21, #0x18]
+  1d1070: f9001668     	str	x8, [x19, #0x28]
+  1d1074: b4000088     	cbz	x8, 0x1d1084 <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x8c>
+  1d1078: 91002101     	add	x1, x8, #0x8
+  1d107c: 52800020     	mov	w0, #0x1                // =1
+  1d1080: 9403b09c     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1d1084: f94012a8     	ldr	x8, [x21, #0x20]
+  1d1088: f9001a68     	str	x8, [x19, #0x30]
+  1d108c: f94016a8     	ldr	x8, [x21, #0x28]
+  1d1090: f9001e68     	str	x8, [x19, #0x38]
+  1d1094: b4000088     	cbz	x8, 0x1d10a4 <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0xac>
+  1d1098: 91002101     	add	x1, x8, #0x8
+  1d109c: 52800020     	mov	w0, #0x1                // =1
+  1d10a0: 9403b094     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1d10a4: f9401aa8     	ldr	x8, [x21, #0x30]
+  1d10a8: f9002268     	str	x8, [x19, #0x40]
+  1d10ac: f9401ea8     	ldr	x8, [x21, #0x38]
+  1d10b0: f9002668     	str	x8, [x19, #0x48]
+  1d10b4: b4000088     	cbz	x8, 0x1d10c4 <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0xcc>
+  1d10b8: 91002101     	add	x1, x8, #0x8
+  1d10bc: 52800020     	mov	w0, #0x1                // =1
+  1d10c0: 9403b08c     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1d10c4: f94022a8     	ldr	x8, [x21, #0x40]
+  1d10c8: f9002a68     	str	x8, [x19, #0x50]
+  1d10cc: f94026a8     	ldr	x8, [x21, #0x48]
+  1d10d0: f9002e68     	str	x8, [x19, #0x58]
+  1d10d4: b4000088     	cbz	x8, 0x1d10e4 <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0xec>
+  1d10d8: 91002101     	add	x1, x8, #0x8
+  1d10dc: 52800020     	mov	w0, #0x1                // =1
+  1d10e0: 9403b084     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1d10e4: d0fff7c1     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  1d10e8: 911e5c21     	add	x1, x1, #0x797
+  1d10ec: 9100c3e8     	add	x8, sp, #0x30
+  1d10f0: aa1f03e0     	mov	x0, xzr
+  1d10f4: 9403bff3     	bl	0x2c10c0 <_ZN7QString8fromUtf8E14QByteArrayView@plt>  ;;; CALL QString::fromUtf8(QByteArrayView)
+  1d10f8: 3dc00fe0     	ldr	q0, [sp, #0x30]
+  1d10fc: f94023e8     	ldr	x8, [sp, #0x40]
+  1d1100: b900627f     	str	wzr, [x19, #0x60]
+  1d1104: 9e660015     	fmov	x21, d0
+  1d1108: 3c868260     	stur	q0, [x19, #0x68]
+  1d110c: f9003e68     	str	x8, [x19, #0x78]
+  1d1110: b40001b5     	cbz	x21, 0x1d1144 <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x14c>
+  1d1114: 52800020     	mov	w0, #0x1                // =1
+  1d1118: aa1503e1     	mov	x1, x21
+  1d111c: 9403b069     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1d1120: 12800000     	mov	w0, #-0x1               // =-1
+  1d1124: aa1503e1     	mov	x1, x21
+  1d1128: 9403b066     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1d112c: 7100041f     	cmp	w0, #0x1
+  1d1130: 540000a1     	b.ne	0x1d1144 <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x14c>
+  1d1134: aa1503e0     	mov	x0, x21
+  1d1138: 52800041     	mov	w1, #0x2                // =2
+  1d113c: 52800102     	mov	w2, #0x8                // =8
+  1d1140: 9403bfe8     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1d1144: 6f00e400     	movi	v0.2d, #0000000000000000
+  1d1148: aa1303f7     	mov	x23, x19
+  1d114c: 3c880ee0     	str	q0, [x23, #0x80]!
+  1d1150: a97956f8     	ldp	x24, x21, [x23, #-0x70]
+  1d1154: 390102ff     	strb	wzr, [x23, #0x40]
+  1d1158: ad0102e0     	stp	q0, q0, [x23, #0x20]
+  1d115c: 3d8006e0     	str	q0, [x23, #0x10]
+  1d1160: a90257f8     	stp	x24, x21, [sp, #0x20]
+  1d1164: b4000095     	cbz	x21, 0x1d1174 <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x17c>
+  1d1168: 910022a1     	add	x1, x21, #0x8
+  1d116c: 52800020     	mov	w0, #0x1                // =1
+  1d1170: 9403b060     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1d1174: b4000678     	cbz	x24, 0x1d1240 <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x248>
+  1d1178: f0000828     	adrp	x8, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1d117c: 9100c3f9     	add	x25, sp, #0x30
+  1d1180: f945c108     	ldr	x8, [x8, #0xb80]
+  1d1184: f9002bf9     	str	x25, [sp, #0x50]
+  1d1188: 91004108     	add	x8, x8, #0x10
+  1d118c: a9034fe8     	stp	x8, x19, [sp, #0x30]
+  1d1190: 910043e8     	add	x8, sp, #0x10
+  1d1194: 91004300     	add	x0, x24, #0x10
+  1d1198: 9100c3e1     	add	x1, sp, #0x30
+  1d119c: 9403c499     	bl	0x2c2400 <_ZN7eventpp9internal_16CallbackListBaseIFvN2SW18IConnectableHelper6StatusEENS_15DefaultPoliciesEE6appendERKNSt6__ndk18functionIS5_EE@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (SW::IConnectableHelper::Status), eventpp::DefaultPolicies>::append(std::__ndk1::function<void (SW::IConnectableHelper::Status)> const&)
+  1d11a0: f9400fe0     	ldr	x0, [sp, #0x18]
+  1d11a4: b4000040     	cbz	x0, 0x1d11ac <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x1b4>
+  1d11a8: 9403bff6     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1d11ac: f9402be0     	ldr	x0, [sp, #0x50]
+  1d11b0: 9100c3e8     	add	x8, sp, #0x30
+  1d11b4: eb08001f     	cmp	x0, x8
+  1d11b8: 54000080     	b.eq	0x1d11c8 <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x1d0>
+  1d11bc: b4000100     	cbz	x0, 0x1d11dc <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x1e4>
+  1d11c0: 52800508     	mov	w8, #0x28               // =40
+  1d11c4: 14000003     	b	0x1d11d0 <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x1d8>
+  1d11c8: 52800408     	mov	w8, #0x20               // =32
+  1d11cc: 9100c3e0     	add	x0, sp, #0x30
+  1d11d0: f9400009     	ldr	x9, [x0]
+  1d11d4: f8686928     	ldr	x8, [x9, x8]
+  1d11d8: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1d11dc: f0000828     	adrp	x8, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1d11e0: 9100c3f9     	add	x25, sp, #0x30
+  1d11e4: f945c508     	ldr	x8, [x8, #0xb88]
+  1d11e8: f9002bf9     	str	x25, [sp, #0x50]
+  1d11ec: 91004108     	add	x8, x8, #0x10
+  1d11f0: a9034fe8     	stp	x8, x19, [sp, #0x30]
+  1d11f4: 910003e8     	mov	x8, sp
+  1d11f8: 91018300     	add	x0, x24, #0x60
+  1d11fc: 9100c3e1     	add	x1, sp, #0x30
+  1d1200: 9403c450     	bl	0x2c2340 <_ZN7eventpp9internal_16CallbackListBaseIFvvENS_15DefaultPoliciesEE6appendERKNSt6__ndk18functionIS2_EE@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (), eventpp::DefaultPolicies>::append(std::__ndk1::function<void ()> const&)
+  1d1204: f94007e0     	ldr	x0, [sp, #0x8]
+  1d1208: b4000040     	cbz	x0, 0x1d1210 <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x218>
+  1d120c: 9403bfdd     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1d1210: f9402be0     	ldr	x0, [sp, #0x50]
+  1d1214: 9100c3e8     	add	x8, sp, #0x30
+  1d1218: eb08001f     	cmp	x0, x8
+  1d121c: 54000080     	b.eq	0x1d122c <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x234>
+  1d1220: b4000100     	cbz	x0, 0x1d1240 <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x248>
+  1d1224: 52800508     	mov	w8, #0x28               // =40
+  1d1228: 14000003     	b	0x1d1234 <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x23c>
+  1d122c: 52800408     	mov	w8, #0x20               // =32
+  1d1230: 9100c3e0     	add	x0, sp, #0x30
+  1d1234: f9400009     	ldr	x9, [x0]
+  1d1238: f8686928     	ldr	x8, [x9, x8]
+  1d123c: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1d1240: b4000175     	cbz	x21, 0x1d126c <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x274>
+  1d1244: 910022a1     	add	x1, x21, #0x8
+  1d1248: 92800000     	mov	x0, #-0x1               // =-1
+  1d124c: 9403b035     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1d1250: b50000e0     	cbnz	x0, 0x1d126c <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x274>
+  1d1254: f94002a8     	ldr	x8, [x21]
+  1d1258: aa1503e0     	mov	x0, x21
+  1d125c: f9400908     	ldr	x8, [x8, #0x10]
+  1d1260: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1d1264: aa1503e0     	mov	x0, x21
+  1d1268: 9403bfc6     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1d126c: f94016c8     	ldr	x8, [x22, #0x28]
+  1d1270: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1d1274: eb09011f     	cmp	x8, x9
+  1d1278: 54000681     	b.ne	0x1d1348 <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x350>
+  1d127c: a94b4ff4     	ldp	x20, x19, [sp, #0xb0]
+  1d1280: f94043f9     	ldr	x25, [sp, #0x80]
+  1d1284: a94a57f6     	ldp	x22, x21, [sp, #0xa0]
+  1d1288: a9495ff8     	ldp	x24, x23, [sp, #0x90]
+  1d128c: a9477bfd     	ldp	x29, x30, [sp, #0x70]
+  1d1290: 910303ff     	add	sp, sp, #0xc0
+  1d1294: d65f03c0     	ret
+  1d1298: f9402be8     	ldr	x8, [sp, #0x50]
+  1d129c: aa0003f5     	mov	x21, x0
+  1d12a0: eb19011f     	cmp	x8, x25
+  1d12a4: 54000100     	b.eq	0x1d12c4 <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x2cc>
+  1d12a8: b40001a8     	cbz	x8, 0x1d12dc <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x2e4>
+  1d12ac: 52800509     	mov	w9, #0x28               // =40
+  1d12b0: 14000007     	b	0x1d12cc <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x2d4>
+  1d12b4: f9402be8     	ldr	x8, [sp, #0x50]
+  1d12b8: aa0003f5     	mov	x21, x0
+  1d12bc: eb19011f     	cmp	x8, x25
+  1d12c0: 54ffff41     	b.ne	0x1d12a8 <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x2b0>
+  1d12c4: 52800409     	mov	w9, #0x20               // =32
+  1d12c8: 9100c3e8     	add	x8, sp, #0x30
+  1d12cc: f940010a     	ldr	x10, [x8]
+  1d12d0: aa0803e0     	mov	x0, x8
+  1d12d4: f8696949     	ldr	x9, [x10, x9]
+  1d12d8: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  1d12dc: 910083e0     	add	x0, sp, #0x20
+  1d12e0: 97ffe24e     	bl	0x1c9c18 <std::__ndk1::shared_ptr<SW::IConnectableHelper>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::IConnectableHelper
+  1d12e4: f9405260     	ldr	x0, [x19, #0xa0]
+  1d12e8: eb17001f     	cmp	x0, x23
+  1d12ec: 54000081     	b.ne	0x1d12fc <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x304>
+  1d12f0: 52800408     	mov	w8, #0x20               // =32
+  1d12f4: aa1703e0     	mov	x0, x23
+  1d12f8: 14000003     	b	0x1d1304 <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x30c>
+  1d12fc: b40000a0     	cbz	x0, 0x1d1310 <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x318>
+  1d1300: 52800508     	mov	w8, #0x28               // =40
+  1d1304: f9400009     	ldr	x9, [x0]  ; vptr of SW::SAMConnectable
+  1d1308: f8686928     	ldr	x8, [x9, x8]
+  1d130c: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1d1310: 91018260     	add	x0, x19, #0x60
+  1d1314: 9403c44f     	bl	0x2c2450 <_ZN2SW18IConnectableStatusD2Ev@plt>  ;;; CALL SW::IConnectableStatus::~IConnectableStatus()
+  1d1318: 14000002     	b	0x1d1320 <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x328>
+  1d131c: aa0003f5     	mov	x21, x0
+  1d1320: aa1403e0     	mov	x0, x20
+  1d1324: 9403bff3     	bl	0x2c12f0 <_ZN2SW14SAMConnectable1DD2Ev@plt>  ;;; CALL SW::SAMConnectable::D::~D()
+  1d1328: aa1303e0     	mov	x0, x19
+  1d132c: 9403c115     	bl	0x2c1780 <_ZN7QObjectD2Ev@plt>  ;;; CALL QObject::~QObject()
+  1d1330: f94016c8     	ldr	x8, [x22, #0x28]
+  1d1334: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1d1338: eb09011f     	cmp	x8, x9
+  1d133c: 54000061     	b.ne	0x1d1348 <SW::SAMConnectable::SAMConnectable(SW::SAMConnectable::D)+0x350>
+  1d1340: aa1503e0     	mov	x0, x21
+  1d1344: 9403b050     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1d1348: 9403bf9a     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001d928c <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)>:
+  1d928c: d10203ff     	sub	sp, sp, #0x80
+  1d9290: a9057bfd     	stp	x29, x30, [sp, #0x50]
+  1d9294: f90033f5     	str	x21, [sp, #0x60]
+  1d9298: a9074ff4     	stp	x20, x19, [sp, #0x70]
+  1d929c: 910143fd     	add	x29, sp, #0x50
+  1d92a0: d53bd054     	mrs	x20, TPIDR_EL0
+  1d92a4: f9401688     	ldr	x8, [x20, #0x28]
+  1d92a8: f81f83a8     	stur	x8, [x29, #-0x8]
+  1d92ac: 34000141     	cbz	w1, 0x1d92d4 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x48>
+  1d92b0: f9401688     	ldr	x8, [x20, #0x28]
+  1d92b4: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1d92b8: eb09011f     	cmp	x8, x9
+  1d92bc: 54001561     	b.ne	0x1d9568 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x2dc>
+  1d92c0: a9474ff4     	ldp	x20, x19, [sp, #0x70]
+  1d92c4: f94033f5     	ldr	x21, [sp, #0x60]
+  1d92c8: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+  1d92cc: 910203ff     	add	sp, sp, #0x80
+  1d92d0: d65f03c0     	ret
+  1d92d4: 7100085f     	cmp	w2, #0x2
+  1d92d8: 5400022c     	b.gt	0x1d931c <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x90>
+  1d92dc: 34000422     	cbz	w2, 0x1d9360 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0xd4>
+  1d92e0: 7100045f     	cmp	w2, #0x1
+  1d92e4: 54000940     	b.eq	0x1d940c <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x180>
+  1d92e8: 7100085f     	cmp	w2, #0x2
+  1d92ec: 54fffe21     	b.ne	0x1d92b0 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x24>
+  1d92f0: f9400008     	ldr	x8, [x0]  ; vptr of SW::SAMConnectable
+  1d92f4: f9404d01     	ldr	x1, [x8, #0x98]  ; -> SW::SAMConnectable::startSession()
+  1d92f8: f9401688     	ldr	x8, [x20, #0x28]
+  1d92fc: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1d9300: eb09011f     	cmp	x8, x9
+  1d9304: 54001321     	b.ne	0x1d9568 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x2dc>
+  1d9308: a9474ff4     	ldp	x20, x19, [sp, #0x70]
+  1d930c: f94033f5     	ldr	x21, [sp, #0x60]
+  1d9310: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+  1d9314: 910203ff     	add	sp, sp, #0x80
+  1d9318: d61f0020     	br	x1
+  1d931c: 71000c5f     	cmp	w2, #0x3
+  1d9320: 54000600     	b.eq	0x1d93e0 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x154>
+  1d9324: 7100105f     	cmp	w2, #0x4
+  1d9328: 54000840     	b.eq	0x1d9430 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x1a4>
+  1d932c: 7100145f     	cmp	w2, #0x5
+  1d9330: 54fffc01     	b.ne	0x1d92b0 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x24>
+  1d9334: f9400008     	ldr	x8, [x0]  ; vptr of SW::SAMConnectable
+  1d9338: f9405901     	ldr	x1, [x8, #0xb0]  ; -> SW::SAMConnectable::cancelSession()
+  1d933c: f9401688     	ldr	x8, [x20, #0x28]
+  1d9340: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1d9344: eb09011f     	cmp	x8, x9
+  1d9348: 54001101     	b.ne	0x1d9568 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x2dc>
+  1d934c: a9474ff4     	ldp	x20, x19, [sp, #0x70]
+  1d9350: f94033f5     	ldr	x21, [sp, #0x60]
+  1d9354: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+  1d9358: 910203ff     	add	sp, sp, #0x80
+  1d935c: d61f0020     	br	x1
+  1d9360: f9400475     	ldr	x21, [x3, #0x8]
+  1d9364: aa0003f3     	mov	x19, x0
+  1d9368: a94022a9     	ldp	x9, x8, [x21]
+  1d936c: a90023e9     	stp	x9, x8, [sp]
+  1d9370: b40000a8     	cbz	x8, 0x1d9384 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0xf8>
+  1d9374: 91002101     	add	x1, x8, #0x8
+  1d9378: 52800020     	mov	w0, #0x1                // =1
+  1d937c: 94038fdd     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1d9380: aa1303e0     	mov	x0, x19
+  1d9384: a94122a9     	ldp	x9, x8, [x21, #0x10]
+  1d9388: a90123e9     	stp	x9, x8, [sp, #0x10]
+  1d938c: b40000a8     	cbz	x8, 0x1d93a0 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x114>
+  1d9390: 91002101     	add	x1, x8, #0x8
+  1d9394: 52800020     	mov	w0, #0x1                // =1
+  1d9398: 94038fd6     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1d939c: aa1303e0     	mov	x0, x19
+  1d93a0: a94222a9     	ldp	x9, x8, [x21, #0x20]
+  1d93a4: a90223e9     	stp	x9, x8, [sp, #0x20]
+  1d93a8: b40000a8     	cbz	x8, 0x1d93bc <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x130>
+  1d93ac: 91002101     	add	x1, x8, #0x8
+  1d93b0: 52800020     	mov	w0, #0x1                // =1
+  1d93b4: 94038fcf     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1d93b8: aa1303e0     	mov	x0, x19
+  1d93bc: aa1503e9     	mov	x9, x21
+  1d93c0: 910003e8     	mov	x8, sp
+  1d93c4: 38430d2a     	ldrb	w10, [x9, #0x30]!
+  1d93c8: 370004ea     	tbnz	w10, #0x0, 0x1d9464 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x1d8>
+  1d93cc: f940092a     	ldr	x10, [x9, #0x10]
+  1d93d0: 3dc00120     	ldr	q0, [x9]
+  1d93d4: f804010a     	stur	x10, [x8, #0x40]
+  1d93d8: 3c830100     	stur	q0, [x8, #0x30]
+  1d93dc: 14000027     	b	0x1d9478 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x1ec>
+  1d93e0: f9400008     	ldr	x8, [x0]  ; vptr of SW::SAMConnectable
+  1d93e4: f9405101     	ldr	x1, [x8, #0xa0]  ; -> SW::SAMConnectable::startNextAction()
+  1d93e8: f9401688     	ldr	x8, [x20, #0x28]
+  1d93ec: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1d93f0: eb09011f     	cmp	x8, x9
+  1d93f4: 54000ba1     	b.ne	0x1d9568 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x2dc>
+  1d93f8: a9474ff4     	ldp	x20, x19, [sp, #0x70]
+  1d93fc: f94033f5     	ldr	x21, [sp, #0x60]
+  1d9400: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+  1d9404: 910203ff     	add	sp, sp, #0x80
+  1d9408: d61f0020     	br	x1
+  1d940c: f9401688     	ldr	x8, [x20, #0x28]
+  1d9410: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1d9414: eb09011f     	cmp	x8, x9
+  1d9418: 54000a81     	b.ne	0x1d9568 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x2dc>
+  1d941c: a9474ff4     	ldp	x20, x19, [sp, #0x70]
+  1d9420: f94033f5     	ldr	x21, [sp, #0x60]
+  1d9424: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+  1d9428: 910203ff     	add	sp, sp, #0x80
+  1d942c: 1403a4fd     	b	0x2c2820 <_ZN2SW14SAMConnectable21samDisconnectFinishedEv@plt>
+  1d9430: f9400468     	ldr	x8, [x3, #0x8]
+  1d9434: f9400009     	ldr	x9, [x0]  ; vptr of SW::SAMConnectable
+  1d9438: b9400101     	ldr	w1, [x8]
+  1d943c: f9405522     	ldr	x2, [x9, #0xa8]  ; -> SW::SAMConnectable::selectDevice(int)
+  1d9440: f9401688     	ldr	x8, [x20, #0x28]
+  1d9444: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1d9448: eb09011f     	cmp	x8, x9
+  1d944c: 540008e1     	b.ne	0x1d9568 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x2dc>
+  1d9450: a9474ff4     	ldp	x20, x19, [sp, #0x70]
+  1d9454: f94033f5     	ldr	x21, [sp, #0x60]
+  1d9458: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+  1d945c: 910203ff     	add	sp, sp, #0x80
+  1d9460: d61f0040     	br	x2
+  1d9464: a94386a2     	ldp	x2, x1, [x21, #0x38]
+  1d9468: 910003f5     	mov	x21, sp
+  1d946c: 9100c100     	add	x0, x8, #0x30
+  1d9470: 9403a34c     	bl	0x2c21a0 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE25__init_copy_ctor_externalEPKcm@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::__init_copy_ctor_external(char const*, unsigned long)
+  1d9474: aa1303e0     	mov	x0, x19
+  1d9478: 910003e1     	mov	x1, sp
+  1d947c: 9403a4ed     	bl	0x2c2830 <_ZN2SW14SAMConnectable25helperDeviceSetupFinishedENS_15SwConverserEtalE@plt>  ;;; CALL SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)
+  1d9480: 3940c3e8     	ldrb	w8, [sp, #0x30]
+  1d9484: 36000068     	tbz	w8, #0x0, 0x1d9490 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x204>
+  1d9488: f94023e0     	ldr	x0, [sp, #0x40]
+  1d948c: 94039fc1     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1d9490: f94017f3     	ldr	x19, [sp, #0x28]
+  1d9494: b4000173     	cbz	x19, 0x1d94c0 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x234>
+  1d9498: 91002261     	add	x1, x19, #0x8
+  1d949c: 92800000     	mov	x0, #-0x1               // =-1
+  1d94a0: 94038fa0     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1d94a4: b50000e0     	cbnz	x0, 0x1d94c0 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x234>
+  1d94a8: f9400268     	ldr	x8, [x19]
+  1d94ac: aa1303e0     	mov	x0, x19
+  1d94b0: f9400908     	ldr	x8, [x8, #0x10]
+  1d94b4: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1d94b8: aa1303e0     	mov	x0, x19
+  1d94bc: 94039f31     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1d94c0: f9400ff3     	ldr	x19, [sp, #0x18]
+  1d94c4: b4000173     	cbz	x19, 0x1d94f0 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x264>
+  1d94c8: 91002261     	add	x1, x19, #0x8
+  1d94cc: 92800000     	mov	x0, #-0x1               // =-1
+  1d94d0: 94038f94     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1d94d4: b50000e0     	cbnz	x0, 0x1d94f0 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x264>
+  1d94d8: f9400268     	ldr	x8, [x19]
+  1d94dc: aa1303e0     	mov	x0, x19
+  1d94e0: f9400908     	ldr	x8, [x8, #0x10]
+  1d94e4: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1d94e8: aa1303e0     	mov	x0, x19
+  1d94ec: 94039f25     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1d94f0: f94007f3     	ldr	x19, [sp, #0x8]
+  1d94f4: b4ffedf3     	cbz	x19, 0x1d92b0 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x24>
+  1d94f8: 91002261     	add	x1, x19, #0x8
+  1d94fc: 92800000     	mov	x0, #-0x1               // =-1
+  1d9500: 94038f88     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1d9504: b5ffed60     	cbnz	x0, 0x1d92b0 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x24>
+  1d9508: f9400268     	ldr	x8, [x19]
+  1d950c: aa1303e0     	mov	x0, x19
+  1d9510: f9400908     	ldr	x8, [x8, #0x10]
+  1d9514: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1d9518: aa1303e0     	mov	x0, x19
+  1d951c: 94039f19     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1d9520: 17ffff64     	b	0x1d92b0 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x24>
+  1d9524: aa0003f3     	mov	x19, x0
+  1d9528: 910082a0     	add	x0, x21, #0x20
+  1d952c: 97ffcdb1     	bl	0x1ccbf0 <std::__ndk1::shared_ptr<SW::IConverser>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::IConverser
+  1d9530: 910042a0     	add	x0, x21, #0x10
+  1d9534: 94001a1c     	bl	0x1dfda4 <std::__ndk1::shared_ptr<SW::ISwConverser>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::ISwConverser
+  1d9538: 910003e0     	mov	x0, sp
+  1d953c: 94001a2e     	bl	0x1dfdf4 <std::__ndk1::shared_ptr<SW::ISwDevice>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::ISwDevice
+  1d9540: 14000004     	b	0x1d9550 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x2c4>
+  1d9544: aa0003f3     	mov	x19, x0
+  1d9548: 910003e0     	mov	x0, sp
+  1d954c: 9403a4bd     	bl	0x2c2840 <_ZN2SW15SwConverserEtalD2Ev@plt>  ;;; CALL SW::SwConverserEtal::~SwConverserEtal()
+  1d9550: f9401688     	ldr	x8, [x20, #0x28]
+  1d9554: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1d9558: eb09011f     	cmp	x8, x9
+  1d955c: 54000061     	b.ne	0x1d9568 <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x2dc>
+  1d9560: aa1303e0     	mov	x0, x19
+  1d9564: 94038fc8     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1d9568: 94039f12     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001d963c <SW::SAMConnectable::metaObject() const>:
+  1d963c: f9400400     	ldr	x0, [x0, #0x8]
+  1d9640: f9401c08     	ldr	x8, [x0, #0x38]
+  1d9644: b4000048     	cbz	x8, 0x1d964c <SW::SAMConnectable::metaObject() const+0x10>
+  1d9648: 1403a466     	b	0x2c27e0 <_ZNK11QObjectData17dynamicMetaObjectEv@plt>
+  1d964c: f00007e0     	adrp	x0, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1d9650: f9471c00     	ldr	x0, [x0, #0xe38]
+  1d9654: d65f03c0     	ret
+
+00000000001d9658 <SW::SAMConnectable::qt_metacast(char const*)>:
+  1d9658: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  1d965c: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  1d9660: 910003fd     	mov	x29, sp
+  1d9664: b40001c1     	cbz	x1, 0x1d969c <SW::SAMConnectable::qt_metacast(char const*)+0x44>
+  1d9668: 90fff9a8     	adrp	x8, 0x10d000 <qt_meta_data_CLASSSWSCOPEITaskProfile_ATLENDCLASS+0x78>
+  1d966c: 911b5108     	add	x8, x8, #0x6d4
+  1d9670: aa0003f3     	mov	x19, x0
+  1d9674: aa0103f4     	mov	x20, x1
+  1d9678: aa0103e0     	mov	x0, x1
+  1d967c: aa0803e1     	mov	x1, x8
+  1d9680: 9403a45c     	bl	0x2c27f0 <strcmp@plt>  ;;; CALL strcmp
+  1d9684: 34000140     	cbz	w0, 0x1d96ac <SW::SAMConnectable::qt_metacast(char const*)+0x54>
+  1d9688: aa1303e0     	mov	x0, x19
+  1d968c: aa1403e1     	mov	x1, x20
+  1d9690: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  1d9694: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  1d9698: 1403a46e     	b	0x2c2850 <_ZN2SW12IConnectable11qt_metacastEPKc@plt>
+  1d969c: aa1f03e0     	mov	x0, xzr
+  1d96a0: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  1d96a4: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  1d96a8: d65f03c0     	ret
+  1d96ac: aa1303e0     	mov	x0, x19
+  1d96b0: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  1d96b4: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  1d96b8: d65f03c0     	ret
+
+00000000001d96bc <SW::SAMConnectable::qt_metacall(QMetaObject::Call, int, void**)>:
+  1d96bc: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  1d96c0: f9000bf5     	str	x21, [sp, #0x10]
+  1d96c4: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  1d96c8: 910003fd     	mov	x29, sp
+  1d96cc: aa0303f3     	mov	x19, x3
+  1d96d0: 2a0103f5     	mov	w21, w1
+  1d96d4: aa0003f4     	mov	x20, x0
+  1d96d8: 9403a462     	bl	0x2c2860 <_ZN2SW12IConnectable11qt_metacallEN11QMetaObject4CallEiPPv@plt>  ;;; CALL SW::IConnectable::qt_metacall(QMetaObject::Call, int, void**)
+  1d96dc: 37f80260     	tbnz	w0, #0x1f, 0x1d9728 <SW::SAMConnectable::qt_metacall(QMetaObject::Call, int, void**)+0x6c>
+  1d96e0: 71001ebf     	cmp	w21, #0x7
+  1d96e4: 54000180     	b.eq	0x1d9714 <SW::SAMConnectable::qt_metacall(QMetaObject::Call, int, void**)+0x58>
+  1d96e8: 35000215     	cbnz	w21, 0x1d9728 <SW::SAMConnectable::qt_metacall(QMetaObject::Call, int, void**)+0x6c>
+  1d96ec: 7100141f     	cmp	w0, #0x5
+  1d96f0: 540001a8     	b.hi	0x1d9724 <SW::SAMConnectable::qt_metacall(QMetaObject::Call, int, void**)+0x68>
+  1d96f4: 2a0003f5     	mov	w21, w0
+  1d96f8: aa1403e0     	mov	x0, x20
+  1d96fc: 2a1f03e1     	mov	w1, wzr
+  1d9700: 2a1503e2     	mov	w2, w21
+  1d9704: aa1303e3     	mov	x3, x19
+  1d9708: 97fffee1     	bl	0x1d928c <SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)>  ;;; CALL SW::SAMConnectable::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)
+  1d970c: 2a1503e0     	mov	w0, w21
+  1d9710: 14000005     	b	0x1d9724 <SW::SAMConnectable::qt_metacall(QMetaObject::Call, int, void**)+0x68>
+  1d9714: 7100141f     	cmp	w0, #0x5
+  1d9718: 54000068     	b.hi	0x1d9724 <SW::SAMConnectable::qt_metacall(QMetaObject::Call, int, void**)+0x68>
+  1d971c: f9400268     	ldr	x8, [x19]
+  1d9720: f900011f     	str	xzr, [x8]
+  1d9724: 51001800     	sub	w0, w0, #0x6
+  1d9728: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  1d972c: f9400bf5     	ldr	x21, [sp, #0x10]
+  1d9730: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  1d9734: d65f03c0     	ret
+
+00000000001de8ec <SW::SAMConnectable::state() const>:
+  1de8ec: b9406000     	ldr	w0, [x0, #0x60]
+  1de8f0: d65f03c0     	ret
+
+00000000001f71e0 <SW::SAMConnectable::busy()>:
+  1f71e0: b9406009     	ldr	w9, [x0, #0x60]
+  1f71e4: 52800948     	mov	w8, #0x4a               // =74
+  1f71e8: 71001d3f     	cmp	w9, #0x7
+  1f71ec: 1ac92508     	lsr	w8, w8, w9
+  1f71f0: 1a9f27e9     	cset	w9, lo
+  1f71f4: 0a080120     	and	w0, w9, w8
+  1f71f8: d65f03c0     	ret
+
+00000000001f71fc <SW::SAMConnectable::statusText()>:
+  1f71fc: d10103ff     	sub	sp, sp, #0x40
+  1f7200: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  1f7204: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  1f7208: 910083fd     	add	x29, sp, #0x20
+  1f720c: d53bd053     	mrs	x19, TPIDR_EL0
+  1f7210: f9401669     	ldr	x9, [x19, #0x28]
+  1f7214: f81f83a9     	stur	x9, [x29, #-0x8]
+  1f7218: b9406009     	ldr	w9, [x0, #0x60]
+  1f721c: 7100093f     	cmp	w9, #0x2
+  1f7220: 540002ad     	b.le	0x1f7274 <SW::SAMConnectable::statusText()+0x78>
+  1f7224: 7100113f     	cmp	w9, #0x4
+  1f7228: 540004cc     	b.gt	0x1f72c0 <SW::SAMConnectable::statusText()+0xc4>
+  1f722c: 71000d3f     	cmp	w9, #0x3
+  1f7230: 54000900     	b.eq	0x1f7350 <SW::SAMConnectable::statusText()+0x154>
+  1f7234: 7100113f     	cmp	w9, #0x4
+  1f7238: 54000681     	b.ne	0x1f7308 <SW::SAMConnectable::statusText()+0x10c>
+  1f723c: f9401669     	ldr	x9, [x19, #0x28]
+  1f7240: f85f83aa     	ldur	x10, [x29, #-0x8]
+  1f7244: eb0a013f     	cmp	x9, x10
+  1f7248: 54000d81     	b.ne	0x1f73f8 <SW::SAMConnectable::statusText()+0x1fc>
+  1f724c: b0fff6a0     	adrp	x0, 0xcc000 <vsnprintf+0xcc000>
+  1f7250: 91354000     	add	x0, x0, #0xd50
+  1f7254: 90fff6a1     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  1f7258: 91343021     	add	x1, x1, #0xd0c
+  1f725c: aa1f03e2     	mov	x2, xzr
+  1f7260: 12800003     	mov	w3, #-0x1               // =-1
+  1f7264: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  1f7268: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1f726c: 910103ff     	add	sp, sp, #0x40
+  1f7270: 14032ee4     	b	0x2c2e00 <_ZN16QCoreApplication9translateEPKcS1_S1_i@plt>
+  1f7274: 340004a9     	cbz	w9, 0x1f7308 <SW::SAMConnectable::statusText()+0x10c>
+  1f7278: 7100053f     	cmp	w9, #0x1
+  1f727c: 54000a20     	b.eq	0x1f73c0 <SW::SAMConnectable::statusText()+0x1c4>
+  1f7280: 7100093f     	cmp	w9, #0x2
+  1f7284: 54000421     	b.ne	0x1f7308 <SW::SAMConnectable::statusText()+0x10c>
+  1f7288: f9401669     	ldr	x9, [x19, #0x28]
+  1f728c: f85f83aa     	ldur	x10, [x29, #-0x8]
+  1f7290: eb0a013f     	cmp	x9, x10
+  1f7294: 54000b21     	b.ne	0x1f73f8 <SW::SAMConnectable::statusText()+0x1fc>
+  1f7298: b0fff6a0     	adrp	x0, 0xcc000 <vsnprintf+0xcc000>
+  1f729c: 91354000     	add	x0, x0, #0xd50
+  1f72a0: b0fff6a1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  1f72a4: 9101bc21     	add	x1, x1, #0x6f
+  1f72a8: aa1f03e2     	mov	x2, xzr
+  1f72ac: 12800003     	mov	w3, #-0x1               // =-1
+  1f72b0: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  1f72b4: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1f72b8: 910103ff     	add	sp, sp, #0x40
+  1f72bc: 14032ed1     	b	0x2c2e00 <_ZN16QCoreApplication9translateEPKcS1_S1_i@plt>
+  1f72c0: 7100153f     	cmp	w9, #0x5
+  1f72c4: 54000620     	b.eq	0x1f7388 <SW::SAMConnectable::statusText()+0x18c>
+  1f72c8: 7100193f     	cmp	w9, #0x6
+  1f72cc: 540001e1     	b.ne	0x1f7308 <SW::SAMConnectable::statusText()+0x10c>
+  1f72d0: f9401669     	ldr	x9, [x19, #0x28]
+  1f72d4: f85f83aa     	ldur	x10, [x29, #-0x8]
+  1f72d8: eb0a013f     	cmp	x9, x10
+  1f72dc: 540008e1     	b.ne	0x1f73f8 <SW::SAMConnectable::statusText()+0x1fc>
+  1f72e0: b0fff6a0     	adrp	x0, 0xcc000 <vsnprintf+0xcc000>
+  1f72e4: 91354000     	add	x0, x0, #0xd50
+  1f72e8: b0fff6a1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  1f72ec: 91355821     	add	x1, x1, #0xd56
+  1f72f0: aa1f03e2     	mov	x2, xzr
+  1f72f4: 12800003     	mov	w3, #-0x1               // =-1
+  1f72f8: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  1f72fc: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1f7300: 910103ff     	add	sp, sp, #0x40
+  1f7304: 14032ebf     	b	0x2c2e00 <_ZN16QCoreApplication9translateEPKcS1_S1_i@plt>
+  1f7308: 90fff6a1     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  1f730c: 911e5c21     	add	x1, x1, #0x797
+  1f7310: aa0803f4     	mov	x20, x8
+  1f7314: 910003e8     	mov	x8, sp
+  1f7318: aa1f03e0     	mov	x0, xzr
+  1f731c: 94032769     	bl	0x2c10c0 <_ZN7QString8fromUtf8E14QByteArrayView@plt>  ;;; CALL QString::fromUtf8(QByteArrayView)  [x3=-1(0xffffffff)]
+  1f7320: 3dc003e0     	ldr	q0, [sp]
+  1f7324: f9400be8     	ldr	x8, [sp, #0x10]
+  1f7328: 3d800280     	str	q0, [x20]
+  1f732c: f9000a88     	str	x8, [x20, #0x10]
+  1f7330: f9401668     	ldr	x8, [x19, #0x28]
+  1f7334: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f7338: eb09011f     	cmp	x8, x9
+  1f733c: 540005e1     	b.ne	0x1f73f8 <SW::SAMConnectable::statusText()+0x1fc>
+  1f7340: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  1f7344: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1f7348: 910103ff     	add	sp, sp, #0x40
+  1f734c: d65f03c0     	ret
+  1f7350: f9401669     	ldr	x9, [x19, #0x28]
+  1f7354: f85f83aa     	ldur	x10, [x29, #-0x8]
+  1f7358: eb0a013f     	cmp	x9, x10
+  1f735c: 540004e1     	b.ne	0x1f73f8 <SW::SAMConnectable::statusText()+0x1fc>
+  1f7360: b0fff6a0     	adrp	x0, 0xcc000 <vsnprintf+0xcc000>
+  1f7364: 91354000     	add	x0, x0, #0xd50
+  1f7368: 90fff6a1     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  1f736c: 9104a821     	add	x1, x1, #0x12a
+  1f7370: aa1f03e2     	mov	x2, xzr
+  1f7374: 12800003     	mov	w3, #-0x1               // =-1
+  1f7378: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  1f737c: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1f7380: 910103ff     	add	sp, sp, #0x40
+  1f7384: 14032e9f     	b	0x2c2e00 <_ZN16QCoreApplication9translateEPKcS1_S1_i@plt>
+  1f7388: f9401669     	ldr	x9, [x19, #0x28]
+  1f738c: f85f83aa     	ldur	x10, [x29, #-0x8]
+  1f7390: eb0a013f     	cmp	x9, x10
+  1f7394: 54000321     	b.ne	0x1f73f8 <SW::SAMConnectable::statusText()+0x1fc>
+  1f7398: b0fff6a0     	adrp	x0, 0xcc000 <vsnprintf+0xcc000>
+  1f739c: 91354000     	add	x0, x0, #0xd50
+  1f73a0: b0fff6a1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  1f73a4: 913db021     	add	x1, x1, #0xf6c
+  1f73a8: aa1f03e2     	mov	x2, xzr
+  1f73ac: 12800003     	mov	w3, #-0x1               // =-1
+  1f73b0: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  1f73b4: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1f73b8: 910103ff     	add	sp, sp, #0x40
+  1f73bc: 14032e91     	b	0x2c2e00 <_ZN16QCoreApplication9translateEPKcS1_S1_i@plt>
+  1f73c0: f9401669     	ldr	x9, [x19, #0x28]
+  1f73c4: f85f83aa     	ldur	x10, [x29, #-0x8]
+  1f73c8: eb0a013f     	cmp	x9, x10
+  1f73cc: 54000161     	b.ne	0x1f73f8 <SW::SAMConnectable::statusText()+0x1fc>
+  1f73d0: b0fff6a0     	adrp	x0, 0xcc000 <vsnprintf+0xcc000>
+  1f73d4: 91354000     	add	x0, x0, #0xd50
+  1f73d8: d0fff6a1     	adrp	x1, 0xcd000 <vsnprintf+0xcd000>
+  1f73dc: 9103c021     	add	x1, x1, #0xf0
+  1f73e0: aa1f03e2     	mov	x2, xzr
+  1f73e4: 12800003     	mov	w3, #-0x1               // =-1
+  1f73e8: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  1f73ec: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1f73f0: 910103ff     	add	sp, sp, #0x40
+  1f73f4: 14032e83     	b	0x2c2e00 <_ZN16QCoreApplication9translateEPKcS1_S1_i@plt>
+  1f73f8: 9403276e     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail  [x3=-1(0xffffffff)]
+
+00000000001f73fc <SW::SAMConnectable::statusDetailText()>:
+  1f73fc: 3cc68000     	ldur	q0, [x0, #0x68]
+  1f7400: f9403c09     	ldr	x9, [x0, #0x78]
+  1f7404: 9e660001     	fmov	x1, d0
+  1f7408: 3d800100     	str	q0, [x8]
+  1f740c: f9000909     	str	x9, [x8, #0x10]
+  1f7410: b40000c1     	cbz	x1, 0x1f7428 <SW::SAMConnectable::statusDetailText()+0x2c>
+  1f7414: a9bf7bfd     	stp	x29, x30, [sp, #-0x10]!
+  1f7418: 910003fd     	mov	x29, sp
+  1f741c: 52800020     	mov	w0, #0x1                // =1
+  1f7420: 940317a8     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f7424: a8c17bfd     	ldp	x29, x30, [sp], #0x10
+  1f7428: d65f03c0     	ret
+
+00000000001f742c <SW::SAMConnectable::devicesList()>:
+  1f742c: f9400800     	ldr	x0, [x0, #0x10]
+  1f7430: f9400009     	ldr	x9, [x0]
+  1f7434: f9403121     	ldr	x1, [x9, #0x60]
+  1f7438: d61f0020     	br	x1
+
+00000000001f743c <SW::SAMConnectable::nextActionText()>:
+  1f743c: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  1f7440: f9000bf5     	str	x21, [sp, #0x10]
+  1f7444: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  1f7448: 910003fd     	mov	x29, sp
+  1f744c: f9401009     	ldr	x9, [x0, #0x20]
+  1f7450: aa0803f3     	mov	x19, x8
+  1f7454: a9455135     	ldp	x21, x20, [x9, #0x50]
+  1f7458: b40001d4     	cbz	x20, 0x1f7490 <SW::SAMConnectable::nextActionText()+0x54>
+  1f745c: 91002281     	add	x1, x20, #0x8
+  1f7460: 52800020     	mov	w0, #0x1                // =1
+  1f7464: 940317a3     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1f7468: 91002281     	add	x1, x20, #0x8
+  1f746c: 92800000     	mov	x0, #-0x1               // =-1
+  1f7470: 940317ac     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1f7474: b50000e0     	cbnz	x0, 0x1f7490 <SW::SAMConnectable::nextActionText()+0x54>
+  1f7478: f9400288     	ldr	x8, [x20]
+  1f747c: aa1403e0     	mov	x0, x20
+  1f7480: f9400908     	ldr	x8, [x8, #0x10]
+  1f7484: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f7488: aa1403e0     	mov	x0, x20
+  1f748c: 9403273d     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1f7490: 90fff6a8     	adrp	x8, 0xcb000 <vsnprintf+0xcb000>
+  1f7494: 911b6908     	add	x8, x8, #0x6da
+  1f7498: 90fff6a9     	adrp	x9, 0xcb000 <vsnprintf+0xcb000>
+  1f749c: 91126d29     	add	x9, x9, #0x49b
+  1f74a0: f10002bf     	cmp	x21, #0x0
+  1f74a4: b0fff6a0     	adrp	x0, 0xcc000 <vsnprintf+0xcc000>
+  1f74a8: 91354000     	add	x0, x0, #0xd50
+  1f74ac: 9a880121     	csel	x1, x9, x8, eq
+  1f74b0: aa1303e8     	mov	x8, x19
+  1f74b4: aa1f03e2     	mov	x2, xzr
+  1f74b8: 12800003     	mov	w3, #-0x1               // =-1
+  1f74bc: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  1f74c0: f9400bf5     	ldr	x21, [sp, #0x10]
+  1f74c4: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  1f74c8: 14032e4e     	b	0x2c2e00 <_ZN16QCoreApplication9translateEPKcS1_S1_i@plt>
+
+00000000001f74cc <SW::SAMConnectable::connected() const>:
+  1f74cc: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  1f74d0: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  1f74d4: 910003fd     	mov	x29, sp
+  1f74d8: f9401008     	ldr	x8, [x0, #0x20]
+  1f74dc: a9454d14     	ldp	x20, x19, [x8, #0x50]
+  1f74e0: b4000113     	cbz	x19, 0x1f7500 <SW::SAMConnectable::connected() const+0x34>
+  1f74e4: 91002261     	add	x1, x19, #0x8
+  1f74e8: 52800020     	mov	w0, #0x1                // =1
+  1f74ec: 94031781     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1f74f0: 91002261     	add	x1, x19, #0x8
+  1f74f4: 92800000     	mov	x0, #-0x1               // =-1
+  1f74f8: 9403178a     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1f74fc: b40000c0     	cbz	x0, 0x1f7514 <SW::SAMConnectable::connected() const+0x48>
+  1f7500: f100029f     	cmp	x20, #0x0
+  1f7504: 1a9f07e0     	cset	w0, ne
+  1f7508: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  1f750c: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  1f7510: d65f03c0     	ret
+  1f7514: f9400268     	ldr	x8, [x19]
+  1f7518: aa1303e0     	mov	x0, x19
+  1f751c: f9400908     	ldr	x8, [x8, #0x10]
+  1f7520: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f7524: aa1303e0     	mov	x0, x19
+  1f7528: 94032716     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1f752c: f100029f     	cmp	x20, #0x0
+  1f7530: 1a9f07e0     	cset	w0, ne
+  1f7534: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  1f7538: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  1f753c: d65f03c0     	ret
+
+00000000001f7540 <SW::SAMConnectable::startConnectSession(SW::IConnectable::ConnectSessionInfo)>:
+  1f7540: d101c3ff     	sub	sp, sp, #0x70
+  1f7544: a9047bfd     	stp	x29, x30, [sp, #0x40]
+  1f7548: a90557f6     	stp	x22, x21, [sp, #0x50]
+  1f754c: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  1f7550: 910103fd     	add	x29, sp, #0x40
+  1f7554: d53bd055     	mrs	x21, TPIDR_EL0
+  1f7558: aa0103f4     	mov	x20, x1
+  1f755c: aa0003f3     	mov	x19, x0
+  1f7560: f94016a8     	ldr	x8, [x21, #0x28]
+  1f7564: f81f83a8     	stur	x8, [x29, #-0x8]
+  1f7568: f9401028     	ldr	x8, [x1, #0x20]
+  1f756c: b4000108     	cbz	x8, 0x1f758c <SW::SAMConnectable::startConnectSession(SW::IConnectable::ConnectSessionInfo)+0x4c>
+  1f7570: eb14011f     	cmp	x8, x20
+  1f7574: 54000120     	b.eq	0x1f7598 <SW::SAMConnectable::startConnectSession(SW::IConnectable::ConnectSessionInfo)+0x58>
+  1f7578: f9400109     	ldr	x9, [x8]
+  1f757c: f9400929     	ldr	x9, [x9, #0x10]
+  1f7580: aa0803e0     	mov	x0, x8
+  1f7584: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  1f7588: 14000002     	b	0x1f7590 <SW::SAMConnectable::startConnectSession(SW::IConnectable::ConnectSessionInfo)+0x50>
+  1f758c: aa1f03e0     	mov	x0, xzr
+  1f7590: f90013e0     	str	x0, [sp, #0x20]
+  1f7594: 14000008     	b	0x1f75b4 <SW::SAMConnectable::startConnectSession(SW::IConnectable::ConnectSessionInfo)+0x74>
+  1f7598: 910003e8     	mov	x8, sp
+  1f759c: f9400289     	ldr	x9, [x20]
+  1f75a0: f90013e8     	str	x8, [sp, #0x20]
+  1f75a4: f9400d28     	ldr	x8, [x9, #0x18]
+  1f75a8: 910003e1     	mov	x1, sp
+  1f75ac: aa1403e0     	mov	x0, x20
+  1f75b0: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f75b4: 910003e0     	mov	x0, sp
+  1f75b8: 91020261     	add	x1, x19, #0x80
+  1f75bc: 910003f6     	mov	x22, sp
+  1f75c0: 9400061c     	bl	0x1f8e30 <std::__ndk1::__function::__value_func<void (bool)>::swap[abi:ne190000](std::__ndk1::__function::__value_func<void (bool)>&)>  ;;; CALL std::__ndk1::__function::__value_func<void (bool)
+  1f75c4: f94013e0     	ldr	x0, [sp, #0x20]
+  1f75c8: eb16001f     	cmp	x0, x22
+  1f75cc: 54000080     	b.eq	0x1f75dc <SW::SAMConnectable::startConnectSession(SW::IConnectable::ConnectSessionInfo)+0x9c>
+  1f75d0: b4000100     	cbz	x0, 0x1f75f0 <SW::SAMConnectable::startConnectSession(SW::IConnectable::ConnectSessionInfo)+0xb0>
+  1f75d4: 52800508     	mov	w8, #0x28               // =40
+  1f75d8: 14000003     	b	0x1f75e4 <SW::SAMConnectable::startConnectSession(SW::IConnectable::ConnectSessionInfo)+0xa4>
+  1f75dc: 52800408     	mov	w8, #0x20               // =32
+  1f75e0: 910003e0     	mov	x0, sp
+  1f75e4: f9400009     	ldr	x9, [x0]
+  1f75e8: f8686928     	ldr	x8, [x9, x8]
+  1f75ec: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f75f0: f9401268     	ldr	x8, [x19, #0x20]
+  1f75f4: b9403289     	ldr	w9, [x20, #0x30]
+  1f75f8: a9455116     	ldp	x22, x20, [x8, #0x50]
+  1f75fc: 52800028     	mov	w8, #0x1                // =1
+  1f7600: b900b269     	str	w9, [x19, #0xb0]
+  1f7604: 39030268     	strb	w8, [x19, #0xc0]
+  1f7608: b4000114     	cbz	x20, 0x1f7628 <SW::SAMConnectable::startConnectSession(SW::IConnectable::ConnectSessionInfo)+0xe8>
+  1f760c: 91002281     	add	x1, x20, #0x8
+  1f7610: 52800020     	mov	w0, #0x1                // =1
+  1f7614: 94031737     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1f7618: 91002281     	add	x1, x20, #0x8
+  1f761c: 92800000     	mov	x0, #-0x1               // =-1
+  1f7620: 94031740     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1f7624: b40001a0     	cbz	x0, 0x1f7658 <SW::SAMConnectable::startConnectSession(SW::IConnectable::ConnectSessionInfo)+0x118>
+  1f7628: b4000276     	cbz	x22, 0x1f7674 <SW::SAMConnectable::startConnectSession(SW::IConnectable::ConnectSessionInfo)+0x134>
+  1f762c: aa1303e0     	mov	x0, x19
+  1f7630: 94032e78     	bl	0x2c3010 <_ZN2SW14SAMConnectable30invokeThenClear_ConnectSessionEv@plt>  ;;; CALL SW::SAMConnectable::invokeThenClear_ConnectSession()
+  1f7634: f94016a8     	ldr	x8, [x21, #0x28]
+  1f7638: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f763c: eb09011f     	cmp	x8, x9
+  1f7640: 540002a1     	b.ne	0x1f7694 <SW::SAMConnectable::startConnectSession(SW::IConnectable::ConnectSessionInfo)+0x154>
+  1f7644: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  1f7648: a94557f6     	ldp	x22, x21, [sp, #0x50]
+  1f764c: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+  1f7650: 9101c3ff     	add	sp, sp, #0x70
+  1f7654: d65f03c0     	ret
+  1f7658: f9400288     	ldr	x8, [x20]
+  1f765c: aa1403e0     	mov	x0, x20
+  1f7660: f9400908     	ldr	x8, [x8, #0x10]
+  1f7664: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f7668: aa1403e0     	mov	x0, x20
+  1f766c: 940326c5     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1f7670: b5fffdf6     	cbnz	x22, 0x1f762c <SW::SAMConnectable::startConnectSession(SW::IConnectable::ConnectSessionInfo)+0xec>
+  1f7674: f9400268     	ldr	x8, [x19]  ; vptr of SW::SAMConnectable
+  1f7678: aa1303e0     	mov	x0, x19
+  1f767c: f9404d08     	ldr	x8, [x8, #0x98]  ; -> SW::SAMConnectable::startSession()
+  1f7680: d63f0100     	blr	x8  ;;; CALL SW::SAMConnectable::startSession()
+  1f7684: f94016a8     	ldr	x8, [x21, #0x28]
+  1f7688: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f768c: eb09011f     	cmp	x8, x9
+  1f7690: 54fffda0     	b.eq	0x1f7644 <SW::SAMConnectable::startConnectSession(SW::IConnectable::ConnectSessionInfo)+0x104>
+  1f7694: 940326c7     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+  1f7698: 97ff079d     	bl	0x1b950c <__clang_call_terminate>  ;;; CALL __clang_call_terminate
+
+00000000001f769c <SW::SAMConnectable::invokeThenClear_ConnectSession()>:
+  1f769c: d10103ff     	sub	sp, sp, #0x40
+  1f76a0: a9017bfd     	stp	x29, x30, [sp, #0x10]
+  1f76a4: a90257f6     	stp	x22, x21, [sp, #0x20]
+  1f76a8: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  1f76ac: 910043fd     	add	x29, sp, #0x10
+  1f76b0: d53bd055     	mrs	x21, TPIDR_EL0
+  1f76b4: aa0003f3     	mov	x19, x0
+  1f76b8: f94016a8     	ldr	x8, [x21, #0x28]
+  1f76bc: f90007e8     	str	x8, [sp, #0x8]
+  1f76c0: 39430008     	ldrb	w8, [x0, #0xc0]
+  1f76c4: 34000608     	cbz	w8, 0x1f7784 <SW::SAMConnectable::invokeThenClear_ConnectSession()+0xe8>
+  1f76c8: f9405268     	ldr	x8, [x19, #0xa0]
+  1f76cc: b4000488     	cbz	x8, 0x1f775c <SW::SAMConnectable::invokeThenClear_ConnectSession()+0xc0>
+  1f76d0: f9401268     	ldr	x8, [x19, #0x20]
+  1f76d4: a9455116     	ldp	x22, x20, [x8, #0x50]
+  1f76d8: b40001d4     	cbz	x20, 0x1f7710 <SW::SAMConnectable::invokeThenClear_ConnectSession()+0x74>
+  1f76dc: 91002281     	add	x1, x20, #0x8
+  1f76e0: 52800020     	mov	w0, #0x1                // =1
+  1f76e4: 94031703     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1f76e8: 91002281     	add	x1, x20, #0x8
+  1f76ec: 92800000     	mov	x0, #-0x1               // =-1
+  1f76f0: 9403170c     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1f76f4: b50000e0     	cbnz	x0, 0x1f7710 <SW::SAMConnectable::invokeThenClear_ConnectSession()+0x74>
+  1f76f8: f9400288     	ldr	x8, [x20]
+  1f76fc: aa1403e0     	mov	x0, x20
+  1f7700: f9400908     	ldr	x8, [x8, #0x10]
+  1f7704: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f7708: aa1403e0     	mov	x0, x20
+  1f770c: 9403269d     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1f7710: f10002df     	cmp	x22, #0x0
+  1f7714: f9405260     	ldr	x0, [x19, #0xa0]
+  1f7718: 1a9f07e8     	cset	w8, ne
+  1f771c: 390013e8     	strb	w8, [sp, #0x4]
+  1f7720: b4000460     	cbz	x0, 0x1f77ac <SW::SAMConnectable::invokeThenClear_ConnectSession()+0x110>
+  1f7724: f9400008     	ldr	x8, [x0]
+  1f7728: 910013e1     	add	x1, sp, #0x4
+  1f772c: f9401908     	ldr	x8, [x8, #0x30]
+  1f7730: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f7734: 39430268     	ldrb	w8, [x19, #0xc0]
+  1f7738: 34000448     	cbz	w8, 0x1f77c0 <SW::SAMConnectable::invokeThenClear_ConnectSession()+0x124>
+  1f773c: f9405260     	ldr	x0, [x19, #0xa0]
+  1f7740: 91020269     	add	x9, x19, #0x80
+  1f7744: f900527f     	str	xzr, [x19, #0xa0]
+  1f7748: eb09001f     	cmp	x0, x9
+  1f774c: 54000120     	b.eq	0x1f7770 <SW::SAMConnectable::invokeThenClear_ConnectSession()+0xd4>
+  1f7750: b40001a0     	cbz	x0, 0x1f7784 <SW::SAMConnectable::invokeThenClear_ConnectSession()+0xe8>
+  1f7754: 52800508     	mov	w8, #0x28               // =40
+  1f7758: 14000008     	b	0x1f7778 <SW::SAMConnectable::invokeThenClear_ConnectSession()+0xdc>
+  1f775c: aa1f03e0     	mov	x0, xzr
+  1f7760: 91020269     	add	x9, x19, #0x80
+  1f7764: f900527f     	str	xzr, [x19, #0xa0]
+  1f7768: eb0903ff     	cmp	xzr, x9
+  1f776c: 54ffff21     	b.ne	0x1f7750 <SW::SAMConnectable::invokeThenClear_ConnectSession()+0xb4>
+  1f7770: 52800408     	mov	w8, #0x20               // =32
+  1f7774: aa0903e0     	mov	x0, x9
+  1f7778: f9400009     	ldr	x9, [x0]
+  1f777c: f8686928     	ldr	x8, [x9, x8]
+  1f7780: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f7784: 3903027f     	strb	wzr, [x19, #0xc0]
+  1f7788: f94016a8     	ldr	x8, [x21, #0x28]
+  1f778c: f94007e9     	ldr	x9, [sp, #0x8]
+  1f7790: eb09011f     	cmp	x8, x9
+  1f7794: 54000481     	b.ne	0x1f7824 <SW::SAMConnectable::invokeThenClear_ConnectSession()+0x188>
+  1f7798: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  1f779c: a94257f6     	ldp	x22, x21, [sp, #0x20]
+  1f77a0: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+  1f77a4: 910103ff     	add	sp, sp, #0x40
+  1f77a8: d65f03c0     	ret
+  1f77ac: f94016a8     	ldr	x8, [x21, #0x28]
+  1f77b0: f94007e9     	ldr	x9, [sp, #0x8]
+  1f77b4: eb09011f     	cmp	x8, x9
+  1f77b8: 54000361     	b.ne	0x1f7824 <SW::SAMConnectable::invokeThenClear_ConnectSession()+0x188>
+  1f77bc: 97ff14a7     	bl	0x1bca58 <std::__ndk1::__throw_bad_function_call[abi:ne190000]()>  ;;; CALL std::__ndk1::__throw_bad_function_call[abi:ne190000]()
+  1f77c0: 52800200     	mov	w0, #0x10               // =16
+  1f77c4: 9403277b     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  1f77c8: aa0003f3     	mov	x19, x0
+  1f77cc: b0fff6a1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  1f77d0: 910f4421     	add	x1, x1, #0x3d1
+  1f77d4: 94032e13     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  1f77d8: f94016a8     	ldr	x8, [x21, #0x28]
+  1f77dc: f94007e9     	ldr	x9, [sp, #0x8]
+  1f77e0: eb09011f     	cmp	x8, x9
+  1f77e4: 54000201     	b.ne	0x1f7824 <SW::SAMConnectable::invokeThenClear_ConnectSession()+0x188>
+  1f77e8: d0000701     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  1f77ec: d0000702     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  1f77f0: aa1303e0     	mov	x0, x19
+  1f77f4: f9409c21     	ldr	x1, [x1, #0x138]
+  1f77f8: f940a042     	ldr	x2, [x2, #0x140]
+  1f77fc: 94032775     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  1f7800: aa0003f4     	mov	x20, x0
+  1f7804: aa1303e0     	mov	x0, x19
+  1f7808: 94032a5e     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  1f780c: f94016a8     	ldr	x8, [x21, #0x28]
+  1f7810: f94007e9     	ldr	x9, [sp, #0x8]
+  1f7814: eb09011f     	cmp	x8, x9
+  1f7818: 54000061     	b.ne	0x1f7824 <SW::SAMConnectable::invokeThenClear_ConnectSession()+0x188>
+  1f781c: aa1403e0     	mov	x0, x20
+  1f7820: 94031719     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1f7824: 94032663     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001f7828 <SW::SAMConnectable::startSession()>:
+  1f7828: d10203ff     	sub	sp, sp, #0x80
+  1f782c: a9047bfd     	stp	x29, x30, [sp, #0x40]
+  1f7830: f9002bf7     	str	x23, [sp, #0x50]
+  1f7834: a90657f6     	stp	x22, x21, [sp, #0x60]
+  1f7838: a9074ff4     	stp	x20, x19, [sp, #0x70]
+  1f783c: 910103fd     	add	x29, sp, #0x40
+  1f7840: d53bd055     	mrs	x21, TPIDR_EL0
+  1f7844: aa0003f4     	mov	x20, x0
+  1f7848: f94016a8     	ldr	x8, [x21, #0x28]
+  1f784c: f81f83a8     	stur	x8, [x29, #-0x8]
+  1f7850: f9401008     	ldr	x8, [x0, #0x20]
+  1f7854: a9454d16     	ldp	x22, x19, [x8, #0x50]
+  1f7858: b4000113     	cbz	x19, 0x1f7878 <SW::SAMConnectable::startSession()+0x50>
+  1f785c: 91002261     	add	x1, x19, #0x8
+  1f7860: 52800020     	mov	w0, #0x1                // =1
+  1f7864: 940316a3     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1f7868: 91002261     	add	x1, x19, #0x8
+  1f786c: 92800000     	mov	x0, #-0x1               // =-1
+  1f7870: 940316ac     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1f7874: b4000860     	cbz	x0, 0x1f7980 <SW::SAMConnectable::startSession()+0x158>
+  1f7878: b4000936     	cbz	x22, 0x1f799c <SW::SAMConnectable::startSession()+0x174>
+  1f787c: 90fff6a1     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  1f7880: 911e5c21     	add	x1, x1, #0x797
+  1f7884: 910083e8     	add	x8, sp, #0x20
+  1f7888: aa1f03e0     	mov	x0, xzr
+  1f788c: 9403260d     	bl	0x2c10c0 <_ZN7QString8fromUtf8E14QByteArrayView@plt>  ;;; CALL QString::fromUtf8(QByteArrayView)
+  1f7890: 3dc00be0     	ldr	q0, [sp, #0x20]
+  1f7894: f9401be8     	ldr	x8, [sp, #0x30]
+  1f7898: 528000b6     	mov	w22, #0x5               // =5
+  1f789c: b90003f6     	str	w22, [sp]
+  1f78a0: 9e660013     	fmov	x19, d0
+  1f78a4: 3c8083e0     	stur	q0, [sp, #0x8]
+  1f78a8: f9000fe8     	str	x8, [sp, #0x18]
+  1f78ac: b40000b3     	cbz	x19, 0x1f78c0 <SW::SAMConnectable::startSession()+0x98>
+  1f78b0: 52800020     	mov	w0, #0x1                // =1
+  1f78b4: aa1303e1     	mov	x1, x19
+  1f78b8: 94031682     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f78bc: b94003f6     	ldr	w22, [sp]
+  1f78c0: b9406297     	ldr	w23, [x20, #0x60]
+  1f78c4: 6b1602ff     	cmp	w23, w22
+  1f78c8: 54000200     	b.eq	0x1f7908 <SW::SAMConnectable::startSession()+0xe0>
+  1f78cc: 910003e8     	mov	x8, sp
+  1f78d0: 9101a280     	add	x0, x20, #0x68
+  1f78d4: b9006296     	str	w22, [x20, #0x60]
+  1f78d8: 91002101     	add	x1, x8, #0x8
+  1f78dc: 940327c9     	bl	0x2c1800 <_ZN7QStringaSERKS_@plt>  ;;; CALL QString::operator=(QString const&)
+  1f78e0: 35000077     	cbnz	w23, 0x1f78ec <SW::SAMConnectable::startSession()+0xc4>
+  1f78e4: aa1403e0     	mov	x0, x20
+  1f78e8: 94032dd2     	bl	0x2c3030 <_ZN2SW12IConnectable14sessionStartedEv@plt>  ;;; CALL SW::IConnectable::sessionStarted()
+  1f78ec: 350000b6     	cbnz	w22, 0x1f7900 <SW::SAMConnectable::startSession()+0xd8>
+  1f78f0: aa1403e0     	mov	x0, x20
+  1f78f4: 94032dd3     	bl	0x2c3040 <_ZN2SW12IConnectable11sessionDoneEv@plt>  ;;; CALL SW::IConnectable::sessionDone()
+  1f78f8: aa1403e0     	mov	x0, x20
+  1f78fc: 94032dc5     	bl	0x2c3010 <_ZN2SW14SAMConnectable30invokeThenClear_ConnectSessionEv@plt>  ;;; CALL SW::SAMConnectable::invokeThenClear_ConnectSession()
+  1f7900: aa1403e0     	mov	x0, x20
+  1f7904: 94032dd3     	bl	0x2c3050 <_ZN2SW12IConnectable13statusChangedEv@plt>  ;;; CALL SW::IConnectable::statusChanged()
+  1f7908: f94007e1     	ldr	x1, [sp, #0x8]
+  1f790c: b4000121     	cbz	x1, 0x1f7930 <SW::SAMConnectable::startSession()+0x108>
+  1f7910: 12800000     	mov	w0, #-0x1               // =-1
+  1f7914: 9403166b     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f7918: 7100041f     	cmp	w0, #0x1
+  1f791c: 540000a1     	b.ne	0x1f7930 <SW::SAMConnectable::startSession()+0x108>
+  1f7920: f94007e0     	ldr	x0, [sp, #0x8]
+  1f7924: 52800041     	mov	w1, #0x2                // =2
+  1f7928: 52800102     	mov	w2, #0x8                // =8
+  1f792c: 940325ed     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f7930: b4000153     	cbz	x19, 0x1f7958 <SW::SAMConnectable::startSession()+0x130>
+  1f7934: 12800000     	mov	w0, #-0x1               // =-1
+  1f7938: aa1303e1     	mov	x1, x19
+  1f793c: 94031661     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f7940: 7100041f     	cmp	w0, #0x1
+  1f7944: 540000a1     	b.ne	0x1f7958 <SW::SAMConnectable::startSession()+0x130>
+  1f7948: aa1303e0     	mov	x0, x19
+  1f794c: 52800041     	mov	w1, #0x2                // =2
+  1f7950: 52800102     	mov	w2, #0x8                // =8
+  1f7954: 940325e3     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f7958: f94016a8     	ldr	x8, [x21, #0x28]
+  1f795c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f7960: eb09011f     	cmp	x8, x9
+  1f7964: 54000681     	b.ne	0x1f7a34 <SW::SAMConnectable::startSession()+0x20c>
+  1f7968: a9474ff4     	ldp	x20, x19, [sp, #0x70]
+  1f796c: f9402bf7     	ldr	x23, [sp, #0x50]
+  1f7970: a94657f6     	ldp	x22, x21, [sp, #0x60]
+  1f7974: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+  1f7978: 910203ff     	add	sp, sp, #0x80
+  1f797c: d65f03c0     	ret
+  1f7980: f9400268     	ldr	x8, [x19]
+  1f7984: aa1303e0     	mov	x0, x19
+  1f7988: f9400908     	ldr	x8, [x8, #0x10]
+  1f798c: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f7990: aa1303e0     	mov	x0, x19
+  1f7994: 940325fb     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1f7998: b5fff736     	cbnz	x22, 0x1f787c <SW::SAMConnectable::startSession()+0x54>
+  1f799c: f94016a8     	ldr	x8, [x21, #0x28]
+  1f79a0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f79a4: eb09011f     	cmp	x8, x9
+  1f79a8: 54000461     	b.ne	0x1f7a34 <SW::SAMConnectable::startSession()+0x20c>
+  1f79ac: aa1403e0     	mov	x0, x20
+  1f79b0: a9474ff4     	ldp	x20, x19, [sp, #0x70]
+  1f79b4: f9402bf7     	ldr	x23, [sp, #0x50]
+  1f79b8: a94657f6     	ldp	x22, x21, [sp, #0x60]
+  1f79bc: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+  1f79c0: 910203ff     	add	sp, sp, #0x80
+  1f79c4: 14032da7     	b	0x2c3060 <_ZN2SW14SAMConnectable12startConnectEv@plt>
+  1f79c8: f94007e1     	ldr	x1, [sp, #0x8]
+  1f79cc: aa0003f4     	mov	x20, x0
+  1f79d0: b4000121     	cbz	x1, 0x1f79f4 <SW::SAMConnectable::startSession()+0x1cc>
+  1f79d4: 12800000     	mov	w0, #-0x1               // =-1
+  1f79d8: 9403163a     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f79dc: 7100041f     	cmp	w0, #0x1
+  1f79e0: 540000a1     	b.ne	0x1f79f4 <SW::SAMConnectable::startSession()+0x1cc>
+  1f79e4: f94007e0     	ldr	x0, [sp, #0x8]
+  1f79e8: 52800041     	mov	w1, #0x2                // =2
+  1f79ec: 52800102     	mov	w2, #0x8                // =8
+  1f79f0: 940325bc     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f79f4: b4000153     	cbz	x19, 0x1f7a1c <SW::SAMConnectable::startSession()+0x1f4>
+  1f79f8: 12800000     	mov	w0, #-0x1               // =-1
+  1f79fc: aa1303e1     	mov	x1, x19
+  1f7a00: 94031630     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f7a04: 7100041f     	cmp	w0, #0x1
+  1f7a08: 540000a1     	b.ne	0x1f7a1c <SW::SAMConnectable::startSession()+0x1f4>
+  1f7a0c: aa1303e0     	mov	x0, x19
+  1f7a10: 52800041     	mov	w1, #0x2                // =2
+  1f7a14: 52800102     	mov	w2, #0x8                // =8
+  1f7a18: 940325b2     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f7a1c: f94016a8     	ldr	x8, [x21, #0x28]
+  1f7a20: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f7a24: eb09011f     	cmp	x8, x9
+  1f7a28: 54000061     	b.ne	0x1f7a34 <SW::SAMConnectable::startSession()+0x20c>
+  1f7a2c: aa1403e0     	mov	x0, x20
+  1f7a30: 94031695     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1f7a34: 940325df     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001f7a38 <SW::SAMConnectable::startConnect()>:
+  1f7a38: d10283ff     	sub	sp, sp, #0xa0
+  1f7a3c: a9077bfd     	stp	x29, x30, [sp, #0x70]
+  1f7a40: f90043f5     	str	x21, [sp, #0x80]
+  1f7a44: a9094ff4     	stp	x20, x19, [sp, #0x90]
+  1f7a48: 9101c3fd     	add	x29, sp, #0x70
+  1f7a4c: d53bd054     	mrs	x20, TPIDR_EL0
+  1f7a50: d0000709     	adrp	x9, 0x2d9000 <vsnprintf+0x2d9000>
+  1f7a54: aa0003f3     	mov	x19, x0
+  1f7a58: f9401688     	ldr	x8, [x20, #0x28]
+  1f7a5c: f940b129     	ldr	x9, [x9, #0x160]
+  1f7a60: 9100c3f5     	add	x21, sp, #0x30
+  1f7a64: f81f83a8     	stur	x8, [x29, #-0x8]
+  1f7a68: 91004128     	add	x8, x9, #0x10
+  1f7a6c: d0000709     	adrp	x9, 0x2d9000 <vsnprintf+0x2d9000>
+  1f7a70: f9400800     	ldr	x0, [x0, #0x10]
+  1f7a74: f940b529     	ldr	x9, [x9, #0x168]
+  1f7a78: f9001be8     	str	x8, [sp, #0x30]
+  1f7a7c: f9002bf5     	str	x21, [sp, #0x50]
+  1f7a80: f9400008     	ldr	x8, [x0]
+  1f7a84: f9001fe9     	str	x9, [sp, #0x38]
+  1f7a88: f9403d08     	ldr	x8, [x8, #0x78]
+  1f7a8c: 9100c3e1     	add	x1, sp, #0x30
+  1f7a90: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f7a94: f9402be0     	ldr	x0, [sp, #0x50]
+  1f7a98: eb15001f     	cmp	x0, x21
+  1f7a9c: 54000080     	b.eq	0x1f7aac <SW::SAMConnectable::startConnect()+0x74>
+  1f7aa0: b4000100     	cbz	x0, 0x1f7ac0 <SW::SAMConnectable::startConnect()+0x88>
+  1f7aa4: 52800508     	mov	w8, #0x28               // =40
+  1f7aa8: 14000003     	b	0x1f7ab4 <SW::SAMConnectable::startConnect()+0x7c>
+  1f7aac: 52800408     	mov	w8, #0x20               // =32
+  1f7ab0: 9100c3e0     	add	x0, sp, #0x30
+  1f7ab4: f9400009     	ldr	x9, [x0]
+  1f7ab8: f8686928     	ldr	x8, [x9, x8]
+  1f7abc: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f7ac0: d0000708     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  1f7ac4: b0000709     	adrp	x9, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1f7ac8: 910003f5     	mov	x21, sp
+  1f7acc: f940b908     	ldr	x8, [x8, #0x170]
+  1f7ad0: f9471929     	ldr	x9, [x9, #0xe30]
+  1f7ad4: f9400a60     	ldr	x0, [x19, #0x10]
+  1f7ad8: a9014fff     	stp	xzr, x19, [sp, #0x10]
+  1f7adc: 91004108     	add	x8, x8, #0x10
+  1f7ae0: f90013f5     	str	x21, [sp, #0x20]
+  1f7ae4: a90027e8     	stp	x8, x9, [sp]
+  1f7ae8: f9400008     	ldr	x8, [x0]
+  1f7aec: f9404108     	ldr	x8, [x8, #0x80]
+  1f7af0: 910003e1     	mov	x1, sp
+  1f7af4: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f7af8: f94013e0     	ldr	x0, [sp, #0x20]
+  1f7afc: eb15001f     	cmp	x0, x21
+  1f7b00: 54000080     	b.eq	0x1f7b10 <SW::SAMConnectable::startConnect()+0xd8>
+  1f7b04: b4000100     	cbz	x0, 0x1f7b24 <SW::SAMConnectable::startConnect()+0xec>
+  1f7b08: 52800508     	mov	w8, #0x28               // =40
+  1f7b0c: 14000003     	b	0x1f7b18 <SW::SAMConnectable::startConnect()+0xe0>
+  1f7b10: 52800408     	mov	w8, #0x20               // =32
+  1f7b14: 910003e0     	mov	x0, sp
+  1f7b18: f9400009     	ldr	x9, [x0]
+  1f7b1c: f8686928     	ldr	x8, [x9, x8]
+  1f7b20: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f7b24: f9400a60     	ldr	x0, [x19, #0x10]
+  1f7b28: f9400008     	ldr	x8, [x0]
+  1f7b2c: f9403508     	ldr	x8, [x8, #0x68]
+  1f7b30: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f7b34: f9401688     	ldr	x8, [x20, #0x28]
+  1f7b38: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f7b3c: eb09011f     	cmp	x8, x9
+  1f7b40: 54000401     	b.ne	0x1f7bc0 <SW::SAMConnectable::startConnect()+0x188>
+  1f7b44: a9494ff4     	ldp	x20, x19, [sp, #0x90]
+  1f7b48: f94043f5     	ldr	x21, [sp, #0x80]
+  1f7b4c: a9477bfd     	ldp	x29, x30, [sp, #0x70]
+  1f7b50: 910283ff     	add	sp, sp, #0xa0
+  1f7b54: d65f03c0     	ret
+  1f7b58: f94013e8     	ldr	x8, [sp, #0x20]
+  1f7b5c: aa0003f3     	mov	x19, x0
+  1f7b60: eb15011f     	cmp	x8, x21
+  1f7b64: 54000161     	b.ne	0x1f7b90 <SW::SAMConnectable::startConnect()+0x158>
+  1f7b68: 52800409     	mov	w9, #0x20               // =32
+  1f7b6c: 910003e8     	mov	x8, sp
+  1f7b70: 1400000a     	b	0x1f7b98 <SW::SAMConnectable::startConnect()+0x160>
+  1f7b74: f9402be8     	ldr	x8, [sp, #0x50]
+  1f7b78: aa0003f3     	mov	x19, x0
+  1f7b7c: eb15011f     	cmp	x8, x21
+  1f7b80: 54000081     	b.ne	0x1f7b90 <SW::SAMConnectable::startConnect()+0x158>
+  1f7b84: 52800409     	mov	w9, #0x20               // =32
+  1f7b88: 9100c3e8     	add	x8, sp, #0x30
+  1f7b8c: 14000003     	b	0x1f7b98 <SW::SAMConnectable::startConnect()+0x160>
+  1f7b90: b40000c8     	cbz	x8, 0x1f7ba8 <SW::SAMConnectable::startConnect()+0x170>
+  1f7b94: 52800509     	mov	w9, #0x28               // =40
+  1f7b98: f940010a     	ldr	x10, [x8]
+  1f7b9c: aa0803e0     	mov	x0, x8
+  1f7ba0: f8696949     	ldr	x9, [x10, x9]
+  1f7ba4: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  1f7ba8: f9401688     	ldr	x8, [x20, #0x28]
+  1f7bac: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f7bb0: eb09011f     	cmp	x8, x9
+  1f7bb4: 54000061     	b.ne	0x1f7bc0 <SW::SAMConnectable::startConnect()+0x188>
+  1f7bb8: aa1303e0     	mov	x0, x19
+  1f7bbc: 94031632     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1f7bc0: 9403257c     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001f7bc4 <SW::SAMConnectable::setStatus(SW::IConnectableStatus)>:
+  1f7bc4: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  1f7bc8: f9000bf5     	str	x21, [sp, #0x10]
+  1f7bcc: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  1f7bd0: 910003fd     	mov	x29, sp
+  1f7bd4: b9406015     	ldr	w21, [x0, #0x60]
+  1f7bd8: b9400034     	ldr	w20, [x1]
+  1f7bdc: 6b1402bf     	cmp	w21, w20
+  1f7be0: 540000a1     	b.ne	0x1f7bf4 <SW::SAMConnectable::setStatus(SW::IConnectableStatus)+0x30>
+  1f7be4: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  1f7be8: f9400bf5     	ldr	x21, [sp, #0x10]
+  1f7bec: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  1f7bf0: d65f03c0     	ret
+  1f7bf4: aa0003f3     	mov	x19, x0
+  1f7bf8: b9006014     	str	w20, [x0, #0x60]
+  1f7bfc: 9101a000     	add	x0, x0, #0x68
+  1f7c00: 91002021     	add	x1, x1, #0x8
+  1f7c04: 940326ff     	bl	0x2c1800 <_ZN7QStringaSERKS_@plt>  ;;; CALL QString::operator=(QString const&)
+  1f7c08: 340000f5     	cbz	w21, 0x1f7c24 <SW::SAMConnectable::setStatus(SW::IConnectableStatus)+0x60>
+  1f7c0c: 34000134     	cbz	w20, 0x1f7c30 <SW::SAMConnectable::setStatus(SW::IConnectableStatus)+0x6c>
+  1f7c10: aa1303e0     	mov	x0, x19
+  1f7c14: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  1f7c18: f9400bf5     	ldr	x21, [sp, #0x10]
+  1f7c1c: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  1f7c20: 14032d0c     	b	0x2c3050 <_ZN2SW12IConnectable13statusChangedEv@plt>
+  1f7c24: aa1303e0     	mov	x0, x19
+  1f7c28: 94032d02     	bl	0x2c3030 <_ZN2SW12IConnectable14sessionStartedEv@plt>  ;;; CALL SW::IConnectable::sessionStarted()
+  1f7c2c: 35ffff34     	cbnz	w20, 0x1f7c10 <SW::SAMConnectable::setStatus(SW::IConnectableStatus)+0x4c>
+  1f7c30: aa1303e0     	mov	x0, x19
+  1f7c34: 94032d03     	bl	0x2c3040 <_ZN2SW12IConnectable11sessionDoneEv@plt>  ;;; CALL SW::IConnectable::sessionDone()
+  1f7c38: aa1303e0     	mov	x0, x19
+  1f7c3c: 94032cf5     	bl	0x2c3010 <_ZN2SW14SAMConnectable30invokeThenClear_ConnectSessionEv@plt>  ;;; CALL SW::SAMConnectable::invokeThenClear_ConnectSession()
+  1f7c40: aa1303e0     	mov	x0, x19
+  1f7c44: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  1f7c48: f9400bf5     	ldr	x21, [sp, #0x10]
+  1f7c4c: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  1f7c50: 14032d00     	b	0x2c3050 <_ZN2SW12IConnectable13statusChangedEv@plt>
+
+00000000001f7c54 <SW::SAMConnectable::startNextAction()>:
+  1f7c54: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  1f7c58: f9000bf5     	str	x21, [sp, #0x10]
+  1f7c5c: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  1f7c60: 910003fd     	mov	x29, sp
+  1f7c64: f9401008     	ldr	x8, [x0, #0x20]
+  1f7c68: aa0003f3     	mov	x19, x0
+  1f7c6c: a9455115     	ldp	x21, x20, [x8, #0x50]
+  1f7c70: b4000114     	cbz	x20, 0x1f7c90 <SW::SAMConnectable::startNextAction()+0x3c>
+  1f7c74: 91002281     	add	x1, x20, #0x8
+  1f7c78: 52800020     	mov	w0, #0x1                // =1
+  1f7c7c: 9403159d     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1f7c80: 91002281     	add	x1, x20, #0x8
+  1f7c84: 92800000     	mov	x0, #-0x1               // =-1
+  1f7c88: 940315a6     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1f7c8c: b40000e0     	cbz	x0, 0x1f7ca8 <SW::SAMConnectable::startNextAction()+0x54>
+  1f7c90: aa1303e0     	mov	x0, x19
+  1f7c94: b40001b5     	cbz	x21, 0x1f7cc8 <SW::SAMConnectable::startNextAction()+0x74>
+  1f7c98: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  1f7c9c: f9400bf5     	ldr	x21, [sp, #0x10]
+  1f7ca0: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  1f7ca4: 14032cf3     	b	0x2c3070 <_ZN2SW14SAMConnectable15startDisconnectEv@plt>
+  1f7ca8: f9400288     	ldr	x8, [x20]
+  1f7cac: aa1403e0     	mov	x0, x20
+  1f7cb0: f9400908     	ldr	x8, [x8, #0x10]
+  1f7cb4: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f7cb8: aa1403e0     	mov	x0, x20
+  1f7cbc: 94032531     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1f7cc0: aa1303e0     	mov	x0, x19
+  1f7cc4: b5fffeb5     	cbnz	x21, 0x1f7c98 <SW::SAMConnectable::startNextAction()+0x44>
+  1f7cc8: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  1f7ccc: f9400bf5     	ldr	x21, [sp, #0x10]
+  1f7cd0: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  1f7cd4: 14032ce3     	b	0x2c3060 <_ZN2SW14SAMConnectable12startConnectEv@plt>
+
+00000000001f7cd8 <SW::SAMConnectable::startDisconnect()>:
+  1f7cd8: d10283ff     	sub	sp, sp, #0xa0
+  1f7cdc: a9067bfd     	stp	x29, x30, [sp, #0x60]
+  1f7ce0: f9003bf7     	str	x23, [sp, #0x70]
+  1f7ce4: a90857f6     	stp	x22, x21, [sp, #0x80]
+  1f7ce8: a9094ff4     	stp	x20, x19, [sp, #0x90]
+  1f7cec: 910183fd     	add	x29, sp, #0x60
+  1f7cf0: d53bd055     	mrs	x21, TPIDR_EL0
+  1f7cf4: aa0003f3     	mov	x19, x0
+  1f7cf8: 90fff6a1     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  1f7cfc: 911e5c21     	add	x1, x1, #0x797
+  1f7d00: f94016a8     	ldr	x8, [x21, #0x28]
+  1f7d04: aa1f03e0     	mov	x0, xzr
+  1f7d08: f81f83a8     	stur	x8, [x29, #-0x8]
+  1f7d0c: 9100c3e8     	add	x8, sp, #0x30
+  1f7d10: 940324ec     	bl	0x2c10c0 <_ZN7QString8fromUtf8E14QByteArrayView@plt>  ;;; CALL QString::fromUtf8(QByteArrayView)
+  1f7d14: 3dc00fe0     	ldr	q0, [sp, #0x30]
+  1f7d18: f94023e8     	ldr	x8, [sp, #0x40]
+  1f7d1c: 528000d6     	mov	w22, #0x6               // =6
+  1f7d20: b90013f6     	str	w22, [sp, #0x10]
+  1f7d24: 9e660014     	fmov	x20, d0
+  1f7d28: 3c8183e0     	stur	q0, [sp, #0x18]
+  1f7d2c: f90017e8     	str	x8, [sp, #0x28]
+  1f7d30: b40000b4     	cbz	x20, 0x1f7d44 <SW::SAMConnectable::startDisconnect()+0x6c>
+  1f7d34: 52800020     	mov	w0, #0x1                // =1
+  1f7d38: aa1403e1     	mov	x1, x20
+  1f7d3c: 94031561     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f7d40: b94013f6     	ldr	w22, [sp, #0x10]
+  1f7d44: b9406277     	ldr	w23, [x19, #0x60]
+  1f7d48: 6b1602ff     	cmp	w23, w22
+  1f7d4c: 54000200     	b.eq	0x1f7d8c <SW::SAMConnectable::startDisconnect()+0xb4>
+  1f7d50: 910043e8     	add	x8, sp, #0x10
+  1f7d54: 9101a260     	add	x0, x19, #0x68
+  1f7d58: b9006276     	str	w22, [x19, #0x60]
+  1f7d5c: 91002101     	add	x1, x8, #0x8
+  1f7d60: 940326a8     	bl	0x2c1800 <_ZN7QStringaSERKS_@plt>  ;;; CALL QString::operator=(QString const&)
+  1f7d64: 35000077     	cbnz	w23, 0x1f7d70 <SW::SAMConnectable::startDisconnect()+0x98>
+  1f7d68: aa1303e0     	mov	x0, x19
+  1f7d6c: 94032cb1     	bl	0x2c3030 <_ZN2SW12IConnectable14sessionStartedEv@plt>  ;;; CALL SW::IConnectable::sessionStarted()
+  1f7d70: 350000b6     	cbnz	w22, 0x1f7d84 <SW::SAMConnectable::startDisconnect()+0xac>
+  1f7d74: aa1303e0     	mov	x0, x19
+  1f7d78: 94032cb2     	bl	0x2c3040 <_ZN2SW12IConnectable11sessionDoneEv@plt>  ;;; CALL SW::IConnectable::sessionDone()
+  1f7d7c: aa1303e0     	mov	x0, x19
+  1f7d80: 94032ca4     	bl	0x2c3010 <_ZN2SW14SAMConnectable30invokeThenClear_ConnectSessionEv@plt>  ;;; CALL SW::SAMConnectable::invokeThenClear_ConnectSession()
+  1f7d84: aa1303e0     	mov	x0, x19
+  1f7d88: 94032cb2     	bl	0x2c3050 <_ZN2SW12IConnectable13statusChangedEv@plt>  ;;; CALL SW::IConnectable::statusChanged()
+  1f7d8c: f9400fe1     	ldr	x1, [sp, #0x18]
+  1f7d90: b4000121     	cbz	x1, 0x1f7db4 <SW::SAMConnectable::startDisconnect()+0xdc>
+  1f7d94: 12800000     	mov	w0, #-0x1               // =-1
+  1f7d98: 9403154a     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f7d9c: 7100041f     	cmp	w0, #0x1
+  1f7da0: 540000a1     	b.ne	0x1f7db4 <SW::SAMConnectable::startDisconnect()+0xdc>
+  1f7da4: f9400fe0     	ldr	x0, [sp, #0x18]
+  1f7da8: 52800041     	mov	w1, #0x2                // =2
+  1f7dac: 52800102     	mov	w2, #0x8                // =8
+  1f7db0: 940324cc     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f7db4: b4000154     	cbz	x20, 0x1f7ddc <SW::SAMConnectable::startDisconnect()+0x104>
+  1f7db8: 12800000     	mov	w0, #-0x1               // =-1
+  1f7dbc: aa1403e1     	mov	x1, x20
+  1f7dc0: 94031540     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f7dc4: 7100041f     	cmp	w0, #0x1
+  1f7dc8: 540000a1     	b.ne	0x1f7ddc <SW::SAMConnectable::startDisconnect()+0x104>
+  1f7dcc: aa1403e0     	mov	x0, x20
+  1f7dd0: 52800041     	mov	w1, #0x2                // =2
+  1f7dd4: 52800102     	mov	w2, #0x8                // =8
+  1f7dd8: 940324c2     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f7ddc: 52800100     	mov	w0, #0x8                // =8
+  1f7de0: 940324c8     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  1f7de4: aa0003f4     	mov	x20, x0
+  1f7de8: 94032ca6     	bl	0x2c3080 <_ZNSt6__ndk115__thread_structC1Ev@plt>  ;;; CALL std::__ndk1::__thread_struct::__thread_struct()
+  1f7dec: f9001bf4     	str	x20, [sp, #0x30]
+  1f7df0: 52800200     	mov	w0, #0x10               // =16
+  1f7df4: 940324c3     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  1f7df8: aa0003e3     	mov	x3, x0
+  1f7dfc: f9001bff     	str	xzr, [sp, #0x30]
+  1f7e00: a9004c14     	stp	x20, x19, [x0]
+  1f7e04: f81f03a0     	stur	x0, [x29, #-0x10]
+  1f7e08: d503201f     	nop
+  1f7e0c: 1000a2c2     	adr	x2, 0x1f9264 <void* std::__ndk1::__thread_proxy[abi:ne190000]<std::__ndk1::tuple<std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct>>, SW::SAMConnectable::startDisconnect()::$_0>>(void*)>
+  1f7e10: 910023e0     	add	x0, sp, #0x8
+  1f7e14: aa1f03e1     	mov	x1, xzr
+  1f7e18: 94032c9e     	bl	0x2c3090 <pthread_create@plt>  ;;; CALL pthread_create
+  1f7e1c: 350001e0     	cbnz	w0, 0x1f7e58 <SW::SAMConnectable::startDisconnect()+0x180>
+  1f7e20: 910023e0     	add	x0, sp, #0x8
+  1f7e24: 94032c9f     	bl	0x2c30a0 <_ZNSt6__ndk16thread6detachEv@plt>  ;;; CALL std::__ndk1::thread::detach()
+  1f7e28: 910023e0     	add	x0, sp, #0x8
+  1f7e2c: 94032ca1     	bl	0x2c30b0 <_ZNSt6__ndk16threadD1Ev@plt>  ;;; CALL std::__ndk1::thread::~thread()
+  1f7e30: f94016a8     	ldr	x8, [x21, #0x28]
+  1f7e34: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f7e38: eb09011f     	cmp	x8, x9
+  1f7e3c: 54000721     	b.ne	0x1f7f20 <SW::SAMConnectable::startDisconnect()+0x248>
+  1f7e40: a9494ff4     	ldp	x20, x19, [sp, #0x90]
+  1f7e44: f9403bf7     	ldr	x23, [sp, #0x70]
+  1f7e48: a94857f6     	ldp	x22, x21, [sp, #0x80]
+  1f7e4c: a9467bfd     	ldp	x29, x30, [sp, #0x60]
+  1f7e50: 910283ff     	add	sp, sp, #0xa0
+  1f7e54: d65f03c0     	ret
+  1f7e58: f94016a8     	ldr	x8, [x21, #0x28]
+  1f7e5c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f7e60: eb09011f     	cmp	x8, x9
+  1f7e64: 540005e1     	b.ne	0x1f7f20 <SW::SAMConnectable::startDisconnect()+0x248>
+  1f7e68: 90fff6a1     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  1f7e6c: 9115a021     	add	x1, x1, #0x568
+  1f7e70: 94032c94     	bl	0x2c30c0 <_ZNSt6__ndk120__throw_system_errorEiPKc@plt>  ;;; CALL std::__ndk1::__throw_system_error(int, char const*)
+  1f7e74: aa0003f3     	mov	x19, x0
+  1f7e78: 910023e0     	add	x0, sp, #0x8
+  1f7e7c: 94032c8d     	bl	0x2c30b0 <_ZNSt6__ndk16threadD1Ev@plt>  ;;; CALL std::__ndk1::thread::~thread()
+  1f7e80: 14000022     	b	0x1f7f08 <SW::SAMConnectable::startDisconnect()+0x230>
+  1f7e84: aa0003f3     	mov	x19, x0
+  1f7e88: 1400001e     	b	0x1f7f00 <SW::SAMConnectable::startDisconnect()+0x228>
+  1f7e8c: aa0003f3     	mov	x19, x0
+  1f7e90: aa1403e0     	mov	x0, x20
+  1f7e94: 9403253f     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1f7e98: 1400001c     	b	0x1f7f08 <SW::SAMConnectable::startDisconnect()+0x230>
+  1f7e9c: f9400fe1     	ldr	x1, [sp, #0x18]
+  1f7ea0: aa0003f3     	mov	x19, x0
+  1f7ea4: b4000121     	cbz	x1, 0x1f7ec8 <SW::SAMConnectable::startDisconnect()+0x1f0>
+  1f7ea8: 12800000     	mov	w0, #-0x1               // =-1
+  1f7eac: 94031505     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f7eb0: 7100041f     	cmp	w0, #0x1
+  1f7eb4: 540000a1     	b.ne	0x1f7ec8 <SW::SAMConnectable::startDisconnect()+0x1f0>
+  1f7eb8: f9400fe0     	ldr	x0, [sp, #0x18]
+  1f7ebc: 52800041     	mov	w1, #0x2                // =2
+  1f7ec0: 52800102     	mov	w2, #0x8                // =8
+  1f7ec4: 94032487     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f7ec8: b4000214     	cbz	x20, 0x1f7f08 <SW::SAMConnectable::startDisconnect()+0x230>
+  1f7ecc: 12800000     	mov	w0, #-0x1               // =-1
+  1f7ed0: aa1403e1     	mov	x1, x20
+  1f7ed4: 940314fb     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f7ed8: 7100041f     	cmp	w0, #0x1
+  1f7edc: 54000161     	b.ne	0x1f7f08 <SW::SAMConnectable::startDisconnect()+0x230>
+  1f7ee0: aa1403e0     	mov	x0, x20
+  1f7ee4: 52800041     	mov	w1, #0x2                // =2
+  1f7ee8: 52800102     	mov	w2, #0x8                // =8
+  1f7eec: 9403247d     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f7ef0: 14000006     	b	0x1f7f08 <SW::SAMConnectable::startDisconnect()+0x230>
+  1f7ef4: aa0003f3     	mov	x19, x0
+  1f7ef8: d10043a0     	sub	x0, x29, #0x10
+  1f7efc: 94000525     	bl	0x1f9390 <std::__ndk1::unique_ptr<std::__ndk1::tuple<std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct>>, SW::SAMConnectable::startDisconnect()::$_0>, std::__ndk1::default_delete<std::__ndk1::tuple<std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct>>, SW::SAMConnectable::startDisconnect()::$_0>>>::~unique_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::unique_ptr<std::__ndk1::tuple<std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct
+  1f7f00: 9100c3e0     	add	x0, sp, #0x30
+  1f7f04: 94000537     	bl	0x1f93e0 <std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct>>::~unique_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct
+  1f7f08: f94016a8     	ldr	x8, [x21, #0x28]
+  1f7f0c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f7f10: eb09011f     	cmp	x8, x9
+  1f7f14: 54000061     	b.ne	0x1f7f20 <SW::SAMConnectable::startDisconnect()+0x248>
+  1f7f18: aa1303e0     	mov	x0, x19
+  1f7f1c: 9403155a     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1f7f20: 940324a4     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001f7f24 <SW::SAMConnectable::selectDevice(int)>:
+  1f7f24: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  1f7f28: a90157f6     	stp	x22, x21, [sp, #0x10]
+  1f7f2c: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  1f7f30: 910003fd     	mov	x29, sp
+  1f7f34: f9401008     	ldr	x8, [x0, #0x20]
+  1f7f38: aa0003f3     	mov	x19, x0
+  1f7f3c: 2a0103f4     	mov	w20, w1
+  1f7f40: a9455516     	ldp	x22, x21, [x8, #0x50]
+  1f7f44: b4000115     	cbz	x21, 0x1f7f64 <SW::SAMConnectable::selectDevice(int)+0x40>
+  1f7f48: 910022a1     	add	x1, x21, #0x8
+  1f7f4c: 52800020     	mov	w0, #0x1                // =1
+  1f7f50: 940314e8     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1f7f54: 910022a1     	add	x1, x21, #0x8
+  1f7f58: 92800000     	mov	x0, #-0x1               // =-1
+  1f7f5c: 940314f1     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1f7f60: b40000c0     	cbz	x0, 0x1f7f78 <SW::SAMConnectable::selectDevice(int)+0x54>
+  1f7f64: b4000196     	cbz	x22, 0x1f7f94 <SW::SAMConnectable::selectDevice(int)+0x70>
+  1f7f68: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  1f7f6c: a94157f6     	ldp	x22, x21, [sp, #0x10]
+  1f7f70: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  1f7f74: d65f03c0     	ret
+  1f7f78: f94002a8     	ldr	x8, [x21]
+  1f7f7c: aa1503e0     	mov	x0, x21
+  1f7f80: f9400908     	ldr	x8, [x8, #0x10]
+  1f7f84: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f7f88: aa1503e0     	mov	x0, x21
+  1f7f8c: 9403247d     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1f7f90: b5fffed6     	cbnz	x22, 0x1f7f68 <SW::SAMConnectable::selectDevice(int)+0x44>
+  1f7f94: f9400a60     	ldr	x0, [x19, #0x10]
+  1f7f98: f9400008     	ldr	x8, [x0]
+  1f7f9c: f9403902     	ldr	x2, [x8, #0x70]
+  1f7fa0: 2a1403e1     	mov	w1, w20
+  1f7fa4: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  1f7fa8: a94157f6     	ldp	x22, x21, [sp, #0x10]
+  1f7fac: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  1f7fb0: d61f0040     	br	x2
+
+00000000001f7fb4 <SW::SAMConnectable::cancelSession()>:
+  1f7fb4: d10203ff     	sub	sp, sp, #0x80
+  1f7fb8: a9047bfd     	stp	x29, x30, [sp, #0x40]
+  1f7fbc: f9002bf7     	str	x23, [sp, #0x50]
+  1f7fc0: a90657f6     	stp	x22, x21, [sp, #0x60]
+  1f7fc4: a9074ff4     	stp	x20, x19, [sp, #0x70]
+  1f7fc8: 910103fd     	add	x29, sp, #0x40
+  1f7fcc: d53bd055     	mrs	x21, TPIDR_EL0
+  1f7fd0: aa0003f4     	mov	x20, x0
+  1f7fd4: 90fff6a1     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  1f7fd8: 911e5c21     	add	x1, x1, #0x797
+  1f7fdc: f94016a8     	ldr	x8, [x21, #0x28]
+  1f7fe0: aa1f03e0     	mov	x0, xzr
+  1f7fe4: f81f83a8     	stur	x8, [x29, #-0x8]
+  1f7fe8: 910083e8     	add	x8, sp, #0x20
+  1f7fec: 94032435     	bl	0x2c10c0 <_ZN7QString8fromUtf8E14QByteArrayView@plt>  ;;; CALL QString::fromUtf8(QByteArrayView)
+  1f7ff0: 3dc00be0     	ldr	q0, [sp, #0x20]
+  1f7ff4: f9401be8     	ldr	x8, [sp, #0x30]
+  1f7ff8: b90003ff     	str	wzr, [sp]
+  1f7ffc: 9e660013     	fmov	x19, d0
+  1f8000: 3c8083e0     	stur	q0, [sp, #0x8]
+  1f8004: f9000fe8     	str	x8, [sp, #0x18]
+  1f8008: b4000133     	cbz	x19, 0x1f802c <SW::SAMConnectable::cancelSession()+0x78>
+  1f800c: 52800020     	mov	w0, #0x1                // =1
+  1f8010: aa1303e1     	mov	x1, x19
+  1f8014: 940314ab     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f8018: b94003f6     	ldr	w22, [sp]
+  1f801c: b9406297     	ldr	w23, [x20, #0x60]
+  1f8020: 6b1602ff     	cmp	w23, w22
+  1f8024: 540000c1     	b.ne	0x1f803c <SW::SAMConnectable::cancelSession()+0x88>
+  1f8028: 14000014     	b	0x1f8078 <SW::SAMConnectable::cancelSession()+0xc4>
+  1f802c: 2a1f03f6     	mov	w22, wzr
+  1f8030: b9406297     	ldr	w23, [x20, #0x60]
+  1f8034: 6b1f02ff     	cmp	w23, wzr
+  1f8038: 54000200     	b.eq	0x1f8078 <SW::SAMConnectable::cancelSession()+0xc4>
+  1f803c: 910003e8     	mov	x8, sp
+  1f8040: 9101a280     	add	x0, x20, #0x68
+  1f8044: b9006296     	str	w22, [x20, #0x60]
+  1f8048: 91002101     	add	x1, x8, #0x8
+  1f804c: 940325ed     	bl	0x2c1800 <_ZN7QStringaSERKS_@plt>  ;;; CALL QString::operator=(QString const&)
+  1f8050: 35000077     	cbnz	w23, 0x1f805c <SW::SAMConnectable::cancelSession()+0xa8>
+  1f8054: aa1403e0     	mov	x0, x20
+  1f8058: 94032bf6     	bl	0x2c3030 <_ZN2SW12IConnectable14sessionStartedEv@plt>  ;;; CALL SW::IConnectable::sessionStarted()
+  1f805c: 350000b6     	cbnz	w22, 0x1f8070 <SW::SAMConnectable::cancelSession()+0xbc>
+  1f8060: aa1403e0     	mov	x0, x20
+  1f8064: 94032bf7     	bl	0x2c3040 <_ZN2SW12IConnectable11sessionDoneEv@plt>  ;;; CALL SW::IConnectable::sessionDone()
+  1f8068: aa1403e0     	mov	x0, x20
+  1f806c: 94032be9     	bl	0x2c3010 <_ZN2SW14SAMConnectable30invokeThenClear_ConnectSessionEv@plt>  ;;; CALL SW::SAMConnectable::invokeThenClear_ConnectSession()
+  1f8070: aa1403e0     	mov	x0, x20
+  1f8074: 94032bf7     	bl	0x2c3050 <_ZN2SW12IConnectable13statusChangedEv@plt>  ;;; CALL SW::IConnectable::statusChanged()
+  1f8078: f94007e1     	ldr	x1, [sp, #0x8]
+  1f807c: b4000121     	cbz	x1, 0x1f80a0 <SW::SAMConnectable::cancelSession()+0xec>
+  1f8080: 12800000     	mov	w0, #-0x1               // =-1
+  1f8084: 9403148f     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f8088: 7100041f     	cmp	w0, #0x1
+  1f808c: 540000a1     	b.ne	0x1f80a0 <SW::SAMConnectable::cancelSession()+0xec>
+  1f8090: f94007e0     	ldr	x0, [sp, #0x8]
+  1f8094: 52800041     	mov	w1, #0x2                // =2
+  1f8098: 52800102     	mov	w2, #0x8                // =8
+  1f809c: 94032411     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f80a0: b4000153     	cbz	x19, 0x1f80c8 <SW::SAMConnectable::cancelSession()+0x114>
+  1f80a4: 12800000     	mov	w0, #-0x1               // =-1
+  1f80a8: aa1303e1     	mov	x1, x19
+  1f80ac: 94031485     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f80b0: 7100041f     	cmp	w0, #0x1
+  1f80b4: 540000a1     	b.ne	0x1f80c8 <SW::SAMConnectable::cancelSession()+0x114>
+  1f80b8: aa1303e0     	mov	x0, x19
+  1f80bc: 52800041     	mov	w1, #0x2                // =2
+  1f80c0: 52800102     	mov	w2, #0x8                // =8
+  1f80c4: 94032407     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f80c8: f94016a8     	ldr	x8, [x21, #0x28]
+  1f80cc: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f80d0: eb09011f     	cmp	x8, x9
+  1f80d4: 54000441     	b.ne	0x1f815c <SW::SAMConnectable::cancelSession()+0x1a8>
+  1f80d8: a9474ff4     	ldp	x20, x19, [sp, #0x70]
+  1f80dc: f9402bf7     	ldr	x23, [sp, #0x50]
+  1f80e0: a94657f6     	ldp	x22, x21, [sp, #0x60]
+  1f80e4: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+  1f80e8: 910203ff     	add	sp, sp, #0x80
+  1f80ec: d65f03c0     	ret
+  1f80f0: f94007e1     	ldr	x1, [sp, #0x8]
+  1f80f4: aa0003f4     	mov	x20, x0
+  1f80f8: b4000121     	cbz	x1, 0x1f811c <SW::SAMConnectable::cancelSession()+0x168>
+  1f80fc: 12800000     	mov	w0, #-0x1               // =-1
+  1f8100: 94031470     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f8104: 7100041f     	cmp	w0, #0x1
+  1f8108: 540000a1     	b.ne	0x1f811c <SW::SAMConnectable::cancelSession()+0x168>
+  1f810c: f94007e0     	ldr	x0, [sp, #0x8]
+  1f8110: 52800041     	mov	w1, #0x2                // =2
+  1f8114: 52800102     	mov	w2, #0x8                // =8
+  1f8118: 940323f2     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f811c: b4000153     	cbz	x19, 0x1f8144 <SW::SAMConnectable::cancelSession()+0x190>
+  1f8120: 12800000     	mov	w0, #-0x1               // =-1
+  1f8124: aa1303e1     	mov	x1, x19
+  1f8128: 94031466     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f812c: 7100041f     	cmp	w0, #0x1
+  1f8130: 540000a1     	b.ne	0x1f8144 <SW::SAMConnectable::cancelSession()+0x190>
+  1f8134: aa1303e0     	mov	x0, x19
+  1f8138: 52800041     	mov	w1, #0x2                // =2
+  1f813c: 52800102     	mov	w2, #0x8                // =8
+  1f8140: 940323e8     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f8144: f94016a8     	ldr	x8, [x21, #0x28]
+  1f8148: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f814c: eb09011f     	cmp	x8, x9
+  1f8150: 54000061     	b.ne	0x1f815c <SW::SAMConnectable::cancelSession()+0x1a8>
+  1f8154: aa1403e0     	mov	x0, x20
+  1f8158: 940314cb     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1f815c: 94032415     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001f8174 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)>:
+  1f8174: d104c3ff     	sub	sp, sp, #0x130
+  1f8178: a90e7bfd     	stp	x29, x30, [sp, #0xe0]
+  1f817c: a90f67fc     	stp	x28, x25, [sp, #0xf0]
+  1f8180: a9105ff8     	stp	x24, x23, [sp, #0x100]
+  1f8184: a91157f6     	stp	x22, x21, [sp, #0x110]
+  1f8188: a9124ff4     	stp	x20, x19, [sp, #0x120]
+  1f818c: 910383fd     	add	x29, sp, #0xe0
+  1f8190: d53bd056     	mrs	x22, TPIDR_EL0
+  1f8194: aa0003f3     	mov	x19, x0
+  1f8198: aa0103f4     	mov	x20, x1
+  1f819c: f94016c8     	ldr	x8, [x22, #0x28]
+  1f81a0: f81f83a8     	stur	x8, [x29, #-0x8]
+  1f81a4: f9402817     	ldr	x23, [x0, #0x50]
+  1f81a8: b4000277     	cbz	x23, 0x1f81f4 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x80>
+  1f81ac: a9426299     	ldp	x25, x24, [x20, #0x20]
+  1f81b0: b4000098     	cbz	x24, 0x1f81c0 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x4c>
+  1f81b4: 91002301     	add	x1, x24, #0x8
+  1f81b8: 52800020     	mov	w0, #0x1                // =1
+  1f81bc: 9403144d     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1f81c0: f9405af5     	ldr	x21, [x23, #0xb0]
+  1f81c4: a90ae2f9     	stp	x25, x24, [x23, #0xa8]
+  1f81c8: b4000175     	cbz	x21, 0x1f81f4 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x80>
+  1f81cc: 910022a1     	add	x1, x21, #0x8
+  1f81d0: 92800000     	mov	x0, #-0x1               // =-1
+  1f81d4: 94031453     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1f81d8: b50000e0     	cbnz	x0, 0x1f81f4 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x80>
+  1f81dc: f94002a8     	ldr	x8, [x21]
+  1f81e0: aa1503e0     	mov	x0, x21
+  1f81e4: f9400908     	ldr	x8, [x8, #0x10]
+  1f81e8: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f81ec: aa1503e0     	mov	x0, x21
+  1f81f0: 940323e4     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1f81f4: f0fff681     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  1f81f8: 911e5c21     	add	x1, x1, #0x797
+  1f81fc: d10083a8     	sub	x8, x29, #0x20
+  1f8200: aa1f03e0     	mov	x0, xzr
+  1f8204: 940323af     	bl	0x2c10c0 <_ZN7QString8fromUtf8E14QByteArrayView@plt>  ;;; CALL QString::fromUtf8(QByteArrayView)
+  1f8208: 3cde03a0     	ldur	q0, [x29, #-0x20]
+  1f820c: f85f03a8     	ldur	x8, [x29, #-0x10]
+  1f8210: 52800077     	mov	w23, #0x3               // =3
+  1f8214: b81c03b7     	stur	w23, [x29, #-0x40]
+  1f8218: 9e660015     	fmov	x21, d0
+  1f821c: 3c9c83a0     	stur	q0, [x29, #-0x38]
+  1f8220: f81d83a8     	stur	x8, [x29, #-0x28]
+  1f8224: b40000b5     	cbz	x21, 0x1f8238 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0xc4>
+  1f8228: 52800020     	mov	w0, #0x1                // =1
+  1f822c: aa1503e1     	mov	x1, x21
+  1f8230: 94031424     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f8234: b85c03b7     	ldur	w23, [x29, #-0x40]
+  1f8238: b9406278     	ldr	w24, [x19, #0x60]
+  1f823c: 6b17031f     	cmp	w24, w23
+  1f8240: 54000200     	b.eq	0x1f8280 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x10c>
+  1f8244: d10103a8     	sub	x8, x29, #0x40
+  1f8248: 9101a260     	add	x0, x19, #0x68
+  1f824c: b9006277     	str	w23, [x19, #0x60]
+  1f8250: 91002101     	add	x1, x8, #0x8
+  1f8254: 9403256b     	bl	0x2c1800 <_ZN7QStringaSERKS_@plt>  ;;; CALL QString::operator=(QString const&)
+  1f8258: 35000078     	cbnz	w24, 0x1f8264 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0xf0>
+  1f825c: aa1303e0     	mov	x0, x19
+  1f8260: 94032b74     	bl	0x2c3030 <_ZN2SW12IConnectable14sessionStartedEv@plt>  ;;; CALL SW::IConnectable::sessionStarted()
+  1f8264: 350000b7     	cbnz	w23, 0x1f8278 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x104>
+  1f8268: aa1303e0     	mov	x0, x19
+  1f826c: 94032b75     	bl	0x2c3040 <_ZN2SW12IConnectable11sessionDoneEv@plt>  ;;; CALL SW::IConnectable::sessionDone()
+  1f8270: aa1303e0     	mov	x0, x19
+  1f8274: 94032b67     	bl	0x2c3010 <_ZN2SW14SAMConnectable30invokeThenClear_ConnectSessionEv@plt>  ;;; CALL SW::SAMConnectable::invokeThenClear_ConnectSession()
+  1f8278: aa1303e0     	mov	x0, x19
+  1f827c: 94032b75     	bl	0x2c3050 <_ZN2SW12IConnectable13statusChangedEv@plt>  ;;; CALL SW::IConnectable::statusChanged()
+  1f8280: f85c83a1     	ldur	x1, [x29, #-0x38]
+  1f8284: b4000121     	cbz	x1, 0x1f82a8 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x134>
+  1f8288: 12800000     	mov	w0, #-0x1               // =-1
+  1f828c: 9403140d     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f8290: 7100041f     	cmp	w0, #0x1
+  1f8294: 540000a1     	b.ne	0x1f82a8 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x134>
+  1f8298: f85c83a0     	ldur	x0, [x29, #-0x38]
+  1f829c: 52800041     	mov	w1, #0x2                // =2
+  1f82a0: 52800102     	mov	w2, #0x8                // =8
+  1f82a4: 9403238f     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f82a8: b4000155     	cbz	x21, 0x1f82d0 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x15c>
+  1f82ac: 12800000     	mov	w0, #-0x1               // =-1
+  1f82b0: aa1503e1     	mov	x1, x21
+  1f82b4: 94031403     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f82b8: 7100041f     	cmp	w0, #0x1
+  1f82bc: 540000a1     	b.ne	0x1f82d0 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x15c>
+  1f82c0: aa1503e0     	mov	x0, x21
+  1f82c4: 52800041     	mov	w1, #0x2                // =2
+  1f82c8: 52800102     	mov	w2, #0x8                // =8
+  1f82cc: 94032385     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f82d0: a9412289     	ldp	x9, x8, [x20, #0x10]
+  1f82d4: f9401a75     	ldr	x21, [x19, #0x30]
+  1f82d8: a93a23a9     	stp	x9, x8, [x29, #-0x60]
+  1f82dc: b4000088     	cbz	x8, 0x1f82ec <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x178>
+  1f82e0: 91002101     	add	x1, x8, #0x8
+  1f82e4: 52800020     	mov	w0, #0x1                // =1
+  1f82e8: 94031402     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1f82ec: a9402289     	ldp	x9, x8, [x20]
+  1f82f0: a90723e9     	stp	x9, x8, [sp, #0x70]
+  1f82f4: b4000088     	cbz	x8, 0x1f8304 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x190>
+  1f82f8: 91002101     	add	x1, x8, #0x8
+  1f82fc: 52800020     	mov	w0, #0x1                // =1
+  1f8300: 940313fc     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1f8304: f94002a8     	ldr	x8, [x21]
+  1f8308: f9400909     	ldr	x9, [x8, #0x10]
+  1f830c: d10143a8     	sub	x8, x29, #0x50
+  1f8310: d10183a1     	sub	x1, x29, #0x60
+  1f8314: 9101c3e2     	add	x2, sp, #0x70
+  1f8318: aa1503e0     	mov	x0, x21
+  1f831c: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  1f8320: f9403ff4     	ldr	x20, [sp, #0x78]
+  1f8324: b4000174     	cbz	x20, 0x1f8350 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x1dc>
+  1f8328: 91002281     	add	x1, x20, #0x8
+  1f832c: 92800000     	mov	x0, #-0x1               // =-1
+  1f8330: 940313fc     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1f8334: b50000e0     	cbnz	x0, 0x1f8350 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x1dc>
+  1f8338: f9400288     	ldr	x8, [x20]
+  1f833c: aa1403e0     	mov	x0, x20
+  1f8340: f9400908     	ldr	x8, [x8, #0x10]
+  1f8344: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f8348: aa1403e0     	mov	x0, x20
+  1f834c: 9403238d     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1f8350: f85a83b4     	ldur	x20, [x29, #-0x58]
+  1f8354: b4000174     	cbz	x20, 0x1f8380 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x20c>
+  1f8358: 91002281     	add	x1, x20, #0x8
+  1f835c: 92800000     	mov	x0, #-0x1               // =-1
+  1f8360: 940313f0     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1f8364: b50000e0     	cbnz	x0, 0x1f8380 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x20c>
+  1f8368: f9400288     	ldr	x8, [x20]
+  1f836c: aa1403e0     	mov	x0, x20
+  1f8370: f9400908     	ldr	x8, [x8, #0x10]
+  1f8374: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f8378: aa1403e0     	mov	x0, x20
+  1f837c: 94032381     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1f8380: 90000708     	adrp	x8, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1f8384: f9445d08     	ldr	x8, [x8, #0x8b8]
+  1f8388: f85b03b4     	ldur	x20, [x29, #-0x50]
+  1f838c: f9400100     	ldr	x0, [x8]
+  1f8390: 94032b50     	bl	0x2c30d0 <_ZNK7QObject6threadEv@plt>  ;;; CALL QObject::thread() const
+  1f8394: aa0003e1     	mov	x1, x0
+  1f8398: aa1403e0     	mov	x0, x20
+  1f839c: 94032b51     	bl	0x2c30e0 <_ZN7QObject12moveToThreadEP7QThread@plt>  ;;; CALL QObject::moveToThread(QThread*)
+  1f83a0: f85b03a0     	ldur	x0, [x29, #-0x50]
+  1f83a4: f9400008     	ldr	x8, [x0]
+  1f83a8: f9403108     	ldr	x8, [x8, #0x60]
+  1f83ac: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f83b0: 2a0003f4     	mov	w20, w0
+  1f83b4: 34000b60     	cbz	w0, 0x1f8520 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x3ac>
+  1f83b8: f85b83b5     	ldur	x21, [x29, #-0x48]
+  1f83bc: a93b7fbf     	stp	xzr, xzr, [x29, #-0x50]
+  1f83c0: b4000175     	cbz	x21, 0x1f83ec <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x278>
+  1f83c4: 910022a1     	add	x1, x21, #0x8
+  1f83c8: 92800000     	mov	x0, #-0x1               // =-1
+  1f83cc: 940313d5     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1f83d0: b50000e0     	cbnz	x0, 0x1f83ec <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x278>
+  1f83d4: f94002a8     	ldr	x8, [x21]
+  1f83d8: aa1503e0     	mov	x0, x21
+  1f83dc: f9400908     	ldr	x8, [x8, #0x10]
+  1f83e0: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f83e4: aa1503e0     	mov	x0, x21
+  1f83e8: 94032366     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1f83ec: f9402260     	ldr	x0, [x19, #0x40]
+  1f83f0: 2a1f03e1     	mov	w1, wzr
+  1f83f4: 94032b3f     	bl	0x2c30f0 <_ZNK7eventpp9internal_16CallbackListBaseIFvbENS_15DefaultPoliciesEEclEb@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (bool), eventpp::DefaultPolicies>::operator()(bool) const
+  1f83f8: d10083a8     	sub	x8, x29, #0x20
+  1f83fc: 2a1403e0     	mov	w0, w20
+  1f8400: d10083b4     	sub	x20, x29, #0x20
+  1f8404: 94032b3f     	bl	0x2c3100 <_ZN2SW16CmdRetTypeStringENS_11CmdRetType_1EE@plt>  ;;; CALL SW::CmdRetTypeString(SW::CmdRetType_::E)
+  1f8408: 385e03a8     	ldurb	w8, [x29, #-0x20]
+  1f840c: a97eafa9     	ldp	x9, x11, [x29, #-0x18]
+  1f8410: d341fd0a     	lsr	x10, x8, #1
+  1f8414: 7200011f     	tst	w8, #0x1
+  1f8418: 9a941574     	csinc	x20, x11, x20, ne
+  1f841c: 9a890148     	csel	x8, x10, x9, eq
+  1f8420: f100029f     	cmp	x20, #0x0
+  1f8424: 8aa8fd09     	bic	x9, x8, x8, asr #63
+  1f8428: 9a8903e0     	csel	x0, xzr, x9, eq
+  1f842c: b4000094     	cbz	x20, 0x1f843c <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x2c8>
+  1f8430: b6f80068     	tbz	x8, #0x3f, 0x1f843c <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x2c8>
+  1f8434: aa1403e0     	mov	x0, x20
+  1f8438: 94032366     	bl	0x2c11d0 <strlen@plt>  ;;; CALL strlen
+  1f843c: 9100c3e8     	add	x8, sp, #0x30
+  1f8440: aa1403e1     	mov	x1, x20
+  1f8444: 9403231f     	bl	0x2c10c0 <_ZN7QString8fromUtf8E14QByteArrayView@plt>  ;;; CALL QString::fromUtf8(QByteArrayView)
+  1f8448: 3dc00fe0     	ldr	q0, [sp, #0x30]
+  1f844c: f94023e8     	ldr	x8, [sp, #0x40]
+  1f8450: 52800094     	mov	w20, #0x4               // =4
+  1f8454: b90053f4     	str	w20, [sp, #0x50]
+  1f8458: 9e660001     	fmov	x1, d0
+  1f845c: 3c8583e0     	stur	q0, [sp, #0x58]
+  1f8460: f90037e8     	str	x8, [sp, #0x68]
+  1f8464: b4000081     	cbz	x1, 0x1f8474 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x300>
+  1f8468: 52800020     	mov	w0, #0x1                // =1
+  1f846c: 94031395     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f8470: b94053f4     	ldr	w20, [sp, #0x50]
+  1f8474: b9406275     	ldr	w21, [x19, #0x60]
+  1f8478: 6b1402bf     	cmp	w21, w20
+  1f847c: 54000200     	b.eq	0x1f84bc <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x348>
+  1f8480: 910143e8     	add	x8, sp, #0x50
+  1f8484: 9101a260     	add	x0, x19, #0x68
+  1f8488: b9006274     	str	w20, [x19, #0x60]
+  1f848c: 91002101     	add	x1, x8, #0x8
+  1f8490: 940324dc     	bl	0x2c1800 <_ZN7QStringaSERKS_@plt>  ;;; CALL QString::operator=(QString const&)
+  1f8494: 35000075     	cbnz	w21, 0x1f84a0 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x32c>
+  1f8498: aa1303e0     	mov	x0, x19
+  1f849c: 94032ae5     	bl	0x2c3030 <_ZN2SW12IConnectable14sessionStartedEv@plt>  ;;; CALL SW::IConnectable::sessionStarted()
+  1f84a0: 350000b4     	cbnz	w20, 0x1f84b4 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x340>
+  1f84a4: aa1303e0     	mov	x0, x19
+  1f84a8: 94032ae6     	bl	0x2c3040 <_ZN2SW12IConnectable11sessionDoneEv@plt>  ;;; CALL SW::IConnectable::sessionDone()
+  1f84ac: aa1303e0     	mov	x0, x19
+  1f84b0: 94032ad8     	bl	0x2c3010 <_ZN2SW14SAMConnectable30invokeThenClear_ConnectSessionEv@plt>  ;;; CALL SW::SAMConnectable::invokeThenClear_ConnectSession()
+  1f84b4: aa1303e0     	mov	x0, x19
+  1f84b8: 94032ae6     	bl	0x2c3050 <_ZN2SW12IConnectable13statusChangedEv@plt>  ;;; CALL SW::IConnectable::statusChanged()
+  1f84bc: f9402fe1     	ldr	x1, [sp, #0x58]
+  1f84c0: b4000121     	cbz	x1, 0x1f84e4 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x370>
+  1f84c4: 12800000     	mov	w0, #-0x1               // =-1
+  1f84c8: 9403137e     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f84cc: 7100041f     	cmp	w0, #0x1
+  1f84d0: 540000a1     	b.ne	0x1f84e4 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x370>
+  1f84d4: f9402fe0     	ldr	x0, [sp, #0x58]
+  1f84d8: 52800041     	mov	w1, #0x2                // =2
+  1f84dc: 52800102     	mov	w2, #0x8                // =8
+  1f84e0: 94032300     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f84e4: f9401be1     	ldr	x1, [sp, #0x30]
+  1f84e8: b4000121     	cbz	x1, 0x1f850c <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x398>
+  1f84ec: 12800000     	mov	w0, #-0x1               // =-1
+  1f84f0: 94031374     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f84f4: 7100041f     	cmp	w0, #0x1
+  1f84f8: 540000a1     	b.ne	0x1f850c <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x398>
+  1f84fc: f9401be0     	ldr	x0, [sp, #0x30]
+  1f8500: 52800041     	mov	w1, #0x2                // =2
+  1f8504: 52800102     	mov	w2, #0x8                // =8
+  1f8508: 940322f6     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f850c: 385e03a8     	ldurb	w8, [x29, #-0x20]
+  1f8510: 36000ca8     	tbz	w8, #0x0, 0x1f86a4 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x530>
+  1f8514: f85f03a0     	ldur	x0, [x29, #-0x10]
+  1f8518: 9403239e     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1f851c: 14000062     	b	0x1f86a4 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x530>
+  1f8520: a97b23a9     	ldp	x9, x8, [x29, #-0x50]
+  1f8524: f9401274     	ldr	x20, [x19, #0x20]
+  1f8528: a90223e9     	stp	x9, x8, [sp, #0x20]
+  1f852c: b4000088     	cbz	x8, 0x1f853c <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x3c8>
+  1f8530: 91002101     	add	x1, x8, #0x8
+  1f8534: 52800020     	mov	w0, #0x1                // =1
+  1f8538: 9403136e     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1f853c: 910083e1     	add	x1, sp, #0x20
+  1f8540: aa1403e0     	mov	x0, x20
+  1f8544: 94032af3     	bl	0x2c3110 <_ZN2SW12SAMContainer6setSamENSt6__ndk110shared_ptrINS_4ISAMEEE@plt>  ;;; CALL SW::SAMContainer::setSam(std::__ndk1::shared_ptr<SW::ISAM>)
+  1f8548: f94017f4     	ldr	x20, [sp, #0x28]
+  1f854c: b4000174     	cbz	x20, 0x1f8578 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x404>
+  1f8550: 91002281     	add	x1, x20, #0x8
+  1f8554: 92800000     	mov	x0, #-0x1               // =-1
+  1f8558: 94031372     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1f855c: b50000e0     	cbnz	x0, 0x1f8578 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x404>
+  1f8560: f9400288     	ldr	x8, [x20]
+  1f8564: aa1403e0     	mov	x0, x20
+  1f8568: f9400908     	ldr	x8, [x8, #0x10]
+  1f856c: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f8570: aa1403e0     	mov	x0, x20
+  1f8574: 94032303     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1f8578: f85b83b4     	ldur	x20, [x29, #-0x48]
+  1f857c: a93b7fbf     	stp	xzr, xzr, [x29, #-0x50]
+  1f8580: b4000174     	cbz	x20, 0x1f85ac <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x438>
+  1f8584: 91002281     	add	x1, x20, #0x8
+  1f8588: 92800000     	mov	x0, #-0x1               // =-1
+  1f858c: 94031365     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1f8590: b50000e0     	cbnz	x0, 0x1f85ac <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x438>
+  1f8594: f9400288     	ldr	x8, [x20]
+  1f8598: aa1403e0     	mov	x0, x20
+  1f859c: f9400908     	ldr	x8, [x8, #0x10]
+  1f85a0: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f85a4: aa1403e0     	mov	x0, x20
+  1f85a8: 940322f6     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1f85ac: f9402260     	ldr	x0, [x19, #0x40]
+  1f85b0: 52800021     	mov	w1, #0x1                // =1
+  1f85b4: 94032acf     	bl	0x2c30f0 <_ZNK7eventpp9internal_16CallbackListBaseIFvbENS_15DefaultPoliciesEEclEb@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (bool), eventpp::DefaultPolicies>::operator()(bool) const  [x1=1(0x1)]
+  1f85b8: f0fff681     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  1f85bc: 911e5c21     	add	x1, x1, #0x797
+  1f85c0: d10083a8     	sub	x8, x29, #0x20
+  1f85c4: aa1f03e0     	mov	x0, xzr
+  1f85c8: 940322be     	bl	0x2c10c0 <_ZN7QString8fromUtf8E14QByteArrayView@plt>  ;;; CALL QString::fromUtf8(QByteArrayView)
+  1f85cc: 3cde03a0     	ldur	q0, [x29, #-0x20]
+  1f85d0: f85f03a8     	ldur	x8, [x29, #-0x10]
+  1f85d4: b90003ff     	str	wzr, [sp]
+  1f85d8: 9e660014     	fmov	x20, d0
+  1f85dc: 3c8083e0     	stur	q0, [sp, #0x8]
+  1f85e0: f9000fe8     	str	x8, [sp, #0x18]
+  1f85e4: b4000134     	cbz	x20, 0x1f8608 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x494>
+  1f85e8: 52800020     	mov	w0, #0x1                // =1
+  1f85ec: aa1403e1     	mov	x1, x20
+  1f85f0: 94031334     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f85f4: b94003f5     	ldr	w21, [sp]
+  1f85f8: b9406277     	ldr	w23, [x19, #0x60]
+  1f85fc: 6b1502ff     	cmp	w23, w21
+  1f8600: 540000c1     	b.ne	0x1f8618 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x4a4>
+  1f8604: 14000014     	b	0x1f8654 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x4e0>
+  1f8608: 2a1f03f5     	mov	w21, wzr
+  1f860c: b9406277     	ldr	w23, [x19, #0x60]
+  1f8610: 6b1f02ff     	cmp	w23, wzr
+  1f8614: 54000200     	b.eq	0x1f8654 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x4e0>
+  1f8618: 910003e8     	mov	x8, sp
+  1f861c: 9101a260     	add	x0, x19, #0x68
+  1f8620: b9006275     	str	w21, [x19, #0x60]
+  1f8624: 91002101     	add	x1, x8, #0x8
+  1f8628: 94032476     	bl	0x2c1800 <_ZN7QStringaSERKS_@plt>  ;;; CALL QString::operator=(QString const&)
+  1f862c: 35000077     	cbnz	w23, 0x1f8638 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x4c4>
+  1f8630: aa1303e0     	mov	x0, x19
+  1f8634: 94032a7f     	bl	0x2c3030 <_ZN2SW12IConnectable14sessionStartedEv@plt>  ;;; CALL SW::IConnectable::sessionStarted()
+  1f8638: 350000b5     	cbnz	w21, 0x1f864c <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x4d8>
+  1f863c: aa1303e0     	mov	x0, x19
+  1f8640: 94032a80     	bl	0x2c3040 <_ZN2SW12IConnectable11sessionDoneEv@plt>  ;;; CALL SW::IConnectable::sessionDone()
+  1f8644: aa1303e0     	mov	x0, x19
+  1f8648: 94032a72     	bl	0x2c3010 <_ZN2SW14SAMConnectable30invokeThenClear_ConnectSessionEv@plt>  ;;; CALL SW::SAMConnectable::invokeThenClear_ConnectSession()
+  1f864c: aa1303e0     	mov	x0, x19
+  1f8650: 94032a80     	bl	0x2c3050 <_ZN2SW12IConnectable13statusChangedEv@plt>  ;;; CALL SW::IConnectable::statusChanged()
+  1f8654: f94007e1     	ldr	x1, [sp, #0x8]
+  1f8658: b4000121     	cbz	x1, 0x1f867c <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x508>
+  1f865c: 12800000     	mov	w0, #-0x1               // =-1
+  1f8660: 94031318     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f8664: 7100041f     	cmp	w0, #0x1
+  1f8668: 540000a1     	b.ne	0x1f867c <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x508>
+  1f866c: f94007e0     	ldr	x0, [sp, #0x8]
+  1f8670: 52800041     	mov	w1, #0x2                // =2
+  1f8674: 52800102     	mov	w2, #0x8                // =8
+  1f8678: 9403229a     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f867c: b4000154     	cbz	x20, 0x1f86a4 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x530>
+  1f8680: 12800000     	mov	w0, #-0x1               // =-1
+  1f8684: aa1403e1     	mov	x1, x20
+  1f8688: 9403130e     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f868c: 7100041f     	cmp	w0, #0x1
+  1f8690: 540000a1     	b.ne	0x1f86a4 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x530>
+  1f8694: aa1403e0     	mov	x0, x20
+  1f8698: 52800041     	mov	w1, #0x2                // =2
+  1f869c: 52800102     	mov	w2, #0x8                // =8
+  1f86a0: 94032290     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f86a4: f85b83b3     	ldur	x19, [x29, #-0x48]
+  1f86a8: b4000173     	cbz	x19, 0x1f86d4 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x560>
+  1f86ac: 91002261     	add	x1, x19, #0x8
+  1f86b0: 92800000     	mov	x0, #-0x1               // =-1
+  1f86b4: 9403131b     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1f86b8: b50000e0     	cbnz	x0, 0x1f86d4 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x560>
+  1f86bc: f9400268     	ldr	x8, [x19]
+  1f86c0: aa1303e0     	mov	x0, x19
+  1f86c4: f9400908     	ldr	x8, [x8, #0x10]
+  1f86c8: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f86cc: aa1303e0     	mov	x0, x19
+  1f86d0: 940322ac     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1f86d4: f94016c8     	ldr	x8, [x22, #0x28]
+  1f86d8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f86dc: eb09011f     	cmp	x8, x9
+  1f86e0: 54000ca1     	b.ne	0x1f8874 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x700>
+  1f86e4: a9524ff4     	ldp	x20, x19, [sp, #0x120]
+  1f86e8: a95157f6     	ldp	x22, x21, [sp, #0x110]
+  1f86ec: a9505ff8     	ldp	x24, x23, [sp, #0x100]
+  1f86f0: a94f67fc     	ldp	x28, x25, [sp, #0xf0]
+  1f86f4: a94e7bfd     	ldp	x29, x30, [sp, #0xe0]
+  1f86f8: 9104c3ff     	add	sp, sp, #0x130
+  1f86fc: d65f03c0     	ret
+  1f8700: aa0003f3     	mov	x19, x0
+  1f8704: 910083e0     	add	x0, sp, #0x20
+  1f8708: 940000ca     	bl	0x1f8a30 <std::__ndk1::shared_ptr<SW::ISAM>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::ISAM
+  1f870c: 14000052     	b	0x1f8854 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x6e0>
+  1f8710: f94007e1     	ldr	x1, [sp, #0x8]
+  1f8714: aa0003f3     	mov	x19, x0
+  1f8718: b4000121     	cbz	x1, 0x1f873c <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x5c8>
+  1f871c: 12800000     	mov	w0, #-0x1               // =-1
+  1f8720: 940312e8     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f8724: 7100041f     	cmp	w0, #0x1
+  1f8728: 540000a1     	b.ne	0x1f873c <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x5c8>
+  1f872c: f94007e0     	ldr	x0, [sp, #0x8]
+  1f8730: 52800041     	mov	w1, #0x2                // =2
+  1f8734: 52800102     	mov	w2, #0x8                // =8
+  1f8738: 9403226a     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f873c: b40008d4     	cbz	x20, 0x1f8854 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x6e0>
+  1f8740: 12800000     	mov	w0, #-0x1               // =-1
+  1f8744: aa1403e1     	mov	x1, x20
+  1f8748: 940312de     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f874c: 7100041f     	cmp	w0, #0x1
+  1f8750: 54000821     	b.ne	0x1f8854 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x6e0>
+  1f8754: aa1403e0     	mov	x0, x20
+  1f8758: 52800041     	mov	w1, #0x2                // =2
+  1f875c: 52800102     	mov	w2, #0x8                // =8
+  1f8760: 94032260     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f8764: 1400003c     	b	0x1f8854 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x6e0>
+  1f8768: aa0003f3     	mov	x19, x0
+  1f876c: 14000017     	b	0x1f87c8 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x654>
+  1f8770: 14000038     	b	0x1f8850 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x6dc>
+  1f8774: f9402fe1     	ldr	x1, [sp, #0x58]
+  1f8778: aa0003f3     	mov	x19, x0
+  1f877c: b4000121     	cbz	x1, 0x1f87a0 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x62c>
+  1f8780: 12800000     	mov	w0, #-0x1               // =-1
+  1f8784: 940312cf     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f8788: 7100041f     	cmp	w0, #0x1
+  1f878c: 540000a1     	b.ne	0x1f87a0 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x62c>
+  1f8790: f9402fe0     	ldr	x0, [sp, #0x58]
+  1f8794: 52800041     	mov	w1, #0x2                // =2
+  1f8798: 52800102     	mov	w2, #0x8                // =8
+  1f879c: 94032251     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f87a0: f9401be1     	ldr	x1, [sp, #0x30]
+  1f87a4: b4000121     	cbz	x1, 0x1f87c8 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x654>
+  1f87a8: 12800000     	mov	w0, #-0x1               // =-1
+  1f87ac: 940312c5     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f87b0: 7100041f     	cmp	w0, #0x1
+  1f87b4: 540000a1     	b.ne	0x1f87c8 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x654>
+  1f87b8: f9401be0     	ldr	x0, [sp, #0x30]
+  1f87bc: 52800041     	mov	w1, #0x2                // =2
+  1f87c0: 52800102     	mov	w2, #0x8                // =8
+  1f87c4: 94032247     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f87c8: 385e03a8     	ldurb	w8, [x29, #-0x20]
+  1f87cc: 36000448     	tbz	w8, #0x0, 0x1f8854 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x6e0>
+  1f87d0: f85f03a0     	ldur	x0, [x29, #-0x10]
+  1f87d4: 940322ef     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1f87d8: 1400001f     	b	0x1f8854 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x6e0>
+  1f87dc: aa0003f3     	mov	x19, x0
+  1f87e0: 9101c3e0     	add	x0, sp, #0x70
+  1f87e4: 97ff9d84     	bl	0x1dfdf4 <std::__ndk1::shared_ptr<SW::ISwDevice>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::ISwDevice
+  1f87e8: d10183a0     	sub	x0, x29, #0x60
+  1f87ec: 97ff9d6e     	bl	0x1dfda4 <std::__ndk1::shared_ptr<SW::ISwConverser>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::ISwConverser
+  1f87f0: 1400001b     	b	0x1f885c <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x6e8>
+  1f87f4: f85c83a1     	ldur	x1, [x29, #-0x38]
+  1f87f8: aa0003f3     	mov	x19, x0
+  1f87fc: b4000121     	cbz	x1, 0x1f8820 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x6ac>
+  1f8800: 12800000     	mov	w0, #-0x1               // =-1
+  1f8804: 940312af     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f8808: 7100041f     	cmp	w0, #0x1
+  1f880c: 540000a1     	b.ne	0x1f8820 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x6ac>
+  1f8810: f85c83a0     	ldur	x0, [x29, #-0x38]
+  1f8814: 52800041     	mov	w1, #0x2                // =2
+  1f8818: 52800102     	mov	w2, #0x8                // =8
+  1f881c: 94032231     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f8820: b40001f5     	cbz	x21, 0x1f885c <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x6e8>
+  1f8824: 12800000     	mov	w0, #-0x1               // =-1
+  1f8828: aa1503e1     	mov	x1, x21
+  1f882c: 940312a5     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f8830: 7100041f     	cmp	w0, #0x1
+  1f8834: 54000141     	b.ne	0x1f885c <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x6e8>
+  1f8838: aa1503e0     	mov	x0, x21
+  1f883c: 52800041     	mov	w1, #0x2                // =2
+  1f8840: 52800102     	mov	w2, #0x8                // =8
+  1f8844: 94032227     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f8848: 14000005     	b	0x1f885c <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x6e8>
+  1f884c: 14000001     	b	0x1f8850 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x6dc>
+  1f8850: aa0003f3     	mov	x19, x0
+  1f8854: d10143a0     	sub	x0, x29, #0x50
+  1f8858: 94000076     	bl	0x1f8a30 <std::__ndk1::shared_ptr<SW::ISAM>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::ISAM
+  1f885c: f94016c8     	ldr	x8, [x22, #0x28]
+  1f8860: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f8864: eb09011f     	cmp	x8, x9
+  1f8868: 54000061     	b.ne	0x1f8874 <SW::SAMConnectable::helperDeviceSetupFinished(SW::SwConverserEtal)+0x700>
+  1f886c: aa1303e0     	mov	x0, x19
+  1f8870: 94031305     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1f8874: 9403224f     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001f8878 <SW::SAMConnectable::helperStatusChanged(SW::IConnectableHelper::Status)>:
+  1f8878: d101c3ff     	sub	sp, sp, #0x70
+  1f887c: a9047bfd     	stp	x29, x30, [sp, #0x40]
+  1f8880: a90557f6     	stp	x22, x21, [sp, #0x50]
+  1f8884: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  1f8888: 910103fd     	add	x29, sp, #0x40
+  1f888c: d53bd055     	mrs	x21, TPIDR_EL0
+  1f8890: aa0003f3     	mov	x19, x0
+  1f8894: f94016a8     	ldr	x8, [x21, #0x28]
+  1f8898: f81f83a8     	stur	x8, [x29, #-0x8]
+  1f889c: b9400029     	ldr	w9, [x1]
+  1f88a0: a940a034     	ldp	x20, x8, [x1, #0x8]
+  1f88a4: 5100052a     	sub	w10, w9, #0x1
+  1f88a8: 71000d5f     	cmp	w10, #0x3
+  1f88ac: 5280002a     	mov	w10, #0x1               // =1
+  1f88b0: 8aa8fd0b     	bic	x11, x8, x8, asr #63
+  1f88b4: 1a892556     	csinc	w22, w10, w9, hs
+  1f88b8: f100029f     	cmp	x20, #0x0
+  1f88bc: 9a8b03e0     	csel	x0, xzr, x11, eq
+  1f88c0: b4000094     	cbz	x20, 0x1f88d0 <SW::SAMConnectable::helperStatusChanged(SW::IConnectableHelper::Status)+0x58>
+  1f88c4: b6f80068     	tbz	x8, #0x3f, 0x1f88d0 <SW::SAMConnectable::helperStatusChanged(SW::IConnectableHelper::Status)+0x58>
+  1f88c8: aa1403e0     	mov	x0, x20
+  1f88cc: 94032241     	bl	0x2c11d0 <strlen@plt>  ;;; CALL strlen
+  1f88d0: 910003e8     	mov	x8, sp
+  1f88d4: aa1403e1     	mov	x1, x20
+  1f88d8: 940321fa     	bl	0x2c10c0 <_ZN7QString8fromUtf8E14QByteArrayView@plt>  ;;; CALL QString::fromUtf8(QByteArrayView)
+  1f88dc: 3dc003e0     	ldr	q0, [sp]
+  1f88e0: f9400be8     	ldr	x8, [sp, #0x10]
+  1f88e4: b9001bf6     	str	w22, [sp, #0x18]
+  1f88e8: 9e660001     	fmov	x1, d0
+  1f88ec: 3c8203e0     	stur	q0, [sp, #0x20]
+  1f88f0: f9001be8     	str	x8, [sp, #0x30]
+  1f88f4: b4000081     	cbz	x1, 0x1f8904 <SW::SAMConnectable::helperStatusChanged(SW::IConnectableHelper::Status)+0x8c>
+  1f88f8: 52800020     	mov	w0, #0x1                // =1
+  1f88fc: 94031271     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f8900: b9401bf6     	ldr	w22, [sp, #0x18]
+  1f8904: b9406274     	ldr	w20, [x19, #0x60]
+  1f8908: 6b16029f     	cmp	w20, w22
+  1f890c: 54000200     	b.eq	0x1f894c <SW::SAMConnectable::helperStatusChanged(SW::IConnectableHelper::Status)+0xd4>
+  1f8910: 910063e8     	add	x8, sp, #0x18
+  1f8914: 9101a260     	add	x0, x19, #0x68
+  1f8918: b9006276     	str	w22, [x19, #0x60]
+  1f891c: 91002101     	add	x1, x8, #0x8
+  1f8920: 940323b8     	bl	0x2c1800 <_ZN7QStringaSERKS_@plt>  ;;; CALL QString::operator=(QString const&)
+  1f8924: 35000074     	cbnz	w20, 0x1f8930 <SW::SAMConnectable::helperStatusChanged(SW::IConnectableHelper::Status)+0xb8>
+  1f8928: aa1303e0     	mov	x0, x19
+  1f892c: 940329c1     	bl	0x2c3030 <_ZN2SW12IConnectable14sessionStartedEv@plt>  ;;; CALL SW::IConnectable::sessionStarted()
+  1f8930: 350000b6     	cbnz	w22, 0x1f8944 <SW::SAMConnectable::helperStatusChanged(SW::IConnectableHelper::Status)+0xcc>
+  1f8934: aa1303e0     	mov	x0, x19
+  1f8938: 940329c2     	bl	0x2c3040 <_ZN2SW12IConnectable11sessionDoneEv@plt>  ;;; CALL SW::IConnectable::sessionDone()
+  1f893c: aa1303e0     	mov	x0, x19
+  1f8940: 940329b4     	bl	0x2c3010 <_ZN2SW14SAMConnectable30invokeThenClear_ConnectSessionEv@plt>  ;;; CALL SW::SAMConnectable::invokeThenClear_ConnectSession()
+  1f8944: aa1303e0     	mov	x0, x19
+  1f8948: 940329c2     	bl	0x2c3050 <_ZN2SW12IConnectable13statusChangedEv@plt>  ;;; CALL SW::IConnectable::statusChanged()
+  1f894c: f94013e1     	ldr	x1, [sp, #0x20]
+  1f8950: b4000121     	cbz	x1, 0x1f8974 <SW::SAMConnectable::helperStatusChanged(SW::IConnectableHelper::Status)+0xfc>
+  1f8954: 12800000     	mov	w0, #-0x1               // =-1
+  1f8958: 9403125a     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f895c: 7100041f     	cmp	w0, #0x1
+  1f8960: 540000a1     	b.ne	0x1f8974 <SW::SAMConnectable::helperStatusChanged(SW::IConnectableHelper::Status)+0xfc>
+  1f8964: f94013e0     	ldr	x0, [sp, #0x20]
+  1f8968: 52800041     	mov	w1, #0x2                // =2
+  1f896c: 52800102     	mov	w2, #0x8                // =8
+  1f8970: 940321dc     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f8974: f94003e1     	ldr	x1, [sp]
+  1f8978: b4000121     	cbz	x1, 0x1f899c <SW::SAMConnectable::helperStatusChanged(SW::IConnectableHelper::Status)+0x124>
+  1f897c: 12800000     	mov	w0, #-0x1               // =-1
+  1f8980: 94031250     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f8984: 7100041f     	cmp	w0, #0x1
+  1f8988: 540000a1     	b.ne	0x1f899c <SW::SAMConnectable::helperStatusChanged(SW::IConnectableHelper::Status)+0x124>
+  1f898c: f94003e0     	ldr	x0, [sp]
+  1f8990: 52800041     	mov	w1, #0x2                // =2
+  1f8994: 52800102     	mov	w2, #0x8                // =8
+  1f8998: 940321d2     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f899c: f94016a8     	ldr	x8, [x21, #0x28]
+  1f89a0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f89a4: eb09011f     	cmp	x8, x9
+  1f89a8: 54000421     	b.ne	0x1f8a2c <SW::SAMConnectable::helperStatusChanged(SW::IConnectableHelper::Status)+0x1b4>
+  1f89ac: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  1f89b0: a94557f6     	ldp	x22, x21, [sp, #0x50]
+  1f89b4: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+  1f89b8: 9101c3ff     	add	sp, sp, #0x70
+  1f89bc: d65f03c0     	ret
+  1f89c0: f94013e1     	ldr	x1, [sp, #0x20]
+  1f89c4: aa0003f3     	mov	x19, x0
+  1f89c8: b4000121     	cbz	x1, 0x1f89ec <SW::SAMConnectable::helperStatusChanged(SW::IConnectableHelper::Status)+0x174>
+  1f89cc: 12800000     	mov	w0, #-0x1               // =-1
+  1f89d0: 9403123c     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f89d4: 7100041f     	cmp	w0, #0x1
+  1f89d8: 540000a1     	b.ne	0x1f89ec <SW::SAMConnectable::helperStatusChanged(SW::IConnectableHelper::Status)+0x174>
+  1f89dc: f94013e0     	ldr	x0, [sp, #0x20]
+  1f89e0: 52800041     	mov	w1, #0x2                // =2
+  1f89e4: 52800102     	mov	w2, #0x8                // =8
+  1f89e8: 940321be     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f89ec: f94003e1     	ldr	x1, [sp]
+  1f89f0: b4000121     	cbz	x1, 0x1f8a14 <SW::SAMConnectable::helperStatusChanged(SW::IConnectableHelper::Status)+0x19c>
+  1f89f4: 12800000     	mov	w0, #-0x1               // =-1
+  1f89f8: 94031232     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f89fc: 7100041f     	cmp	w0, #0x1
+  1f8a00: 540000a1     	b.ne	0x1f8a14 <SW::SAMConnectable::helperStatusChanged(SW::IConnectableHelper::Status)+0x19c>
+  1f8a04: f94003e0     	ldr	x0, [sp]
+  1f8a08: 52800041     	mov	w1, #0x2                // =2
+  1f8a0c: 52800102     	mov	w2, #0x8                // =8
+  1f8a10: 940321b4     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f8a14: f94016a8     	ldr	x8, [x21, #0x28]
+  1f8a18: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f8a1c: eb09011f     	cmp	x8, x9
+  1f8a20: 54000061     	b.ne	0x1f8a2c <SW::SAMConnectable::helperStatusChanged(SW::IConnectableHelper::Status)+0x1b4>
+  1f8a24: aa1303e0     	mov	x0, x19
+  1f8a28: 94031297     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1f8a2c: 940321e1     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001f8c28 <SW::SAMConnectable::samDisconnectFinished()>:
+  1f8c28: d10243ff     	sub	sp, sp, #0x90
+  1f8c2c: a9057bfd     	stp	x29, x30, [sp, #0x50]
+  1f8c30: f90033f7     	str	x23, [sp, #0x60]
+  1f8c34: a90757f6     	stp	x22, x21, [sp, #0x70]
+  1f8c38: a9084ff4     	stp	x20, x19, [sp, #0x80]
+  1f8c3c: 910143fd     	add	x29, sp, #0x50
+  1f8c40: d53bd055     	mrs	x21, TPIDR_EL0
+  1f8c44: aa0003f4     	mov	x20, x0
+  1f8c48: f94016a8     	ldr	x8, [x21, #0x28]
+  1f8c4c: f81f83a8     	stur	x8, [x29, #-0x8]
+  1f8c50: f9401000     	ldr	x0, [x0, #0x20]
+  1f8c54: a9027fff     	stp	xzr, xzr, [sp, #0x20]
+  1f8c58: 910083e1     	add	x1, sp, #0x20
+  1f8c5c: 9403292d     	bl	0x2c3110 <_ZN2SW12SAMContainer6setSamENSt6__ndk110shared_ptrINS_4ISAMEEE@plt>  ;;; CALL SW::SAMContainer::setSam(std::__ndk1::shared_ptr<SW::ISAM>)
+  1f8c60: f94017f3     	ldr	x19, [sp, #0x28]
+  1f8c64: b4000173     	cbz	x19, 0x1f8c90 <SW::SAMConnectable::samDisconnectFinished()+0x68>
+  1f8c68: 91002261     	add	x1, x19, #0x8
+  1f8c6c: 92800000     	mov	x0, #-0x1               // =-1
+  1f8c70: 940311ac     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1f8c74: b50000e0     	cbnz	x0, 0x1f8c90 <SW::SAMConnectable::samDisconnectFinished()+0x68>
+  1f8c78: f9400268     	ldr	x8, [x19]
+  1f8c7c: aa1303e0     	mov	x0, x19
+  1f8c80: f9400908     	ldr	x8, [x8, #0x10]
+  1f8c84: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1f8c88: aa1303e0     	mov	x0, x19
+  1f8c8c: 9403213d     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1f8c90: f9402280     	ldr	x0, [x20, #0x40]
+  1f8c94: 2a1f03e1     	mov	w1, wzr
+  1f8c98: 94032916     	bl	0x2c30f0 <_ZNK7eventpp9internal_16CallbackListBaseIFvbENS_15DefaultPoliciesEEclEb@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (bool), eventpp::DefaultPolicies>::operator()(bool) const
+  1f8c9c: f0fff681     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  1f8ca0: 911e5c21     	add	x1, x1, #0x797
+  1f8ca4: d10083a8     	sub	x8, x29, #0x20
+  1f8ca8: aa1f03e0     	mov	x0, xzr
+  1f8cac: 94032105     	bl	0x2c10c0 <_ZN7QString8fromUtf8E14QByteArrayView@plt>  ;;; CALL QString::fromUtf8(QByteArrayView)
+  1f8cb0: 3cde03a0     	ldur	q0, [x29, #-0x20]
+  1f8cb4: f85f03a8     	ldur	x8, [x29, #-0x10]
+  1f8cb8: b90003ff     	str	wzr, [sp]
+  1f8cbc: 9e660013     	fmov	x19, d0
+  1f8cc0: 3c8083e0     	stur	q0, [sp, #0x8]
+  1f8cc4: f9000fe8     	str	x8, [sp, #0x18]
+  1f8cc8: b4000133     	cbz	x19, 0x1f8cec <SW::SAMConnectable::samDisconnectFinished()+0xc4>
+  1f8ccc: 52800020     	mov	w0, #0x1                // =1
+  1f8cd0: aa1303e1     	mov	x1, x19
+  1f8cd4: 9403117b     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f8cd8: b94003f6     	ldr	w22, [sp]
+  1f8cdc: b9406297     	ldr	w23, [x20, #0x60]
+  1f8ce0: 6b1602ff     	cmp	w23, w22
+  1f8ce4: 540000c1     	b.ne	0x1f8cfc <SW::SAMConnectable::samDisconnectFinished()+0xd4>
+  1f8ce8: 14000014     	b	0x1f8d38 <SW::SAMConnectable::samDisconnectFinished()+0x110>
+  1f8cec: 2a1f03f6     	mov	w22, wzr
+  1f8cf0: b9406297     	ldr	w23, [x20, #0x60]
+  1f8cf4: 6b1f02ff     	cmp	w23, wzr
+  1f8cf8: 54000200     	b.eq	0x1f8d38 <SW::SAMConnectable::samDisconnectFinished()+0x110>
+  1f8cfc: 910003e8     	mov	x8, sp
+  1f8d00: 9101a280     	add	x0, x20, #0x68
+  1f8d04: b9006296     	str	w22, [x20, #0x60]
+  1f8d08: 91002101     	add	x1, x8, #0x8
+  1f8d0c: 940322bd     	bl	0x2c1800 <_ZN7QStringaSERKS_@plt>  ;;; CALL QString::operator=(QString const&)
+  1f8d10: 35000077     	cbnz	w23, 0x1f8d1c <SW::SAMConnectable::samDisconnectFinished()+0xf4>
+  1f8d14: aa1403e0     	mov	x0, x20
+  1f8d18: 940328c6     	bl	0x2c3030 <_ZN2SW12IConnectable14sessionStartedEv@plt>  ;;; CALL SW::IConnectable::sessionStarted()
+  1f8d1c: 350000b6     	cbnz	w22, 0x1f8d30 <SW::SAMConnectable::samDisconnectFinished()+0x108>
+  1f8d20: aa1403e0     	mov	x0, x20
+  1f8d24: 940328c7     	bl	0x2c3040 <_ZN2SW12IConnectable11sessionDoneEv@plt>  ;;; CALL SW::IConnectable::sessionDone()
+  1f8d28: aa1403e0     	mov	x0, x20
+  1f8d2c: 940328b9     	bl	0x2c3010 <_ZN2SW14SAMConnectable30invokeThenClear_ConnectSessionEv@plt>  ;;; CALL SW::SAMConnectable::invokeThenClear_ConnectSession()
+  1f8d30: aa1403e0     	mov	x0, x20
+  1f8d34: 940328c7     	bl	0x2c3050 <_ZN2SW12IConnectable13statusChangedEv@plt>  ;;; CALL SW::IConnectable::statusChanged()
+  1f8d38: f94007e1     	ldr	x1, [sp, #0x8]
+  1f8d3c: b4000121     	cbz	x1, 0x1f8d60 <SW::SAMConnectable::samDisconnectFinished()+0x138>
+  1f8d40: 12800000     	mov	w0, #-0x1               // =-1
+  1f8d44: 9403115f     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f8d48: 7100041f     	cmp	w0, #0x1
+  1f8d4c: 540000a1     	b.ne	0x1f8d60 <SW::SAMConnectable::samDisconnectFinished()+0x138>
+  1f8d50: f94007e0     	ldr	x0, [sp, #0x8]
+  1f8d54: 52800041     	mov	w1, #0x2                // =2
+  1f8d58: 52800102     	mov	w2, #0x8                // =8
+  1f8d5c: 940320e1     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f8d60: b4000153     	cbz	x19, 0x1f8d88 <SW::SAMConnectable::samDisconnectFinished()+0x160>
+  1f8d64: 12800000     	mov	w0, #-0x1               // =-1
+  1f8d68: aa1303e1     	mov	x1, x19
+  1f8d6c: 94031155     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f8d70: 7100041f     	cmp	w0, #0x1
+  1f8d74: 540000a1     	b.ne	0x1f8d88 <SW::SAMConnectable::samDisconnectFinished()+0x160>
+  1f8d78: aa1303e0     	mov	x0, x19
+  1f8d7c: 52800041     	mov	w1, #0x2                // =2
+  1f8d80: 52800102     	mov	w2, #0x8                // =8
+  1f8d84: 940320d7     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f8d88: f94016a8     	ldr	x8, [x21, #0x28]
+  1f8d8c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f8d90: eb09011f     	cmp	x8, x9
+  1f8d94: 540004c1     	b.ne	0x1f8e2c <SW::SAMConnectable::samDisconnectFinished()+0x204>
+  1f8d98: a9484ff4     	ldp	x20, x19, [sp, #0x80]
+  1f8d9c: f94033f7     	ldr	x23, [sp, #0x60]
+  1f8da0: a94757f6     	ldp	x22, x21, [sp, #0x70]
+  1f8da4: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+  1f8da8: 910243ff     	add	sp, sp, #0x90
+  1f8dac: d65f03c0     	ret
+  1f8db0: aa0003f4     	mov	x20, x0
+  1f8db4: 910083e0     	add	x0, sp, #0x20
+  1f8db8: 97ffff1e     	bl	0x1f8a30 <std::__ndk1::shared_ptr<SW::ISAM>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::ISAM
+  1f8dbc: 14000016     	b	0x1f8e14 <SW::SAMConnectable::samDisconnectFinished()+0x1ec>
+  1f8dc0: f94007e1     	ldr	x1, [sp, #0x8]
+  1f8dc4: aa0003f4     	mov	x20, x0
+  1f8dc8: b4000121     	cbz	x1, 0x1f8dec <SW::SAMConnectable::samDisconnectFinished()+0x1c4>
+  1f8dcc: 12800000     	mov	w0, #-0x1               // =-1
+  1f8dd0: 9403113c     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f8dd4: 7100041f     	cmp	w0, #0x1
+  1f8dd8: 540000a1     	b.ne	0x1f8dec <SW::SAMConnectable::samDisconnectFinished()+0x1c4>
+  1f8ddc: f94007e0     	ldr	x0, [sp, #0x8]
+  1f8de0: 52800041     	mov	w1, #0x2                // =2
+  1f8de4: 52800102     	mov	w2, #0x8                // =8
+  1f8de8: 940320be     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f8dec: b4000153     	cbz	x19, 0x1f8e14 <SW::SAMConnectable::samDisconnectFinished()+0x1ec>
+  1f8df0: 12800000     	mov	w0, #-0x1               // =-1
+  1f8df4: aa1303e1     	mov	x1, x19
+  1f8df8: 94031132     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1f8dfc: 7100041f     	cmp	w0, #0x1
+  1f8e00: 540000a1     	b.ne	0x1f8e14 <SW::SAMConnectable::samDisconnectFinished()+0x1ec>
+  1f8e04: aa1303e0     	mov	x0, x19
+  1f8e08: 52800041     	mov	w1, #0x2                // =2
+  1f8e0c: 52800102     	mov	w2, #0x8                // =8
+  1f8e10: 940320b4     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1f8e14: f94016a8     	ldr	x8, [x21, #0x28]
+  1f8e18: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f8e1c: eb09011f     	cmp	x8, x9
+  1f8e20: 54000061     	b.ne	0x1f8e2c <SW::SAMConnectable::samDisconnectFinished()+0x204>
+  1f8e24: aa1403e0     	mov	x0, x20
+  1f8e28: 94031197     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1f8e2c: 940320e1     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+

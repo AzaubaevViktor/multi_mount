@@ -1,0 +1,29 @@
+Static VID/PID constants from com.hoho.android.usbserial.driver.UsbId (classes.dex)
+(stock usb-serial-for-android probe table shipped inside the APK)
+
+FIBOCOM_L610                       = 0x4d10
+FIBOCOM_L612                       = 0x4d12
+FTDI_FT2232H                       = 0x6010
+FTDI_FT231X                        = 0x6015
+FTDI_FT232H                        = 0x6014
+FTDI_FT232R                        = 0x6001
+FTDI_FT4232H                       = 0x6011
+GOOGLE_CR50                        = 0x5014
+PROLIFIC_PL2303                    = 0x2303
+PROLIFIC_PL2303GB                  = 0x23b3
+PROLIFIC_PL2303GC                  = 0x23a3
+PROLIFIC_PL2303GE                  = 0x23e3
+PROLIFIC_PL2303GL                  = 0x23d3
+PROLIFIC_PL2303GS                  = 0x23f3
+PROLIFIC_PL2303GT                  = 0x23c3
+QINHENG_CH340                      = 0x7523
+QINHENG_CH341A                     = 0x5523
+SILABS_CP2102                      = 0xea60
+SILABS_CP2105                      = 0xea70
+SILABS_CP2108                      = 0xea71
+VENDOR_FTDI                        = 0x0403
+VENDOR_GOOGLE                      = 0x18d1
+VENDOR_PROLIFIC                    = 0x067b
+VENDOR_QINHENG                     = 0x1a86
+VENDOR_SILABS                      = 0x10c4
+VENDOR_UNISOC                      = 0x1782

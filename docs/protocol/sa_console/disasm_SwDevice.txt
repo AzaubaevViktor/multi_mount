@@ -1,0 +1,1656 @@
+000000000023a404 <SW::SwDevice::initRead(bool, SW::ISwDevice::LogicalMode)>:
+  23a404: a9bc7bfd     	stp	x29, x30, [sp, #-0x40]!
+  23a408: a9015ff8     	stp	x24, x23, [sp, #0x10]
+  23a40c: a90257f6     	stp	x22, x21, [sp, #0x20]
+  23a410: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  23a414: 910003fd     	mov	x29, sp
+  23a418: 39420008     	ldrb	w8, [x0, #0x80]
+  23a41c: 360000e8     	tbz	w8, #0x0, 0x23a438 <SW::SwDevice::initRead(bool, SW::ISwDevice::LogicalMode)+0x34>
+  23a420: 2a1f03e0     	mov	w0, wzr
+  23a424: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  23a428: a94257f6     	ldp	x22, x21, [sp, #0x20]
+  23a42c: a9415ff8     	ldp	x24, x23, [sp, #0x10]
+  23a430: a8c47bfd     	ldp	x29, x30, [sp], #0x40
+  23a434: d65f03c0     	ret
+  23a438: aa0003f4     	mov	x20, x0
+  23a43c: 52800028     	mov	w8, #0x1                // =1
+  23a440: b9008402     	str	w2, [x0, #0x84]
+  23a444: 39022008     	strb	w8, [x0, #0x88]
+  23a448: 360000e1     	tbz	w1, #0x0, 0x23a464 <SW::SwDevice::initRead(bool, SW::ISwDevice::LogicalMode)+0x60>
+  23a44c: 52800080     	mov	w0, #0x4                // =4
+  23a450: 94021b2c     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  23a454: aa0003f6     	mov	x22, x0
+  23a458: aa0003f3     	mov	x19, x0
+  23a45c: b80046df     	str	wzr, [x22], #0x4
+  23a460: 14000007     	b	0x23a47c <SW::SwDevice::initRead(bool, SW::ISwDevice::LogicalMode)+0x78>
+  23a464: 52800100     	mov	w0, #0x8                // =8
+  23a468: 94021b26     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  23a46c: aa0003f3     	mov	x19, x0
+  23a470: d2c00028     	mov	x8, #0x100000000        // =4294967296
+  23a474: aa0003f6     	mov	x22, x0
+  23a478: f80086c8     	str	x8, [x22], #0x8
+  23a47c: 91023297     	add	x23, x20, #0x8c
+  23a480: aa1303f8     	mov	x24, x19
+  23a484: b9400315     	ldr	w21, [x24]
+  23a488: 8b150ae8     	add	x8, x23, x21, lsl #2
+  23a48c: 39400d08     	ldrb	w8, [x8, #0x3]
+  23a490: 370000e8     	tbnz	w8, #0x0, 0x23a4ac <SW::SwDevice::initRead(bool, SW::ISwDevice::LogicalMode)+0xa8>
+  23a494: f9400288     	ldr	x8, [x20]
+  23a498: f9401108     	ldr	x8, [x8, #0x20]
+  23a49c: aa1403e0     	mov	x0, x20
+  23a4a0: 2a1503e1     	mov	w1, w21
+  23a4a4: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  23a4a8: 35000280     	cbnz	w0, 0x23a4f8 <SW::SwDevice::initRead(bool, SW::ISwDevice::LogicalMode)+0xf4>
+  23a4ac: aa1403e0     	mov	x0, x20
+  23a4b0: 2a1503e1     	mov	w1, w21
+  23a4b4: 940228df     	bl	0x2c4830 <_ZN2SW8SwDevice15readStepsPerRevENS_6AXISIDE@plt>  ;;; CALL SW::SwDevice::readStepsPerRev(SW::AXISID)
+  23a4b8: 35000200     	cbnz	w0, 0x23a4f8 <SW::SwDevice::initRead(bool, SW::ISwDevice::LogicalMode)+0xf4>
+  23a4bc: f9400288     	ldr	x8, [x20]
+  23a4c0: f9403108     	ldr	x8, [x8, #0x60]
+  23a4c4: aa1403e0     	mov	x0, x20
+  23a4c8: 2a1503e1     	mov	w1, w21
+  23a4cc: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  23a4d0: aa0003e8     	mov	x8, x0
+  23a4d4: 35000128     	cbnz	w8, 0x23a4f8 <SW::SwDevice::initRead(bool, SW::ISwDevice::LogicalMode)+0xf4>
+  23a4d8: 91001318     	add	x24, x24, #0x4
+  23a4dc: eb16031f     	cmp	x24, x22
+  23a4e0: 54fffd21     	b.ne	0x23a484 <SW::SwDevice::initRead(bool, SW::ISwDevice::LogicalMode)+0x80>
+  23a4e4: aa1403e0     	mov	x0, x20
+  23a4e8: 940228d6     	bl	0x2c4840 <_ZN2SW8SwDevice15readStepTimerHzEv@plt>  ;;; CALL SW::SwDevice::readStepTimerHz()
+  23a4ec: 35000060     	cbnz	w0, 0x23a4f8 <SW::SwDevice::initRead(bool, SW::ISwDevice::LogicalMode)+0xf4>
+  23a4f0: 52800028     	mov	w8, #0x1                // =1
+  23a4f4: 39020288     	strb	w8, [x20, #0x80]
+  23a4f8: aa0003f4     	mov	x20, x0
+  23a4fc: aa1303e0     	mov	x0, x19
+  23a500: 94021ba4     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23a504: aa1403e0     	mov	x0, x20
+  23a508: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  23a50c: a94257f6     	ldp	x22, x21, [sp, #0x20]
+  23a510: a9415ff8     	ldp	x24, x23, [sp, #0x10]
+  23a514: a8c47bfd     	ldp	x29, x30, [sp], #0x40
+  23a518: d65f03c0     	ret
+  23a51c: aa0003f4     	mov	x20, x0
+  23a520: aa1303e0     	mov	x0, x19
+  23a524: 94021b9b     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23a528: aa1403e0     	mov	x0, x20
+  23a52c: 94020bd6     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23a530: aa0003f4     	mov	x20, x0
+  23a534: aa1303e0     	mov	x0, x19
+  23a538: 94021b96     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23a53c: aa1403e0     	mov	x0, x20
+  23a540: 94020bd1     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23a544: aa0003f4     	mov	x20, x0
+  23a548: aa1303e0     	mov	x0, x19
+  23a54c: 94021b91     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23a550: aa1403e0     	mov	x0, x20
+  23a554: 94020bcc     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23a558: aa0003f4     	mov	x20, x0
+  23a55c: aa1303e0     	mov	x0, x19
+  23a560: 94021b8c     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23a564: aa1403e0     	mov	x0, x20
+  23a568: 94020bc7     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000023a56c <SW::SwDevice::readStepsPerRev(SW::AXISID)>:
+  23a56c: d101c3ff     	sub	sp, sp, #0x70
+  23a570: a9037bfd     	stp	x29, x30, [sp, #0x30]
+  23a574: a9045ff8     	stp	x24, x23, [sp, #0x40]
+  23a578: a90557f6     	stp	x22, x21, [sp, #0x50]
+  23a57c: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  23a580: 9100c3fd     	add	x29, sp, #0x30
+  23a584: d53bd058     	mrs	x24, TPIDR_EL0
+  23a588: aa0003f3     	mov	x19, x0
+  23a58c: 2a0103f4     	mov	w20, w1
+  23a590: f9401708     	ldr	x8, [x24, #0x28]
+  23a594: f81f83a8     	stur	x8, [x29, #-0x8]
+  23a598: f9400008     	ldr	x8, [x0]  ; vptr of SW::SwDevice
+  23a59c: f9402d08     	ldr	x8, [x8, #0x58]  ; -> SW::SwDevice::supportsCmdX()
+  23a5a0: d63f0100     	blr	x8  ;;; CALL SW::SwDevice::supportsCmdX()
+  23a5a4: f9403a75     	ldr	x21, [x19, #0x70]
+  23a5a8: 36000340     	tbz	w0, #0x0, 0x23a610 <SW::SwDevice::readStepsPerRev(SW::AXISID)+0xa4>
+  23a5ac: 910023e8     	add	x8, sp, #0x8
+  23a5b0: 2a1403e0     	mov	w0, w20
+  23a5b4: 52800041     	mov	w1, #0x2                // =2
+  23a5b8: 9402286e     	bl	0x2c4770 <_ZN2SW5SwCmd5xReadENS_6AXISIDEh@plt>  ;;; CALL SW::SwCmd::xRead(SW::AXISID, unsigned char)  [x1=2(0x2)]
+  23a5bc: f94002a8     	ldr	x8, [x21]
+  23a5c0: f9401508     	ldr	x8, [x8, #0x28]
+  23a5c4: 910023e1     	add	x1, sp, #0x8
+  23a5c8: aa1503e0     	mov	x0, x21
+  23a5cc: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  23a5d0: aa0003f6     	mov	x22, x0
+  23a5d4: f9400be0     	ldr	x0, [sp, #0x10]
+  23a5d8: aa0103f5     	mov	x21, x1
+  23a5dc: b4000060     	cbz	x0, 0x23a5e8 <SW::SwDevice::readStepsPerRev(SW::AXISID)+0x7c>
+  23a5e0: f9000fe0     	str	x0, [sp, #0x18]
+  23a5e4: 94021b6b     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23a5e8: 350006b6     	cbnz	w22, 0x23a6bc <SW::SwDevice::readStepsPerRev(SW::AXISID)+0x150>
+  23a5ec: f2601edf     	tst	x22, #0xff00000000
+  23a5f0: 540005c1     	b.ne	0x23a6a8 <SW::SwDevice::readStepsPerRev(SW::AXISID)+0x13c>
+  23a5f4: 52800200     	mov	w0, #0x10               // =16
+  23a5f8: 94021bee     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23a5fc: aa0003f4     	mov	x20, x0
+  23a600: d0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23a604: 9135a421     	add	x1, x1, #0xd69
+  23a608: 94022286     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23a60c: 1400003d     	b	0x23a700 <SW::SwDevice::readStepsPerRev(SW::AXISID)+0x194>
+  23a610: 52800c28     	mov	w8, #0x61               // =97
+  23a614: b9000bf4     	str	w20, [sp, #0x8]
+  23a618: 390033e8     	strb	w8, [sp, #0xc]
+  23a61c: a901ffff     	stp	xzr, xzr, [sp, #0x18]
+  23a620: f9000bff     	str	xzr, [sp, #0x10]
+  23a624: f94002a8     	ldr	x8, [x21]
+  23a628: f9401108     	ldr	x8, [x8, #0x20]
+  23a62c: 910023e1     	add	x1, sp, #0x8
+  23a630: aa1503e0     	mov	x0, x21
+  23a634: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  23a638: aa0003f7     	mov	x23, x0
+  23a63c: f9400be0     	ldr	x0, [sp, #0x10]
+  23a640: aa0103f5     	mov	x21, x1
+  23a644: b4000060     	cbz	x0, 0x23a650 <SW::SwDevice::readStepsPerRev(SW::AXISID)+0xe4>
+  23a648: f9000fe0     	str	x0, [sp, #0x18]
+  23a64c: 94021b51     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23a650: 2a1703f6     	mov	w22, w23
+  23a654: 35000357     	cbnz	w23, 0x23a6bc <SW::SwDevice::readStepsPerRev(SW::AXISID)+0x150>
+  23a658: f2601eff     	tst	x23, #0xff00000000
+  23a65c: 54000460     	b.eq	0x23a6e8 <SW::SwDevice::readStepsPerRev(SW::AXISID)+0x17c>
+  23a660: f9400268     	ldr	x8, [x19]  ; vptr of SW::SwDevice
+  23a664: aa1303e0     	mov	x0, x19
+  23a668: f9401908     	ldr	x8, [x8, #0x30]  ; -> SW::SwDevice::mountModelCode()
+  23a66c: d63f0100     	blr	x8  ;;; CALL SW::SwDevice::mountModelCode()
+  23a670: f9400268     	ldr	x8, [x19]  ; vptr of SW::SwDevice
+  23a674: 12001c09     	and	w9, w0, #0xff
+  23a678: aa1303e0     	mov	x0, x19
+  23a67c: 7102013f     	cmp	w9, #0x80
+  23a680: 528572e9     	mov	w9, #0x2b97             // =11159
+  23a684: f9401908     	ldr	x8, [x8, #0x30]  ; -> SW::SwDevice::mountModelCode()
+  23a688: 72a002c9     	movk	w9, #0x16, lsl #16
+  23a68c: 1a950135     	csel	w21, w9, w21, eq
+  23a690: d63f0100     	blr	x8  ;;; CALL SW::SwDevice::mountModelCode()
+  23a694: 528a6308     	mov	w8, #0x5318             // =21272
+  23a698: 12001c09     	and	w9, w0, #0xff
+  23a69c: 72a00408     	movk	w8, #0x20, lsl #16
+  23a6a0: 7102093f     	cmp	w9, #0x82
+  23a6a4: 1a950115     	csel	w21, w8, w21, eq
+  23a6a8: 8b344e68     	add	x8, x19, w20, uxtw #3
+  23a6ac: 2a1f03f6     	mov	w22, wzr
+  23a6b0: 52800029     	mov	w9, #0x1                // =1
+  23a6b4: b9005915     	str	w21, [x8, #0x58]
+  23a6b8: 39017109     	strb	w9, [x8, #0x5c]
+  23a6bc: f9401708     	ldr	x8, [x24, #0x28]
+  23a6c0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23a6c4: eb09011f     	cmp	x8, x9
+  23a6c8: 54000541     	b.ne	0x23a770 <SW::SwDevice::readStepsPerRev(SW::AXISID)+0x204>
+  23a6cc: 2a1603e0     	mov	w0, w22
+  23a6d0: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  23a6d4: a94557f6     	ldp	x22, x21, [sp, #0x50]
+  23a6d8: a9445ff8     	ldp	x24, x23, [sp, #0x40]
+  23a6dc: a9437bfd     	ldp	x29, x30, [sp, #0x30]
+  23a6e0: 9101c3ff     	add	sp, sp, #0x70
+  23a6e4: d65f03c0     	ret
+  23a6e8: 52800200     	mov	w0, #0x10               // =16
+  23a6ec: 94021bb1     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23a6f0: aa0003f4     	mov	x20, x0
+  23a6f4: d0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23a6f8: 9135a421     	add	x1, x1, #0xd69
+  23a6fc: 94022249     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23a700: f9401708     	ldr	x8, [x24, #0x28]
+  23a704: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23a708: eb09011f     	cmp	x8, x9
+  23a70c: 54000321     	b.ne	0x23a770 <SW::SwDevice::readStepsPerRev(SW::AXISID)+0x204>
+  23a710: f00004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23a714: f00004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23a718: aa1403e0     	mov	x0, x20
+  23a71c: f9409c21     	ldr	x1, [x1, #0x138]
+  23a720: f940a042     	ldr	x2, [x2, #0x140]
+  23a724: 94021bab     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23a728: 14000001     	b	0x23a72c <SW::SwDevice::readStepsPerRev(SW::AXISID)+0x1c0>
+  23a72c: aa0003f3     	mov	x19, x0
+  23a730: aa1403e0     	mov	x0, x20
+  23a734: 94021e93     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23a738: 14000008     	b	0x23a758 <SW::SwDevice::readStepsPerRev(SW::AXISID)+0x1ec>
+  23a73c: 14000001     	b	0x23a740 <SW::SwDevice::readStepsPerRev(SW::AXISID)+0x1d4>
+  23a740: f9400be8     	ldr	x8, [sp, #0x10]
+  23a744: aa0003f3     	mov	x19, x0
+  23a748: b4000088     	cbz	x8, 0x23a758 <SW::SwDevice::readStepsPerRev(SW::AXISID)+0x1ec>
+  23a74c: aa0803e0     	mov	x0, x8
+  23a750: f9000fe8     	str	x8, [sp, #0x18]
+  23a754: 94021b0f     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23a758: f9401708     	ldr	x8, [x24, #0x28]
+  23a75c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23a760: eb09011f     	cmp	x8, x9
+  23a764: 54000061     	b.ne	0x23a770 <SW::SwDevice::readStepsPerRev(SW::AXISID)+0x204>
+  23a768: aa1303e0     	mov	x0, x19
+  23a76c: 94020b46     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23a770: 94021a90     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+000000000023a774 <SW::SwDevice::readStepTimerHz()>:
+  23a774: d10183ff     	sub	sp, sp, #0x60
+  23a778: a9037bfd     	stp	x29, x30, [sp, #0x30]
+  23a77c: a90457f6     	stp	x22, x21, [sp, #0x40]
+  23a780: a9054ff4     	stp	x20, x19, [sp, #0x50]
+  23a784: 9100c3fd     	add	x29, sp, #0x30
+  23a788: d53bd056     	mrs	x22, TPIDR_EL0
+  23a78c: aa0003f3     	mov	x19, x0
+  23a790: 52800c49     	mov	w9, #0x62               // =98
+  23a794: f94016c8     	ldr	x8, [x22, #0x28]
+  23a798: f81f83a8     	stur	x8, [x29, #-0x8]
+  23a79c: f9403800     	ldr	x0, [x0, #0x70]
+  23a7a0: a901ffff     	stp	xzr, xzr, [sp, #0x18]
+  23a7a4: f9000bff     	str	xzr, [sp, #0x10]
+  23a7a8: f9400008     	ldr	x8, [x0]
+  23a7ac: b9000bff     	str	wzr, [sp, #0x8]
+  23a7b0: 390033e9     	strb	w9, [sp, #0xc]
+  23a7b4: f9401108     	ldr	x8, [x8, #0x20]
+  23a7b8: 910023e1     	add	x1, sp, #0x8
+  23a7bc: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  23a7c0: aa0003f4     	mov	x20, x0
+  23a7c4: f9400be0     	ldr	x0, [sp, #0x10]
+  23a7c8: aa0103f5     	mov	x21, x1
+  23a7cc: b4000060     	cbz	x0, 0x23a7d8 <SW::SwDevice::readStepTimerHz()+0x64>
+  23a7d0: f9000fe0     	str	x0, [sp, #0x18]
+  23a7d4: 94021aef     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23a7d8: 350000d4     	cbnz	w20, 0x23a7f0 <SW::SwDevice::readStepTimerHz()+0x7c>
+  23a7dc: f2601e9f     	tst	x20, #0xff00000000
+  23a7e0: 540001c0     	b.eq	0x23a818 <SW::SwDevice::readStepTimerHz()+0xa4>
+  23a7e4: 52800028     	mov	w8, #0x1                // =1
+  23a7e8: b9006a75     	str	w21, [x19, #0x68]
+  23a7ec: 3901b268     	strb	w8, [x19, #0x6c]
+  23a7f0: f94016c8     	ldr	x8, [x22, #0x28]
+  23a7f4: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23a7f8: eb09011f     	cmp	x8, x9
+  23a7fc: 540004e1     	b.ne	0x23a898 <SW::SwDevice::readStepTimerHz()+0x124>
+  23a800: 2a1403e0     	mov	w0, w20
+  23a804: a9454ff4     	ldp	x20, x19, [sp, #0x50]
+  23a808: a94457f6     	ldp	x22, x21, [sp, #0x40]
+  23a80c: a9437bfd     	ldp	x29, x30, [sp, #0x30]
+  23a810: 910183ff     	add	sp, sp, #0x60
+  23a814: d65f03c0     	ret
+  23a818: 52800200     	mov	w0, #0x10               // =16
+  23a81c: 94021b65     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23a820: aa0003f4     	mov	x20, x0
+  23a824: d0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23a828: 9135a421     	add	x1, x1, #0xd69
+  23a82c: 940221fd     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23a830: f94016c8     	ldr	x8, [x22, #0x28]
+  23a834: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23a838: eb09011f     	cmp	x8, x9
+  23a83c: 540002e1     	b.ne	0x23a898 <SW::SwDevice::readStepTimerHz()+0x124>
+  23a840: f00004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23a844: f00004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23a848: aa1403e0     	mov	x0, x20
+  23a84c: f9409c21     	ldr	x1, [x1, #0x138]
+  23a850: f940a042     	ldr	x2, [x2, #0x140]
+  23a854: 94021b5f     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23a858: aa0003f3     	mov	x19, x0
+  23a85c: aa1403e0     	mov	x0, x20
+  23a860: 94021e48     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23a864: 14000007     	b	0x23a880 <SW::SwDevice::readStepTimerHz()+0x10c>
+  23a868: f9400be8     	ldr	x8, [sp, #0x10]
+  23a86c: aa0003f3     	mov	x19, x0
+  23a870: b4000088     	cbz	x8, 0x23a880 <SW::SwDevice::readStepTimerHz()+0x10c>
+  23a874: aa0803e0     	mov	x0, x8
+  23a878: f9000fe8     	str	x8, [sp, #0x18]
+  23a87c: 94021ac5     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23a880: f94016c8     	ldr	x8, [x22, #0x28]
+  23a884: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23a888: eb09011f     	cmp	x8, x9
+  23a88c: 54000061     	b.ne	0x23a898 <SW::SwDevice::readStepTimerHz()+0x124>
+  23a890: aa1303e0     	mov	x0, x19
+  23a894: 94020afc     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23a898: 94021a46     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+000000000023a89c <SW::SwDevice::initialized()>:
+  23a89c: 39420000     	ldrb	w0, [x0, #0x80]
+  23a8a0: d65f03c0     	ret
+
+000000000023a8a4 <SW::SwDevice::initReadMCVersion(SW::AXISID)>:
+  23a8a4: 8b214809     	add	x9, x0, w1, uxtw #2
+  23a8a8: 39423d28     	ldrb	w8, [x9, #0x8f]
+  23a8ac: 34000108     	cbz	w8, 0x23a8cc <SW::SwDevice::initReadMCVersion(SW::AXISID)+0x28>
+  23a8b0: 3848e12a     	ldurb	w10, [x9, #0x8e]
+  23a8b4: 7848c129     	ldurh	w9, [x9, #0x8c]
+  23a8b8: 2a0a4129     	orr	w9, w9, w10, lsl #16
+  23a8bc: d2c0002a     	mov	x10, #0x100000000       // =4294967296
+  23a8c0: aa09a149     	orr	x9, x10, x9, lsl #40
+  23a8c4: aa1f0120     	orr	x0, x9, xzr
+  23a8c8: d65f03c0     	ret
+  23a8cc: a9bf7bfd     	stp	x29, x30, [sp, #-0x10]!
+  23a8d0: 910003fd     	mov	x29, sp
+  23a8d4: 940227df     	bl	0x2c4850 <_ZN2SW8SwDevice13readMCVersionENS_6AXISIDE@plt>  ;;; CALL SW::SwDevice::readMCVersion(SW::AXISID)
+  23a8d8: d368fc09     	lsr	x9, x0, #40
+  23a8dc: 92601c0a     	and	x10, x0, #0xff00000000
+  23a8e0: 92407c08     	and	x8, x0, #0xffffffff
+  23a8e4: a8c17bfd     	ldp	x29, x30, [sp], #0x10
+  23a8e8: aa09a149     	orr	x9, x10, x9, lsl #40
+  23a8ec: aa080120     	orr	x0, x9, x8
+  23a8f0: d65f03c0     	ret
+
+000000000023a8f4 <SW::SwDevice::readMCVersion(SW::AXISID)>:
+  23a8f4: d10203ff     	sub	sp, sp, #0x80
+  23a8f8: a9057bfd     	stp	x29, x30, [sp, #0x50]
+  23a8fc: a90657f6     	stp	x22, x21, [sp, #0x60]
+  23a900: a9074ff4     	stp	x20, x19, [sp, #0x70]
+  23a904: 910143fd     	add	x29, sp, #0x50
+  23a908: d53bd055     	mrs	x21, TPIDR_EL0
+  23a90c: aa0003f4     	mov	x20, x0
+  23a910: 2a0103f3     	mov	w19, w1
+  23a914: f94016a8     	ldr	x8, [x21, #0x28]
+  23a918: 52800ca9     	mov	w9, #0x65               // =101
+  23a91c: f81f83a8     	stur	x8, [x29, #-0x8]
+  23a920: f9403800     	ldr	x0, [x0, #0x70]
+  23a924: a901ffff     	stp	xzr, xzr, [sp, #0x18]
+  23a928: f9000bff     	str	xzr, [sp, #0x10]
+  23a92c: f9400008     	ldr	x8, [x0]
+  23a930: b9000be1     	str	w1, [sp, #0x8]
+  23a934: 390033e9     	strb	w9, [sp, #0xc]
+  23a938: f940090a     	ldr	x10, [x8, #0x10]
+  23a93c: 9100a3e8     	add	x8, sp, #0x28
+  23a940: 910023e1     	add	x1, sp, #0x8
+  23a944: d63f0140     	blr	x10  ;;; CALL <indirect x10>
+  23a948: f9400be0     	ldr	x0, [sp, #0x10]
+  23a94c: b4000060     	cbz	x0, 0x23a958 <SW::SwDevice::readMCVersion(SW::AXISID)+0x64>
+  23a950: f9000fe0     	str	x0, [sp, #0x18]
+  23a954: 94021a8f     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23a958: b9402bf6     	ldr	w22, [sp, #0x28]
+  23a95c: 340000d6     	cbz	w22, 0x23a974 <SW::SwDevice::readMCVersion(SW::AXISID)+0x80>
+  23a960: aa1f03f4     	mov	x20, xzr
+  23a964: aa1f03f3     	mov	x19, xzr
+  23a968: f9401be0     	ldr	x0, [sp, #0x30]
+  23a96c: b5000340     	cbnz	x0, 0x23a9d4 <SW::SwDevice::readMCVersion(SW::AXISID)+0xe0>
+  23a970: 1400001b     	b	0x23a9dc <SW::SwDevice::readMCVersion(SW::AXISID)+0xe8>
+  23a974: 3940b3e8     	ldrb	w8, [sp, #0x2c]
+  23a978: 360004a8     	tbz	w8, #0x0, 0x23aa0c <SW::SwDevice::readMCVersion(SW::AXISID)+0x118>
+  23a97c: 9100a3e8     	add	x8, sp, #0x28
+  23a980: 91002100     	add	x0, x8, #0x8
+  23a984: 9402279b     	bl	0x2c47f0 <_ZN2SW10SwCmdCoder14parseMCVersionERKNS_6CBytesE@plt>  ;;; CALL SW::SwCmdCoder::parseMCVersion(SW::CBytes const&)
+  23a988: 53187c08     	lsr	w8, w0, #24
+  23a98c: 350000e8     	cbnz	w8, 0x23a9a8 <SW::SwDevice::readMCVersion(SW::AXISID)+0xb4>
+  23a990: aa1f03f4     	mov	x20, xzr
+  23a994: aa1f03f3     	mov	x19, xzr
+  23a998: 52800096     	mov	w22, #0x4               // =4
+  23a99c: f9401be0     	ldr	x0, [sp, #0x30]
+  23a9a0: b50001a0     	cbnz	x0, 0x23a9d4 <SW::SwDevice::readMCVersion(SW::AXISID)+0xe0>
+  23a9a4: 1400000e     	b	0x23a9dc <SW::SwDevice::readMCVersion(SW::AXISID)+0xe8>
+  23a9a8: 8b334a88     	add	x8, x20, w19, uxtw #2
+  23a9ac: 53107c09     	lsr	w9, w0, #16
+  23a9b0: d3585c13     	lsl	x19, x0, #40
+  23a9b4: 2a1f03f6     	mov	w22, wzr
+  23a9b8: d2c00034     	mov	x20, #0x100000000       // =4294967296
+  23a9bc: 39023909     	strb	w9, [x8, #0x8e]
+  23a9c0: 52800029     	mov	w9, #0x1                // =1
+  23a9c4: 79011900     	strh	w0, [x8, #0x8c]
+  23a9c8: 39023d09     	strb	w9, [x8, #0x8f]
+  23a9cc: f9401be0     	ldr	x0, [sp, #0x30]
+  23a9d0: b4000060     	cbz	x0, 0x23a9dc <SW::SwDevice::readMCVersion(SW::AXISID)+0xe8>
+  23a9d4: f9001fe0     	str	x0, [sp, #0x38]
+  23a9d8: 94021a6e     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23a9dc: f94016a8     	ldr	x8, [x21, #0x28]
+  23a9e0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23a9e4: eb09011f     	cmp	x8, x9
+  23a9e8: 540005c1     	b.ne	0x23aaa0 <SW::SwDevice::readMCVersion(SW::AXISID)+0x1ac>
+  23a9ec: 2a1603e8     	mov	w8, w22
+  23a9f0: aa130289     	orr	x9, x20, x19
+  23a9f4: aa080120     	orr	x0, x9, x8
+  23a9f8: a9474ff4     	ldp	x20, x19, [sp, #0x70]
+  23a9fc: a94657f6     	ldp	x22, x21, [sp, #0x60]
+  23aa00: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+  23aa04: 910203ff     	add	sp, sp, #0x80
+  23aa08: d65f03c0     	ret
+  23aa0c: 52800200     	mov	w0, #0x10               // =16
+  23aa10: 94021ae8     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23aa14: aa0003f4     	mov	x20, x0
+  23aa18: d0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23aa1c: 9135a421     	add	x1, x1, #0xd69
+  23aa20: 94022180     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23aa24: f94016a8     	ldr	x8, [x21, #0x28]
+  23aa28: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23aa2c: eb09011f     	cmp	x8, x9
+  23aa30: 54000381     	b.ne	0x23aaa0 <SW::SwDevice::readMCVersion(SW::AXISID)+0x1ac>
+  23aa34: f00004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23aa38: f00004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23aa3c: aa1403e0     	mov	x0, x20
+  23aa40: f9409c21     	ldr	x1, [x1, #0x138]
+  23aa44: f940a042     	ldr	x2, [x2, #0x140]
+  23aa48: 94021ae2     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23aa4c: aa0003f3     	mov	x19, x0
+  23aa50: aa1403e0     	mov	x0, x20
+  23aa54: 94021dcb     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23aa58: 14000002     	b	0x23aa60 <SW::SwDevice::readMCVersion(SW::AXISID)+0x16c>
+  23aa5c: aa0003f3     	mov	x19, x0
+  23aa60: f9401be0     	ldr	x0, [sp, #0x30]
+  23aa64: b4000120     	cbz	x0, 0x23aa88 <SW::SwDevice::readMCVersion(SW::AXISID)+0x194>
+  23aa68: f9001fe0     	str	x0, [sp, #0x38]
+  23aa6c: 14000006     	b	0x23aa84 <SW::SwDevice::readMCVersion(SW::AXISID)+0x190>
+  23aa70: f9400be8     	ldr	x8, [sp, #0x10]
+  23aa74: aa0003f3     	mov	x19, x0
+  23aa78: b4000088     	cbz	x8, 0x23aa88 <SW::SwDevice::readMCVersion(SW::AXISID)+0x194>
+  23aa7c: f9000fe8     	str	x8, [sp, #0x18]
+  23aa80: aa0803e0     	mov	x0, x8
+  23aa84: 94021a43     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23aa88: f94016a8     	ldr	x8, [x21, #0x28]
+  23aa8c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23aa90: eb09011f     	cmp	x8, x9
+  23aa94: 54000061     	b.ne	0x23aaa0 <SW::SwDevice::readMCVersion(SW::AXISID)+0x1ac>
+  23aa98: aa1303e0     	mov	x0, x19
+  23aa9c: 94020a7a     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23aaa0: 940219c4     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+000000000023aaa4 <SW::SwDevice::mcVersion(SW::AXISID)>:
+  23aaa4: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  23aaa8: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  23aaac: 910003fd     	mov	x29, sp
+  23aab0: 8b214808     	add	x8, x0, w1, uxtw #2
+  23aab4: 39423d09     	ldrb	w9, [x8, #0x8f]
+  23aab8: 360000e9     	tbz	w9, #0x0, 0x23aad4 <SW::SwDevice::mcVersion(SW::AXISID)+0x30>
+  23aabc: 3848e109     	ldurb	w9, [x8, #0x8e]
+  23aac0: 7848c108     	ldurh	w8, [x8, #0x8c]
+  23aac4: 2a094100     	orr	w0, w8, w9, lsl #16
+  23aac8: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23aacc: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23aad0: d65f03c0     	ret
+  23aad4: 52800200     	mov	w0, #0x10               // =16
+  23aad8: 94021ab6     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23aadc: aa0003f3     	mov	x19, x0
+  23aae0: d0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23aae4: 910f4421     	add	x1, x1, #0x3d1
+  23aae8: 9402214e     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23aaec: f00004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23aaf0: f00004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23aaf4: aa1303e0     	mov	x0, x19
+  23aaf8: f9409c21     	ldr	x1, [x1, #0x138]
+  23aafc: f940a042     	ldr	x2, [x2, #0x140]
+  23ab00: 94021ab4     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23ab04: aa0003f4     	mov	x20, x0
+  23ab08: aa1303e0     	mov	x0, x19
+  23ab0c: 94021d9d     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23ab10: aa1403e0     	mov	x0, x20
+  23ab14: 94020a5c     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000023ab18 <SW::SwDevice::mountModelCode()>:
+  23ab18: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  23ab1c: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  23ab20: 910003fd     	mov	x29, sp
+  23ab24: 39423c08     	ldrb	w8, [x0, #0x8f]
+  23ab28: 360000a8     	tbz	w8, #0x0, 0x23ab3c <SW::SwDevice::mountModelCode()+0x24>
+  23ab2c: 39423800     	ldrb	w0, [x0, #0x8e]
+  23ab30: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23ab34: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23ab38: d65f03c0     	ret
+  23ab3c: 52800200     	mov	w0, #0x10               // =16
+  23ab40: 94021a9c     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23ab44: aa0003f3     	mov	x19, x0
+  23ab48: d0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23ab4c: 910f4421     	add	x1, x1, #0x3d1
+  23ab50: 94022134     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23ab54: f00004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23ab58: f00004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23ab5c: aa1303e0     	mov	x0, x19
+  23ab60: f9409c21     	ldr	x1, [x1, #0x138]
+  23ab64: f940a042     	ldr	x2, [x2, #0x140]
+  23ab68: 94021a9a     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23ab6c: aa0003f4     	mov	x20, x0
+  23ab70: aa1303e0     	mov	x0, x19
+  23ab74: 94021d83     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23ab78: aa1403e0     	mov	x0, x20
+  23ab7c: 94020a42     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000023ab80 <SW::SwDevice::initReadMountStaticAttr()>:
+  23ab80: d10103ff     	sub	sp, sp, #0x40
+  23ab84: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  23ab88: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  23ab8c: 910083fd     	add	x29, sp, #0x20
+  23ab90: d53bd054     	mrs	x20, TPIDR_EL0
+  23ab94: f9401688     	ldr	x8, [x20, #0x28]
+  23ab98: f81f83a8     	stur	x8, [x29, #-0x8]
+  23ab9c: 39426c08     	ldrb	w8, [x0, #0x9b]
+  23aba0: 340001e8     	cbz	w8, 0x23abdc <SW::SwDevice::initReadMountStaticAttr()+0x5c>
+  23aba4: b8494009     	ldur	w9, [x0, #0x94]
+  23aba8: b849700a     	ldur	w10, [x0, #0x97]
+  23abac: 52800028     	mov	w8, #0x1                // =1
+  23abb0: b9000bff     	str	wzr, [sp, #0x8]
+  23abb4: 390033e8     	strb	w8, [sp, #0xc]
+  23abb8: b800d3e9     	stur	w9, [sp, #0xd]
+  23abbc: b90013ea     	str	w10, [sp, #0x10]
+  23abc0: f94007e0     	ldr	x0, [sp, #0x8]
+  23abc4: 2a0a03e1     	mov	w1, w10
+  23abc8: f9401688     	ldr	x8, [x20, #0x28]
+  23abcc: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23abd0: eb09011f     	cmp	x8, x9
+  23abd4: 54000540     	b.eq	0x23ac7c <SW::SwDevice::initReadMountStaticAttr()+0xfc>
+  23abd8: 14000046     	b	0x23acf0 <SW::SwDevice::initReadMountStaticAttr()+0x170>
+  23abdc: f9400008     	ldr	x8, [x0]
+  23abe0: aa0003f3     	mov	x19, x0
+  23abe4: f9402508     	ldr	x8, [x8, #0x48]
+  23abe8: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  23abec: 34000160     	cbz	w0, 0x23ac18 <SW::SwDevice::initReadMountStaticAttr()+0x98>
+  23abf0: 7100041f     	cmp	w0, #0x1
+  23abf4: 54000341     	b.ne	0x23ac5c <SW::SwDevice::initReadMountStaticAttr()+0xdc>
+  23abf8: aa1303e8     	mov	x8, x19
+  23abfc: 52800029     	mov	w9, #0x1                // =1
+  23ac00: b809727f     	stur	wzr, [x19, #0x97]
+  23ac04: b809427f     	stur	wzr, [x19, #0x94]
+  23ac08: 39026e69     	strb	w9, [x19, #0x9b]
+  23ac0c: 79013a7f     	strh	wzr, [x19, #0x9c]
+  23ac10: 39027a69     	strb	w9, [x19, #0x9e]
+  23ac14: 14000004     	b	0x23ac24 <SW::SwDevice::initReadMountStaticAttr()+0xa4>
+  23ac18: 39426e69     	ldrb	w9, [x19, #0x9b]
+  23ac1c: aa1303e8     	mov	x8, x19
+  23ac20: 34000369     	cbz	w9, 0x23ac8c <SW::SwDevice::initReadMountStaticAttr()+0x10c>
+  23ac24: b849410a     	ldur	w10, [x8, #0x94]
+  23ac28: b8497108     	ldur	w8, [x8, #0x97]
+  23ac2c: 52800029     	mov	w9, #0x1                // =1
+  23ac30: b9000bff     	str	wzr, [sp, #0x8]
+  23ac34: 390033e9     	strb	w9, [sp, #0xc]
+  23ac38: b800d3ea     	stur	w10, [sp, #0xd]
+  23ac3c: b90013e8     	str	w8, [sp, #0x10]
+  23ac40: f94007e0     	ldr	x0, [sp, #0x8]
+  23ac44: 2a0803e1     	mov	w1, w8
+  23ac48: f9401688     	ldr	x8, [x20, #0x28]
+  23ac4c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23ac50: eb09011f     	cmp	x8, x9
+  23ac54: 54000140     	b.eq	0x23ac7c <SW::SwDevice::initReadMountStaticAttr()+0xfc>
+  23ac58: 14000026     	b	0x23acf0 <SW::SwDevice::initReadMountStaticAttr()+0x170>
+  23ac5c: b9000be0     	str	w0, [sp, #0x8]
+  23ac60: f800c3ff     	stur	xzr, [sp, #0xc]
+  23ac64: f94007e0     	ldr	x0, [sp, #0x8]
+  23ac68: b94013e1     	ldr	w1, [sp, #0x10]
+  23ac6c: f9401688     	ldr	x8, [x20, #0x28]
+  23ac70: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23ac74: eb09011f     	cmp	x8, x9
+  23ac78: 540003c1     	b.ne	0x23acf0 <SW::SwDevice::initReadMountStaticAttr()+0x170>
+  23ac7c: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  23ac80: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  23ac84: 910103ff     	add	sp, sp, #0x40
+  23ac88: d65f03c0     	ret
+  23ac8c: 52800200     	mov	w0, #0x10               // =16
+  23ac90: 94021a48     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23ac94: aa0003f3     	mov	x19, x0
+  23ac98: d0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23ac9c: 910f4421     	add	x1, x1, #0x3d1
+  23aca0: 940220e0     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23aca4: f9401688     	ldr	x8, [x20, #0x28]
+  23aca8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23acac: eb09011f     	cmp	x8, x9
+  23acb0: 54000201     	b.ne	0x23acf0 <SW::SwDevice::initReadMountStaticAttr()+0x170>
+  23acb4: f00004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23acb8: f00004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23acbc: aa1303e0     	mov	x0, x19
+  23acc0: f9409c21     	ldr	x1, [x1, #0x138]
+  23acc4: f940a042     	ldr	x2, [x2, #0x140]
+  23acc8: 94021a42     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23accc: f9401688     	ldr	x8, [x20, #0x28]
+  23acd0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23acd4: eb09011f     	cmp	x8, x9
+  23acd8: 540000c1     	b.ne	0x23acf0 <SW::SwDevice::initReadMountStaticAttr()+0x170>
+  23acdc: aa0003f4     	mov	x20, x0
+  23ace0: aa1303e0     	mov	x0, x19
+  23ace4: 94021d27     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23ace8: aa1403e0     	mov	x0, x20
+  23acec: 940209e6     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23acf0: 94021930     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+000000000023acf4 <SW::SwDevice::mountStaticAttr()>:
+  23acf4: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  23acf8: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  23acfc: 910003fd     	mov	x29, sp
+  23ad00: 39426c08     	ldrb	w8, [x0, #0x9b]
+  23ad04: 36000128     	tbz	w8, #0x0, 0x23ad28 <SW::SwDevice::mountStaticAttr()+0x34>
+  23ad08: 39426808     	ldrb	w8, [x0, #0x9a]
+  23ad0c: 79413009     	ldrh	w9, [x0, #0x98]
+  23ad10: 2a084128     	orr	w8, w9, w8, lsl #16
+  23ad14: b9409409     	ldr	w9, [x0, #0x94]
+  23ad18: aa088120     	orr	x0, x9, x8, lsl #32
+  23ad1c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23ad20: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23ad24: d65f03c0     	ret
+  23ad28: 52800200     	mov	w0, #0x10               // =16
+  23ad2c: 94021a21     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23ad30: aa0003f3     	mov	x19, x0
+  23ad34: d0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23ad38: 910f4421     	add	x1, x1, #0x3d1
+  23ad3c: 940220b9     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23ad40: f00004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23ad44: f00004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23ad48: aa1303e0     	mov	x0, x19
+  23ad4c: f9409c21     	ldr	x1, [x1, #0x138]
+  23ad50: f940a042     	ldr	x2, [x2, #0x140]
+  23ad54: 94021a1f     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23ad58: aa0003f4     	mov	x20, x0
+  23ad5c: aa1303e0     	mov	x0, x19
+  23ad60: 94021d08     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23ad64: aa1403e0     	mov	x0, x20
+  23ad68: 940209c7     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000023ad6c <SW::SwDevice::readStatusEx()>:
+  23ad6c: d10243ff     	sub	sp, sp, #0x90
+  23ad70: a9057bfd     	stp	x29, x30, [sp, #0x50]
+  23ad74: f90033f7     	str	x23, [sp, #0x60]
+  23ad78: a90757f6     	stp	x22, x21, [sp, #0x70]
+  23ad7c: a9084ff4     	stp	x20, x19, [sp, #0x80]
+  23ad80: 910143fd     	add	x29, sp, #0x50
+  23ad84: d53bd055     	mrs	x21, TPIDR_EL0
+  23ad88: aa0003f3     	mov	x19, x0
+  23ad8c: 52800021     	mov	w1, #0x1                // =1
+  23ad90: f94016a8     	ldr	x8, [x21, #0x28]
+  23ad94: f81f83a8     	stur	x8, [x29, #-0x8]
+  23ad98: 910023e8     	add	x8, sp, #0x8
+  23ad9c: f9403814     	ldr	x20, [x0, #0x70]
+  23ada0: 2a1f03e0     	mov	w0, wzr
+  23ada4: 94022667     	bl	0x2c4740 <_ZN2SW5SwCmd15extendedInquireENS_6AXISIDEi@plt>  ;;; CALL SW::SwCmd::extendedInquire(SW::AXISID, int)  [x1=1(0x1)]
+  23ada8: f9400288     	ldr	x8, [x20]
+  23adac: f9400909     	ldr	x9, [x8, #0x10]
+  23adb0: 9100a3e8     	add	x8, sp, #0x28
+  23adb4: 910023e1     	add	x1, sp, #0x8
+  23adb8: aa1403e0     	mov	x0, x20
+  23adbc: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  23adc0: f9400be0     	ldr	x0, [sp, #0x10]
+  23adc4: b4000060     	cbz	x0, 0x23add0 <SW::SwDevice::readStatusEx()+0x64>
+  23adc8: f9000fe0     	str	x0, [sp, #0x18]
+  23adcc: 94021971     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23add0: b9402bf6     	ldr	w22, [sp, #0x28]
+  23add4: 340000f6     	cbz	w22, 0x23adf0 <SW::SwDevice::readStatusEx()+0x84>
+  23add8: aa1f03f4     	mov	x20, xzr
+  23addc: aa1f03f3     	mov	x19, xzr
+  23ade0: aa1f03f7     	mov	x23, xzr
+  23ade4: f9401be0     	ldr	x0, [sp, #0x30]
+  23ade8: b50001c0     	cbnz	x0, 0x23ae20 <SW::SwDevice::readStatusEx()+0xb4>
+  23adec: 1400000f     	b	0x23ae28 <SW::SwDevice::readStatusEx()+0xbc>
+  23adf0: 3940b3e8     	ldrb	w8, [sp, #0x2c]
+  23adf4: 36000ce8     	tbz	w8, #0x0, 0x23af90 <SW::SwDevice::readStatusEx()+0x224>
+  23adf8: a94327e8     	ldp	x8, x9, [sp, #0x30]
+  23adfc: cb080129     	sub	x9, x9, x8
+  23ae00: f100213f     	cmp	x9, #0x8
+  23ae04: 540002e2     	b.hs	0x23ae60 <SW::SwDevice::readStatusEx()+0xf4>
+  23ae08: aa1f03f4     	mov	x20, xzr
+  23ae0c: aa1f03f3     	mov	x19, xzr
+  23ae10: aa1f03f7     	mov	x23, xzr
+  23ae14: 52800096     	mov	w22, #0x4               // =4
+  23ae18: f9401be0     	ldr	x0, [sp, #0x30]
+  23ae1c: b4000060     	cbz	x0, 0x23ae28 <SW::SwDevice::readStatusEx()+0xbc>
+  23ae20: f9001fe0     	str	x0, [sp, #0x38]
+  23ae24: 9402195b     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23ae28: f94016a8     	ldr	x8, [x21, #0x28]
+  23ae2c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23ae30: eb09011f     	cmp	x8, x9
+  23ae34: 54000fa1     	b.ne	0x23b028 <SW::SwDevice::readStatusEx()+0x2bc>
+  23ae38: 2a140268     	orr	w8, w19, w20
+  23ae3c: 2a1603e9     	mov	w9, w22
+  23ae40: aa08a2e8     	orr	x8, x23, x8, lsl #40
+  23ae44: aa090100     	orr	x0, x8, x9
+  23ae48: a9484ff4     	ldp	x20, x19, [sp, #0x80]
+  23ae4c: f94033f7     	ldr	x23, [sp, #0x60]
+  23ae50: a94757f6     	ldp	x22, x21, [sp, #0x70]
+  23ae54: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+  23ae58: 910243ff     	add	sp, sp, #0x90
+  23ae5c: d65f03c0     	ret
+  23ae60: 39400509     	ldrb	w9, [x8, #0x1]
+  23ae64: 5100c137     	sub	w23, w9, #0x30
+  23ae68: 71002aff     	cmp	w23, #0xa
+  23ae6c: 540000a3     	b.lo	0x23ae80 <SW::SwDevice::readStatusEx()+0x114>
+  23ae70: 5101052a     	sub	w10, w9, #0x41
+  23ae74: 7100155f     	cmp	w10, #0x5
+  23ae78: 54fffc88     	b.hi	0x23ae08 <SW::SwDevice::readStatusEx()+0x9c>
+  23ae7c: 5100dd37     	sub	w23, w9, #0x37
+  23ae80: 3940090a     	ldrb	w10, [x8, #0x2]
+  23ae84: 5100c149     	sub	w9, w10, #0x30
+  23ae88: 7100293f     	cmp	w9, #0xa
+  23ae8c: 540000a3     	b.lo	0x23aea0 <SW::SwDevice::readStatusEx()+0x134>
+  23ae90: 51010549     	sub	w9, w10, #0x41
+  23ae94: 7100153f     	cmp	w9, #0x5
+  23ae98: 54fffb88     	b.hi	0x23ae08 <SW::SwDevice::readStatusEx()+0x9c>
+  23ae9c: 5100dd49     	sub	w9, w10, #0x37
+  23aea0: 39400d0b     	ldrb	w11, [x8, #0x3]
+  23aea4: 5100c16a     	sub	w10, w11, #0x30
+  23aea8: 7100295f     	cmp	w10, #0xa
+  23aeac: 540000a3     	b.lo	0x23aec0 <SW::SwDevice::readStatusEx()+0x154>
+  23aeb0: 5101056a     	sub	w10, w11, #0x41
+  23aeb4: 7100155f     	cmp	w10, #0x5
+  23aeb8: 54fffa88     	b.hi	0x23ae08 <SW::SwDevice::readStatusEx()+0x9c>
+  23aebc: 5100dd6a     	sub	w10, w11, #0x37
+  23aec0: 3940110b     	ldrb	w11, [x8, #0x4]
+  23aec4: 5100c16c     	sub	w12, w11, #0x30
+  23aec8: 7100299f     	cmp	w12, #0xa
+  23aecc: 54000083     	b.lo	0x23aedc <SW::SwDevice::readStatusEx()+0x170>
+  23aed0: 5101056b     	sub	w11, w11, #0x41
+  23aed4: 7100157f     	cmp	w11, #0x5
+  23aed8: 54fff988     	b.hi	0x23ae08 <SW::SwDevice::readStatusEx()+0x9c>
+  23aedc: 3940150b     	ldrb	w11, [x8, #0x5]
+  23aee0: 5100c16c     	sub	w12, w11, #0x30
+  23aee4: 7100299f     	cmp	w12, #0xa
+  23aee8: 54000083     	b.lo	0x23aef8 <SW::SwDevice::readStatusEx()+0x18c>
+  23aeec: 5101056b     	sub	w11, w11, #0x41
+  23aef0: 7100157f     	cmp	w11, #0x5
+  23aef4: 54fff8a8     	b.hi	0x23ae08 <SW::SwDevice::readStatusEx()+0x9c>
+  23aef8: 39401908     	ldrb	w8, [x8, #0x6]
+  23aefc: 5100c10b     	sub	w11, w8, #0x30
+  23af00: 7100297f     	cmp	w11, #0xa
+  23af04: 54000083     	b.lo	0x23af14 <SW::SwDevice::readStatusEx()+0x1a8>
+  23af08: 51010508     	sub	w8, w8, #0x41
+  23af0c: 7100151f     	cmp	w8, #0x5
+  23af10: 54fff7c8     	b.hi	0x23ae08 <SW::SwDevice::readStatusEx()+0x9c>
+  23af14: 12000128     	and	w8, w9, #0x1
+  23af18: 5301052b     	ubfx	w11, w9, #1, #1
+  23af1c: 5302092c     	ubfx	w12, w9, #2, #1
+  23af20: 39025268     	strb	w8, [x19, #0x94]
+  23af24: 53031d28     	ubfx	w8, w9, #3, #5
+  23af28: 120002f4     	and	w20, w23, #0x1
+  23af2c: 12000149     	and	w9, w10, #0x1
+  23af30: 3902566b     	strb	w11, [x19, #0x95]
+  23af34: 5301054b     	ubfx	w11, w10, #1, #1
+  23af38: 39025e68     	strb	w8, [x19, #0x97]
+  23af3c: 53017ee8     	lsr	w8, w23, #1
+  23af40: 5302094a     	ubfx	w10, w10, #2, #1
+  23af44: 39026269     	strb	w9, [x19, #0x98]
+  23af48: 2a1403e9     	mov	w9, w20
+  23af4c: 33180109     	bfi	w9, w8, #8, #1
+  23af50: 39026a6a     	strb	w10, [x19, #0x9a]
+  23af54: 5280002a     	mov	w10, #0x1               // =1
+  23af58: 39025a6c     	strb	w12, [x19, #0x96]
+  23af5c: 3902666b     	strb	w11, [x19, #0x99]
+  23af60: 39026e6a     	strb	w10, [x19, #0x9b]
+  23af64: 79013a69     	strh	w9, [x19, #0x9c]
+  23af68: 39027a6a     	strb	w10, [x19, #0x9e]
+  23af6c: 91002260     	add	x0, x19, #0x8
+  23af70: 94021c6c     	bl	0x2c2120 <_ZNK7eventpp9internal_16CallbackListBaseIFvvENS_15DefaultPoliciesEEclEv@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (), eventpp::DefaultPolicies>::operator()() const
+  23af74: 530106e8     	ubfx	w8, w23, #1, #1
+  23af78: 2a1f03f6     	mov	w22, wzr
+  23af7c: d2c00037     	mov	x23, #0x100000000       // =4294967296
+  23af80: d3787d13     	ubfiz	x19, x8, #8, #32
+  23af84: f9401be0     	ldr	x0, [sp, #0x30]
+  23af88: b5fff4c0     	cbnz	x0, 0x23ae20 <SW::SwDevice::readStatusEx()+0xb4>
+  23af8c: 17ffffa7     	b	0x23ae28 <SW::SwDevice::readStatusEx()+0xbc>
+  23af90: 52800200     	mov	w0, #0x10               // =16
+  23af94: 94021987     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23af98: aa0003f4     	mov	x20, x0
+  23af9c: d0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23afa0: 9135a421     	add	x1, x1, #0xd69
+  23afa4: 9402201f     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23afa8: f94016a8     	ldr	x8, [x21, #0x28]
+  23afac: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23afb0: eb09011f     	cmp	x8, x9
+  23afb4: 540003a1     	b.ne	0x23b028 <SW::SwDevice::readStatusEx()+0x2bc>
+  23afb8: f00004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23afbc: f00004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23afc0: aa1403e0     	mov	x0, x20
+  23afc4: f9409c21     	ldr	x1, [x1, #0x138]
+  23afc8: f940a042     	ldr	x2, [x2, #0x140]
+  23afcc: 94021981     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23afd0: 14000001     	b	0x23afd4 <SW::SwDevice::readStatusEx()+0x268>
+  23afd4: aa0003f3     	mov	x19, x0
+  23afd8: 14000004     	b	0x23afe8 <SW::SwDevice::readStatusEx()+0x27c>
+  23afdc: aa0003f3     	mov	x19, x0
+  23afe0: aa1403e0     	mov	x0, x20
+  23afe4: 94021c67     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23afe8: f9401be0     	ldr	x0, [sp, #0x30]
+  23afec: b4000120     	cbz	x0, 0x23b010 <SW::SwDevice::readStatusEx()+0x2a4>
+  23aff0: f9001fe0     	str	x0, [sp, #0x38]
+  23aff4: 14000006     	b	0x23b00c <SW::SwDevice::readStatusEx()+0x2a0>
+  23aff8: f9400be8     	ldr	x8, [sp, #0x10]
+  23affc: aa0003f3     	mov	x19, x0
+  23b000: b4000088     	cbz	x8, 0x23b010 <SW::SwDevice::readStatusEx()+0x2a4>
+  23b004: f9000fe8     	str	x8, [sp, #0x18]
+  23b008: aa0803e0     	mov	x0, x8
+  23b00c: 940218e1     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23b010: f94016a8     	ldr	x8, [x21, #0x28]
+  23b014: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23b018: eb09011f     	cmp	x8, x9
+  23b01c: 54000061     	b.ne	0x23b028 <SW::SwDevice::readStatusEx()+0x2bc>
+  23b020: aa1303e0     	mov	x0, x19
+  23b024: 94020918     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23b028: 94021862     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+000000000023b02c <SW::SwDevice::lastStatusEx()>:
+  23b02c: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  23b030: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  23b034: 910003fd     	mov	x29, sp
+  23b038: 39427808     	ldrb	w8, [x0, #0x9e]
+  23b03c: 360000a8     	tbz	w8, #0x0, 0x23b050 <SW::SwDevice::lastStatusEx()+0x24>
+  23b040: 79413800     	ldrh	w0, [x0, #0x9c]
+  23b044: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23b048: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23b04c: d65f03c0     	ret
+  23b050: 52800200     	mov	w0, #0x10               // =16
+  23b054: 94021957     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23b058: aa0003f3     	mov	x19, x0
+  23b05c: b0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23b060: 910f4421     	add	x1, x1, #0x3d1
+  23b064: 94021fef     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23b068: d00004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23b06c: d00004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23b070: aa1303e0     	mov	x0, x19
+  23b074: f9409c21     	ldr	x1, [x1, #0x138]
+  23b078: f940a042     	ldr	x2, [x2, #0x140]
+  23b07c: 94021955     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23b080: aa0003f4     	mov	x20, x0
+  23b084: aa1303e0     	mov	x0, x19
+  23b088: 94021c3e     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23b08c: aa1403e0     	mov	x0, x20
+  23b090: 940208fd     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000023b094 <SW::SwDevice::supportsCmdX()>:
+  23b094: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  23b098: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  23b09c: 910003fd     	mov	x29, sp
+  23b0a0: 39423c08     	ldrb	w8, [x0, #0x8f]
+  23b0a4: 36000108     	tbz	w8, #0x0, 0x23b0c4 <SW::SwDevice::supportsCmdX()+0x30>
+  23b0a8: 79411808     	ldrh	w8, [x0, #0x8c]
+  23b0ac: 5ac00508     	rev16	w8, w8
+  23b0b0: 710c991f     	cmp	w8, #0x326
+  23b0b4: 1a9f97e0     	cset	w0, hi
+  23b0b8: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23b0bc: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23b0c0: d65f03c0     	ret
+  23b0c4: 52800200     	mov	w0, #0x10               // =16
+  23b0c8: 9402193a     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23b0cc: aa0003f3     	mov	x19, x0
+  23b0d0: b0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23b0d4: 910f4421     	add	x1, x1, #0x3d1
+  23b0d8: 94021fd2     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23b0dc: d00004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23b0e0: d00004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23b0e4: aa1303e0     	mov	x0, x19
+  23b0e8: f9409c21     	ldr	x1, [x1, #0x138]
+  23b0ec: f940a042     	ldr	x2, [x2, #0x140]
+  23b0f0: 94021938     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23b0f4: aa0003f4     	mov	x20, x0
+  23b0f8: aa1303e0     	mov	x0, x19
+  23b0fc: 94021c21     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23b100: aa1403e0     	mov	x0, x20
+  23b104: 940208e0     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000023b108 <SW::SwDevice::updateAxisStatus(SW::AXISID)>:
+  23b108: d10243ff     	sub	sp, sp, #0x90
+  23b10c: a9057bfd     	stp	x29, x30, [sp, #0x50]
+  23b110: a9065ff8     	stp	x24, x23, [sp, #0x60]
+  23b114: a90757f6     	stp	x22, x21, [sp, #0x70]
+  23b118: a9084ff4     	stp	x20, x19, [sp, #0x80]
+  23b11c: 910143fd     	add	x29, sp, #0x50
+  23b120: d53bd058     	mrs	x24, TPIDR_EL0
+  23b124: aa0003f4     	mov	x20, x0
+  23b128: 2a0103f3     	mov	w19, w1
+  23b12c: f9401708     	ldr	x8, [x24, #0x28]
+  23b130: f81f83a8     	stur	x8, [x29, #-0x8]
+  23b134: 52800cc8     	mov	w8, #0x66               // =102
+  23b138: f9403800     	ldr	x0, [x0, #0x70]
+  23b13c: b9000be1     	str	w1, [sp, #0x8]
+  23b140: 390033e8     	strb	w8, [sp, #0xc]
+  23b144: a901ffff     	stp	xzr, xzr, [sp, #0x18]
+  23b148: f9000bff     	str	xzr, [sp, #0x10]
+  23b14c: f9400008     	ldr	x8, [x0]
+  23b150: f9400909     	ldr	x9, [x8, #0x10]
+  23b154: 9100a3e8     	add	x8, sp, #0x28
+  23b158: 910023e1     	add	x1, sp, #0x8
+  23b15c: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  23b160: f9400be0     	ldr	x0, [sp, #0x10]
+  23b164: b4000060     	cbz	x0, 0x23b170 <SW::SwDevice::updateAxisStatus(SW::AXISID)+0x68>
+  23b168: f9000fe0     	str	x0, [sp, #0x18]
+  23b16c: 94021889     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23b170: b9402bf6     	ldr	w22, [sp, #0x28]
+  23b174: 34000096     	cbz	w22, 0x23b184 <SW::SwDevice::updateAxisStatus(SW::AXISID)+0x7c>
+  23b178: aa1f03f4     	mov	x20, xzr
+  23b17c: aa1f03f3     	mov	x19, xzr
+  23b180: 14000037     	b	0x23b25c <SW::SwDevice::updateAxisStatus(SW::AXISID)+0x154>
+  23b184: 3940b3e8     	ldrb	w8, [sp, #0x2c]
+  23b188: 360008c8     	tbz	w8, #0x0, 0x23b2a0 <SW::SwDevice::updateAxisStatus(SW::AXISID)+0x198>
+  23b18c: a94323f7     	ldp	x23, x8, [sp, #0x30]
+  23b190: a900ffff     	stp	xzr, xzr, [sp, #0x8]
+  23b194: f9000fff     	str	xzr, [sp, #0x18]
+  23b198: eb170116     	subs	x22, x8, x23
+  23b19c: 54000220     	b.eq	0x23b1e0 <SW::SwDevice::updateAxisStatus(SW::AXISID)+0xd8>
+  23b1a0: b7f80a16     	tbnz	x22, #0x3f, 0x23b2e0 <SW::SwDevice::updateAxisStatus(SW::AXISID)+0x1d8>
+  23b1a4: aa1603e0     	mov	x0, x22
+  23b1a8: 940217d6     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  23b1ac: 8b160008     	add	x8, x0, x22
+  23b1b0: aa1703e1     	mov	x1, x23
+  23b1b4: aa1603e2     	mov	x2, x22
+  23b1b8: aa0003f5     	mov	x21, x0
+  23b1bc: f90007e0     	str	x0, [sp, #0x8]
+  23b1c0: f9000fe8     	str	x8, [sp, #0x18]
+  23b1c4: 94021d2f     	bl	0x2c2680 <memcpy@plt>  ;;; CALL memcpy
+  23b1c8: f10016df     	cmp	x22, #0x5
+  23b1cc: 54000182     	b.hs	0x23b1fc <SW::SwDevice::updateAxisStatus(SW::AXISID)+0xf4>
+  23b1d0: aa1f03f3     	mov	x19, xzr
+  23b1d4: aa1f03f4     	mov	x20, xzr
+  23b1d8: 52800096     	mov	w22, #0x4               // =4
+  23b1dc: 1400001d     	b	0x23b250 <SW::SwDevice::updateAxisStatus(SW::AXISID)+0x148>
+  23b1e0: f10016df     	cmp	x22, #0x5
+  23b1e4: aa1f03f5     	mov	x21, xzr
+  23b1e8: 540000a2     	b.hs	0x23b1fc <SW::SwDevice::updateAxisStatus(SW::AXISID)+0xf4>
+  23b1ec: aa1f03f3     	mov	x19, xzr
+  23b1f0: aa1f03f4     	mov	x20, xzr
+  23b1f4: 52800096     	mov	w22, #0x4               // =4
+  23b1f8: 14000019     	b	0x23b25c <SW::SwDevice::updateAxisStatus(SW::AXISID)+0x154>
+  23b1fc: 394006a8     	ldrb	w8, [x21, #0x1]
+  23b200: 39400eaa     	ldrb	w10, [x21, #0x3]
+  23b204: 5280002b     	mov	w11, #0x1               // =1
+  23b208: 39400aac     	ldrb	w12, [x21, #0x2]
+  23b20c: 5280018d     	mov	w13, #0xc               // =12
+  23b210: 2a1f03f6     	mov	w22, wzr
+  23b214: 53020909     	ubfx	w9, w8, #2, #1
+  23b218: 0a2a016a     	bic	w10, w11, w10
+  23b21c: 7200011f     	tst	w8, #0x1
+  23b220: 9bad526d     	umaddl	x13, w19, w13, x20
+  23b224: d2c00034     	mov	x20, #0x100000000       // =4294967296
+  23b228: d3585d29     	lsl	x9, x9, #40
+  23b22c: aa0ac129     	orr	x9, x9, x10, lsl #48
+  23b230: 0a68056a     	bic	w10, w11, w8, lsr #1
+  23b234: 9a8b1568     	cinc	x8, x11, eq
+  23b238: 7200019f     	tst	w12, #0x1
+  23b23c: 3902a1ab     	strb	w11, [x13, #0xa8]
+  23b240: aa0a8129     	orr	x9, x9, x10, lsl #32
+  23b244: 9a8803e8     	csel	x8, xzr, x8, eq
+  23b248: aa080133     	orr	x19, x9, x8
+  23b24c: f90051b3     	str	x19, [x13, #0xa0]
+  23b250: aa1503e0     	mov	x0, x21
+  23b254: f9000bf5     	str	x21, [sp, #0x10]
+  23b258: 9402184e     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23b25c: f9401be0     	ldr	x0, [sp, #0x30]
+  23b260: b4000060     	cbz	x0, 0x23b26c <SW::SwDevice::updateAxisStatus(SW::AXISID)+0x164>
+  23b264: f9001fe0     	str	x0, [sp, #0x38]
+  23b268: 9402184a     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23b26c: f9401708     	ldr	x8, [x24, #0x28]
+  23b270: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23b274: eb09011f     	cmp	x8, x9
+  23b278: 54000781     	b.ne	0x23b368 <SW::SwDevice::updateAxisStatus(SW::AXISID)+0x260>
+  23b27c: 2a1603e8     	mov	w8, w22
+  23b280: aa080280     	orr	x0, x20, x8
+  23b284: aa1303e1     	mov	x1, x19
+  23b288: a9484ff4     	ldp	x20, x19, [sp, #0x80]
+  23b28c: a94757f6     	ldp	x22, x21, [sp, #0x70]
+  23b290: a9465ff8     	ldp	x24, x23, [sp, #0x60]
+  23b294: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+  23b298: 910243ff     	add	sp, sp, #0x90
+  23b29c: d65f03c0     	ret
+  23b2a0: 52800200     	mov	w0, #0x10               // =16
+  23b2a4: 940218c3     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23b2a8: aa0003f4     	mov	x20, x0
+  23b2ac: b0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23b2b0: 9135a421     	add	x1, x1, #0xd69
+  23b2b4: 94021f5b     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23b2b8: f9401708     	ldr	x8, [x24, #0x28]
+  23b2bc: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23b2c0: eb09011f     	cmp	x8, x9
+  23b2c4: 54000521     	b.ne	0x23b368 <SW::SwDevice::updateAxisStatus(SW::AXISID)+0x260>
+  23b2c8: d00004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23b2cc: d00004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23b2d0: aa1403e0     	mov	x0, x20
+  23b2d4: f9409c21     	ldr	x1, [x1, #0x138]
+  23b2d8: f940a042     	ldr	x2, [x2, #0x140]
+  23b2dc: 940218bd     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23b2e0: f9401708     	ldr	x8, [x24, #0x28]
+  23b2e4: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23b2e8: eb09011f     	cmp	x8, x9
+  23b2ec: 540003e1     	b.ne	0x23b368 <SW::SwDevice::updateAxisStatus(SW::AXISID)+0x260>
+  23b2f0: 910023e0     	add	x0, sp, #0x8
+  23b2f4: 97ff190b     	bl	0x201720 <std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char
+  23b2f8: aa0003f3     	mov	x19, x0
+  23b2fc: 1400000b     	b	0x23b328 <SW::SwDevice::updateAxisStatus(SW::AXISID)+0x220>
+  23b300: aa0003f3     	mov	x19, x0
+  23b304: aa1403e0     	mov	x0, x20
+  23b308: 94021b9e     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23b30c: 14000007     	b	0x23b328 <SW::SwDevice::updateAxisStatus(SW::AXISID)+0x220>
+  23b310: f94007e8     	ldr	x8, [sp, #0x8]
+  23b314: aa0003f3     	mov	x19, x0
+  23b318: b4000088     	cbz	x8, 0x23b328 <SW::SwDevice::updateAxisStatus(SW::AXISID)+0x220>
+  23b31c: aa0803e0     	mov	x0, x8
+  23b320: f9000be8     	str	x8, [sp, #0x10]
+  23b324: 9402181b     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23b328: f9401be0     	ldr	x0, [sp, #0x30]
+  23b32c: b4000120     	cbz	x0, 0x23b350 <SW::SwDevice::updateAxisStatus(SW::AXISID)+0x248>
+  23b330: f9001fe0     	str	x0, [sp, #0x38]
+  23b334: 14000006     	b	0x23b34c <SW::SwDevice::updateAxisStatus(SW::AXISID)+0x244>
+  23b338: f9400be8     	ldr	x8, [sp, #0x10]
+  23b33c: aa0003f3     	mov	x19, x0
+  23b340: b4000088     	cbz	x8, 0x23b350 <SW::SwDevice::updateAxisStatus(SW::AXISID)+0x248>
+  23b344: f9000fe8     	str	x8, [sp, #0x18]
+  23b348: aa0803e0     	mov	x0, x8
+  23b34c: 94021811     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23b350: f9401708     	ldr	x8, [x24, #0x28]
+  23b354: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23b358: eb09011f     	cmp	x8, x9
+  23b35c: 54000061     	b.ne	0x23b368 <SW::SwDevice::updateAxisStatus(SW::AXISID)+0x260>
+  23b360: aa1303e0     	mov	x0, x19
+  23b364: 94020848     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23b368: 94021792     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+000000000023b36c <SW::SwDevice::lastAxisStatus(SW::AXISID)>:
+  23b36c: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  23b370: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  23b374: 910003fd     	mov	x29, sp
+  23b378: 52800188     	mov	w8, #0xc                // =12
+  23b37c: 9ba80028     	umaddl	x8, w1, w8, x0
+  23b380: 3942a109     	ldrb	w9, [x8, #0xa8]
+  23b384: 360000a9     	tbz	w9, #0x0, 0x23b398 <SW::SwDevice::lastAxisStatus(SW::AXISID)+0x2c>
+  23b388: f84a0100     	ldur	x0, [x8, #0xa0]
+  23b38c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23b390: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23b394: d65f03c0     	ret
+  23b398: 52800200     	mov	w0, #0x10               // =16
+  23b39c: 94021885     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23b3a0: aa0003f3     	mov	x19, x0
+  23b3a4: b0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23b3a8: 910f4421     	add	x1, x1, #0x3d1
+  23b3ac: 94021f1d     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23b3b0: d00004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23b3b4: d00004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23b3b8: aa1303e0     	mov	x0, x19
+  23b3bc: f9409c21     	ldr	x1, [x1, #0x138]
+  23b3c0: f940a042     	ldr	x2, [x2, #0x140]
+  23b3c4: 94021883     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23b3c8: aa0003f4     	mov	x20, x0
+  23b3cc: aa1303e0     	mov	x0, x19
+  23b3d0: 94021b6c     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23b3d4: aa1403e0     	mov	x0, x20
+  23b3d8: 9402082b     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000023b3dc <SW::SwDevice::setAxisInitialized(SW::AXISID)>:
+  23b3dc: d101c3ff     	sub	sp, sp, #0x70
+  23b3e0: a9057bfd     	stp	x29, x30, [sp, #0x50]
+  23b3e4: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  23b3e8: 910143fd     	add	x29, sp, #0x50
+  23b3ec: d53bd054     	mrs	x20, TPIDR_EL0
+  23b3f0: 528008c9     	mov	w9, #0x46               // =70
+  23b3f4: f9401688     	ldr	x8, [x20, #0x28]
+  23b3f8: f81f83a8     	stur	x8, [x29, #-0x8]
+  23b3fc: f9403800     	ldr	x0, [x0, #0x70]
+  23b400: a901ffff     	stp	xzr, xzr, [sp, #0x18]
+  23b404: f9000bff     	str	xzr, [sp, #0x10]
+  23b408: f9400008     	ldr	x8, [x0]
+  23b40c: b9000be1     	str	w1, [sp, #0x8]
+  23b410: 390033e9     	strb	w9, [sp, #0xc]
+  23b414: f940090a     	ldr	x10, [x8, #0x10]
+  23b418: 9100a3e8     	add	x8, sp, #0x28
+  23b41c: 910023e1     	add	x1, sp, #0x8
+  23b420: d63f0140     	blr	x10  ;;; CALL <indirect x10>
+  23b424: f9401be0     	ldr	x0, [sp, #0x30]
+  23b428: b9402bf3     	ldr	w19, [sp, #0x28]
+  23b42c: b4000060     	cbz	x0, 0x23b438 <SW::SwDevice::setAxisInitialized(SW::AXISID)+0x5c>
+  23b430: f9001fe0     	str	x0, [sp, #0x38]
+  23b434: 940217d7     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23b438: f9400be0     	ldr	x0, [sp, #0x10]
+  23b43c: b4000060     	cbz	x0, 0x23b448 <SW::SwDevice::setAxisInitialized(SW::AXISID)+0x6c>
+  23b440: f9000fe0     	str	x0, [sp, #0x18]
+  23b444: 940217d3     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23b448: f9401688     	ldr	x8, [x20, #0x28]
+  23b44c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23b450: eb09011f     	cmp	x8, x9
+  23b454: 54000241     	b.ne	0x23b49c <SW::SwDevice::setAxisInitialized(SW::AXISID)+0xc0>
+  23b458: 2a1303e0     	mov	w0, w19
+  23b45c: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  23b460: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+  23b464: 9101c3ff     	add	sp, sp, #0x70
+  23b468: d65f03c0     	ret
+  23b46c: f9400be8     	ldr	x8, [sp, #0x10]
+  23b470: aa0003f3     	mov	x19, x0
+  23b474: b4000088     	cbz	x8, 0x23b484 <SW::SwDevice::setAxisInitialized(SW::AXISID)+0xa8>
+  23b478: aa0803e0     	mov	x0, x8
+  23b47c: f9000fe8     	str	x8, [sp, #0x18]
+  23b480: 940217c4     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23b484: f9401688     	ldr	x8, [x20, #0x28]
+  23b488: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23b48c: eb09011f     	cmp	x8, x9
+  23b490: 54000061     	b.ne	0x23b49c <SW::SwDevice::setAxisInitialized(SW::AXISID)+0xc0>
+  23b494: aa1303e0     	mov	x0, x19
+  23b498: 940207fb     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23b49c: 94021745     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+000000000023b4a0 <SW::SwDevice::radToStep(SW::AXISID, double)>:
+  23b4a0: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  23b4a4: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  23b4a8: 910003fd     	mov	x29, sp
+  23b4ac: 8b214c08     	add	x8, x0, w1, uxtw #3
+  23b4b0: 39417109     	ldrb	w9, [x8, #0x5c]
+  23b4b4: 36000169     	tbz	w9, #0x0, 0x23b4e0 <SW::SwDevice::radToStep(SW::AXISID, double)+0x40>
+  23b4b8: b8458108     	ldur	w8, [x8, #0x58]
+  23b4bc: 1e620101     	scvtf	d1, w8
+  23b4c0: f0fff468     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  23b4c4: 1e600820     	fmul	d0, d1, d0
+  23b4c8: fd46e901     	ldr	d1, [x8, #0xdd0]
+  23b4cc: 1e611800     	fdiv	d0, d0, d1
+  23b4d0: 9e640000     	fcvtas	x0, d0
+  23b4d4: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23b4d8: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23b4dc: d65f03c0     	ret
+  23b4e0: 52800200     	mov	w0, #0x10               // =16
+  23b4e4: 94021833     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23b4e8: aa0003f3     	mov	x19, x0
+  23b4ec: b0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23b4f0: 910f4421     	add	x1, x1, #0x3d1
+  23b4f4: 94021ecb     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23b4f8: d00004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23b4fc: d00004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23b500: aa1303e0     	mov	x0, x19
+  23b504: f9409c21     	ldr	x1, [x1, #0x138]
+  23b508: f940a042     	ldr	x2, [x2, #0x140]
+  23b50c: 94021831     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23b510: aa0003f4     	mov	x20, x0
+  23b514: aa1303e0     	mov	x0, x19
+  23b518: 94021b1a     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23b51c: aa1403e0     	mov	x0, x20
+  23b520: 940207d9     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000023b524 <SW::SwDevice::radToStep_(double, int)>:
+  23b524: 1e620001     	scvtf	d1, w0
+  23b528: f0fff468     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  23b52c: 1e600820     	fmul	d0, d1, d0
+  23b530: fd46e901     	ldr	d1, [x8, #0xdd0]
+  23b534: 1e611800     	fdiv	d0, d0, d1
+  23b538: 9e640000     	fcvtas	x0, d0
+  23b53c: d65f03c0     	ret
+
+000000000023b540 <SW::SwDevice::radToStep64(SW::AXISID, double)>:
+  23b540: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  23b544: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  23b548: 910003fd     	mov	x29, sp
+  23b54c: 8b214c08     	add	x8, x0, w1, uxtw #3
+  23b550: 39417109     	ldrb	w9, [x8, #0x5c]
+  23b554: 36000169     	tbz	w9, #0x0, 0x23b580 <SW::SwDevice::radToStep64(SW::AXISID, double)+0x40>
+  23b558: b8458108     	ldur	w8, [x8, #0x58]
+  23b55c: 1e620101     	scvtf	d1, w8
+  23b560: f0fff468     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  23b564: 1e600820     	fmul	d0, d1, d0
+  23b568: fd46e901     	ldr	d1, [x8, #0xdd0]
+  23b56c: 1e611800     	fdiv	d0, d0, d1
+  23b570: 9e640000     	fcvtas	x0, d0
+  23b574: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23b578: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23b57c: d65f03c0     	ret
+  23b580: 52800200     	mov	w0, #0x10               // =16
+  23b584: 9402180b     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23b588: aa0003f3     	mov	x19, x0
+  23b58c: b0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23b590: 910f4421     	add	x1, x1, #0x3d1
+  23b594: 94021ea3     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23b598: d00004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23b59c: d00004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23b5a0: aa1303e0     	mov	x0, x19
+  23b5a4: f9409c21     	ldr	x1, [x1, #0x138]
+  23b5a8: f940a042     	ldr	x2, [x2, #0x140]
+  23b5ac: 94021809     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23b5b0: aa0003f4     	mov	x20, x0
+  23b5b4: aa1303e0     	mov	x0, x19
+  23b5b8: 94021af2     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23b5bc: aa1403e0     	mov	x0, x20
+  23b5c0: 940207b1     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000023b5c4 <SW::SwDevice::stepToRad(SW::AXISID, int)>:
+  23b5c4: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  23b5c8: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  23b5cc: 910003fd     	mov	x29, sp
+  23b5d0: 8b214c08     	add	x8, x0, w1, uxtw #3
+  23b5d4: 39417109     	ldrb	w9, [x8, #0x5c]
+  23b5d8: 36000169     	tbz	w9, #0x0, 0x23b604 <SW::SwDevice::stepToRad(SW::AXISID, int)+0x40>
+  23b5dc: 1e620040     	scvtf	d0, w2
+  23b5e0: f0fff469     	adrp	x9, 0xca000 <GCC_except_table29+0x24>
+  23b5e4: b8458108     	ldur	w8, [x8, #0x58]
+  23b5e8: fd46e921     	ldr	d1, [x9, #0xdd0]
+  23b5ec: 1e610800     	fmul	d0, d0, d1
+  23b5f0: 1e620101     	scvtf	d1, w8
+  23b5f4: 1e611800     	fdiv	d0, d0, d1
+  23b5f8: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23b5fc: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23b600: d65f03c0     	ret
+  23b604: 52800200     	mov	w0, #0x10               // =16
+  23b608: 940217ea     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23b60c: aa0003f3     	mov	x19, x0
+  23b610: b0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23b614: 910f4421     	add	x1, x1, #0x3d1
+  23b618: 94021e82     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23b61c: d00004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23b620: d00004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23b624: aa1303e0     	mov	x0, x19
+  23b628: f9409c21     	ldr	x1, [x1, #0x138]
+  23b62c: f940a042     	ldr	x2, [x2, #0x140]
+  23b630: 940217e8     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23b634: aa0003f4     	mov	x20, x0
+  23b638: aa1303e0     	mov	x0, x19
+  23b63c: 94021ad1     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23b640: aa1403e0     	mov	x0, x20
+  23b644: 94020790     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000023b648 <SW::SwDevice::stepToRad_(int, int)>:
+  23b648: 1e620000     	scvtf	d0, w0
+  23b64c: f0fff468     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  23b650: fd46e901     	ldr	d1, [x8, #0xdd0]
+  23b654: 1e610800     	fmul	d0, d0, d1
+  23b658: 1e620021     	scvtf	d1, w1
+  23b65c: 1e611800     	fdiv	d0, d0, d1
+  23b660: d65f03c0     	ret
+
+000000000023b664 <SW::SwDevice::axisPos_LogicalToRaw(SW::AXISID, double)>:
+  23b664: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  23b668: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  23b66c: 910003fd     	mov	x29, sp
+  23b670: 34000081     	cbz	w1, 0x23b680 <SW::SwDevice::axisPos_LogicalToRaw(SW::AXISID, double)+0x1c>
+  23b674: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23b678: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23b67c: d65f03c0     	ret
+  23b680: 39422008     	ldrb	w8, [x0, #0x88]
+  23b684: 36000148     	tbz	w8, #0x0, 0x23b6ac <SW::SwDevice::axisPos_LogicalToRaw(SW::AXISID, double)+0x48>
+  23b688: f0fff468     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  23b68c: fd470101     	ldr	d1, [x8, #0xe00]
+  23b690: b9408408     	ldr	w8, [x0, #0x84]
+  23b694: 1e612801     	fadd	d1, d0, d1
+  23b698: 7100051f     	cmp	w8, #0x1
+  23b69c: 1e600c20     	fcsel	d0, d1, d0, eq
+  23b6a0: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23b6a4: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23b6a8: d65f03c0     	ret
+  23b6ac: 52800200     	mov	w0, #0x10               // =16
+  23b6b0: 940217c0     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23b6b4: aa0003f3     	mov	x19, x0
+  23b6b8: b0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23b6bc: 910f4421     	add	x1, x1, #0x3d1
+  23b6c0: 94021e58     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23b6c4: d00004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23b6c8: d00004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23b6cc: aa1303e0     	mov	x0, x19
+  23b6d0: f9409c21     	ldr	x1, [x1, #0x138]
+  23b6d4: f940a042     	ldr	x2, [x2, #0x140]
+  23b6d8: 940217be     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23b6dc: aa0003f4     	mov	x20, x0
+  23b6e0: aa1303e0     	mov	x0, x19
+  23b6e4: 94021aa7     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23b6e8: aa1403e0     	mov	x0, x20
+  23b6ec: 94020766     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000023b6f0 <SW::SwDevice::axisPos_RawToLogical(SW::AXISID, double)>:
+  23b6f0: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  23b6f4: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  23b6f8: 910003fd     	mov	x29, sp
+  23b6fc: 34000081     	cbz	w1, 0x23b70c <SW::SwDevice::axisPos_RawToLogical(SW::AXISID, double)+0x1c>
+  23b700: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23b704: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23b708: d65f03c0     	ret
+  23b70c: 39422008     	ldrb	w8, [x0, #0x88]
+  23b710: 36000148     	tbz	w8, #0x0, 0x23b738 <SW::SwDevice::axisPos_RawToLogical(SW::AXISID, double)+0x48>
+  23b714: f0fff468     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  23b718: fd465501     	ldr	d1, [x8, #0xca8]
+  23b71c: b9408408     	ldr	w8, [x0, #0x84]
+  23b720: 1e612801     	fadd	d1, d0, d1
+  23b724: 7100051f     	cmp	w8, #0x1
+  23b728: 1e600c20     	fcsel	d0, d1, d0, eq
+  23b72c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23b730: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23b734: d65f03c0     	ret
+  23b738: 52800200     	mov	w0, #0x10               // =16
+  23b73c: 9402179d     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23b740: aa0003f3     	mov	x19, x0
+  23b744: b0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23b748: 910f4421     	add	x1, x1, #0x3d1
+  23b74c: 94021e35     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23b750: d00004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23b754: d00004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23b758: aa1303e0     	mov	x0, x19
+  23b75c: f9409c21     	ldr	x1, [x1, #0x138]
+  23b760: f940a042     	ldr	x2, [x2, #0x140]
+  23b764: 9402179b     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23b768: aa0003f4     	mov	x20, x0
+  23b76c: aa1303e0     	mov	x0, x19
+  23b770: 94021a84     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23b774: aa1403e0     	mov	x0, x20
+  23b778: 94020743     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000023b77c <SW::SwDevice::rpsToStride(SW::AXISID, double)>:
+  23b77c: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  23b780: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  23b784: 910003fd     	mov	x29, sp
+  23b788: 8b214c08     	add	x8, x0, w1, uxtw #3
+  23b78c: 39417109     	ldrb	w9, [x8, #0x5c]
+  23b790: 36000329     	tbz	w9, #0x0, 0x23b7f4 <SW::SwDevice::rpsToStride(SW::AXISID, double)+0x78>
+  23b794: 3941b009     	ldrb	w9, [x0, #0x6c]
+  23b798: 360003c9     	tbz	w9, #0x0, 0x23b810 <SW::SwDevice::rpsToStride(SW::AXISID, double)+0x94>
+  23b79c: 1e602008     	fcmp	d0, #0.0
+  23b7a0: 54000464     	b.mi	0x23b82c <SW::SwDevice::rpsToStride(SW::AXISID, double)+0xb0>
+  23b7a4: 540000a1     	b.ne	0x23b7b8 <SW::SwDevice::rpsToStride(SW::AXISID, double)+0x3c>
+  23b7a8: 2a1f03e0     	mov	w0, wzr
+  23b7ac: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23b7b0: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23b7b4: d65f03c0     	ret
+  23b7b8: 1e6e1001     	fmov	d1, #1.00000000
+  23b7bc: b8458108     	ldur	w8, [x8, #0x58]
+  23b7c0: 1e601820     	fdiv	d0, d1, d0
+  23b7c4: 1e620101     	scvtf	d1, w8
+  23b7c8: f0fff468     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  23b7cc: fd46e902     	ldr	d2, [x8, #0xdd0]
+  23b7d0: b9406808     	ldr	w8, [x0, #0x68]
+  23b7d4: 1e611841     	fdiv	d1, d2, d1
+  23b7d8: 1e620102     	scvtf	d2, w8
+  23b7dc: 1e620800     	fmul	d0, d0, d2
+  23b7e0: 1e600820     	fmul	d0, d1, d0
+  23b7e4: 1e650000     	fcvtau	w0, d0
+  23b7e8: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23b7ec: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23b7f0: d65f03c0     	ret
+  23b7f4: 52800200     	mov	w0, #0x10               // =16
+  23b7f8: 9402176e     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23b7fc: aa0003f3     	mov	x19, x0
+  23b800: b0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23b804: 910f4421     	add	x1, x1, #0x3d1
+  23b808: 94021e06     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23b80c: 1400000e     	b	0x23b844 <SW::SwDevice::rpsToStride(SW::AXISID, double)+0xc8>
+  23b810: 52800200     	mov	w0, #0x10               // =16
+  23b814: 94021767     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23b818: aa0003f3     	mov	x19, x0
+  23b81c: b0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23b820: 910f4421     	add	x1, x1, #0x3d1
+  23b824: 94021dff     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23b828: 14000007     	b	0x23b844 <SW::SwDevice::rpsToStride(SW::AXISID, double)+0xc8>
+  23b82c: 52800200     	mov	w0, #0x10               // =16
+  23b830: 94021760     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23b834: aa0003f3     	mov	x19, x0
+  23b838: 90fff481     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  23b83c: 91253c21     	add	x1, x1, #0x94f
+  23b840: 94021df8     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23b844: d00004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23b848: d00004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23b84c: aa1303e0     	mov	x0, x19
+  23b850: f9409c21     	ldr	x1, [x1, #0x138]
+  23b854: f940a042     	ldr	x2, [x2, #0x140]
+  23b858: 9402175e     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23b85c: aa0003f4     	mov	x20, x0
+  23b860: aa1303e0     	mov	x0, x19
+  23b864: 94021a47     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23b868: aa1403e0     	mov	x0, x20
+  23b86c: 94020706     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23b870: aa0003f4     	mov	x20, x0
+  23b874: aa1303e0     	mov	x0, x19
+  23b878: 94021a42     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23b87c: aa1403e0     	mov	x0, x20
+  23b880: 94020701     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23b884: aa0003f4     	mov	x20, x0
+  23b888: aa1303e0     	mov	x0, x19
+  23b88c: 94021a3d     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23b890: aa1403e0     	mov	x0, x20
+  23b894: 940206fc     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000023b898 <SW::SwDevice::rpsToStride_(double, int, int)>:
+  23b898: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  23b89c: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  23b8a0: 910003fd     	mov	x29, sp
+  23b8a4: 1e602008     	fcmp	d0, #0.0
+  23b8a8: 54000264     	b.mi	0x23b8f4 <SW::SwDevice::rpsToStride_(double, int, int)+0x5c>
+  23b8ac: 540000a1     	b.ne	0x23b8c0 <SW::SwDevice::rpsToStride_(double, int, int)+0x28>
+  23b8b0: 2a1f03e0     	mov	w0, wzr
+  23b8b4: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23b8b8: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23b8bc: d65f03c0     	ret
+  23b8c0: 1e6e1001     	fmov	d1, #1.00000000
+  23b8c4: f0fff468     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  23b8c8: fd46e902     	ldr	d2, [x8, #0xdd0]
+  23b8cc: 1e601820     	fdiv	d0, d1, d0
+  23b8d0: 1e620001     	scvtf	d1, w0
+  23b8d4: 1e611841     	fdiv	d1, d2, d1
+  23b8d8: 1e620022     	scvtf	d2, w1
+  23b8dc: 1e620800     	fmul	d0, d0, d2
+  23b8e0: 1e600820     	fmul	d0, d1, d0
+  23b8e4: 1e650000     	fcvtau	w0, d0
+  23b8e8: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23b8ec: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23b8f0: d65f03c0     	ret
+  23b8f4: 52800200     	mov	w0, #0x10               // =16
+  23b8f8: 9402172e     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23b8fc: aa0003f3     	mov	x19, x0
+  23b900: 90fff481     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  23b904: 91253c21     	add	x1, x1, #0x94f
+  23b908: 94021dc6     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23b90c: d00004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23b910: d00004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23b914: aa1303e0     	mov	x0, x19
+  23b918: f9409c21     	ldr	x1, [x1, #0x138]
+  23b91c: f940a042     	ldr	x2, [x2, #0x140]
+  23b920: 9402172c     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23b924: aa0003f4     	mov	x20, x0
+  23b928: aa1303e0     	mov	x0, x19
+  23b92c: 94021a15     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23b930: aa1403e0     	mov	x0, x20
+  23b934: 940206d4     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000023b938 <SW::SwDevice::strideToRps(SW::AXISID, unsigned int)>:
+  23b938: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  23b93c: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  23b940: 910003fd     	mov	x29, sp
+  23b944: 8b214c08     	add	x8, x0, w1, uxtw #3
+  23b948: 39417109     	ldrb	w9, [x8, #0x5c]
+  23b94c: 360002e9     	tbz	w9, #0x0, 0x23b9a8 <SW::SwDevice::strideToRps(SW::AXISID, unsigned int)+0x70>
+  23b950: 3941b009     	ldrb	w9, [x0, #0x6c]
+  23b954: 36000389     	tbz	w9, #0x0, 0x23b9c4 <SW::SwDevice::strideToRps(SW::AXISID, unsigned int)+0x8c>
+  23b958: 34000202     	cbz	w2, 0x23b998 <SW::SwDevice::strideToRps(SW::AXISID, unsigned int)+0x60>
+  23b95c: 1e630040     	ucvtf	d0, w2
+  23b960: 1e6e1001     	fmov	d1, #1.00000000
+  23b964: b8458108     	ldur	w8, [x8, #0x58]
+  23b968: 1e601820     	fdiv	d0, d1, d0
+  23b96c: 1e620101     	scvtf	d1, w8
+  23b970: f0fff468     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  23b974: fd46e902     	ldr	d2, [x8, #0xdd0]
+  23b978: b9406808     	ldr	w8, [x0, #0x68]
+  23b97c: 1e611841     	fdiv	d1, d2, d1
+  23b980: 1e620102     	scvtf	d2, w8
+  23b984: 1e620800     	fmul	d0, d0, d2
+  23b988: 1e600820     	fmul	d0, d1, d0
+  23b98c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23b990: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23b994: d65f03c0     	ret
+  23b998: 2f00e400     	movi	d0, #0000000000000000
+  23b99c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23b9a0: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23b9a4: d65f03c0     	ret
+  23b9a8: 52800200     	mov	w0, #0x10               // =16
+  23b9ac: 94021701     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23b9b0: aa0003f3     	mov	x19, x0
+  23b9b4: b0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23b9b8: 910f4421     	add	x1, x1, #0x3d1
+  23b9bc: 94021d99     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23b9c0: 14000007     	b	0x23b9dc <SW::SwDevice::strideToRps(SW::AXISID, unsigned int)+0xa4>
+  23b9c4: 52800200     	mov	w0, #0x10               // =16
+  23b9c8: 940216fa     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23b9cc: aa0003f3     	mov	x19, x0
+  23b9d0: b0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23b9d4: 910f4421     	add	x1, x1, #0x3d1
+  23b9d8: 94021d92     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23b9dc: d00004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23b9e0: d00004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23b9e4: aa1303e0     	mov	x0, x19
+  23b9e8: f9409c21     	ldr	x1, [x1, #0x138]
+  23b9ec: f940a042     	ldr	x2, [x2, #0x140]
+  23b9f0: 940216f8     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23b9f4: aa0003f4     	mov	x20, x0
+  23b9f8: aa1303e0     	mov	x0, x19
+  23b9fc: 940219e1     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23ba00: aa1403e0     	mov	x0, x20
+  23ba04: 940206a0     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23ba08: aa0003f4     	mov	x20, x0
+  23ba0c: aa1303e0     	mov	x0, x19
+  23ba10: 940219dc     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23ba14: aa1403e0     	mov	x0, x20
+  23ba18: 9402069b     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000023ba1c <SW::SwDevice::strideToRps_(unsigned int, int, int)>:
+  23ba1c: 34000180     	cbz	w0, 0x23ba4c <SW::SwDevice::strideToRps_(unsigned int, int, int)+0x30>
+  23ba20: 1e630000     	ucvtf	d0, w0
+  23ba24: 1e6e1001     	fmov	d1, #1.00000000
+  23ba28: f0fff468     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  23ba2c: fd46e902     	ldr	d2, [x8, #0xdd0]
+  23ba30: 1e601820     	fdiv	d0, d1, d0
+  23ba34: 1e620021     	scvtf	d1, w1
+  23ba38: 1e611841     	fdiv	d1, d2, d1
+  23ba3c: 1e620042     	scvtf	d2, w2
+  23ba40: 1e620800     	fmul	d0, d0, d2
+  23ba44: 1e600820     	fmul	d0, d1, d0
+  23ba48: d65f03c0     	ret
+  23ba4c: 2f00e400     	movi	d0, #0000000000000000
+  23ba50: d65f03c0     	ret
+
+000000000023ba54 <SW::SwDevice::speedFineAdjustmentPrecision()>:
+  23ba54: fc1d0fe8     	str	d8, [sp, #-0x30]!
+  23ba58: a9017bfd     	stp	x29, x30, [sp, #0x10]
+  23ba5c: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  23ba60: 910043fd     	add	x29, sp, #0x10
+  23ba64: f9400008     	ldr	x8, [x0]  ; vptr of SW::SwDevice
+  23ba68: aa0003f3     	mov	x19, x0
+  23ba6c: f9402d08     	ldr	x8, [x8, #0x58]  ; -> SW::SwDevice::supportsCmdX()
+  23ba70: d63f0100     	blr	x8  ;;; CALL SW::SwDevice::supportsCmdX()
+  23ba74: 360001a0     	tbz	w0, #0x0, 0x23baa8 <SW::SwDevice::speedFineAdjustmentPrecision()+0x54>
+  23ba78: 39417268     	ldrb	w8, [x19, #0x5c]
+  23ba7c: 36000508     	tbz	w8, #0x0, 0x23bb1c <SW::SwDevice::speedFineAdjustmentPrecision()+0xc8>
+  23ba80: b9405a68     	ldr	w8, [x19, #0x58]
+  23ba84: 53165508     	lsl	w8, w8, #10
+  23ba88: 1e620100     	scvtf	d0, w8
+  23ba8c: f0fff468     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  23ba90: fd466901     	ldr	d1, [x8, #0xcd0]
+  23ba94: 1e601820     	fdiv	d0, d1, d0
+  23ba98: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  23ba9c: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+  23baa0: fc4307e8     	ldr	d8, [sp], #0x30
+  23baa4: d65f03c0     	ret
+  23baa8: f9400268     	ldr	x8, [x19]  ; vptr of SW::SwDevice
+  23baac: f0fff469     	adrp	x9, 0xca000 <GCC_except_table29+0x24>
+  23bab0: aa1303e0     	mov	x0, x19
+  23bab4: fd471920     	ldr	d0, [x9, #0xe30]
+  23bab8: 2a1f03e1     	mov	w1, wzr
+  23babc: f9405108     	ldr	x8, [x8, #0xa0]  ; -> SW::SwDevice::rpsToStride(SW::AXISID, double)
+  23bac0: d63f0100     	blr	x8  ;;; CALL SW::SwDevice::rpsToStride(SW::AXISID, double)
+  23bac4: f9400268     	ldr	x8, [x19]  ; vptr of SW::SwDevice
+  23bac8: 2a0003f4     	mov	w20, w0
+  23bacc: aa1303e0     	mov	x0, x19
+  23bad0: 2a1f03e1     	mov	w1, wzr
+  23bad4: 2a1403e2     	mov	w2, w20
+  23bad8: f9405508     	ldr	x8, [x8, #0xa8]  ; -> SW::SwDevice::strideToRps(SW::AXISID, unsigned int)
+  23badc: d63f0100     	blr	x8  ;;; CALL SW::SwDevice::strideToRps(SW::AXISID, unsigned int)
+  23bae0: f9400268     	ldr	x8, [x19]  ; vptr of SW::SwDevice
+  23bae4: 11000682     	add	w2, w20, #0x1
+  23bae8: aa1303e0     	mov	x0, x19
+  23baec: 2a1f03e1     	mov	w1, wzr
+  23baf0: 1e604008     	fmov	d8, d0
+  23baf4: f9405508     	ldr	x8, [x8, #0xa8]  ; -> SW::SwDevice::strideToRps(SW::AXISID, unsigned int)
+  23baf8: d63f0100     	blr	x8  ;;; CALL SW::SwDevice::strideToRps(SW::AXISID, unsigned int)
+  23bafc: 1e681800     	fdiv	d0, d0, d8
+  23bb00: 1e7e1001     	fmov	d1, #-1.00000000
+  23bb04: 1e612800     	fadd	d0, d0, d1
+  23bb08: 1e60c000     	fabs	d0, d0
+  23bb0c: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  23bb10: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+  23bb14: fc4307e8     	ldr	d8, [sp], #0x30
+  23bb18: d65f03c0     	ret
+  23bb1c: 52800200     	mov	w0, #0x10               // =16
+  23bb20: 940216a4     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23bb24: aa0003f3     	mov	x19, x0
+  23bb28: b0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23bb2c: 910f4421     	add	x1, x1, #0x3d1
+  23bb30: 94021d3c     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23bb34: d00004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23bb38: d00004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23bb3c: aa1303e0     	mov	x0, x19
+  23bb40: f9409c21     	ldr	x1, [x1, #0x138]
+  23bb44: f940a042     	ldr	x2, [x2, #0x140]
+  23bb48: 940216a2     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23bb4c: aa0003f4     	mov	x20, x0
+  23bb50: aa1303e0     	mov	x0, x19
+  23bb54: 9402198b     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23bb58: aa1403e0     	mov	x0, x20
+  23bb5c: 9402064a     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000023bf70 <SW::SwDevice::speedFineAdjustmentPrecision_debugString()>:
+  23bf70: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  23bf74: f9000bf5     	str	x21, [sp, #0x10]
+  23bf78: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  23bf7c: 910003fd     	mov	x29, sp
+  23bf80: aa0803f3     	mov	x19, x8
+  23bf84: a9007d1f     	stp	xzr, xzr, [x8]
+  23bf88: f9400008     	ldr	x8, [x0]  ; vptr of SW::SwDevice
+  23bf8c: f9000a7f     	str	xzr, [x19, #0x10]
+  23bf90: aa0003f4     	mov	x20, x0
+  23bf94: f9402d08     	ldr	x8, [x8, #0x58]  ; -> SW::SwDevice::supportsCmdX()
+  23bf98: d63f0100     	blr	x8  ;;; CALL SW::SwDevice::supportsCmdX()
+  23bf9c: 360001e0     	tbz	w0, #0x0, 0x23bfd8 <SW::SwDevice::speedFineAdjustmentPrecision_debugString()+0x68>
+  23bfa0: 39417288     	ldrb	w8, [x20, #0x5c]
+  23bfa4: 37000208     	tbnz	w8, #0x0, 0x23bfe4 <SW::SwDevice::speedFineAdjustmentPrecision_debugString()+0x74>
+  23bfa8: 52800200     	mov	w0, #0x10               // =16
+  23bfac: 94021581     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23bfb0: aa0003f5     	mov	x21, x0
+  23bfb4: b0fff481     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23bfb8: 910f4421     	add	x1, x1, #0x3d1
+  23bfbc: 94021c19     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23bfc0: d00004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23bfc4: d00004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23bfc8: aa1503e0     	mov	x0, x21
+  23bfcc: f9409c21     	ldr	x1, [x1, #0x138]
+  23bfd0: f940a042     	ldr	x2, [x2, #0x140]
+  23bfd4: 9402157f     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23bfd8: aa1403e0     	mov	x0, x20
+  23bfdc: aa1303e1     	mov	x1, x19
+  23bfe0: 94022220     	bl	0x2c4860 <_ZN2SW8SwDevice35speedFineAdjustmentPrecision_legacyEPNSt6__ndk112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEE@plt>  ;;; CALL SW::SwDevice::speedFineAdjustmentPrecision_legacy(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>*)
+  23bfe4: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  23bfe8: f9400bf5     	ldr	x21, [sp, #0x10]
+  23bfec: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  23bff0: d65f03c0     	ret
+  23bff4: aa0003f4     	mov	x20, x0
+  23bff8: aa1503e0     	mov	x0, x21
+  23bffc: 94021861     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23c000: aa1403e0     	mov	x0, x20
+  23c004: 94020520     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23c008: 39400268     	ldrb	w8, [x19]
+  23c00c: aa0003f4     	mov	x20, x0
+  23c010: 36000068     	tbz	w8, #0x0, 0x23c01c <SW::SwDevice::speedFineAdjustmentPrecision_debugString()+0xac>
+  23c014: f9400a60     	ldr	x0, [x19, #0x10]
+  23c018: 940214de     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23c01c: aa1403e0     	mov	x0, x20
+  23c020: 94020519     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000023c024 <SW::SwDevice::setSerialBaudRate(SW::AXISID, unsigned int)>:
+  23c024: d101c3ff     	sub	sp, sp, #0x70
+  23c028: a9057bfd     	stp	x29, x30, [sp, #0x50]
+  23c02c: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  23c030: 910143fd     	add	x29, sp, #0x50
+  23c034: 5290a3e8     	mov	w8, #0x851f             // =34079
+  23c038: d53bd054     	mrs	x20, TPIDR_EL0
+  23c03c: 72aa3d68     	movk	w8, #0x51eb, lsl #16
+  23c040: f9401689     	ldr	x9, [x20, #0x28]
+  23c044: 9ba87c48     	umull	x8, w2, w8
+  23c048: f81f83a9     	stur	x9, [x29, #-0x8]
+  23c04c: 528001a9     	mov	w9, #0xd                // =13
+  23c050: f9403813     	ldr	x19, [x0, #0x70]
+  23c054: 2a0103e0     	mov	w0, w1
+  23c058: d360fd08     	lsr	x8, x8, #32
+  23c05c: 53057d08     	lsr	w8, w8, #5
+  23c060: 33185d09     	bfi	w9, w8, #8, #24
+  23c064: 910023e8     	add	x8, sp, #0x8
+  23c068: 2a0903e1     	mov	w1, w9
+  23c06c: 94021d55     	bl	0x2c35c0 <_ZN2SW5SwCmd15extendedSettingENS_6AXISIDEi@plt>  ;;; CALL SW::SwCmd::extendedSetting(SW::AXISID, int)
+  23c070: f9400268     	ldr	x8, [x19]
+  23c074: f9400909     	ldr	x9, [x8, #0x10]
+  23c078: 9100a3e8     	add	x8, sp, #0x28
+  23c07c: 910023e1     	add	x1, sp, #0x8
+  23c080: aa1303e0     	mov	x0, x19
+  23c084: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  23c088: f9401be0     	ldr	x0, [sp, #0x30]
+  23c08c: b9402bf3     	ldr	w19, [sp, #0x28]
+  23c090: b4000060     	cbz	x0, 0x23c09c <SW::SwDevice::setSerialBaudRate(SW::AXISID, unsigned int)+0x78>
+  23c094: f9001fe0     	str	x0, [sp, #0x38]
+  23c098: 940214be     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23c09c: f9400be0     	ldr	x0, [sp, #0x10]
+  23c0a0: b4000060     	cbz	x0, 0x23c0ac <SW::SwDevice::setSerialBaudRate(SW::AXISID, unsigned int)+0x88>
+  23c0a4: f9000fe0     	str	x0, [sp, #0x18]
+  23c0a8: 940214ba     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23c0ac: f9401688     	ldr	x8, [x20, #0x28]
+  23c0b0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23c0b4: eb09011f     	cmp	x8, x9
+  23c0b8: 54000241     	b.ne	0x23c100 <SW::SwDevice::setSerialBaudRate(SW::AXISID, unsigned int)+0xdc>
+  23c0bc: 2a1303e0     	mov	w0, w19
+  23c0c0: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  23c0c4: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+  23c0c8: 9101c3ff     	add	sp, sp, #0x70
+  23c0cc: d65f03c0     	ret
+  23c0d0: f9400be8     	ldr	x8, [sp, #0x10]
+  23c0d4: aa0003f3     	mov	x19, x0
+  23c0d8: b4000088     	cbz	x8, 0x23c0e8 <SW::SwDevice::setSerialBaudRate(SW::AXISID, unsigned int)+0xc4>
+  23c0dc: aa0803e0     	mov	x0, x8
+  23c0e0: f9000fe8     	str	x8, [sp, #0x18]
+  23c0e4: 940214ab     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23c0e8: f9401688     	ldr	x8, [x20, #0x28]
+  23c0ec: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23c0f0: eb09011f     	cmp	x8, x9
+  23c0f4: 54000061     	b.ne	0x23c100 <SW::SwDevice::setSerialBaudRate(SW::AXISID, unsigned int)+0xdc>
+  23c0f8: aa1303e0     	mov	x0, x19
+  23c0fc: 940204e2     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23c100: 9402142c     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+

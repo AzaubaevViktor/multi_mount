@@ -1,0 +1,1826 @@
+00000000001dab14 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)>:
+  1dab14: d10103ff     	sub	sp, sp, #0x40
+  1dab18: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  1dab1c: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  1dab20: 910083fd     	add	x29, sp, #0x20
+  1dab24: d53bd053     	mrs	x19, TPIDR_EL0
+  1dab28: f9401668     	ldr	x8, [x19, #0x28]
+  1dab2c: 71001c3f     	cmp	w1, #0x7
+  1dab30: f81f83a8     	stur	x8, [x29, #-0x8]
+  1dab34: 540001c0     	b.eq	0x1dab6c <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x58>
+  1dab38: 35000fc1     	cbnz	w1, 0x1dad30 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x21c>
+  1dab3c: 7100405f     	cmp	w2, #0x10
+  1dab40: 54000f88     	b.hi	0x1dad30 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x21c>
+  1dab44: 2a0203e8     	mov	w8, w2
+  1dab48: d503201f     	nop
+  1dab4c: 709844c9     	adr	x9, 0x10b3e7 <qt_resource_data+0xf0>
+  1dab50: 1000008a     	adr	x10, 0x1dab60 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x4c>
+  1dab54: 3868692b     	ldrb	w11, [x9, x8]
+  1dab58: 8b0b094a     	add	x10, x10, x11, lsl #2
+  1dab5c: d61f0140     	br	x10
+  1dab60: f9400008     	ldr	x8, [x0]  ; vptr of SW::SAM
+  1dab64: f9403909     	ldr	x9, [x8, #0x70]  ; -> SW::SAM::readStatus()
+  1dab68: 14000046     	b	0x1dac80 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x16c>
+  1dab6c: 71000c5f     	cmp	w2, #0x3
+  1dab70: 540000c1     	b.ne	0x1dab88 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x74>
+  1dab74: a9402468     	ldp	x8, x9, [x3]
+  1dab78: b9400129     	ldr	w9, [x9]
+  1dab7c: 340000c9     	cbz	w9, 0x1dab94 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x80>
+  1dab80: f900011f     	str	xzr, [x8]
+  1dab84: 1400006b     	b	0x1dad30 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x21c>
+  1dab88: f9400068     	ldr	x8, [x3]
+  1dab8c: f900011f     	str	xzr, [x8]
+  1dab90: 14000068     	b	0x1dad30 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x21c>
+  1dab94: f0000829     	adrp	x9, 0x2e1000 <vsnprintf+0x2e1000>
+  1dab98: 91354129     	add	x9, x9, #0xd50
+  1dab9c: f9000109     	str	x9, [x8]
+  1daba0: 14000064     	b	0x1dad30 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x21c>
+  1daba4: f9400008     	ldr	x8, [x0]  ; vptr of SW::SAM
+  1daba8: f9409d01     	ldr	x1, [x8, #0x138]  ; -> SW::SAM::tareLastAxis1()
+  1dabac: f9401668     	ldr	x8, [x19, #0x28]
+  1dabb0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1dabb4: eb09011f     	cmp	x8, x9
+  1dabb8: 54000cc1     	b.ne	0x1dad50 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x23c>
+  1dabbc: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  1dabc0: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1dabc4: 910103ff     	add	sp, sp, #0x40
+  1dabc8: d61f0020     	br	x1
+  1dabcc: f9400468     	ldr	x8, [x3, #0x8]
+  1dabd0: f9400009     	ldr	x9, [x0]  ; vptr of SW::SAM
+  1dabd4: b9400101     	ldr	w1, [x8]
+  1dabd8: f9407929     	ldr	x9, [x9, #0xf0]  ; -> SW::SAM::writeAutoShutdownSec(unsigned int)
+  1dabdc: 1400004c     	b	0x1dad0c <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x1f8>
+  1dabe0: f9400008     	ldr	x8, [x0]  ; vptr of SW::SAM
+  1dabe4: f9406d09     	ldr	x9, [x8, #0xd8]  ; -> SW::SAM::readPowerOnAutoPreviousTask()
+  1dabe8: 14000036     	b	0x1dacc0 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x1ac>
+  1dabec: f9400008     	ldr	x8, [x0]  ; vptr of SW::SAM
+  1dabf0: f9405109     	ldr	x9, [x8, #0xa0]  ; -> SW::SAM::readWifiSettings()
+  1dabf4: 14000033     	b	0x1dacc0 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x1ac>
+  1dabf8: f9400468     	ldr	x8, [x3, #0x8]
+  1dabfc: f9400009     	ldr	x9, [x0]  ; vptr of SW::SAM
+  1dac00: 39400101     	ldrb	w1, [x8]
+  1dac04: f9407129     	ldr	x9, [x9, #0xe0]  ; -> SW::SAM::writePowerOnAutoPreviousTask(bool)
+  1dac08: 14000041     	b	0x1dad0c <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x1f8>
+  1dac0c: f9400008     	ldr	x8, [x0]  ; vptr of SW::SAM
+  1dac10: f9406509     	ldr	x9, [x8, #0xc8]  ; -> SW::SAM::readPolarSightLightTimeoutSec()
+  1dac14: 1400002b     	b	0x1dacc0 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x1ac>
+  1dac18: f9400008     	ldr	x8, [x0]  ; vptr of SW::SAM
+  1dac1c: f9404509     	ldr	x9, [x8, #0x88]  ; -> SW::SAM::programManualMode()
+  1dac20: 14000018     	b	0x1dac80 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x16c>
+  1dac24: f9400468     	ldr	x8, [x3, #0x8]
+  1dac28: f9400009     	ldr	x9, [x0]  ; vptr of SW::SAM
+  1dac2c: fd400100     	ldr	d0, [x8]
+  1dac30: f9408d21     	ldr	x1, [x9, #0x118]  ; -> SW::SAM::slewAxisAsync(double)
+  1dac34: f9401668     	ldr	x8, [x19, #0x28]
+  1dac38: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1dac3c: eb09011f     	cmp	x8, x9
+  1dac40: 54000881     	b.ne	0x1dad50 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x23c>
+  1dac44: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  1dac48: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1dac4c: 910103ff     	add	sp, sp, #0x40
+  1dac50: d61f0020     	br	x1
+  1dac54: f9400008     	ldr	x8, [x0]  ; vptr of SW::SAM
+  1dac58: f9400461     	ldr	x1, [x3, #0x8]
+  1dac5c: f9404909     	ldr	x9, [x8, #0x90]  ; -> SW::SAM::programAutoMode(SW::SAMParamSet const&)
+  1dac60: 1400000f     	b	0x1dac9c <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x188>
+  1dac64: f9400468     	ldr	x8, [x3, #0x8]
+  1dac68: f9400009     	ldr	x9, [x0]  ; vptr of SW::SAM
+  1dac6c: b9400101     	ldr	w1, [x8]
+  1dac70: f9405d29     	ldr	x9, [x9, #0xb8]  ; -> SW::SAM::writeWifiTimeoutSec(unsigned int)
+  1dac74: 14000026     	b	0x1dad0c <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x1f8>
+  1dac78: f9400008     	ldr	x8, [x0]  ; vptr of SW::SAM
+  1dac7c: f9404109     	ldr	x9, [x8, #0x80]  ; -> SW::SAM::readPowerStatus()
+  1dac80: 910023e8     	add	x8, sp, #0x8
+  1dac84: aa0303f4     	mov	x20, x3
+  1dac88: d63f0120     	blr	x9  ;;; CALL SW::SAM::readPowerStatus()
+  1dac8c: 14000023     	b	0x1dad18 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x204>
+  1dac90: f9400008     	ldr	x8, [x0]
+  1dac94: f9400461     	ldr	x1, [x3, #0x8]
+  1dac98: f9405509     	ldr	x9, [x8, #0xa8]
+  1dac9c: 910023e8     	add	x8, sp, #0x8
+  1daca0: aa0303f4     	mov	x20, x3
+  1daca4: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  1daca8: 1400001c     	b	0x1dad18 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x204>
+  1dacac: f9400008     	ldr	x8, [x0]
+  1dacb0: f9407509     	ldr	x9, [x8, #0xe8]
+  1dacb4: 14000003     	b	0x1dacc0 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x1ac>
+  1dacb8: f9400008     	ldr	x8, [x0]
+  1dacbc: f9405909     	ldr	x9, [x8, #0xb0]
+  1dacc0: 910023e8     	add	x8, sp, #0x8
+  1dacc4: aa0303f4     	mov	x20, x3
+  1dacc8: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  1daccc: f9400280     	ldr	x0, [x20]
+  1dacd0: b4000060     	cbz	x0, 0x1dacdc <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x1c8>
+  1dacd4: 910023e1     	add	x1, sp, #0x8
+  1dacd8: 94039ef2     	bl	0x2c28a0 <_ZN16QFutureInterfaceI4QMapI7QString8QVariantEEaSEOS4_@plt>  ;;; CALL QFutureInterface<QMap<QString, QVariant>>::operator=(QFutureInterface<QMap<QString, QVariant>>&&)
+  1dacdc: 910023e0     	add	x0, sp, #0x8
+  1dace0: 94039ef4     	bl	0x2c28b0 <_ZN7QFutureI4QMapI7QString8QVariantEED2Ev@plt>  ;;; CALL QFuture<QMap<QString, QVariant>>::~QFuture()
+  1dace4: 14000013     	b	0x1dad30 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x21c>
+  1dace8: f9400468     	ldr	x8, [x3, #0x8]
+  1dacec: f9400009     	ldr	x9, [x0]
+  1dacf0: b9400101     	ldr	w1, [x8]
+  1dacf4: f9406929     	ldr	x9, [x9, #0xd0]
+  1dacf8: 14000005     	b	0x1dad0c <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x1f8>
+  1dacfc: f9400468     	ldr	x8, [x3, #0x8]
+  1dad00: f9400009     	ldr	x9, [x0]
+  1dad04: 39400101     	ldrb	w1, [x8]
+  1dad08: f9406129     	ldr	x9, [x9, #0xc0]
+  1dad0c: 910023e8     	add	x8, sp, #0x8
+  1dad10: aa0303f4     	mov	x20, x3
+  1dad14: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  1dad18: f9400280     	ldr	x0, [x20]
+  1dad1c: b4000060     	cbz	x0, 0x1dad28 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x214>
+  1dad20: 910023e1     	add	x1, sp, #0x8
+  1dad24: 94039edb     	bl	0x2c2890 <_ZN16QFutureInterfaceIN2SW6CmdRetEEaSEOS2_@plt>  ;;; CALL QFutureInterface<SW::CmdRet>::operator=(QFutureInterface<SW::CmdRet>&&)
+  1dad28: 910023e0     	add	x0, sp, #0x8
+  1dad2c: 940399d9     	bl	0x2c1490 <_ZN7QFutureIN2SW6CmdRetEED2Ev@plt>  ;;; CALL QFuture<SW::CmdRet>::~QFuture()
+  1dad30: f9401668     	ldr	x8, [x19, #0x28]
+  1dad34: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1dad38: eb09011f     	cmp	x8, x9
+  1dad3c: 540000a1     	b.ne	0x1dad50 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x23c>
+  1dad40: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  1dad44: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1dad48: 910103ff     	add	sp, sp, #0x40
+  1dad4c: d65f03c0     	ret
+  1dad50: 94039918     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001dad54 <SW::SAM::metaObject() const>:
+  1dad54: f9400400     	ldr	x0, [x0, #0x8]
+  1dad58: f9401c08     	ldr	x8, [x0, #0x38]
+  1dad5c: b4000048     	cbz	x8, 0x1dad64 <SW::SAM::metaObject() const+0x10>
+  1dad60: 14039ea0     	b	0x2c27e0 <_ZNK11QObjectData17dynamicMetaObjectEv@plt>
+  1dad64: d00007e0     	adrp	x0, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1dad68: f9474800     	ldr	x0, [x0, #0xe90]
+  1dad6c: d65f03c0     	ret
+
+00000000001dad70 <SW::SAM::qt_metacast(char const*)>:
+  1dad70: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  1dad74: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  1dad78: 910003fd     	mov	x29, sp
+  1dad7c: b40002c1     	cbz	x1, 0x1dadd4 <SW::SAM::qt_metacast(char const*)+0x64>
+  1dad80: aa0103f3     	mov	x19, x1
+  1dad84: aa0003f4     	mov	x20, x0
+  1dad88: f0fff981     	adrp	x1, 0x10d000 <qt_meta_data_CLASSSWSCOPEITaskProfile_ATLENDCLASS+0x78>
+  1dad8c: 91324021     	add	x1, x1, #0xc90
+  1dad90: aa1303e0     	mov	x0, x19
+  1dad94: 94039e97     	bl	0x2c27f0 <strcmp@plt>  ;;; CALL strcmp
+  1dad98: 34000160     	cbz	w0, 0x1dadc4 <SW::SAM::qt_metacast(char const*)+0x54>
+  1dad9c: b0fff981     	adrp	x1, 0x10b000 <qt_resource_data+0x27e5>
+  1dada0: 9122d021     	add	x1, x1, #0x8b4
+  1dada4: aa1303e0     	mov	x0, x19
+  1dada8: 94039e92     	bl	0x2c27f0 <strcmp@plt>  ;;; CALL strcmp
+  1dadac: 340000c0     	cbz	w0, 0x1dadc4 <SW::SAM::qt_metacast(char const*)+0x54>
+  1dadb0: aa1403e0     	mov	x0, x20
+  1dadb4: aa1303e1     	mov	x1, x19
+  1dadb8: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  1dadbc: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  1dadc0: 14039dcc     	b	0x2c24f0 <_ZN7QObject11qt_metacastEPKc@plt>
+  1dadc4: aa1403e0     	mov	x0, x20
+  1dadc8: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  1dadcc: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  1dadd0: d65f03c0     	ret
+  1dadd4: aa1f03e0     	mov	x0, xzr
+  1dadd8: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  1daddc: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  1dade0: d65f03c0     	ret
+
+00000000001dade4 <SW::SAM::qt_metacall(QMetaObject::Call, int, void**)>:
+  1dade4: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  1dade8: a90157f6     	stp	x22, x21, [sp, #0x10]
+  1dadec: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  1dadf0: 910003fd     	mov	x29, sp
+  1dadf4: aa0303f4     	mov	x20, x3
+  1dadf8: 2a0103f6     	mov	w22, w1
+  1dadfc: aa0003f5     	mov	x21, x0
+  1dae00: 94039dc0     	bl	0x2c2500 <_ZN7QObject11qt_metacallEN11QMetaObject4CallEiPPv@plt>  ;;; CALL QObject::qt_metacall(QMetaObject::Call, int, void**)
+  1dae04: 2a0003f3     	mov	w19, w0
+  1dae08: 37f80580     	tbnz	w0, #0x1f, 0x1daeb8 <SW::SAM::qt_metacall(QMetaObject::Call, int, void**)+0xd4>
+  1dae0c: 710022df     	cmp	w22, #0x8
+  1dae10: 54000688     	b.hi	0x1daee0 <SW::SAM::qt_metacall(QMetaObject::Call, int, void**)+0xfc>
+  1dae14: 52800028     	mov	w8, #0x1                // =1
+  1dae18: 528029c9     	mov	w9, #0x14e              // =334
+  1dae1c: 1ad62108     	lsl	w8, w8, w22
+  1dae20: 6a09011f     	tst	w8, w9
+  1dae24: 54000140     	b.eq	0x1dae4c <SW::SAM::qt_metacall(QMetaObject::Call, int, void**)+0x68>
+  1dae28: aa1503e0     	mov	x0, x21
+  1dae2c: 2a1603e1     	mov	w1, w22
+  1dae30: 2a1303e2     	mov	w2, w19
+  1dae34: aa1403e3     	mov	x3, x20
+  1dae38: 97fffa86     	bl	0x1d9850 <SW::ISAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)>  ;;; CALL SW::ISAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)
+  1dae3c: 128000e8     	mov	w8, #-0x8               // =-8
+  1dae40: 2b080273     	adds	w19, w19, w8
+  1dae44: 540004e5     	b.pl	0x1daee0 <SW::SAM::qt_metacall(QMetaObject::Call, int, void**)+0xfc>
+  1dae48: 1400001c     	b	0x1daeb8 <SW::SAM::qt_metacall(QMetaObject::Call, int, void**)+0xd4>
+  1dae4c: 34000236     	cbz	w22, 0x1dae90 <SW::SAM::qt_metacall(QMetaObject::Call, int, void**)+0xac>
+  1dae50: 71001edf     	cmp	w22, #0x7
+  1dae54: 54000461     	b.ne	0x1daee0 <SW::SAM::qt_metacall(QMetaObject::Call, int, void**)+0xfc>
+  1dae58: 71004e7f     	cmp	w19, #0x13
+  1dae5c: 54000288     	b.hi	0x1daeac <SW::SAM::qt_metacall(QMetaObject::Call, int, void**)+0xc8>
+  1dae60: 7100167f     	cmp	w19, #0x5
+  1dae64: 54000341     	b.ne	0x1daecc <SW::SAM::qt_metacall(QMetaObject::Call, int, void**)+0xe8>
+  1dae68: a9402688     	ldp	x8, x9, [x20]
+  1dae6c: b9400129     	ldr	w9, [x9]
+  1dae70: 35000309     	cbnz	w9, 0x1daed0 <SW::SAM::qt_metacall(QMetaObject::Call, int, void**)+0xec>
+  1dae74: f0000829     	adrp	x9, 0x2e1000 <vsnprintf+0x2e1000>
+  1dae78: 91354129     	add	x9, x9, #0xd50
+  1dae7c: f9000109     	str	x9, [x8]
+  1dae80: 12800268     	mov	w8, #-0x14              // =-20
+  1dae84: 2b080273     	adds	w19, w19, w8
+  1dae88: 540002c5     	b.pl	0x1daee0 <SW::SAM::qt_metacall(QMetaObject::Call, int, void**)+0xfc>
+  1dae8c: 1400000b     	b	0x1daeb8 <SW::SAM::qt_metacall(QMetaObject::Call, int, void**)+0xd4>
+  1dae90: 71004e7f     	cmp	w19, #0x13
+  1dae94: 540000c8     	b.hi	0x1daeac <SW::SAM::qt_metacall(QMetaObject::Call, int, void**)+0xc8>
+  1dae98: aa1503e0     	mov	x0, x21
+  1dae9c: 2a1f03e1     	mov	w1, wzr
+  1daea0: 2a1303e2     	mov	w2, w19
+  1daea4: aa1403e3     	mov	x3, x20
+  1daea8: 97fffa6a     	bl	0x1d9850 <SW::ISAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)>  ;;; CALL SW::ISAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)
+  1daeac: 12800268     	mov	w8, #-0x14              // =-20
+  1daeb0: 2b080273     	adds	w19, w19, w8
+  1daeb4: 54000165     	b.pl	0x1daee0 <SW::SAM::qt_metacall(QMetaObject::Call, int, void**)+0xfc>
+  1daeb8: 2a1303e0     	mov	w0, w19
+  1daebc: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  1daec0: a94157f6     	ldp	x22, x21, [sp, #0x10]
+  1daec4: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  1daec8: d65f03c0     	ret
+  1daecc: f9400288     	ldr	x8, [x20]
+  1daed0: f900011f     	str	xzr, [x8]
+  1daed4: 12800268     	mov	w8, #-0x14              // =-20
+  1daed8: 2b080273     	adds	w19, w19, w8
+  1daedc: 54fffee4     	b.mi	0x1daeb8 <SW::SAM::qt_metacall(QMetaObject::Call, int, void**)+0xd4>
+  1daee0: 71001edf     	cmp	w22, #0x7
+  1daee4: 540001e0     	b.eq	0x1daf20 <SW::SAM::qt_metacall(QMetaObject::Call, int, void**)+0x13c>
+  1daee8: 35fffe96     	cbnz	w22, 0x1daeb8 <SW::SAM::qt_metacall(QMetaObject::Call, int, void**)+0xd4>
+  1daeec: 7100427f     	cmp	w19, #0x10
+  1daef0: 540000c8     	b.hi	0x1daf08 <SW::SAM::qt_metacall(QMetaObject::Call, int, void**)+0x124>
+  1daef4: aa1503e0     	mov	x0, x21
+  1daef8: 2a1f03e1     	mov	w1, wzr
+  1daefc: 2a1303e2     	mov	w2, w19
+  1daf00: aa1403e3     	mov	x3, x20
+  1daf04: 97ffff04     	bl	0x1dab14 <SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)>  ;;; CALL SW::SAM::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)
+  1daf08: 51004673     	sub	w19, w19, #0x11
+  1daf0c: 2a1303e0     	mov	w0, w19
+  1daf10: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  1daf14: a94157f6     	ldp	x22, x21, [sp, #0x10]
+  1daf18: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  1daf1c: d65f03c0     	ret
+  1daf20: 7100427f     	cmp	w19, #0x10
+  1daf24: 54ffff28     	b.hi	0x1daf08 <SW::SAM::qt_metacall(QMetaObject::Call, int, void**)+0x124>
+  1daf28: 71000e7f     	cmp	w19, #0x3
+  1daf2c: 54000161     	b.ne	0x1daf58 <SW::SAM::qt_metacall(QMetaObject::Call, int, void**)+0x174>
+  1daf30: a9402688     	ldp	x8, x9, [x20]
+  1daf34: b9400129     	ldr	w9, [x9]
+  1daf38: 34000209     	cbz	w9, 0x1daf78 <SW::SAM::qt_metacall(QMetaObject::Call, int, void**)+0x194>
+  1daf3c: f900011f     	str	xzr, [x8]
+  1daf40: 51004673     	sub	w19, w19, #0x11
+  1daf44: 2a1303e0     	mov	w0, w19
+  1daf48: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  1daf4c: a94157f6     	ldp	x22, x21, [sp, #0x10]
+  1daf50: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  1daf54: d65f03c0     	ret
+  1daf58: f9400288     	ldr	x8, [x20]
+  1daf5c: f900011f     	str	xzr, [x8]
+  1daf60: 51004673     	sub	w19, w19, #0x11
+  1daf64: 2a1303e0     	mov	w0, w19
+  1daf68: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  1daf6c: a94157f6     	ldp	x22, x21, [sp, #0x10]
+  1daf70: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  1daf74: d65f03c0     	ret
+  1daf78: f0000829     	adrp	x9, 0x2e1000 <vsnprintf+0x2e1000>
+  1daf7c: 91354129     	add	x9, x9, #0xd50
+  1daf80: f9000109     	str	x9, [x8]
+  1daf84: 51004673     	sub	w19, w19, #0x11
+  1daf88: 2a1303e0     	mov	w0, w19
+  1daf8c: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  1daf90: a94157f6     	ldp	x22, x21, [sp, #0x10]
+  1daf94: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  1daf98: d65f03c0     	ret
+
+00000000001f9680 <SW::SAM::connect()>:
+  1f9680: f9400800     	ldr	x0, [x0, #0x10]
+  1f9684: f9400008     	ldr	x8, [x0]
+  1f9688: f9403101     	ldr	x1, [x8, #0x60]
+  1f968c: d61f0020     	br	x1
+
+00000000001f9690 <SW::SAM::disconnect()>:
+  1f9690: f9400800     	ldr	x0, [x0, #0x10]
+  1f9694: f9400008     	ldr	x8, [x0]
+  1f9698: f9403501     	ldr	x1, [x8, #0x68]
+  1f969c: d61f0020     	br	x1
+
+00000000001f96a0 <SW::SAM::readStatus()>:
+  1f96a0: d10143ff     	sub	sp, sp, #0x50
+  1f96a4: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  1f96a8: a90357f6     	stp	x22, x21, [sp, #0x30]
+  1f96ac: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  1f96b0: 910083fd     	add	x29, sp, #0x20
+  1f96b4: d53bd056     	mrs	x22, TPIDR_EL0
+  1f96b8: aa0803f3     	mov	x19, x8
+  1f96bc: aa0003f5     	mov	x21, x0
+  1f96c0: f94016c8     	ldr	x8, [x22, #0x28]
+  1f96c4: f81f83a8     	stur	x8, [x29, #-0x8]
+  1f96c8: 940326aa     	bl	0x2c3170 <_ZN11QThreadPool14globalInstanceEv@plt>  ;;; CALL QThreadPool::globalInstance()
+  1f96cc: f90007e0     	str	x0, [sp, #0x8]
+  1f96d0: 52800500     	mov	w0, #0x28               // =40
+  1f96d4: b90013ff     	str	wzr, [sp, #0x10]
+  1f96d8: 94031e8a     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  1f96dc: 90000708     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  1f96e0: aa0003f4     	mov	x20, x0
+  1f96e4: 52800029     	mov	w9, #0x1                // =1
+  1f96e8: f940d108     	ldr	x8, [x8, #0x1a0]
+  1f96ec: 39002009     	strb	w9, [x0, #0x8]
+  1f96f0: 91004108     	add	x8, x8, #0x10
+  1f96f4: f8010408     	str	x8, [x0], #0x10
+  1f96f8: 2a1f03e1     	mov	w1, wzr
+  1f96fc: 94031f3d     	bl	0x2c13f0 <_ZN20QFutureInterfaceBaseC2ENS_5StateE@plt>  ;;; CALL QFutureInterfaceBase::QFutureInterfaceBase(QFutureInterfaceBase::State)
+  1f9700: f00006e8     	adrp	x8, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1f9704: 91004280     	add	x0, x20, #0x10
+  1f9708: f943ed08     	ldr	x8, [x8, #0x7d8]
+  1f970c: 91004108     	add	x8, x8, #0x10
+  1f9710: f9000a88     	str	x8, [x20, #0x10]
+  1f9714: 94031f3b     	bl	0x2c1400 <_ZNK20QFutureInterfaceBase4refTEv@plt>  ;;; CALL QFutureInterfaceBase::refT() const
+  1f9718: f00006a8     	adrp	x8, 0x2d0000 <vtable for SW::TaskProfileList+0x90>
+  1f971c: 91254108     	add	x8, x8, #0x950
+  1f9720: 910023e1     	add	x1, sp, #0x8
+  1f9724: f9000288     	str	x8, [x20]
+  1f9728: aa1303e8     	mov	x8, x19
+  1f972c: aa1403e0     	mov	x0, x20
+  1f9730: f9001295     	str	x21, [x20, #0x20]
+  1f9734: 94032693     	bl	0x2c3180 <_ZN12QtConcurrent19RunFunctionTaskBaseIN2SW6CmdRetEE5startERKNS_19TaskStartParametersE@plt>  ;;; CALL QtConcurrent::RunFunctionTaskBase<SW::CmdRet>::start(QtConcurrent::TaskStartParameters const&)
+  1f9738: f94016c8     	ldr	x8, [x22, #0x28]
+  1f973c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f9740: eb09011f     	cmp	x8, x9
+  1f9744: 54000221     	b.ne	0x1f9788 <SW::SAM::readStatus()+0xe8>
+  1f9748: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  1f974c: a94357f6     	ldp	x22, x21, [sp, #0x30]
+  1f9750: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1f9754: 910143ff     	add	sp, sp, #0x50
+  1f9758: d65f03c0     	ret
+  1f975c: aa0003f3     	mov	x19, x0
+  1f9760: aa1403e0     	mov	x0, x20
+  1f9764: 9403268b     	bl	0x2c3190 <_ZN9QRunnableD2Ev@plt>  ;;; CALL QRunnable::~QRunnable()
+  1f9768: f94016c8     	ldr	x8, [x22, #0x28]
+  1f976c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f9770: eb09011f     	cmp	x8, x9
+  1f9774: 540000a1     	b.ne	0x1f9788 <SW::SAM::readStatus()+0xe8>
+  1f9778: aa1403e0     	mov	x0, x20
+  1f977c: 94031f05     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1f9780: aa1303e0     	mov	x0, x19
+  1f9784: 94030f40     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1f9788: 94031e8a     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001f978c <SW::SAM::lastPowerStatus()>:
+  1f978c: d10143ff     	sub	sp, sp, #0x50
+  1f9790: a9037bfd     	stp	x29, x30, [sp, #0x30]
+  1f9794: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  1f9798: 9100c3fd     	add	x29, sp, #0x30
+  1f979c: d53bd054     	mrs	x20, TPIDR_EL0
+  1f97a0: aa0803f3     	mov	x19, x8
+  1f97a4: 910023e8     	add	x8, sp, #0x8
+  1f97a8: f9401689     	ldr	x9, [x20, #0x28]
+  1f97ac: f81f83a9     	stur	x9, [x29, #-0x8]
+  1f97b0: f9400800     	ldr	x0, [x0, #0x10]
+  1f97b4: f9400009     	ldr	x9, [x0]
+  1f97b8: f9404129     	ldr	x9, [x9, #0x80]
+  1f97bc: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  1f97c0: 394083e8     	ldrb	w8, [sp, #0x20]
+  1f97c4: 340001c8     	cbz	w8, 0x1f97fc <SW::SAM::lastPowerStatus()+0x70>
+  1f97c8: d503201f     	nop
+  1f97cc: 107459a1     	adr	x1, 0x2e2300 <QtPrivate::QMetaTypeInterfaceWrapper<SW::SAMPowerStatus>::metaType>
+  1f97d0: 910023e2     	add	x2, sp, #0x8
+  1f97d4: aa1303e0     	mov	x0, x19
+  1f97d8: 9403204e     	bl	0x2c1910 <_ZN8QVariantC1E9QMetaTypePKv@plt>  ;;; CALL QVariant::QVariant(QMetaType, void const*)
+  1f97dc: f9401688     	ldr	x8, [x20, #0x28]
+  1f97e0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f97e4: eb09011f     	cmp	x8, x9
+  1f97e8: 54000181     	b.ne	0x1f9818 <SW::SAM::lastPowerStatus()+0x8c>
+  1f97ec: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  1f97f0: a9437bfd     	ldp	x29, x30, [sp, #0x30]
+  1f97f4: 910143ff     	add	sp, sp, #0x50
+  1f97f8: d65f03c0     	ret
+  1f97fc: 52800048     	mov	w8, #0x2                // =2
+  1f9800: a9007e7f     	stp	xzr, xzr, [x19]
+  1f9804: a901227f     	stp	xzr, x8, [x19, #0x10]
+  1f9808: f9401688     	ldr	x8, [x20, #0x28]
+  1f980c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f9810: eb09011f     	cmp	x8, x9
+  1f9814: 54fffec0     	b.eq	0x1f97ec <SW::SAM::lastPowerStatus()+0x60>
+  1f9818: 94031e66     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+  1f981c: 97feff3c     	bl	0x1b950c <__clang_call_terminate>  ;;; CALL __clang_call_terminate
+
+00000000001f9820 <SW::SAM::readPowerStatus()>:
+  1f9820: d10143ff     	sub	sp, sp, #0x50
+  1f9824: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  1f9828: a90357f6     	stp	x22, x21, [sp, #0x30]
+  1f982c: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  1f9830: 910083fd     	add	x29, sp, #0x20
+  1f9834: d53bd056     	mrs	x22, TPIDR_EL0
+  1f9838: aa0803f3     	mov	x19, x8
+  1f983c: aa0003f5     	mov	x21, x0
+  1f9840: f94016c8     	ldr	x8, [x22, #0x28]
+  1f9844: f81f83a8     	stur	x8, [x29, #-0x8]
+  1f9848: 9403264a     	bl	0x2c3170 <_ZN11QThreadPool14globalInstanceEv@plt>  ;;; CALL QThreadPool::globalInstance()
+  1f984c: f90007e0     	str	x0, [sp, #0x8]
+  1f9850: 52800500     	mov	w0, #0x28               // =40
+  1f9854: b90013ff     	str	wzr, [sp, #0x10]
+  1f9858: 94031e2a     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  1f985c: 90000708     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  1f9860: aa0003f4     	mov	x20, x0
+  1f9864: 52800029     	mov	w9, #0x1                // =1
+  1f9868: f940d108     	ldr	x8, [x8, #0x1a0]
+  1f986c: 39002009     	strb	w9, [x0, #0x8]
+  1f9870: 91004108     	add	x8, x8, #0x10
+  1f9874: f8010408     	str	x8, [x0], #0x10
+  1f9878: 2a1f03e1     	mov	w1, wzr
+  1f987c: 94031edd     	bl	0x2c13f0 <_ZN20QFutureInterfaceBaseC2ENS_5StateE@plt>  ;;; CALL QFutureInterfaceBase::QFutureInterfaceBase(QFutureInterfaceBase::State)
+  1f9880: f00006e8     	adrp	x8, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1f9884: 91004280     	add	x0, x20, #0x10
+  1f9888: f943ed08     	ldr	x8, [x8, #0x7d8]
+  1f988c: 91004108     	add	x8, x8, #0x10
+  1f9890: f9000a88     	str	x8, [x20, #0x10]
+  1f9894: 94031edb     	bl	0x2c1400 <_ZNK20QFutureInterfaceBase4refTEv@plt>  ;;; CALL QFutureInterfaceBase::refT() const
+  1f9898: f00006a8     	adrp	x8, 0x2d0000 <vtable for SW::TaskProfileList+0x90>
+  1f989c: 91278108     	add	x8, x8, #0x9e0
+  1f98a0: 910023e1     	add	x1, sp, #0x8
+  1f98a4: f9000288     	str	x8, [x20]
+  1f98a8: aa1303e8     	mov	x8, x19
+  1f98ac: aa1403e0     	mov	x0, x20
+  1f98b0: f9001295     	str	x21, [x20, #0x20]
+  1f98b4: 94032633     	bl	0x2c3180 <_ZN12QtConcurrent19RunFunctionTaskBaseIN2SW6CmdRetEE5startERKNS_19TaskStartParametersE@plt>  ;;; CALL QtConcurrent::RunFunctionTaskBase<SW::CmdRet>::start(QtConcurrent::TaskStartParameters const&)
+  1f98b8: f94016c8     	ldr	x8, [x22, #0x28]
+  1f98bc: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f98c0: eb09011f     	cmp	x8, x9
+  1f98c4: 54000221     	b.ne	0x1f9908 <SW::SAM::readPowerStatus()+0xe8>
+  1f98c8: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  1f98cc: a94357f6     	ldp	x22, x21, [sp, #0x30]
+  1f98d0: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1f98d4: 910143ff     	add	sp, sp, #0x50
+  1f98d8: d65f03c0     	ret
+  1f98dc: aa0003f3     	mov	x19, x0
+  1f98e0: aa1403e0     	mov	x0, x20
+  1f98e4: 9403262b     	bl	0x2c3190 <_ZN9QRunnableD2Ev@plt>  ;;; CALL QRunnable::~QRunnable()
+  1f98e8: f94016c8     	ldr	x8, [x22, #0x28]
+  1f98ec: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f98f0: eb09011f     	cmp	x8, x9
+  1f98f4: 540000a1     	b.ne	0x1f9908 <SW::SAM::readPowerStatus()+0xe8>
+  1f98f8: aa1403e0     	mov	x0, x20
+  1f98fc: 94031ea5     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1f9900: aa1303e0     	mov	x0, x19
+  1f9904: 94030ee0     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1f9908: 94031e2a     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001f990c <SW::SAM::programManualMode()>:
+  1f990c: d10143ff     	sub	sp, sp, #0x50
+  1f9910: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  1f9914: a90357f6     	stp	x22, x21, [sp, #0x30]
+  1f9918: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  1f991c: 910083fd     	add	x29, sp, #0x20
+  1f9920: d53bd056     	mrs	x22, TPIDR_EL0
+  1f9924: aa0803f3     	mov	x19, x8
+  1f9928: aa0003f5     	mov	x21, x0
+  1f992c: f94016c8     	ldr	x8, [x22, #0x28]
+  1f9930: f81f83a8     	stur	x8, [x29, #-0x8]
+  1f9934: 9403260f     	bl	0x2c3170 <_ZN11QThreadPool14globalInstanceEv@plt>  ;;; CALL QThreadPool::globalInstance()
+  1f9938: f90007e0     	str	x0, [sp, #0x8]
+  1f993c: 52800500     	mov	w0, #0x28               // =40
+  1f9940: b90013ff     	str	wzr, [sp, #0x10]
+  1f9944: 94031def     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  1f9948: 90000708     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  1f994c: aa0003f4     	mov	x20, x0
+  1f9950: 52800029     	mov	w9, #0x1                // =1
+  1f9954: f940d108     	ldr	x8, [x8, #0x1a0]
+  1f9958: 39002009     	strb	w9, [x0, #0x8]
+  1f995c: 91004108     	add	x8, x8, #0x10
+  1f9960: f8010408     	str	x8, [x0], #0x10
+  1f9964: 2a1f03e1     	mov	w1, wzr
+  1f9968: 94031ea2     	bl	0x2c13f0 <_ZN20QFutureInterfaceBaseC2ENS_5StateE@plt>  ;;; CALL QFutureInterfaceBase::QFutureInterfaceBase(QFutureInterfaceBase::State)
+  1f996c: f00006e8     	adrp	x8, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1f9970: 91004280     	add	x0, x20, #0x10
+  1f9974: f943ed08     	ldr	x8, [x8, #0x7d8]
+  1f9978: 91004108     	add	x8, x8, #0x10
+  1f997c: f9000a88     	str	x8, [x20, #0x10]
+  1f9980: 94031ea0     	bl	0x2c1400 <_ZNK20QFutureInterfaceBase4refTEv@plt>  ;;; CALL QFutureInterfaceBase::refT() const
+  1f9984: f00006a8     	adrp	x8, 0x2d0000 <vtable for SW::TaskProfileList+0x90>
+  1f9988: 9128a108     	add	x8, x8, #0xa28
+  1f998c: 910023e1     	add	x1, sp, #0x8
+  1f9990: f9000288     	str	x8, [x20]
+  1f9994: aa1303e8     	mov	x8, x19
+  1f9998: aa1403e0     	mov	x0, x20
+  1f999c: f9001295     	str	x21, [x20, #0x20]
+  1f99a0: 940325f8     	bl	0x2c3180 <_ZN12QtConcurrent19RunFunctionTaskBaseIN2SW6CmdRetEE5startERKNS_19TaskStartParametersE@plt>  ;;; CALL QtConcurrent::RunFunctionTaskBase<SW::CmdRet>::start(QtConcurrent::TaskStartParameters const&)
+  1f99a4: f94016c8     	ldr	x8, [x22, #0x28]
+  1f99a8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f99ac: eb09011f     	cmp	x8, x9
+  1f99b0: 54000221     	b.ne	0x1f99f4 <SW::SAM::programManualMode()+0xe8>
+  1f99b4: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  1f99b8: a94357f6     	ldp	x22, x21, [sp, #0x30]
+  1f99bc: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1f99c0: 910143ff     	add	sp, sp, #0x50
+  1f99c4: d65f03c0     	ret
+  1f99c8: aa0003f3     	mov	x19, x0
+  1f99cc: aa1403e0     	mov	x0, x20
+  1f99d0: 940325f0     	bl	0x2c3190 <_ZN9QRunnableD2Ev@plt>  ;;; CALL QRunnable::~QRunnable()
+  1f99d4: f94016c8     	ldr	x8, [x22, #0x28]
+  1f99d8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f99dc: eb09011f     	cmp	x8, x9
+  1f99e0: 540000a1     	b.ne	0x1f99f4 <SW::SAM::programManualMode()+0xe8>
+  1f99e4: aa1403e0     	mov	x0, x20
+  1f99e8: 94031e6a     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1f99ec: aa1303e0     	mov	x0, x19
+  1f99f0: 94030ea5     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1f99f4: 94031def     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001f99f8 <SW::SAM::programAutoMode(SW::SAMParamSet const&)>:
+  1f99f8: d102c3ff     	sub	sp, sp, #0xb0
+  1f99fc: a9087bfd     	stp	x29, x30, [sp, #0x80]
+  1f9a00: a90957f6     	stp	x22, x21, [sp, #0x90]
+  1f9a04: a90a4ff4     	stp	x20, x19, [sp, #0xa0]
+  1f9a08: 910203fd     	add	x29, sp, #0x80
+  1f9a0c: d53bd056     	mrs	x22, TPIDR_EL0
+  1f9a10: aa0803f3     	mov	x19, x8
+  1f9a14: aa0003f4     	mov	x20, x0
+  1f9a18: f94016c8     	ldr	x8, [x22, #0x28]
+  1f9a1c: f81f83a8     	stur	x8, [x29, #-0x8]
+  1f9a20: ad410420     	ldp	q0, q1, [x1, #0x20]
+  1f9a24: ad0107e0     	stp	q0, q1, [sp, #0x20]
+  1f9a28: ad420820     	ldp	q0, q2, [x1, #0x40]
+  1f9a2c: ad020be0     	stp	q0, q2, [sp, #0x40]
+  1f9a30: ad400021     	ldp	q1, q0, [x1]
+  1f9a34: ad0003e1     	stp	q1, q0, [sp]
+  1f9a38: 940325ce     	bl	0x2c3170 <_ZN11QThreadPool14globalInstanceEv@plt>  ;;; CALL QThreadPool::globalInstance()
+  1f9a3c: f81e83a0     	stur	x0, [x29, #-0x18]
+  1f9a40: 52801100     	mov	w0, #0x88               // =136
+  1f9a44: b81f03bf     	stur	wzr, [x29, #-0x10]
+  1f9a48: 94031dae     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  1f9a4c: 90000708     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  1f9a50: aa0003f5     	mov	x21, x0
+  1f9a54: 52800029     	mov	w9, #0x1                // =1
+  1f9a58: f940d108     	ldr	x8, [x8, #0x1a0]
+  1f9a5c: 39002009     	strb	w9, [x0, #0x8]
+  1f9a60: 91004108     	add	x8, x8, #0x10
+  1f9a64: f8010408     	str	x8, [x0], #0x10
+  1f9a68: 2a1f03e1     	mov	w1, wzr
+  1f9a6c: 94031e61     	bl	0x2c13f0 <_ZN20QFutureInterfaceBaseC2ENS_5StateE@plt>  ;;; CALL QFutureInterfaceBase::QFutureInterfaceBase(QFutureInterfaceBase::State)
+  1f9a70: f00006e8     	adrp	x8, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1f9a74: 910042a0     	add	x0, x21, #0x10
+  1f9a78: f943ed08     	ldr	x8, [x8, #0x7d8]
+  1f9a7c: 91004108     	add	x8, x8, #0x10
+  1f9a80: f9000aa8     	str	x8, [x21, #0x10]
+  1f9a84: 94031e5f     	bl	0x2c1400 <_ZNK20QFutureInterfaceBase4refTEv@plt>  ;;; CALL QFutureInterfaceBase::refT() const
+  1f9a88: ad4107e0     	ldp	q0, q1, [sp, #0x20]
+  1f9a8c: f00006a8     	adrp	x8, 0x2d0000 <vtable for SW::TaskProfileList+0x90>
+  1f9a90: 9129c108     	add	x8, x8, #0xa70
+  1f9a94: d10063a1     	sub	x1, x29, #0x18
+  1f9a98: aa1503e0     	mov	x0, x21
+  1f9a9c: f90002a8     	str	x8, [x21]
+  1f9aa0: aa1303e8     	mov	x8, x19
+  1f9aa4: 3c8482a0     	stur	q0, [x21, #0x48]
+  1f9aa8: 3c8582a1     	stur	q1, [x21, #0x58]
+  1f9aac: ad4207e0     	ldp	q0, q1, [sp, #0x40]
+  1f9ab0: f90012b4     	str	x20, [x21, #0x20]
+  1f9ab4: 3c8682a0     	stur	q0, [x21, #0x68]
+  1f9ab8: 3c8782a1     	stur	q1, [x21, #0x78]
+  1f9abc: ad4007e0     	ldp	q0, q1, [sp]
+  1f9ac0: 3c8282a0     	stur	q0, [x21, #0x28]
+  1f9ac4: 3c8382a1     	stur	q1, [x21, #0x38]
+  1f9ac8: 940325ae     	bl	0x2c3180 <_ZN12QtConcurrent19RunFunctionTaskBaseIN2SW6CmdRetEE5startERKNS_19TaskStartParametersE@plt>  ;;; CALL QtConcurrent::RunFunctionTaskBase<SW::CmdRet>::start(QtConcurrent::TaskStartParameters const&)
+  1f9acc: f94016c8     	ldr	x8, [x22, #0x28]
+  1f9ad0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f9ad4: eb09011f     	cmp	x8, x9
+  1f9ad8: 54000221     	b.ne	0x1f9b1c <SW::SAM::programAutoMode(SW::SAMParamSet const&)+0x124>
+  1f9adc: a94a4ff4     	ldp	x20, x19, [sp, #0xa0]
+  1f9ae0: a94957f6     	ldp	x22, x21, [sp, #0x90]
+  1f9ae4: a9487bfd     	ldp	x29, x30, [sp, #0x80]
+  1f9ae8: 9102c3ff     	add	sp, sp, #0xb0
+  1f9aec: d65f03c0     	ret
+  1f9af0: aa0003f3     	mov	x19, x0
+  1f9af4: aa1503e0     	mov	x0, x21
+  1f9af8: 940325a6     	bl	0x2c3190 <_ZN9QRunnableD2Ev@plt>  ;;; CALL QRunnable::~QRunnable()
+  1f9afc: f94016c8     	ldr	x8, [x22, #0x28]
+  1f9b00: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f9b04: eb09011f     	cmp	x8, x9
+  1f9b08: 540000a1     	b.ne	0x1f9b1c <SW::SAM::programAutoMode(SW::SAMParamSet const&)+0x124>
+  1f9b0c: aa1503e0     	mov	x0, x21
+  1f9b10: 94031e20     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1f9b14: aa1303e0     	mov	x0, x19
+  1f9b18: 94030e5b     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1f9b1c: 94031da5     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001f9b20 <SW::SAM::deviceName()>:
+  1f9b20: d10143ff     	sub	sp, sp, #0x50
+  1f9b24: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  1f9b28: f9001bf5     	str	x21, [sp, #0x30]
+  1f9b2c: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  1f9b30: 910083fd     	add	x29, sp, #0x20
+  1f9b34: d53bd055     	mrs	x21, TPIDR_EL0
+  1f9b38: aa0803f3     	mov	x19, x8
+  1f9b3c: 910003e8     	mov	x8, sp
+  1f9b40: f94016a9     	ldr	x9, [x21, #0x28]
+  1f9b44: 910003f4     	mov	x20, sp
+  1f9b48: f81f83a9     	stur	x9, [x29, #-0x8]
+  1f9b4c: f9400800     	ldr	x0, [x0, #0x10]
+  1f9b50: f9400009     	ldr	x9, [x0]
+  1f9b54: f9405929     	ldr	x9, [x9, #0xb0]
+  1f9b58: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  1f9b5c: 394003e8     	ldrb	w8, [sp]
+  1f9b60: a940afe9     	ldp	x9, x11, [sp, #0x8]
+  1f9b64: d341fd0a     	lsr	x10, x8, #1
+  1f9b68: 7200011f     	tst	w8, #0x1
+  1f9b6c: 9a941574     	csinc	x20, x11, x20, ne
+  1f9b70: 9a890148     	csel	x8, x10, x9, eq
+  1f9b74: f100029f     	cmp	x20, #0x0
+  1f9b78: 8aa8fd09     	bic	x9, x8, x8, asr #63
+  1f9b7c: 9a8903e0     	csel	x0, xzr, x9, eq
+  1f9b80: b4000094     	cbz	x20, 0x1f9b90 <SW::SAM::deviceName()+0x70>
+  1f9b84: b6f80068     	tbz	x8, #0x3f, 0x1f9b90 <SW::SAM::deviceName()+0x70>
+  1f9b88: aa1403e0     	mov	x0, x20
+  1f9b8c: 94031d91     	bl	0x2c11d0 <strlen@plt>  ;;; CALL strlen
+  1f9b90: aa1303e8     	mov	x8, x19
+  1f9b94: aa1403e1     	mov	x1, x20
+  1f9b98: 94031d4a     	bl	0x2c10c0 <_ZN7QString8fromUtf8E14QByteArrayView@plt>  ;;; CALL QString::fromUtf8(QByteArrayView)
+  1f9b9c: 394003e8     	ldrb	w8, [sp]
+  1f9ba0: 36000068     	tbz	w8, #0x0, 0x1f9bac <SW::SAM::deviceName()+0x8c>
+  1f9ba4: f9400be0     	ldr	x0, [sp, #0x10]
+  1f9ba8: 94031dfa     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1f9bac: f94016a8     	ldr	x8, [x21, #0x28]
+  1f9bb0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f9bb4: eb09011f     	cmp	x8, x9
+  1f9bb8: 54000221     	b.ne	0x1f9bfc <SW::SAM::deviceName()+0xdc>
+  1f9bbc: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  1f9bc0: f9401bf5     	ldr	x21, [sp, #0x30]
+  1f9bc4: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1f9bc8: 910143ff     	add	sp, sp, #0x50
+  1f9bcc: d65f03c0     	ret
+  1f9bd0: 394003e8     	ldrb	w8, [sp]
+  1f9bd4: aa0003f3     	mov	x19, x0
+  1f9bd8: 36000068     	tbz	w8, #0x0, 0x1f9be4 <SW::SAM::deviceName()+0xc4>
+  1f9bdc: f9400be0     	ldr	x0, [sp, #0x10]
+  1f9be0: 94031dec     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1f9be4: f94016a8     	ldr	x8, [x21, #0x28]
+  1f9be8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f9bec: eb09011f     	cmp	x8, x9
+  1f9bf0: 54000061     	b.ne	0x1f9bfc <SW::SAM::deviceName()+0xdc>
+  1f9bf4: aa1303e0     	mov	x0, x19
+  1f9bf8: 94030e23     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1f9bfc: 94031d6d     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001f9c00 <SW::SAM::readWifiSettings()>:
+  1f9c00: d10143ff     	sub	sp, sp, #0x50
+  1f9c04: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  1f9c08: a90357f6     	stp	x22, x21, [sp, #0x30]
+  1f9c0c: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  1f9c10: 910083fd     	add	x29, sp, #0x20
+  1f9c14: d53bd056     	mrs	x22, TPIDR_EL0
+  1f9c18: aa0803f3     	mov	x19, x8
+  1f9c1c: aa0003f5     	mov	x21, x0
+  1f9c20: f94016c8     	ldr	x8, [x22, #0x28]
+  1f9c24: f81f83a8     	stur	x8, [x29, #-0x8]
+  1f9c28: 94032552     	bl	0x2c3170 <_ZN11QThreadPool14globalInstanceEv@plt>  ;;; CALL QThreadPool::globalInstance()
+  1f9c2c: f90007e0     	str	x0, [sp, #0x8]
+  1f9c30: 52800500     	mov	w0, #0x28               // =40
+  1f9c34: b90013ff     	str	wzr, [sp, #0x10]
+  1f9c38: 94031d32     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  1f9c3c: 90000708     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  1f9c40: aa0003f4     	mov	x20, x0
+  1f9c44: 52800029     	mov	w9, #0x1                // =1
+  1f9c48: f940d508     	ldr	x8, [x8, #0x1a8]
+  1f9c4c: 39002009     	strb	w9, [x0, #0x8]
+  1f9c50: 91004108     	add	x8, x8, #0x10
+  1f9c54: f8010408     	str	x8, [x0], #0x10
+  1f9c58: 2a1f03e1     	mov	w1, wzr
+  1f9c5c: 94031de5     	bl	0x2c13f0 <_ZN20QFutureInterfaceBaseC2ENS_5StateE@plt>  ;;; CALL QFutureInterfaceBase::QFutureInterfaceBase(QFutureInterfaceBase::State)
+  1f9c60: f00006e8     	adrp	x8, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1f9c64: 91004280     	add	x0, x20, #0x10
+  1f9c68: f9473108     	ldr	x8, [x8, #0xe60]
+  1f9c6c: 91004108     	add	x8, x8, #0x10
+  1f9c70: f9000a88     	str	x8, [x20, #0x10]
+  1f9c74: 94031de3     	bl	0x2c1400 <_ZNK20QFutureInterfaceBase4refTEv@plt>  ;;; CALL QFutureInterfaceBase::refT() const
+  1f9c78: f00006a8     	adrp	x8, 0x2d0000 <vtable for SW::TaskProfileList+0x90>
+  1f9c7c: 912ae108     	add	x8, x8, #0xab8
+  1f9c80: 910023e1     	add	x1, sp, #0x8
+  1f9c84: f9000288     	str	x8, [x20]
+  1f9c88: aa1303e8     	mov	x8, x19
+  1f9c8c: aa1403e0     	mov	x0, x20
+  1f9c90: f9001295     	str	x21, [x20, #0x20]
+  1f9c94: 94032543     	bl	0x2c31a0 <_ZN12QtConcurrent19RunFunctionTaskBaseI4QMapI7QString8QVariantEE5startERKNS_19TaskStartParametersE@plt>  ;;; CALL QtConcurrent::RunFunctionTaskBase<QMap<QString, QVariant>>::start(QtConcurrent::TaskStartParameters const&)
+  1f9c98: f94016c8     	ldr	x8, [x22, #0x28]
+  1f9c9c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f9ca0: eb09011f     	cmp	x8, x9
+  1f9ca4: 54000221     	b.ne	0x1f9ce8 <SW::SAM::readWifiSettings()+0xe8>
+  1f9ca8: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  1f9cac: a94357f6     	ldp	x22, x21, [sp, #0x30]
+  1f9cb0: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1f9cb4: 910143ff     	add	sp, sp, #0x50
+  1f9cb8: d65f03c0     	ret
+  1f9cbc: aa0003f3     	mov	x19, x0
+  1f9cc0: aa1403e0     	mov	x0, x20
+  1f9cc4: 94032533     	bl	0x2c3190 <_ZN9QRunnableD2Ev@plt>  ;;; CALL QRunnable::~QRunnable()
+  1f9cc8: f94016c8     	ldr	x8, [x22, #0x28]
+  1f9ccc: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f9cd0: eb09011f     	cmp	x8, x9
+  1f9cd4: 540000a1     	b.ne	0x1f9ce8 <SW::SAM::readWifiSettings()+0xe8>
+  1f9cd8: aa1403e0     	mov	x0, x20
+  1f9cdc: 94031dad     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1f9ce0: aa1303e0     	mov	x0, x19
+  1f9ce4: 94030de8     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1f9ce8: 94031d32     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001f9cec <SW::SAM::writeWifiSettings(SW::WifiSettings const&)>:
+  1f9cec: d10603ff     	sub	sp, sp, #0x180
+  1f9cf0: a9147bfd     	stp	x29, x30, [sp, #0x140]
+  1f9cf4: a9155ffc     	stp	x28, x23, [sp, #0x150]
+  1f9cf8: a91657f6     	stp	x22, x21, [sp, #0x160]
+  1f9cfc: a9174ff4     	stp	x20, x19, [sp, #0x170]
+  1f9d00: 910503fd     	add	x29, sp, #0x140
+  1f9d04: d53bd055     	mrs	x21, TPIDR_EL0
+  1f9d08: aa0803f3     	mov	x19, x8
+  1f9d0c: 910023f7     	add	x23, sp, #0x8
+  1f9d10: f94016a8     	ldr	x8, [x21, #0x28]
+  1f9d14: f81f83a8     	stur	x8, [x29, #-0x8]
+  1f9d18: f90007e0     	str	x0, [sp, #0x8]
+  1f9d1c: 910022e0     	add	x0, x23, #0x8
+  1f9d20: 94032378     	bl	0x2c2b00 <_ZN2SW12WifiSettingsC2ERKS0_@plt>  ;;; CALL SW::WifiSettings::WifiSettings(SW::WifiSettings const&)
+  1f9d24: 94032513     	bl	0x2c3170 <_ZN11QThreadPool14globalInstanceEv@plt>  ;;; CALL QThreadPool::globalInstance()
+  1f9d28: f94007e8     	ldr	x8, [sp, #0x8]
+  1f9d2c: aa0003f4     	mov	x20, x0
+  1f9d30: d10263b6     	sub	x22, x29, #0x98
+  1f9d34: f81683a8     	stur	x8, [x29, #-0x98]
+  1f9d38: 910022c0     	add	x0, x22, #0x8
+  1f9d3c: 910022e1     	add	x1, x23, #0x8
+  1f9d40: 94032370     	bl	0x2c2b00 <_ZN2SW12WifiSettingsC2ERKS0_@plt>  ;;; CALL SW::WifiSettings::WifiSettings(SW::WifiSettings const&)
+  1f9d44: f9004ff4     	str	x20, [sp, #0x98]
+  1f9d48: b900a3ff     	str	wzr, [sp, #0xa0]
+  1f9d4c: 52801600     	mov	w0, #0xb0               // =176
+  1f9d50: 94031cec     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  1f9d54: 90000708     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  1f9d58: aa0003f4     	mov	x20, x0
+  1f9d5c: 52800029     	mov	w9, #0x1                // =1
+  1f9d60: f940d108     	ldr	x8, [x8, #0x1a0]
+  1f9d64: 39002009     	strb	w9, [x0, #0x8]
+  1f9d68: 91004108     	add	x8, x8, #0x10
+  1f9d6c: f8010408     	str	x8, [x0], #0x10
+  1f9d70: 2a1f03e1     	mov	w1, wzr
+  1f9d74: 94031d9f     	bl	0x2c13f0 <_ZN20QFutureInterfaceBaseC2ENS_5StateE@plt>  ;;; CALL QFutureInterfaceBase::QFutureInterfaceBase(QFutureInterfaceBase::State)
+  1f9d78: f00006e8     	adrp	x8, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1f9d7c: 91004280     	add	x0, x20, #0x10
+  1f9d80: f943ed08     	ldr	x8, [x8, #0x7d8]
+  1f9d84: 91004108     	add	x8, x8, #0x10
+  1f9d88: f9000a88     	str	x8, [x20, #0x10]
+  1f9d8c: 94031d9d     	bl	0x2c1400 <_ZNK20QFutureInterfaceBase4refTEv@plt>  ;;; CALL QFutureInterfaceBase::refT() const
+  1f9d90: f85683a8     	ldur	x8, [x29, #-0x98]
+  1f9d94: f00006a9     	adrp	x9, 0x2d0000 <vtable for SW::TaskProfileList+0x90>
+  1f9d98: 912d2129     	add	x9, x9, #0xb48
+  1f9d9c: f9000289     	str	x9, [x20]
+  1f9da0: f9001288     	str	x8, [x20, #0x20]
+  1f9da4: 9100a280     	add	x0, x20, #0x28
+  1f9da8: 910022c1     	add	x1, x22, #0x8
+  1f9dac: 94032355     	bl	0x2c2b00 <_ZN2SW12WifiSettingsC2ERKS0_@plt>  ;;; CALL SW::WifiSettings::WifiSettings(SW::WifiSettings const&)
+  1f9db0: 910263e1     	add	x1, sp, #0x98
+  1f9db4: aa1303e8     	mov	x8, x19
+  1f9db8: aa1403e0     	mov	x0, x20
+  1f9dbc: 940324f1     	bl	0x2c3180 <_ZN12QtConcurrent19RunFunctionTaskBaseIN2SW6CmdRetEE5startERKNS_19TaskStartParametersE@plt>  ;;; CALL QtConcurrent::RunFunctionTaskBase<SW::CmdRet>::start(QtConcurrent::TaskStartParameters const&)
+  1f9dc0: 385d83a8     	ldurb	w8, [x29, #-0x28]
+  1f9dc4: 37000308     	tbnz	w8, #0x0, 0x1f9e24 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0x138>
+  1f9dc8: 385c03a8     	ldurb	w8, [x29, #-0x40]
+  1f9dcc: 37000348     	tbnz	w8, #0x0, 0x1f9e34 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0x148>
+  1f9dd0: 385a83a8     	ldurb	w8, [x29, #-0x58]
+  1f9dd4: 37000388     	tbnz	w8, #0x0, 0x1f9e44 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0x158>
+  1f9dd8: 385903a8     	ldurb	w8, [x29, #-0x70]
+  1f9ddc: 370003c8     	tbnz	w8, #0x0, 0x1f9e54 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0x168>
+  1f9de0: 385783a8     	ldurb	w8, [x29, #-0x88]
+  1f9de4: 37000408     	tbnz	w8, #0x0, 0x1f9e64 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0x178>
+  1f9de8: 3941e3e8     	ldrb	w8, [sp, #0x78]
+  1f9dec: 37000448     	tbnz	w8, #0x0, 0x1f9e74 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0x188>
+  1f9df0: 394183e8     	ldrb	w8, [sp, #0x60]
+  1f9df4: 37000488     	tbnz	w8, #0x0, 0x1f9e84 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0x198>
+  1f9df8: 394123e8     	ldrb	w8, [sp, #0x48]
+  1f9dfc: 370004c8     	tbnz	w8, #0x0, 0x1f9e94 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0x1a8>
+  1f9e00: 3940c3e8     	ldrb	w8, [sp, #0x30]
+  1f9e04: 37000508     	tbnz	w8, #0x0, 0x1f9ea4 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0x1b8>
+  1f9e08: 394063e8     	ldrb	w8, [sp, #0x18]
+  1f9e0c: 37000548     	tbnz	w8, #0x0, 0x1f9eb4 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0x1c8>
+  1f9e10: f94016a8     	ldr	x8, [x21, #0x28]
+  1f9e14: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f9e18: eb09011f     	cmp	x8, x9
+  1f9e1c: 54000580     	b.eq	0x1f9ecc <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0x1e0>
+  1f9e20: 14000048     	b	0x1f9f40 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0x254>
+  1f9e24: f85e83a0     	ldur	x0, [x29, #-0x18]
+  1f9e28: 94031d5a     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1f9e2c: 385c03a8     	ldurb	w8, [x29, #-0x40]
+  1f9e30: 3607fd08     	tbz	w8, #0x0, 0x1f9dd0 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0xe4>
+  1f9e34: f85d03a0     	ldur	x0, [x29, #-0x30]
+  1f9e38: 94031d56     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1f9e3c: 385a83a8     	ldurb	w8, [x29, #-0x58]
+  1f9e40: 3607fcc8     	tbz	w8, #0x0, 0x1f9dd8 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0xec>
+  1f9e44: f85b83a0     	ldur	x0, [x29, #-0x48]
+  1f9e48: 94031d52     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1f9e4c: 385903a8     	ldurb	w8, [x29, #-0x70]
+  1f9e50: 3607fc88     	tbz	w8, #0x0, 0x1f9de0 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0xf4>
+  1f9e54: f85a03a0     	ldur	x0, [x29, #-0x60]
+  1f9e58: 94031d4e     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1f9e5c: 385783a8     	ldurb	w8, [x29, #-0x88]
+  1f9e60: 3607fc48     	tbz	w8, #0x0, 0x1f9de8 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0xfc>
+  1f9e64: f85883a0     	ldur	x0, [x29, #-0x78]
+  1f9e68: 94031d4a     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1f9e6c: 3941e3e8     	ldrb	w8, [sp, #0x78]
+  1f9e70: 3607fc08     	tbz	w8, #0x0, 0x1f9df0 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0x104>
+  1f9e74: f94047e0     	ldr	x0, [sp, #0x88]
+  1f9e78: 94031d46     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1f9e7c: 394183e8     	ldrb	w8, [sp, #0x60]
+  1f9e80: 3607fbc8     	tbz	w8, #0x0, 0x1f9df8 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0x10c>
+  1f9e84: f9403be0     	ldr	x0, [sp, #0x70]
+  1f9e88: 94031d42     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1f9e8c: 394123e8     	ldrb	w8, [sp, #0x48]
+  1f9e90: 3607fb88     	tbz	w8, #0x0, 0x1f9e00 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0x114>
+  1f9e94: f9402fe0     	ldr	x0, [sp, #0x58]
+  1f9e98: 94031d3e     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1f9e9c: 3940c3e8     	ldrb	w8, [sp, #0x30]
+  1f9ea0: 3607fb48     	tbz	w8, #0x0, 0x1f9e08 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0x11c>
+  1f9ea4: f94023e0     	ldr	x0, [sp, #0x40]
+  1f9ea8: 94031d3a     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1f9eac: 394063e8     	ldrb	w8, [sp, #0x18]
+  1f9eb0: 3607fb08     	tbz	w8, #0x0, 0x1f9e10 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0x124>
+  1f9eb4: f94017e0     	ldr	x0, [sp, #0x28]
+  1f9eb8: 94031d36     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1f9ebc: f94016a8     	ldr	x8, [x21, #0x28]
+  1f9ec0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f9ec4: eb09011f     	cmp	x8, x9
+  1f9ec8: 540003c1     	b.ne	0x1f9f40 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0x254>
+  1f9ecc: a9574ff4     	ldp	x20, x19, [sp, #0x170]
+  1f9ed0: a95657f6     	ldp	x22, x21, [sp, #0x160]
+  1f9ed4: a9555ffc     	ldp	x28, x23, [sp, #0x150]
+  1f9ed8: a9547bfd     	ldp	x29, x30, [sp, #0x140]
+  1f9edc: 910603ff     	add	sp, sp, #0x180
+  1f9ee0: d65f03c0     	ret
+  1f9ee4: aa0003f3     	mov	x19, x0
+  1f9ee8: aa1403e0     	mov	x0, x20
+  1f9eec: 940324b1     	bl	0x2c31b0 <_ZN12QtConcurrent19RunFunctionTaskBaseIN2SW6CmdRetEED2Ev@plt>  ;;; CALL QtConcurrent::RunFunctionTaskBase<SW::CmdRet>::~RunFunctionTaskBase()
+  1f9ef0: 14000004     	b	0x1f9f00 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0x214>
+  1f9ef4: aa0003f3     	mov	x19, x0
+  1f9ef8: aa1403e0     	mov	x0, x20
+  1f9efc: 940324a5     	bl	0x2c3190 <_ZN9QRunnableD2Ev@plt>  ;;; CALL QRunnable::~QRunnable()
+  1f9f00: aa1403e0     	mov	x0, x20
+  1f9f04: 94031d23     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1f9f08: 14000002     	b	0x1f9f10 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0x224>
+  1f9f0c: aa0003f3     	mov	x19, x0
+  1f9f10: d10263a0     	sub	x0, x29, #0x98
+  1f9f14: 94000b35     	bl	0x1fcbe8 <std::__ndk1::tuple<SW::SAM::writeWifiSettings(SW::WifiSettings const&)::$_0>::~tuple()>  ;;; CALL std::__ndk1::tuple<SW::SAM::writeWifiSettings(SW::WifiSettings const&)::$_0
+  1f9f18: 14000002     	b	0x1f9f20 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0x234>
+  1f9f1c: aa0003f3     	mov	x19, x0
+  1f9f20: 910023e0     	add	x0, sp, #0x8
+  1f9f24: 94000008     	bl	0x1f9f44 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)::$_0::~$_0()>  ;;; CALL SW::SAM::writeWifiSettings(SW::WifiSettings const&)::$_0::~$_0()
+  1f9f28: f94016a8     	ldr	x8, [x21, #0x28]
+  1f9f2c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1f9f30: eb09011f     	cmp	x8, x9
+  1f9f34: 54000061     	b.ne	0x1f9f40 <SW::SAM::writeWifiSettings(SW::WifiSettings const&)+0x254>
+  1f9f38: aa1303e0     	mov	x0, x19
+  1f9f3c: 94030d52     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1f9f40: 94031c9c     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001f9fd8 <SW::SAM::readWifiTimeoutSec()>:
+  1f9fd8: d10143ff     	sub	sp, sp, #0x50
+  1f9fdc: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  1f9fe0: a90357f6     	stp	x22, x21, [sp, #0x30]
+  1f9fe4: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  1f9fe8: 910083fd     	add	x29, sp, #0x20
+  1f9fec: d53bd056     	mrs	x22, TPIDR_EL0
+  1f9ff0: aa0803f3     	mov	x19, x8
+  1f9ff4: aa0003f5     	mov	x21, x0
+  1f9ff8: f94016c8     	ldr	x8, [x22, #0x28]
+  1f9ffc: f81f83a8     	stur	x8, [x29, #-0x8]
+  1fa000: 9403245c     	bl	0x2c3170 <_ZN11QThreadPool14globalInstanceEv@plt>  ;;; CALL QThreadPool::globalInstance()
+  1fa004: f90007e0     	str	x0, [sp, #0x8]
+  1fa008: 52800500     	mov	w0, #0x28               // =40
+  1fa00c: b90013ff     	str	wzr, [sp, #0x10]
+  1fa010: 94031c3c     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  1fa014: f00006e8     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  1fa018: aa0003f4     	mov	x20, x0
+  1fa01c: 52800029     	mov	w9, #0x1                // =1
+  1fa020: f940d508     	ldr	x8, [x8, #0x1a8]
+  1fa024: 39002009     	strb	w9, [x0, #0x8]
+  1fa028: 91004108     	add	x8, x8, #0x10
+  1fa02c: f8010408     	str	x8, [x0], #0x10
+  1fa030: 2a1f03e1     	mov	w1, wzr
+  1fa034: 94031cef     	bl	0x2c13f0 <_ZN20QFutureInterfaceBaseC2ENS_5StateE@plt>  ;;; CALL QFutureInterfaceBase::QFutureInterfaceBase(QFutureInterfaceBase::State)
+  1fa038: d00006e8     	adrp	x8, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1fa03c: 91004280     	add	x0, x20, #0x10
+  1fa040: f9473108     	ldr	x8, [x8, #0xe60]
+  1fa044: 91004108     	add	x8, x8, #0x10
+  1fa048: f9000a88     	str	x8, [x20, #0x10]
+  1fa04c: 94031ced     	bl	0x2c1400 <_ZNK20QFutureInterfaceBase4refTEv@plt>  ;;; CALL QFutureInterfaceBase::refT() const
+  1fa050: d00006a8     	adrp	x8, 0x2d0000 <vtable for SW::TaskProfileList+0x90>
+  1fa054: 912e4108     	add	x8, x8, #0xb90
+  1fa058: 910023e1     	add	x1, sp, #0x8
+  1fa05c: f9000288     	str	x8, [x20]
+  1fa060: aa1303e8     	mov	x8, x19
+  1fa064: aa1403e0     	mov	x0, x20
+  1fa068: f9001295     	str	x21, [x20, #0x20]
+  1fa06c: 9403244d     	bl	0x2c31a0 <_ZN12QtConcurrent19RunFunctionTaskBaseI4QMapI7QString8QVariantEE5startERKNS_19TaskStartParametersE@plt>  ;;; CALL QtConcurrent::RunFunctionTaskBase<QMap<QString, QVariant>>::start(QtConcurrent::TaskStartParameters const&)
+  1fa070: f94016c8     	ldr	x8, [x22, #0x28]
+  1fa074: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1fa078: eb09011f     	cmp	x8, x9
+  1fa07c: 54000221     	b.ne	0x1fa0c0 <SW::SAM::readWifiTimeoutSec()+0xe8>
+  1fa080: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  1fa084: a94357f6     	ldp	x22, x21, [sp, #0x30]
+  1fa088: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1fa08c: 910143ff     	add	sp, sp, #0x50
+  1fa090: d65f03c0     	ret
+  1fa094: aa0003f3     	mov	x19, x0
+  1fa098: aa1403e0     	mov	x0, x20
+  1fa09c: 9403243d     	bl	0x2c3190 <_ZN9QRunnableD2Ev@plt>  ;;; CALL QRunnable::~QRunnable()
+  1fa0a0: f94016c8     	ldr	x8, [x22, #0x28]
+  1fa0a4: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1fa0a8: eb09011f     	cmp	x8, x9
+  1fa0ac: 540000a1     	b.ne	0x1fa0c0 <SW::SAM::readWifiTimeoutSec()+0xe8>
+  1fa0b0: aa1403e0     	mov	x0, x20
+  1fa0b4: 94031cb7     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1fa0b8: aa1303e0     	mov	x0, x19
+  1fa0bc: 94030cf2     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1fa0c0: 94031c3c     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001fa0c4 <SW::SAM::writeWifiTimeoutSec(unsigned int)>:
+  1fa0c4: d10183ff     	sub	sp, sp, #0x60
+  1fa0c8: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  1fa0cc: f9001bf7     	str	x23, [sp, #0x30]
+  1fa0d0: a90457f6     	stp	x22, x21, [sp, #0x40]
+  1fa0d4: a9054ff4     	stp	x20, x19, [sp, #0x50]
+  1fa0d8: 910083fd     	add	x29, sp, #0x20
+  1fa0dc: d53bd057     	mrs	x23, TPIDR_EL0
+  1fa0e0: aa0803f3     	mov	x19, x8
+  1fa0e4: 2a0103f5     	mov	w21, w1
+  1fa0e8: f94016e8     	ldr	x8, [x23, #0x28]
+  1fa0ec: aa0003f6     	mov	x22, x0
+  1fa0f0: f81f83a8     	stur	x8, [x29, #-0x8]
+  1fa0f4: 9403241f     	bl	0x2c3170 <_ZN11QThreadPool14globalInstanceEv@plt>  ;;; CALL QThreadPool::globalInstance()
+  1fa0f8: f90007e0     	str	x0, [sp, #0x8]
+  1fa0fc: 52800600     	mov	w0, #0x30               // =48
+  1fa100: b90013ff     	str	wzr, [sp, #0x10]
+  1fa104: 94031bff     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  1fa108: f00006e8     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  1fa10c: aa0003f4     	mov	x20, x0
+  1fa110: 52800029     	mov	w9, #0x1                // =1
+  1fa114: f940d108     	ldr	x8, [x8, #0x1a0]
+  1fa118: 39002009     	strb	w9, [x0, #0x8]
+  1fa11c: 91004108     	add	x8, x8, #0x10
+  1fa120: f8010408     	str	x8, [x0], #0x10
+  1fa124: 2a1f03e1     	mov	w1, wzr
+  1fa128: 94031cb2     	bl	0x2c13f0 <_ZN20QFutureInterfaceBaseC2ENS_5StateE@plt>  ;;; CALL QFutureInterfaceBase::QFutureInterfaceBase(QFutureInterfaceBase::State)
+  1fa12c: d00006e8     	adrp	x8, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1fa130: 91004280     	add	x0, x20, #0x10
+  1fa134: f943ed08     	ldr	x8, [x8, #0x7d8]
+  1fa138: 91004108     	add	x8, x8, #0x10
+  1fa13c: f9000a88     	str	x8, [x20, #0x10]
+  1fa140: 94031cb0     	bl	0x2c1400 <_ZNK20QFutureInterfaceBase4refTEv@plt>  ;;; CALL QFutureInterfaceBase::refT() const
+  1fa144: d00006a8     	adrp	x8, 0x2d0000 <vtable for SW::TaskProfileList+0x90>
+  1fa148: 912f6108     	add	x8, x8, #0xbd8
+  1fa14c: 910023e1     	add	x1, sp, #0x8
+  1fa150: f9000288     	str	x8, [x20]
+  1fa154: aa1303e8     	mov	x8, x19
+  1fa158: aa1403e0     	mov	x0, x20
+  1fa15c: f9001296     	str	x22, [x20, #0x20]
+  1fa160: b9002a95     	str	w21, [x20, #0x28]
+  1fa164: 94032407     	bl	0x2c3180 <_ZN12QtConcurrent19RunFunctionTaskBaseIN2SW6CmdRetEE5startERKNS_19TaskStartParametersE@plt>  ;;; CALL QtConcurrent::RunFunctionTaskBase<SW::CmdRet>::start(QtConcurrent::TaskStartParameters const&)
+  1fa168: f94016e8     	ldr	x8, [x23, #0x28]
+  1fa16c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1fa170: eb09011f     	cmp	x8, x9
+  1fa174: 54000241     	b.ne	0x1fa1bc <SW::SAM::writeWifiTimeoutSec(unsigned int)+0xf8>
+  1fa178: a9454ff4     	ldp	x20, x19, [sp, #0x50]
+  1fa17c: f9401bf7     	ldr	x23, [sp, #0x30]
+  1fa180: a94457f6     	ldp	x22, x21, [sp, #0x40]
+  1fa184: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1fa188: 910183ff     	add	sp, sp, #0x60
+  1fa18c: d65f03c0     	ret
+  1fa190: aa0003f3     	mov	x19, x0
+  1fa194: aa1403e0     	mov	x0, x20
+  1fa198: 940323fe     	bl	0x2c3190 <_ZN9QRunnableD2Ev@plt>  ;;; CALL QRunnable::~QRunnable()
+  1fa19c: f94016e8     	ldr	x8, [x23, #0x28]
+  1fa1a0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1fa1a4: eb09011f     	cmp	x8, x9
+  1fa1a8: 540000a1     	b.ne	0x1fa1bc <SW::SAM::writeWifiTimeoutSec(unsigned int)+0xf8>
+  1fa1ac: aa1403e0     	mov	x0, x20
+  1fa1b0: 94031c78     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1fa1b4: aa1303e0     	mov	x0, x19
+  1fa1b8: 94030cb3     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1fa1bc: 94031bfd     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001fa1c0 <SW::SAM::writePolarSightLightOn(bool)>:
+  1fa1c0: d10183ff     	sub	sp, sp, #0x60
+  1fa1c4: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  1fa1c8: f9001bf7     	str	x23, [sp, #0x30]
+  1fa1cc: a90457f6     	stp	x22, x21, [sp, #0x40]
+  1fa1d0: a9054ff4     	stp	x20, x19, [sp, #0x50]
+  1fa1d4: 910083fd     	add	x29, sp, #0x20
+  1fa1d8: d53bd057     	mrs	x23, TPIDR_EL0
+  1fa1dc: aa0803f3     	mov	x19, x8
+  1fa1e0: 2a0103f6     	mov	w22, w1
+  1fa1e4: f94016e8     	ldr	x8, [x23, #0x28]
+  1fa1e8: aa0003f5     	mov	x21, x0
+  1fa1ec: f81f83a8     	stur	x8, [x29, #-0x8]
+  1fa1f0: 940323e0     	bl	0x2c3170 <_ZN11QThreadPool14globalInstanceEv@plt>  ;;; CALL QThreadPool::globalInstance()
+  1fa1f4: f90007e0     	str	x0, [sp, #0x8]
+  1fa1f8: 52800600     	mov	w0, #0x30               // =48
+  1fa1fc: b90013ff     	str	wzr, [sp, #0x10]
+  1fa200: 94031bc0     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  1fa204: f00006e8     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  1fa208: aa0003f4     	mov	x20, x0
+  1fa20c: 52800029     	mov	w9, #0x1                // =1
+  1fa210: f940d108     	ldr	x8, [x8, #0x1a0]
+  1fa214: 39002009     	strb	w9, [x0, #0x8]
+  1fa218: 91004108     	add	x8, x8, #0x10
+  1fa21c: f8010408     	str	x8, [x0], #0x10
+  1fa220: 2a1f03e1     	mov	w1, wzr
+  1fa224: 94031c73     	bl	0x2c13f0 <_ZN20QFutureInterfaceBaseC2ENS_5StateE@plt>  ;;; CALL QFutureInterfaceBase::QFutureInterfaceBase(QFutureInterfaceBase::State)
+  1fa228: d00006e8     	adrp	x8, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1fa22c: 91004280     	add	x0, x20, #0x10
+  1fa230: 120002d6     	and	w22, w22, #0x1
+  1fa234: f943ed08     	ldr	x8, [x8, #0x7d8]
+  1fa238: 91004108     	add	x8, x8, #0x10
+  1fa23c: f9000a88     	str	x8, [x20, #0x10]
+  1fa240: 94031c70     	bl	0x2c1400 <_ZNK20QFutureInterfaceBase4refTEv@plt>  ;;; CALL QFutureInterfaceBase::refT() const
+  1fa244: d00006a8     	adrp	x8, 0x2d0000 <vtable for SW::TaskProfileList+0x90>
+  1fa248: 91308108     	add	x8, x8, #0xc20
+  1fa24c: 910023e1     	add	x1, sp, #0x8
+  1fa250: f9000288     	str	x8, [x20]
+  1fa254: aa1303e8     	mov	x8, x19
+  1fa258: aa1403e0     	mov	x0, x20
+  1fa25c: f9001295     	str	x21, [x20, #0x20]
+  1fa260: 3900a296     	strb	w22, [x20, #0x28]
+  1fa264: 940323c7     	bl	0x2c3180 <_ZN12QtConcurrent19RunFunctionTaskBaseIN2SW6CmdRetEE5startERKNS_19TaskStartParametersE@plt>  ;;; CALL QtConcurrent::RunFunctionTaskBase<SW::CmdRet>::start(QtConcurrent::TaskStartParameters const&)
+  1fa268: f94016e8     	ldr	x8, [x23, #0x28]
+  1fa26c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1fa270: eb09011f     	cmp	x8, x9
+  1fa274: 54000241     	b.ne	0x1fa2bc <SW::SAM::writePolarSightLightOn(bool)+0xfc>
+  1fa278: a9454ff4     	ldp	x20, x19, [sp, #0x50]
+  1fa27c: f9401bf7     	ldr	x23, [sp, #0x30]
+  1fa280: a94457f6     	ldp	x22, x21, [sp, #0x40]
+  1fa284: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1fa288: 910183ff     	add	sp, sp, #0x60
+  1fa28c: d65f03c0     	ret
+  1fa290: aa0003f3     	mov	x19, x0
+  1fa294: aa1403e0     	mov	x0, x20
+  1fa298: 940323be     	bl	0x2c3190 <_ZN9QRunnableD2Ev@plt>  ;;; CALL QRunnable::~QRunnable()
+  1fa29c: f94016e8     	ldr	x8, [x23, #0x28]
+  1fa2a0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1fa2a4: eb09011f     	cmp	x8, x9
+  1fa2a8: 540000a1     	b.ne	0x1fa2bc <SW::SAM::writePolarSightLightOn(bool)+0xfc>
+  1fa2ac: aa1403e0     	mov	x0, x20
+  1fa2b0: 94031c38     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1fa2b4: aa1303e0     	mov	x0, x19
+  1fa2b8: 94030c73     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1fa2bc: 94031bbd     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001fa2c0 <SW::SAM::readPolarSightLightTimeoutSec()>:
+  1fa2c0: d10143ff     	sub	sp, sp, #0x50
+  1fa2c4: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  1fa2c8: a90357f6     	stp	x22, x21, [sp, #0x30]
+  1fa2cc: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  1fa2d0: 910083fd     	add	x29, sp, #0x20
+  1fa2d4: d53bd056     	mrs	x22, TPIDR_EL0
+  1fa2d8: aa0803f3     	mov	x19, x8
+  1fa2dc: aa0003f5     	mov	x21, x0
+  1fa2e0: f94016c8     	ldr	x8, [x22, #0x28]
+  1fa2e4: f81f83a8     	stur	x8, [x29, #-0x8]
+  1fa2e8: 940323a2     	bl	0x2c3170 <_ZN11QThreadPool14globalInstanceEv@plt>  ;;; CALL QThreadPool::globalInstance()
+  1fa2ec: f90007e0     	str	x0, [sp, #0x8]
+  1fa2f0: 52800500     	mov	w0, #0x28               // =40
+  1fa2f4: b90013ff     	str	wzr, [sp, #0x10]
+  1fa2f8: 94031b82     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  1fa2fc: f00006e8     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  1fa300: aa0003f4     	mov	x20, x0
+  1fa304: 52800029     	mov	w9, #0x1                // =1
+  1fa308: f940d508     	ldr	x8, [x8, #0x1a8]
+  1fa30c: 39002009     	strb	w9, [x0, #0x8]
+  1fa310: 91004108     	add	x8, x8, #0x10
+  1fa314: f8010408     	str	x8, [x0], #0x10
+  1fa318: 2a1f03e1     	mov	w1, wzr
+  1fa31c: 94031c35     	bl	0x2c13f0 <_ZN20QFutureInterfaceBaseC2ENS_5StateE@plt>  ;;; CALL QFutureInterfaceBase::QFutureInterfaceBase(QFutureInterfaceBase::State)
+  1fa320: d00006e8     	adrp	x8, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1fa324: 91004280     	add	x0, x20, #0x10
+  1fa328: f9473108     	ldr	x8, [x8, #0xe60]
+  1fa32c: 91004108     	add	x8, x8, #0x10
+  1fa330: f9000a88     	str	x8, [x20, #0x10]
+  1fa334: 94031c33     	bl	0x2c1400 <_ZNK20QFutureInterfaceBase4refTEv@plt>  ;;; CALL QFutureInterfaceBase::refT() const
+  1fa338: d00006a8     	adrp	x8, 0x2d0000 <vtable for SW::TaskProfileList+0x90>
+  1fa33c: 9131a108     	add	x8, x8, #0xc68
+  1fa340: 910023e1     	add	x1, sp, #0x8
+  1fa344: f9000288     	str	x8, [x20]
+  1fa348: aa1303e8     	mov	x8, x19
+  1fa34c: aa1403e0     	mov	x0, x20
+  1fa350: f9001295     	str	x21, [x20, #0x20]
+  1fa354: 94032393     	bl	0x2c31a0 <_ZN12QtConcurrent19RunFunctionTaskBaseI4QMapI7QString8QVariantEE5startERKNS_19TaskStartParametersE@plt>  ;;; CALL QtConcurrent::RunFunctionTaskBase<QMap<QString, QVariant>>::start(QtConcurrent::TaskStartParameters const&)
+  1fa358: f94016c8     	ldr	x8, [x22, #0x28]
+  1fa35c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1fa360: eb09011f     	cmp	x8, x9
+  1fa364: 54000221     	b.ne	0x1fa3a8 <SW::SAM::readPolarSightLightTimeoutSec()+0xe8>
+  1fa368: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  1fa36c: a94357f6     	ldp	x22, x21, [sp, #0x30]
+  1fa370: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1fa374: 910143ff     	add	sp, sp, #0x50
+  1fa378: d65f03c0     	ret
+  1fa37c: aa0003f3     	mov	x19, x0
+  1fa380: aa1403e0     	mov	x0, x20
+  1fa384: 94032383     	bl	0x2c3190 <_ZN9QRunnableD2Ev@plt>  ;;; CALL QRunnable::~QRunnable()
+  1fa388: f94016c8     	ldr	x8, [x22, #0x28]
+  1fa38c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1fa390: eb09011f     	cmp	x8, x9
+  1fa394: 540000a1     	b.ne	0x1fa3a8 <SW::SAM::readPolarSightLightTimeoutSec()+0xe8>
+  1fa398: aa1403e0     	mov	x0, x20
+  1fa39c: 94031bfd     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1fa3a0: aa1303e0     	mov	x0, x19
+  1fa3a4: 94030c38     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1fa3a8: 94031b82     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001fa3ac <SW::SAM::writePolarSightLightTimeoutSec(unsigned int)>:
+  1fa3ac: d10183ff     	sub	sp, sp, #0x60
+  1fa3b0: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  1fa3b4: f9001bf7     	str	x23, [sp, #0x30]
+  1fa3b8: a90457f6     	stp	x22, x21, [sp, #0x40]
+  1fa3bc: a9054ff4     	stp	x20, x19, [sp, #0x50]
+  1fa3c0: 910083fd     	add	x29, sp, #0x20
+  1fa3c4: d53bd057     	mrs	x23, TPIDR_EL0
+  1fa3c8: aa0803f3     	mov	x19, x8
+  1fa3cc: 2a0103f5     	mov	w21, w1
+  1fa3d0: f94016e8     	ldr	x8, [x23, #0x28]
+  1fa3d4: aa0003f6     	mov	x22, x0
+  1fa3d8: f81f83a8     	stur	x8, [x29, #-0x8]
+  1fa3dc: 94032365     	bl	0x2c3170 <_ZN11QThreadPool14globalInstanceEv@plt>  ;;; CALL QThreadPool::globalInstance()
+  1fa3e0: f90007e0     	str	x0, [sp, #0x8]
+  1fa3e4: 52800600     	mov	w0, #0x30               // =48
+  1fa3e8: b90013ff     	str	wzr, [sp, #0x10]
+  1fa3ec: 94031b45     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  1fa3f0: f00006e8     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  1fa3f4: aa0003f4     	mov	x20, x0
+  1fa3f8: 52800029     	mov	w9, #0x1                // =1
+  1fa3fc: f940d108     	ldr	x8, [x8, #0x1a0]
+  1fa400: 39002009     	strb	w9, [x0, #0x8]
+  1fa404: 91004108     	add	x8, x8, #0x10
+  1fa408: f8010408     	str	x8, [x0], #0x10
+  1fa40c: 2a1f03e1     	mov	w1, wzr
+  1fa410: 94031bf8     	bl	0x2c13f0 <_ZN20QFutureInterfaceBaseC2ENS_5StateE@plt>  ;;; CALL QFutureInterfaceBase::QFutureInterfaceBase(QFutureInterfaceBase::State)
+  1fa414: d00006e8     	adrp	x8, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1fa418: 91004280     	add	x0, x20, #0x10
+  1fa41c: f943ed08     	ldr	x8, [x8, #0x7d8]
+  1fa420: 91004108     	add	x8, x8, #0x10
+  1fa424: f9000a88     	str	x8, [x20, #0x10]
+  1fa428: 94031bf6     	bl	0x2c1400 <_ZNK20QFutureInterfaceBase4refTEv@plt>  ;;; CALL QFutureInterfaceBase::refT() const
+  1fa42c: d00006a8     	adrp	x8, 0x2d0000 <vtable for SW::TaskProfileList+0x90>
+  1fa430: 9132c108     	add	x8, x8, #0xcb0
+  1fa434: 910023e1     	add	x1, sp, #0x8
+  1fa438: f9000288     	str	x8, [x20]
+  1fa43c: aa1303e8     	mov	x8, x19
+  1fa440: aa1403e0     	mov	x0, x20
+  1fa444: f9001296     	str	x22, [x20, #0x20]
+  1fa448: b9002a95     	str	w21, [x20, #0x28]
+  1fa44c: 9403234d     	bl	0x2c3180 <_ZN12QtConcurrent19RunFunctionTaskBaseIN2SW6CmdRetEE5startERKNS_19TaskStartParametersE@plt>  ;;; CALL QtConcurrent::RunFunctionTaskBase<SW::CmdRet>::start(QtConcurrent::TaskStartParameters const&)
+  1fa450: f94016e8     	ldr	x8, [x23, #0x28]
+  1fa454: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1fa458: eb09011f     	cmp	x8, x9
+  1fa45c: 54000241     	b.ne	0x1fa4a4 <SW::SAM::writePolarSightLightTimeoutSec(unsigned int)+0xf8>
+  1fa460: a9454ff4     	ldp	x20, x19, [sp, #0x50]
+  1fa464: f9401bf7     	ldr	x23, [sp, #0x30]
+  1fa468: a94457f6     	ldp	x22, x21, [sp, #0x40]
+  1fa46c: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1fa470: 910183ff     	add	sp, sp, #0x60
+  1fa474: d65f03c0     	ret
+  1fa478: aa0003f3     	mov	x19, x0
+  1fa47c: aa1403e0     	mov	x0, x20
+  1fa480: 94032344     	bl	0x2c3190 <_ZN9QRunnableD2Ev@plt>  ;;; CALL QRunnable::~QRunnable()
+  1fa484: f94016e8     	ldr	x8, [x23, #0x28]
+  1fa488: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1fa48c: eb09011f     	cmp	x8, x9
+  1fa490: 540000a1     	b.ne	0x1fa4a4 <SW::SAM::writePolarSightLightTimeoutSec(unsigned int)+0xf8>
+  1fa494: aa1403e0     	mov	x0, x20
+  1fa498: 94031bbe     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1fa49c: aa1303e0     	mov	x0, x19
+  1fa4a0: 94030bf9     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1fa4a4: 94031b43     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001fa4a8 <SW::SAM::readPowerOnAutoPreviousTask()>:
+  1fa4a8: d10143ff     	sub	sp, sp, #0x50
+  1fa4ac: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  1fa4b0: a90357f6     	stp	x22, x21, [sp, #0x30]
+  1fa4b4: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  1fa4b8: 910083fd     	add	x29, sp, #0x20
+  1fa4bc: d53bd056     	mrs	x22, TPIDR_EL0
+  1fa4c0: aa0803f3     	mov	x19, x8
+  1fa4c4: aa0003f5     	mov	x21, x0
+  1fa4c8: f94016c8     	ldr	x8, [x22, #0x28]
+  1fa4cc: f81f83a8     	stur	x8, [x29, #-0x8]
+  1fa4d0: 94032328     	bl	0x2c3170 <_ZN11QThreadPool14globalInstanceEv@plt>  ;;; CALL QThreadPool::globalInstance()
+  1fa4d4: f90007e0     	str	x0, [sp, #0x8]
+  1fa4d8: 52800500     	mov	w0, #0x28               // =40
+  1fa4dc: b90013ff     	str	wzr, [sp, #0x10]
+  1fa4e0: 94031b08     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  1fa4e4: f00006e8     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  1fa4e8: aa0003f4     	mov	x20, x0
+  1fa4ec: 52800029     	mov	w9, #0x1                // =1
+  1fa4f0: f940d508     	ldr	x8, [x8, #0x1a8]
+  1fa4f4: 39002009     	strb	w9, [x0, #0x8]
+  1fa4f8: 91004108     	add	x8, x8, #0x10
+  1fa4fc: f8010408     	str	x8, [x0], #0x10
+  1fa500: 2a1f03e1     	mov	w1, wzr
+  1fa504: 94031bbb     	bl	0x2c13f0 <_ZN20QFutureInterfaceBaseC2ENS_5StateE@plt>  ;;; CALL QFutureInterfaceBase::QFutureInterfaceBase(QFutureInterfaceBase::State)
+  1fa508: d00006e8     	adrp	x8, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1fa50c: 91004280     	add	x0, x20, #0x10
+  1fa510: f9473108     	ldr	x8, [x8, #0xe60]
+  1fa514: 91004108     	add	x8, x8, #0x10
+  1fa518: f9000a88     	str	x8, [x20, #0x10]
+  1fa51c: 94031bb9     	bl	0x2c1400 <_ZNK20QFutureInterfaceBase4refTEv@plt>  ;;; CALL QFutureInterfaceBase::refT() const
+  1fa520: d00006a8     	adrp	x8, 0x2d0000 <vtable for SW::TaskProfileList+0x90>
+  1fa524: 9133e108     	add	x8, x8, #0xcf8
+  1fa528: 910023e1     	add	x1, sp, #0x8
+  1fa52c: f9000288     	str	x8, [x20]
+  1fa530: aa1303e8     	mov	x8, x19
+  1fa534: aa1403e0     	mov	x0, x20
+  1fa538: f9001295     	str	x21, [x20, #0x20]
+  1fa53c: 94032319     	bl	0x2c31a0 <_ZN12QtConcurrent19RunFunctionTaskBaseI4QMapI7QString8QVariantEE5startERKNS_19TaskStartParametersE@plt>  ;;; CALL QtConcurrent::RunFunctionTaskBase<QMap<QString, QVariant>>::start(QtConcurrent::TaskStartParameters const&)
+  1fa540: f94016c8     	ldr	x8, [x22, #0x28]
+  1fa544: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1fa548: eb09011f     	cmp	x8, x9
+  1fa54c: 54000221     	b.ne	0x1fa590 <SW::SAM::readPowerOnAutoPreviousTask()+0xe8>
+  1fa550: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  1fa554: a94357f6     	ldp	x22, x21, [sp, #0x30]
+  1fa558: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1fa55c: 910143ff     	add	sp, sp, #0x50
+  1fa560: d65f03c0     	ret
+  1fa564: aa0003f3     	mov	x19, x0
+  1fa568: aa1403e0     	mov	x0, x20
+  1fa56c: 94032309     	bl	0x2c3190 <_ZN9QRunnableD2Ev@plt>  ;;; CALL QRunnable::~QRunnable()
+  1fa570: f94016c8     	ldr	x8, [x22, #0x28]
+  1fa574: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1fa578: eb09011f     	cmp	x8, x9
+  1fa57c: 540000a1     	b.ne	0x1fa590 <SW::SAM::readPowerOnAutoPreviousTask()+0xe8>
+  1fa580: aa1403e0     	mov	x0, x20
+  1fa584: 94031b83     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1fa588: aa1303e0     	mov	x0, x19
+  1fa58c: 94030bbe     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1fa590: 94031b08     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001fa594 <SW::SAM::writePowerOnAutoPreviousTask(bool)>:
+  1fa594: d10183ff     	sub	sp, sp, #0x60
+  1fa598: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  1fa59c: f9001bf7     	str	x23, [sp, #0x30]
+  1fa5a0: a90457f6     	stp	x22, x21, [sp, #0x40]
+  1fa5a4: a9054ff4     	stp	x20, x19, [sp, #0x50]
+  1fa5a8: 910083fd     	add	x29, sp, #0x20
+  1fa5ac: d53bd057     	mrs	x23, TPIDR_EL0
+  1fa5b0: aa0803f3     	mov	x19, x8
+  1fa5b4: 2a0103f6     	mov	w22, w1
+  1fa5b8: f94016e8     	ldr	x8, [x23, #0x28]
+  1fa5bc: aa0003f5     	mov	x21, x0
+  1fa5c0: f81f83a8     	stur	x8, [x29, #-0x8]
+  1fa5c4: 940322eb     	bl	0x2c3170 <_ZN11QThreadPool14globalInstanceEv@plt>  ;;; CALL QThreadPool::globalInstance()
+  1fa5c8: f90007e0     	str	x0, [sp, #0x8]
+  1fa5cc: 52800600     	mov	w0, #0x30               // =48
+  1fa5d0: b90013ff     	str	wzr, [sp, #0x10]
+  1fa5d4: 94031acb     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  1fa5d8: f00006e8     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  1fa5dc: aa0003f4     	mov	x20, x0
+  1fa5e0: 52800029     	mov	w9, #0x1                // =1
+  1fa5e4: f940d108     	ldr	x8, [x8, #0x1a0]
+  1fa5e8: 39002009     	strb	w9, [x0, #0x8]
+  1fa5ec: 91004108     	add	x8, x8, #0x10
+  1fa5f0: f8010408     	str	x8, [x0], #0x10
+  1fa5f4: 2a1f03e1     	mov	w1, wzr
+  1fa5f8: 94031b7e     	bl	0x2c13f0 <_ZN20QFutureInterfaceBaseC2ENS_5StateE@plt>  ;;; CALL QFutureInterfaceBase::QFutureInterfaceBase(QFutureInterfaceBase::State)
+  1fa5fc: d00006e8     	adrp	x8, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1fa600: 91004280     	add	x0, x20, #0x10
+  1fa604: 120002d6     	and	w22, w22, #0x1
+  1fa608: f943ed08     	ldr	x8, [x8, #0x7d8]
+  1fa60c: 91004108     	add	x8, x8, #0x10
+  1fa610: f9000a88     	str	x8, [x20, #0x10]
+  1fa614: 94031b7b     	bl	0x2c1400 <_ZNK20QFutureInterfaceBase4refTEv@plt>  ;;; CALL QFutureInterfaceBase::refT() const
+  1fa618: d00006a8     	adrp	x8, 0x2d0000 <vtable for SW::TaskProfileList+0x90>
+  1fa61c: 91350108     	add	x8, x8, #0xd40
+  1fa620: 910023e1     	add	x1, sp, #0x8
+  1fa624: f9000288     	str	x8, [x20]
+  1fa628: aa1303e8     	mov	x8, x19
+  1fa62c: aa1403e0     	mov	x0, x20
+  1fa630: f9001295     	str	x21, [x20, #0x20]
+  1fa634: 3900a296     	strb	w22, [x20, #0x28]
+  1fa638: 940322d2     	bl	0x2c3180 <_ZN12QtConcurrent19RunFunctionTaskBaseIN2SW6CmdRetEE5startERKNS_19TaskStartParametersE@plt>  ;;; CALL QtConcurrent::RunFunctionTaskBase<SW::CmdRet>::start(QtConcurrent::TaskStartParameters const&)
+  1fa63c: f94016e8     	ldr	x8, [x23, #0x28]
+  1fa640: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1fa644: eb09011f     	cmp	x8, x9
+  1fa648: 54000241     	b.ne	0x1fa690 <SW::SAM::writePowerOnAutoPreviousTask(bool)+0xfc>
+  1fa64c: a9454ff4     	ldp	x20, x19, [sp, #0x50]
+  1fa650: f9401bf7     	ldr	x23, [sp, #0x30]
+  1fa654: a94457f6     	ldp	x22, x21, [sp, #0x40]
+  1fa658: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1fa65c: 910183ff     	add	sp, sp, #0x60
+  1fa660: d65f03c0     	ret
+  1fa664: aa0003f3     	mov	x19, x0
+  1fa668: aa1403e0     	mov	x0, x20
+  1fa66c: 940322c9     	bl	0x2c3190 <_ZN9QRunnableD2Ev@plt>  ;;; CALL QRunnable::~QRunnable()
+  1fa670: f94016e8     	ldr	x8, [x23, #0x28]
+  1fa674: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1fa678: eb09011f     	cmp	x8, x9
+  1fa67c: 540000a1     	b.ne	0x1fa690 <SW::SAM::writePowerOnAutoPreviousTask(bool)+0xfc>
+  1fa680: aa1403e0     	mov	x0, x20
+  1fa684: 94031b43     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1fa688: aa1303e0     	mov	x0, x19
+  1fa68c: 94030b7e     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1fa690: 94031ac8     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001fa694 <SW::SAM::readAutoShutdownSec()>:
+  1fa694: d10143ff     	sub	sp, sp, #0x50
+  1fa698: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  1fa69c: a90357f6     	stp	x22, x21, [sp, #0x30]
+  1fa6a0: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  1fa6a4: 910083fd     	add	x29, sp, #0x20
+  1fa6a8: d53bd056     	mrs	x22, TPIDR_EL0
+  1fa6ac: aa0803f3     	mov	x19, x8
+  1fa6b0: aa0003f5     	mov	x21, x0
+  1fa6b4: f94016c8     	ldr	x8, [x22, #0x28]
+  1fa6b8: f81f83a8     	stur	x8, [x29, #-0x8]
+  1fa6bc: 940322ad     	bl	0x2c3170 <_ZN11QThreadPool14globalInstanceEv@plt>  ;;; CALL QThreadPool::globalInstance()
+  1fa6c0: f90007e0     	str	x0, [sp, #0x8]
+  1fa6c4: 52800500     	mov	w0, #0x28               // =40
+  1fa6c8: b90013ff     	str	wzr, [sp, #0x10]
+  1fa6cc: 94031a8d     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  1fa6d0: f00006e8     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  1fa6d4: aa0003f4     	mov	x20, x0
+  1fa6d8: 52800029     	mov	w9, #0x1                // =1
+  1fa6dc: f940d508     	ldr	x8, [x8, #0x1a8]
+  1fa6e0: 39002009     	strb	w9, [x0, #0x8]
+  1fa6e4: 91004108     	add	x8, x8, #0x10
+  1fa6e8: f8010408     	str	x8, [x0], #0x10
+  1fa6ec: 2a1f03e1     	mov	w1, wzr
+  1fa6f0: 94031b40     	bl	0x2c13f0 <_ZN20QFutureInterfaceBaseC2ENS_5StateE@plt>  ;;; CALL QFutureInterfaceBase::QFutureInterfaceBase(QFutureInterfaceBase::State)
+  1fa6f4: d00006e8     	adrp	x8, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1fa6f8: 91004280     	add	x0, x20, #0x10
+  1fa6fc: f9473108     	ldr	x8, [x8, #0xe60]
+  1fa700: 91004108     	add	x8, x8, #0x10
+  1fa704: f9000a88     	str	x8, [x20, #0x10]
+  1fa708: 94031b3e     	bl	0x2c1400 <_ZNK20QFutureInterfaceBase4refTEv@plt>  ;;; CALL QFutureInterfaceBase::refT() const
+  1fa70c: d00006a8     	adrp	x8, 0x2d0000 <vtable for SW::TaskProfileList+0x90>
+  1fa710: 91362108     	add	x8, x8, #0xd88
+  1fa714: 910023e1     	add	x1, sp, #0x8
+  1fa718: f9000288     	str	x8, [x20]
+  1fa71c: aa1303e8     	mov	x8, x19
+  1fa720: aa1403e0     	mov	x0, x20
+  1fa724: f9001295     	str	x21, [x20, #0x20]
+  1fa728: 9403229e     	bl	0x2c31a0 <_ZN12QtConcurrent19RunFunctionTaskBaseI4QMapI7QString8QVariantEE5startERKNS_19TaskStartParametersE@plt>  ;;; CALL QtConcurrent::RunFunctionTaskBase<QMap<QString, QVariant>>::start(QtConcurrent::TaskStartParameters const&)
+  1fa72c: f94016c8     	ldr	x8, [x22, #0x28]
+  1fa730: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1fa734: eb09011f     	cmp	x8, x9
+  1fa738: 54000221     	b.ne	0x1fa77c <SW::SAM::readAutoShutdownSec()+0xe8>
+  1fa73c: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  1fa740: a94357f6     	ldp	x22, x21, [sp, #0x30]
+  1fa744: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1fa748: 910143ff     	add	sp, sp, #0x50
+  1fa74c: d65f03c0     	ret
+  1fa750: aa0003f3     	mov	x19, x0
+  1fa754: aa1403e0     	mov	x0, x20
+  1fa758: 9403228e     	bl	0x2c3190 <_ZN9QRunnableD2Ev@plt>  ;;; CALL QRunnable::~QRunnable()
+  1fa75c: f94016c8     	ldr	x8, [x22, #0x28]
+  1fa760: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1fa764: eb09011f     	cmp	x8, x9
+  1fa768: 540000a1     	b.ne	0x1fa77c <SW::SAM::readAutoShutdownSec()+0xe8>
+  1fa76c: aa1403e0     	mov	x0, x20
+  1fa770: 94031b08     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1fa774: aa1303e0     	mov	x0, x19
+  1fa778: 94030b43     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1fa77c: 94031a8d     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001fa780 <SW::SAM::writeAutoShutdownSec(unsigned int)>:
+  1fa780: d10183ff     	sub	sp, sp, #0x60
+  1fa784: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  1fa788: f9001bf7     	str	x23, [sp, #0x30]
+  1fa78c: a90457f6     	stp	x22, x21, [sp, #0x40]
+  1fa790: a9054ff4     	stp	x20, x19, [sp, #0x50]
+  1fa794: 910083fd     	add	x29, sp, #0x20
+  1fa798: d53bd057     	mrs	x23, TPIDR_EL0
+  1fa79c: aa0803f3     	mov	x19, x8
+  1fa7a0: 2a0103f5     	mov	w21, w1
+  1fa7a4: f94016e8     	ldr	x8, [x23, #0x28]
+  1fa7a8: aa0003f6     	mov	x22, x0
+  1fa7ac: f81f83a8     	stur	x8, [x29, #-0x8]
+  1fa7b0: 94032270     	bl	0x2c3170 <_ZN11QThreadPool14globalInstanceEv@plt>  ;;; CALL QThreadPool::globalInstance()
+  1fa7b4: f90007e0     	str	x0, [sp, #0x8]
+  1fa7b8: 52800600     	mov	w0, #0x30               // =48
+  1fa7bc: b90013ff     	str	wzr, [sp, #0x10]
+  1fa7c0: 94031a50     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  1fa7c4: f00006e8     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  1fa7c8: aa0003f4     	mov	x20, x0
+  1fa7cc: 52800029     	mov	w9, #0x1                // =1
+  1fa7d0: f940d108     	ldr	x8, [x8, #0x1a0]
+  1fa7d4: 39002009     	strb	w9, [x0, #0x8]
+  1fa7d8: 91004108     	add	x8, x8, #0x10
+  1fa7dc: f8010408     	str	x8, [x0], #0x10
+  1fa7e0: 2a1f03e1     	mov	w1, wzr
+  1fa7e4: 94031b03     	bl	0x2c13f0 <_ZN20QFutureInterfaceBaseC2ENS_5StateE@plt>  ;;; CALL QFutureInterfaceBase::QFutureInterfaceBase(QFutureInterfaceBase::State)
+  1fa7e8: d00006e8     	adrp	x8, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1fa7ec: 91004280     	add	x0, x20, #0x10
+  1fa7f0: f943ed08     	ldr	x8, [x8, #0x7d8]
+  1fa7f4: 91004108     	add	x8, x8, #0x10
+  1fa7f8: f9000a88     	str	x8, [x20, #0x10]
+  1fa7fc: 94031b01     	bl	0x2c1400 <_ZNK20QFutureInterfaceBase4refTEv@plt>  ;;; CALL QFutureInterfaceBase::refT() const
+  1fa800: d00006a8     	adrp	x8, 0x2d0000 <vtable for SW::TaskProfileList+0x90>
+  1fa804: 91374108     	add	x8, x8, #0xdd0
+  1fa808: 910023e1     	add	x1, sp, #0x8
+  1fa80c: f9000288     	str	x8, [x20]
+  1fa810: aa1303e8     	mov	x8, x19
+  1fa814: aa1403e0     	mov	x0, x20
+  1fa818: f9001296     	str	x22, [x20, #0x20]
+  1fa81c: b9002a95     	str	w21, [x20, #0x28]
+  1fa820: 94032258     	bl	0x2c3180 <_ZN12QtConcurrent19RunFunctionTaskBaseIN2SW6CmdRetEE5startERKNS_19TaskStartParametersE@plt>  ;;; CALL QtConcurrent::RunFunctionTaskBase<SW::CmdRet>::start(QtConcurrent::TaskStartParameters const&)
+  1fa824: f94016e8     	ldr	x8, [x23, #0x28]
+  1fa828: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1fa82c: eb09011f     	cmp	x8, x9
+  1fa830: 54000241     	b.ne	0x1fa878 <SW::SAM::writeAutoShutdownSec(unsigned int)+0xf8>
+  1fa834: a9454ff4     	ldp	x20, x19, [sp, #0x50]
+  1fa838: f9401bf7     	ldr	x23, [sp, #0x30]
+  1fa83c: a94457f6     	ldp	x22, x21, [sp, #0x40]
+  1fa840: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  1fa844: 910183ff     	add	sp, sp, #0x60
+  1fa848: d65f03c0     	ret
+  1fa84c: aa0003f3     	mov	x19, x0
+  1fa850: aa1403e0     	mov	x0, x20
+  1fa854: 9403224f     	bl	0x2c3190 <_ZN9QRunnableD2Ev@plt>  ;;; CALL QRunnable::~QRunnable()
+  1fa858: f94016e8     	ldr	x8, [x23, #0x28]
+  1fa85c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1fa860: eb09011f     	cmp	x8, x9
+  1fa864: 540000a1     	b.ne	0x1fa878 <SW::SAM::writeAutoShutdownSec(unsigned int)+0xf8>
+  1fa868: aa1403e0     	mov	x0, x20
+  1fa86c: 94031ac9     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1fa870: aa1303e0     	mov	x0, x19
+  1fa874: 94030b04     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1fa878: 94031a4e     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001fa87c <SW::SAM::isSAWifi()>:
+  1fa87c: f9400800     	ldr	x0, [x0, #0x10]
+  1fa880: f9400008     	ldr	x8, [x0]
+  1fa884: f9409101     	ldr	x1, [x8, #0x120]
+  1fa888: d61f0020     	br	x1
+
+00000000001fa88c <SW::SAM::hasPolarSightLight()>:
+  1fa88c: f9400800     	ldr	x0, [x0, #0x10]
+  1fa890: f9400008     	ldr	x8, [x0]
+  1fa894: f9409501     	ldr	x1, [x8, #0x128]
+  1fa898: d61f0020     	br	x1
+
+00000000001fa89c <SW::SAM::hasAutoShutdown()>:
+  1fa89c: f9400800     	ldr	x0, [x0, #0x10]
+  1fa8a0: f9400008     	ldr	x8, [x0]
+  1fa8a4: f9409901     	ldr	x1, [x8, #0x130]
+  1fa8a8: d61f0020     	br	x1
+
+00000000001fa8ac <SW::SAM::hasDithering()>:
+  1fa8ac: f9400800     	ldr	x0, [x0, #0x10]
+  1fa8b0: f9400008     	ldr	x8, [x0]
+  1fa8b4: f9409d01     	ldr	x1, [x8, #0x138]
+  1fa8b8: d61f0020     	br	x1
+
+00000000001fa8bc <SW::SAM::slewAxisAsync(double)>:
+  1fa8bc: d10303ff     	sub	sp, sp, #0xc0
+  1fa8c0: a90a7bfd     	stp	x29, x30, [sp, #0xa0]
+  1fa8c4: a90b4ff4     	stp	x20, x19, [sp, #0xb0]
+  1fa8c8: 910283fd     	add	x29, sp, #0xa0
+  1fa8cc: d53bd054     	mrs	x20, TPIDR_EL0
+  1fa8d0: aa0003f3     	mov	x19, x0
+  1fa8d4: f9401688     	ldr	x8, [x20, #0x28]
+  1fa8d8: 1e602008     	fcmp	d0, #0.0
+  1fa8dc: f81f83a8     	stur	x8, [x29, #-0x8]
+  1fa8e0: f9401800     	ldr	x0, [x0, #0x30]
+  1fa8e4: f9400008     	ldr	x8, [x0]
+  1fa8e8: 540004a0     	b.eq	0x1fa97c <SW::SAM::slewAxisAsync(double)+0xc0>
+  1fa8ec: f9400909     	ldr	x9, [x8, #0x10]
+  1fa8f0: 910083e8     	add	x8, sp, #0x20
+  1fa8f4: 2a1f03e1     	mov	w1, wzr
+  1fa8f8: 2a1f03e2     	mov	w2, wzr
+  1fa8fc: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  1fa900: a94223e9     	ldp	x9, x8, [sp, #0x20]
+  1fa904: f9401273     	ldr	x19, [x19, #0x20]
+  1fa908: a90023e9     	stp	x9, x8, [sp]
+  1fa90c: b4000088     	cbz	x8, 0x1fa91c <SW::SAM::slewAxisAsync(double)+0x60>
+  1fa910: 91002101     	add	x1, x8, #0x8
+  1fa914: 52800020     	mov	w0, #0x1                // =1
+  1fa918: 94030a76     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1fa91c: f9400268     	ldr	x8, [x19]
+  1fa920: f81e03bf     	stur	xzr, [x29, #-0x20]
+  1fa924: f9002bff     	str	xzr, [sp, #0x50]
+  1fa928: f9401909     	ldr	x9, [x8, #0x30]
+  1fa92c: 910043e8     	add	x8, sp, #0x10
+  1fa930: 910003e1     	mov	x1, sp
+  1fa934: d10103a2     	sub	x2, x29, #0x40
+  1fa938: 9100c3e3     	add	x3, sp, #0x30
+  1fa93c: aa1303e0     	mov	x0, x19
+  1fa940: 9100c3f3     	add	x19, sp, #0x30
+  1fa944: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  1fa948: f9400ff3     	ldr	x19, [sp, #0x18]
+  1fa94c: b40000b3     	cbz	x19, 0x1fa960 <SW::SAM::slewAxisAsync(double)+0xa4>
+  1fa950: 91002261     	add	x1, x19, #0x8
+  1fa954: 92800000     	mov	x0, #-0x1               // =-1
+  1fa958: 94030a72     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1fa95c: b4000220     	cbz	x0, 0x1fa9a0 <SW::SAM::slewAxisAsync(double)+0xe4>
+  1fa960: f9402be0     	ldr	x0, [sp, #0x50]
+  1fa964: 9100c3e8     	add	x8, sp, #0x30
+  1fa968: eb08001f     	cmp	x0, x8
+  1fa96c: 540002e0     	b.eq	0x1fa9c8 <SW::SAM::slewAxisAsync(double)+0x10c>
+  1fa970: b4000360     	cbz	x0, 0x1fa9dc <SW::SAM::slewAxisAsync(double)+0x120>
+  1fa974: 52800508     	mov	w8, #0x28               // =40
+  1fa978: 14000016     	b	0x1fa9d0 <SW::SAM::slewAxisAsync(double)+0x114>
+  1fa97c: f9400d09     	ldr	x9, [x8, #0x18]
+  1fa980: 910083e8     	add	x8, sp, #0x20
+  1fa984: 2a1f03e1     	mov	w1, wzr
+  1fa988: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  1fa98c: a94223e9     	ldp	x9, x8, [sp, #0x20]
+  1fa990: f9401273     	ldr	x19, [x19, #0x20]
+  1fa994: a90023e9     	stp	x9, x8, [sp]
+  1fa998: b5fffbc8     	cbnz	x8, 0x1fa910 <SW::SAM::slewAxisAsync(double)+0x54>
+  1fa99c: 17ffffe0     	b	0x1fa91c <SW::SAM::slewAxisAsync(double)+0x60>
+  1fa9a0: f9400268     	ldr	x8, [x19]
+  1fa9a4: aa1303e0     	mov	x0, x19
+  1fa9a8: f9400908     	ldr	x8, [x8, #0x10]
+  1fa9ac: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1fa9b0: aa1303e0     	mov	x0, x19
+  1fa9b4: 940319f3     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1fa9b8: f9402be0     	ldr	x0, [sp, #0x50]
+  1fa9bc: 9100c3e8     	add	x8, sp, #0x30
+  1fa9c0: eb08001f     	cmp	x0, x8
+  1fa9c4: 54fffd61     	b.ne	0x1fa970 <SW::SAM::slewAxisAsync(double)+0xb4>
+  1fa9c8: 52800408     	mov	w8, #0x20               // =32
+  1fa9cc: 9100c3e0     	add	x0, sp, #0x30
+  1fa9d0: f9400009     	ldr	x9, [x0]
+  1fa9d4: f8686928     	ldr	x8, [x9, x8]
+  1fa9d8: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1fa9dc: f85e03a0     	ldur	x0, [x29, #-0x20]
+  1fa9e0: d10103a8     	sub	x8, x29, #0x40
+  1fa9e4: eb08001f     	cmp	x0, x8
+  1fa9e8: 54000080     	b.eq	0x1fa9f8 <SW::SAM::slewAxisAsync(double)+0x13c>
+  1fa9ec: b4000100     	cbz	x0, 0x1faa0c <SW::SAM::slewAxisAsync(double)+0x150>
+  1fa9f0: 52800508     	mov	w8, #0x28               // =40
+  1fa9f4: 14000003     	b	0x1faa00 <SW::SAM::slewAxisAsync(double)+0x144>
+  1fa9f8: 52800408     	mov	w8, #0x20               // =32
+  1fa9fc: d10103a0     	sub	x0, x29, #0x40
+  1faa00: f9400009     	ldr	x9, [x0]
+  1faa04: f8686928     	ldr	x8, [x9, x8]
+  1faa08: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1faa0c: f94007f3     	ldr	x19, [sp, #0x8]
+  1faa10: b4000173     	cbz	x19, 0x1faa3c <SW::SAM::slewAxisAsync(double)+0x180>
+  1faa14: 91002261     	add	x1, x19, #0x8
+  1faa18: 92800000     	mov	x0, #-0x1               // =-1
+  1faa1c: 94030a41     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1faa20: b50000e0     	cbnz	x0, 0x1faa3c <SW::SAM::slewAxisAsync(double)+0x180>
+  1faa24: f9400268     	ldr	x8, [x19]
+  1faa28: aa1303e0     	mov	x0, x19
+  1faa2c: f9400908     	ldr	x8, [x8, #0x10]
+  1faa30: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1faa34: aa1303e0     	mov	x0, x19
+  1faa38: 940319d2     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1faa3c: f94017f3     	ldr	x19, [sp, #0x28]
+  1faa40: b4000173     	cbz	x19, 0x1faa6c <SW::SAM::slewAxisAsync(double)+0x1b0>
+  1faa44: 91002261     	add	x1, x19, #0x8
+  1faa48: 92800000     	mov	x0, #-0x1               // =-1
+  1faa4c: 94030a35     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1faa50: b50000e0     	cbnz	x0, 0x1faa6c <SW::SAM::slewAxisAsync(double)+0x1b0>
+  1faa54: f9400268     	ldr	x8, [x19]
+  1faa58: aa1303e0     	mov	x0, x19
+  1faa5c: f9400908     	ldr	x8, [x8, #0x10]
+  1faa60: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1faa64: aa1303e0     	mov	x0, x19
+  1faa68: 940319c6     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1faa6c: f9401688     	ldr	x8, [x20, #0x28]
+  1faa70: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1faa74: eb09011f     	cmp	x8, x9
+  1faa78: 54000501     	b.ne	0x1fab18 <SW::SAM::slewAxisAsync(double)+0x25c>
+  1faa7c: a94b4ff4     	ldp	x20, x19, [sp, #0xb0]
+  1faa80: a94a7bfd     	ldp	x29, x30, [sp, #0xa0]
+  1faa84: 910303ff     	add	sp, sp, #0xc0
+  1faa88: d65f03c0     	ret
+  1faa8c: f9402be8     	ldr	x8, [sp, #0x50]
+  1faa90: eb13011f     	cmp	x8, x19
+  1faa94: aa0003f3     	mov	x19, x0
+  1faa98: 54000081     	b.ne	0x1faaa8 <SW::SAM::slewAxisAsync(double)+0x1ec>
+  1faa9c: 52800409     	mov	w9, #0x20               // =32
+  1faaa0: 9100c3e8     	add	x8, sp, #0x30
+  1faaa4: 14000003     	b	0x1faab0 <SW::SAM::slewAxisAsync(double)+0x1f4>
+  1faaa8: b40000c8     	cbz	x8, 0x1faac0 <SW::SAM::slewAxisAsync(double)+0x204>
+  1faaac: 52800509     	mov	w9, #0x28               // =40
+  1faab0: f940010a     	ldr	x10, [x8]
+  1faab4: aa0803e0     	mov	x0, x8
+  1faab8: f8696949     	ldr	x9, [x10, x9]
+  1faabc: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  1faac0: f85e03a0     	ldur	x0, [x29, #-0x20]
+  1faac4: d10103a8     	sub	x8, x29, #0x40
+  1faac8: eb08001f     	cmp	x0, x8
+  1faacc: 54000081     	b.ne	0x1faadc <SW::SAM::slewAxisAsync(double)+0x220>
+  1faad0: 52800408     	mov	w8, #0x20               // =32
+  1faad4: d10103a0     	sub	x0, x29, #0x40
+  1faad8: 14000003     	b	0x1faae4 <SW::SAM::slewAxisAsync(double)+0x228>
+  1faadc: b40000a0     	cbz	x0, 0x1faaf0 <SW::SAM::slewAxisAsync(double)+0x234>
+  1faae0: 52800508     	mov	w8, #0x28               // =40
+  1faae4: f9400009     	ldr	x9, [x0]
+  1faae8: f8686928     	ldr	x8, [x9, x8]
+  1faaec: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1faaf0: 910003e0     	mov	x0, sp
+  1faaf4: 9400000a     	bl	0x1fab1c <std::__ndk1::shared_ptr<SW::IMountTask>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::IMountTask
+  1faaf8: 910083e0     	add	x0, sp, #0x20
+  1faafc: 94000008     	bl	0x1fab1c <std::__ndk1::shared_ptr<SW::IMountTask>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::IMountTask
+  1fab00: f9401688     	ldr	x8, [x20, #0x28]
+  1fab04: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1fab08: eb09011f     	cmp	x8, x9
+  1fab0c: 54000061     	b.ne	0x1fab18 <SW::SAM::slewAxisAsync(double)+0x25c>
+  1fab10: aa1303e0     	mov	x0, x19
+  1fab14: 94030a5c     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1fab18: 940319a6     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001fab6c <SW::SAM::lastAxis1()>:
+  1fab6c: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  1fab70: f9000bf3     	str	x19, [sp, #0x10]
+  1fab74: 910003fd     	mov	x29, sp
+  1fab78: aa0003f3     	mov	x19, x0
+  1fab7c: f9402000     	ldr	x0, [x0, #0x40]
+  1fab80: 2a1f03e1     	mov	w1, wzr
+  1fab84: f9400008     	ldr	x8, [x0]
+  1fab88: f9402108     	ldr	x8, [x8, #0x40]
+  1fab8c: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1fab90: 9e670001     	fmov	d1, x0
+  1fab94: fd407a60     	ldr	d0, [x19, #0xf0]
+  1fab98: 1e603820     	fsub	d0, d1, d0
+  1fab9c: f9400bf3     	ldr	x19, [sp, #0x10]
+  1faba0: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  1faba4: d65f03c0     	ret
+
+00000000001faba8 <SW::SAM::periodicPositionRead()>:
+  1faba8: f9407008     	ldr	x8, [x0, #0xe0]
+  1fabac: f100011f     	cmp	x8, #0x0
+  1fabb0: 1a9f07e0     	cset	w0, ne
+  1fabb4: d65f03c0     	ret
+
+00000000001fabb8 <SW::SAM::setPeriodicPositionRead(bool)>:
+  1fabb8: d10303ff     	sub	sp, sp, #0xc0
+  1fabbc: a9097bfd     	stp	x29, x30, [sp, #0x90]
+  1fabc0: a90a57f6     	stp	x22, x21, [sp, #0xa0]
+  1fabc4: a90b4ff4     	stp	x20, x19, [sp, #0xb0]
+  1fabc8: 910243fd     	add	x29, sp, #0x90
+  1fabcc: d53bd055     	mrs	x21, TPIDR_EL0
+  1fabd0: 2a0103f4     	mov	w20, w1
+  1fabd4: aa0003f3     	mov	x19, x0
+  1fabd8: f94016a8     	ldr	x8, [x21, #0x28]
+  1fabdc: 12000036     	and	w22, w1, #0x1
+  1fabe0: f81f83a8     	stur	x8, [x29, #-0x8]
+  1fabe4: f9400008     	ldr	x8, [x0]  ; vptr of SW::SAM
+  1fabe8: f9409508     	ldr	x8, [x8, #0x128]  ; -> SW::SAM::periodicPositionRead()
+  1fabec: d63f0100     	blr	x8  ;;; CALL SW::SAM::periodicPositionRead()
+  1fabf0: 12000008     	and	w8, w0, #0x1
+  1fabf4: 6b16011f     	cmp	w8, w22
+  1fabf8: 54000c20     	b.eq	0x1fad7c <SW::SAM::setPeriodicPositionRead(bool)+0x1c4>
+  1fabfc: 360005f4     	tbz	w20, #0x0, 0x1facb8 <SW::SAM::setPeriodicPositionRead(bool)+0x100>
+  1fac00: a9452269     	ldp	x9, x8, [x19, #0x50]
+  1fac04: f9401274     	ldr	x20, [x19, #0x20]
+  1fac08: a90023e9     	stp	x9, x8, [sp]
+  1fac0c: b4000088     	cbz	x8, 0x1fac1c <SW::SAM::setPeriodicPositionRead(bool)+0x64>
+  1fac10: 91002101     	add	x1, x8, #0x8
+  1fac14: 52800020     	mov	w0, #0x1                // =1
+  1fac18: 940309b6     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1fac1c: f9400288     	ldr	x8, [x20]
+  1fac20: f81e03bf     	stur	xzr, [x29, #-0x20]
+  1fac24: f90023ff     	str	xzr, [sp, #0x40]
+  1fac28: f9401909     	ldr	x9, [x8, #0x30]
+  1fac2c: 910043e8     	add	x8, sp, #0x10
+  1fac30: 910003e1     	mov	x1, sp
+  1fac34: d10103a2     	sub	x2, x29, #0x40
+  1fac38: 910083e3     	add	x3, sp, #0x20
+  1fac3c: aa1403e0     	mov	x0, x20
+  1fac40: 910083f4     	add	x20, sp, #0x20
+  1fac44: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  1fac48: 3dc007e0     	ldr	q0, [sp, #0x10]
+  1fac4c: f9407674     	ldr	x20, [x19, #0xe8]
+  1fac50: a9017fff     	stp	xzr, xzr, [sp, #0x10]
+  1fac54: 3d803a60     	str	q0, [x19, #0xe0]
+  1fac58: b4000174     	cbz	x20, 0x1fac84 <SW::SAM::setPeriodicPositionRead(bool)+0xcc>
+  1fac5c: 91002281     	add	x1, x20, #0x8
+  1fac60: 92800000     	mov	x0, #-0x1               // =-1
+  1fac64: 940309af     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1fac68: b50000e0     	cbnz	x0, 0x1fac84 <SW::SAM::setPeriodicPositionRead(bool)+0xcc>
+  1fac6c: f9400288     	ldr	x8, [x20]
+  1fac70: aa1403e0     	mov	x0, x20
+  1fac74: f9400908     	ldr	x8, [x8, #0x10]
+  1fac78: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1fac7c: aa1403e0     	mov	x0, x20
+  1fac80: 94031940     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1fac84: f9400ff4     	ldr	x20, [sp, #0x18]
+  1fac88: b40000b4     	cbz	x20, 0x1fac9c <SW::SAM::setPeriodicPositionRead(bool)+0xe4>
+  1fac8c: 91002281     	add	x1, x20, #0x8
+  1fac90: 92800000     	mov	x0, #-0x1               // =-1
+  1fac94: 940309a3     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1fac98: b4000200     	cbz	x0, 0x1facd8 <SW::SAM::setPeriodicPositionRead(bool)+0x120>
+  1fac9c: f94023e0     	ldr	x0, [sp, #0x40]
+  1faca0: 910083e8     	add	x8, sp, #0x20
+  1faca4: eb08001f     	cmp	x0, x8
+  1faca8: 540002c0     	b.eq	0x1fad00 <SW::SAM::setPeriodicPositionRead(bool)+0x148>
+  1facac: b4000340     	cbz	x0, 0x1fad14 <SW::SAM::setPeriodicPositionRead(bool)+0x15c>
+  1facb0: 52800508     	mov	w8, #0x28               // =40
+  1facb4: 14000015     	b	0x1fad08 <SW::SAM::setPeriodicPositionRead(bool)+0x150>
+  1facb8: f9407260     	ldr	x0, [x19, #0xe0]
+  1facbc: f9400008     	ldr	x8, [x0]
+  1facc0: f9400908     	ldr	x8, [x8, #0x10]
+  1facc4: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1facc8: f9407674     	ldr	x20, [x19, #0xe8]
+  1faccc: a90e7e7f     	stp	xzr, xzr, [x19, #0xe0]
+  1facd0: b50003f4     	cbnz	x20, 0x1fad4c <SW::SAM::setPeriodicPositionRead(bool)+0x194>
+  1facd4: 14000028     	b	0x1fad74 <SW::SAM::setPeriodicPositionRead(bool)+0x1bc>
+  1facd8: f9400288     	ldr	x8, [x20]
+  1facdc: aa1403e0     	mov	x0, x20
+  1face0: f9400908     	ldr	x8, [x8, #0x10]
+  1face4: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1face8: aa1403e0     	mov	x0, x20
+  1facec: 94031925     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1facf0: f94023e0     	ldr	x0, [sp, #0x40]
+  1facf4: 910083e8     	add	x8, sp, #0x20
+  1facf8: eb08001f     	cmp	x0, x8
+  1facfc: 54fffd81     	b.ne	0x1facac <SW::SAM::setPeriodicPositionRead(bool)+0xf4>
+  1fad00: 52800408     	mov	w8, #0x20               // =32
+  1fad04: 910083e0     	add	x0, sp, #0x20
+  1fad08: f9400009     	ldr	x9, [x0]
+  1fad0c: f8686928     	ldr	x8, [x9, x8]
+  1fad10: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1fad14: f85e03a0     	ldur	x0, [x29, #-0x20]
+  1fad18: d10103a8     	sub	x8, x29, #0x40
+  1fad1c: eb08001f     	cmp	x0, x8
+  1fad20: 54000080     	b.eq	0x1fad30 <SW::SAM::setPeriodicPositionRead(bool)+0x178>
+  1fad24: b4000100     	cbz	x0, 0x1fad44 <SW::SAM::setPeriodicPositionRead(bool)+0x18c>
+  1fad28: 52800508     	mov	w8, #0x28               // =40
+  1fad2c: 14000003     	b	0x1fad38 <SW::SAM::setPeriodicPositionRead(bool)+0x180>
+  1fad30: 52800408     	mov	w8, #0x20               // =32
+  1fad34: d10103a0     	sub	x0, x29, #0x40
+  1fad38: f9400009     	ldr	x9, [x0]
+  1fad3c: f8686928     	ldr	x8, [x9, x8]
+  1fad40: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1fad44: f94007f4     	ldr	x20, [sp, #0x8]
+  1fad48: b4000174     	cbz	x20, 0x1fad74 <SW::SAM::setPeriodicPositionRead(bool)+0x1bc>
+  1fad4c: 91002281     	add	x1, x20, #0x8
+  1fad50: 92800000     	mov	x0, #-0x1               // =-1
+  1fad54: 94030973     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1fad58: b50000e0     	cbnz	x0, 0x1fad74 <SW::SAM::setPeriodicPositionRead(bool)+0x1bc>
+  1fad5c: f9400288     	ldr	x8, [x20]
+  1fad60: aa1403e0     	mov	x0, x20
+  1fad64: f9400908     	ldr	x8, [x8, #0x10]
+  1fad68: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1fad6c: aa1403e0     	mov	x0, x20
+  1fad70: 94031904     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1fad74: aa1303e0     	mov	x0, x19
+  1fad78: 94031ebe     	bl	0x2c2870 <_ZN2SW4ISAM15propertyChangedEv@plt>  ;;; CALL SW::ISAM::propertyChanged()
+  1fad7c: f94016a8     	ldr	x8, [x21, #0x28]
+  1fad80: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1fad84: eb09011f     	cmp	x8, x9
+  1fad88: 540004e1     	b.ne	0x1fae24 <SW::SAM::setPeriodicPositionRead(bool)+0x26c>
+  1fad8c: a94b4ff4     	ldp	x20, x19, [sp, #0xb0]
+  1fad90: a94a57f6     	ldp	x22, x21, [sp, #0xa0]
+  1fad94: a9497bfd     	ldp	x29, x30, [sp, #0x90]
+  1fad98: 910303ff     	add	sp, sp, #0xc0
+  1fad9c: d65f03c0     	ret
+  1fada0: f94023e8     	ldr	x8, [sp, #0x40]
+  1fada4: aa0003f3     	mov	x19, x0
+  1fada8: eb14011f     	cmp	x8, x20
+  1fadac: 54000081     	b.ne	0x1fadbc <SW::SAM::setPeriodicPositionRead(bool)+0x204>
+  1fadb0: 52800409     	mov	w9, #0x20               // =32
+  1fadb4: 910083e8     	add	x8, sp, #0x20
+  1fadb8: 14000003     	b	0x1fadc4 <SW::SAM::setPeriodicPositionRead(bool)+0x20c>
+  1fadbc: b40000c8     	cbz	x8, 0x1fadd4 <SW::SAM::setPeriodicPositionRead(bool)+0x21c>
+  1fadc0: 52800509     	mov	w9, #0x28               // =40
+  1fadc4: f940010a     	ldr	x10, [x8]
+  1fadc8: aa0803e0     	mov	x0, x8
+  1fadcc: f8696949     	ldr	x9, [x10, x9]
+  1fadd0: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  1fadd4: f85e03a0     	ldur	x0, [x29, #-0x20]
+  1fadd8: d10103a8     	sub	x8, x29, #0x40
+  1faddc: eb08001f     	cmp	x0, x8
+  1fade0: 54000081     	b.ne	0x1fadf0 <SW::SAM::setPeriodicPositionRead(bool)+0x238>
+  1fade4: 52800408     	mov	w8, #0x20               // =32
+  1fade8: d10103a0     	sub	x0, x29, #0x40
+  1fadec: 14000003     	b	0x1fadf8 <SW::SAM::setPeriodicPositionRead(bool)+0x240>
+  1fadf0: b40000a0     	cbz	x0, 0x1fae04 <SW::SAM::setPeriodicPositionRead(bool)+0x24c>
+  1fadf4: 52800508     	mov	w8, #0x28               // =40
+  1fadf8: f9400009     	ldr	x9, [x0]
+  1fadfc: f8686928     	ldr	x8, [x9, x8]
+  1fae00: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1fae04: 910003e0     	mov	x0, sp
+  1fae08: 97ffff45     	bl	0x1fab1c <std::__ndk1::shared_ptr<SW::IMountTask>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::IMountTask
+  1fae0c: f94016a8     	ldr	x8, [x21, #0x28]
+  1fae10: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1fae14: eb09011f     	cmp	x8, x9
+  1fae18: 54000061     	b.ne	0x1fae24 <SW::SAM::setPeriodicPositionRead(bool)+0x26c>
+  1fae1c: aa1303e0     	mov	x0, x19
+  1fae20: 94030999     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1fae24: 940318e3     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001fae28 <SW::SAM::tareLastAxis1()>:
+  1fae28: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  1fae2c: f9000bf3     	str	x19, [sp, #0x10]
+  1fae30: 910003fd     	mov	x29, sp
+  1fae34: aa0003f3     	mov	x19, x0
+  1fae38: f9402000     	ldr	x0, [x0, #0x40]
+  1fae3c: 2a1f03e1     	mov	w1, wzr
+  1fae40: f9400008     	ldr	x8, [x0]
+  1fae44: f9402108     	ldr	x8, [x8, #0x40]
+  1fae48: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1fae4c: aa0003e8     	mov	x8, x0
+  1fae50: aa1303e0     	mov	x0, x19
+  1fae54: f9007a68     	str	x8, [x19, #0xf0]
+  1fae58: f9400bf3     	ldr	x19, [sp, #0x10]
+  1fae5c: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  1fae60: 14031e88     	b	0x2c2880 <_ZN2SW4ISAM15positionChangedEv@plt>
+

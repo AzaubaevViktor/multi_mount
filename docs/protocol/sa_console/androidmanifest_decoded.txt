@@ -1,0 +1,34 @@
+<manifest #1310740="minSdkVersion" #4294967295="#268435464" 2.6.4="#50331656" #4294967295="#268435464" #4294967295="#268435464" 15="#50331656" com.skywatcher.samini="#50331656" #4294967295="#268435464">
+  <uses-sdk #1310740="name" #4294967295="#268435464">
+  </uses-sdk>
+  <uses-permission #1310740="icon">
+  </uses-permission>
+  <uses-permission #1310740="icon">
+  </uses-permission>
+  <uses-permission #1310740="icon">
+  </uses-permission>
+  <uses-permission #1310740="icon">
+  </uses-permission>
+  <supports-screens #1310740="launchMode" #4294967295="#301989896" #4294967295="#301989896" #4294967295="#301989896">
+  </supports-screens>
+  <uses-permission #1310740="icon">
+  </uses-permission>
+  <uses-permission #1310740="icon">
+  </uses-permission>
+  <application #1310740="versionName" #4294967295="#16777224" #4294967295="#16777224" org.qtproject.qt.android.bindings.QtApplication="#50331656" #4294967295="#301989896" #4294967295="#301989896" #4294967295="#301989896" #4294967295="#301989896" androidx.core.app.CoreComponentFactory="#50331656" #4294967295="#301989896">
+    <activity #1310740="configChanges" #4294967295="#16777224" org.qtproject.qt.android.bindings.QtActivity="#50331656" #4294967295="#301989896" #4294967295="#268435464" #4294967295="#268435464">
+      <intent-filter>
+        <action #1310740="icon">
+        </action>
+        <category #1310740="icon">
+        </category>
+      </intent-filter>
+      <meta-data #1310740="name" android.app.lib_name="#50331656">
+      </meta-data>
+      <meta-data #1310740="name" android.app.arguments="#50331656">
+      </meta-data>
+      <meta-data #1310740="name" android.app.extract_android_style="#50331656">
+      </meta-data>
+    </activity>
+  </application>
+</manifest>

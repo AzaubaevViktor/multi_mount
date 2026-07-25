@@ -1,0 +1,422 @@
+0000000000255a9c <SW::AndroidSerialPort::close()>:
+  255a9c: d10183ff     	sub	sp, sp, #0x60
+  255aa0: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  255aa4: f9001bf7     	str	x23, [sp, #0x30]
+  255aa8: a90457f6     	stp	x22, x21, [sp, #0x40]
+  255aac: a9054ff4     	stp	x20, x19, [sp, #0x50]
+  255ab0: 910083fd     	add	x29, sp, #0x20
+  255ab4: d53bd056     	mrs	x22, TPIDR_EL0
+  255ab8: aa0003f3     	mov	x19, x0
+  255abc: 91002000     	add	x0, x0, #0x8
+  255ac0: f94016c8     	ldr	x8, [x22, #0x28]
+  255ac4: f81f83a8     	stur	x8, [x29, #-0x8]
+  255ac8: 9401bc8a     	bl	0x2c4cf0 <_ZNK10QJniObject7isValidEv@plt>  ;;; CALL QJniObject::isValid() const
+  255acc: 36000120     	tbz	w0, #0x0, 0x255af0 <SW::AndroidSerialPort::close()+0x54>
+  255ad0: 52852508     	mov	w8, #0x2928             // =10536
+  255ad4: d0fff3a1     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  255ad8: 9131e021     	add	x1, x1, #0xc78
+  255adc: 72a00ac8     	movk	w8, #0x56, lsl #16
+  255ae0: 91002260     	add	x0, x19, #0x8
+  255ae4: 910023e2     	add	x2, sp, #0x8
+  255ae8: b9000be8     	str	w8, [sp, #0x8]
+  255aec: 9401bf09     	bl	0x2c5710 <_ZNK10QJniObject10callMethodIvJEEEDaPKcS2_DpOT0_@plt>  ;;; CALL auto QJniObject::callMethod<void>(char const*, char const*) const
+  255af0: 910023e0     	add	x0, sp, #0x8
+  255af4: 9401bbdf     	bl	0x2c4a70 <_ZN10QJniObjectC1Ev@plt>  ;;; CALL QJniObject::QJniObject()
+  255af8: a940d7f7     	ldp	x23, x21, [sp, #0x8]
+  255afc: b40000f5     	cbz	x21, 0x255b18 <SW::AndroidSerialPort::close()+0x7c>
+  255b00: 52800020     	mov	w0, #0x1                // =1
+  255b04: aa1503e1     	mov	x1, x21
+  255b08: 94019dee     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  255b0c: 910012a1     	add	x1, x21, #0x4
+  255b10: 52800020     	mov	w0, #0x1                // =1
+  255b14: 94019deb     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  255b18: f9400a74     	ldr	x20, [x19, #0x10]
+  255b1c: a900d677     	stp	x23, x21, [x19, #0x8]
+  255b20: b4000214     	cbz	x20, 0x255b60 <SW::AndroidSerialPort::close()+0xc4>
+  255b24: 91001281     	add	x1, x20, #0x4
+  255b28: 12800000     	mov	w0, #-0x1               // =-1
+  255b2c: 94019de5     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  255b30: 7100041f     	cmp	w0, #0x1
+  255b34: 54000081     	b.ne	0x255b44 <SW::AndroidSerialPort::close()+0xa8>
+  255b38: f9400688     	ldr	x8, [x20, #0x8]
+  255b3c: aa1403e0     	mov	x0, x20
+  255b40: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  255b44: 12800000     	mov	w0, #-0x1               // =-1
+  255b48: aa1403e1     	mov	x1, x20
+  255b4c: 94019ddd     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  255b50: 7100041f     	cmp	w0, #0x1
+  255b54: 54000061     	b.ne	0x255b60 <SW::AndroidSerialPort::close()+0xc4>
+  255b58: aa1403e0     	mov	x0, x20
+  255b5c: 9401ae0d     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  255b60: 910023e0     	add	x0, sp, #0x8
+  255b64: 9401bc3f     	bl	0x2c4c60 <_ZN10QJniObjectD1Ev@plt>  ;;; CALL QJniObject::~QJniObject()
+  255b68: f94016c8     	ldr	x8, [x22, #0x28]
+  255b6c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  255b70: eb09011f     	cmp	x8, x9
+  255b74: 540000e1     	b.ne	0x255b90 <SW::AndroidSerialPort::close()+0xf4>
+  255b78: a9454ff4     	ldp	x20, x19, [sp, #0x50]
+  255b7c: f9401bf7     	ldr	x23, [sp, #0x30]
+  255b80: a94457f6     	ldp	x22, x21, [sp, #0x40]
+  255b84: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  255b88: 910183ff     	add	sp, sp, #0x60
+  255b8c: d65f03c0     	ret
+  255b90: 9401ad88     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+  255b94: 97fd8e5e     	bl	0x1b950c <__clang_call_terminate>  ;;; CALL __clang_call_terminate
+
+0000000000255bbc <SW::AndroidSerialPort::open()>:
+  255bbc: d101c3ff     	sub	sp, sp, #0x70
+  255bc0: a9037bfd     	stp	x29, x30, [sp, #0x30]
+  255bc4: f90023f7     	str	x23, [sp, #0x40]
+  255bc8: a90557f6     	stp	x22, x21, [sp, #0x50]
+  255bcc: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  255bd0: 9100c3fd     	add	x29, sp, #0x30
+  255bd4: d53bd056     	mrs	x22, TPIDR_EL0
+  255bd8: aa0003f3     	mov	x19, x0
+  255bdc: f94016c8     	ldr	x8, [x22, #0x28]
+  255be0: f81f83a8     	stur	x8, [x29, #-0x8]
+  255be4: f9400008     	ldr	x8, [x0]
+  255be8: f9400d08     	ldr	x8, [x8, #0x18]
+  255bec: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  255bf0: 37000760     	tbnz	w0, #0x0, 0x255cdc <SW::AndroidSerialPort::open()+0x120>
+  255bf4: 9401bc0b     	bl	0x2c4c20 <_ZN16QNativeInterface19QAndroidApplication7contextEv@plt>  ;;; CALL QNativeInterface::QAndroidApplication::context()
+  255bf8: aa0003e1     	mov	x1, x0
+  255bfc: 910043e0     	add	x0, sp, #0x10
+  255c00: 9401bc0c     	bl	0x2c4c30 <_ZN10QJniObjectC2EP8_jobject@plt>  ;;; CALL QJniObject::QJniObject(_jobject*)
+  255c04: f0fff3a1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  255c08: 912c4c21     	add	x1, x1, #0xb13
+  255c0c: 910003e0     	mov	x0, sp
+  255c10: 9401bec8     	bl	0x2c5730 <_ZN10QJniObjectC1EPKc@plt>  ;;; CALL QJniObject::QJniObject(char const*)
+  255c14: 910043e0     	add	x0, sp, #0x10
+  255c18: 9401bc0a     	bl	0x2c4c40 <_ZNK10QJniObject6objectEv@plt>  ;;; CALL QJniObject::object() const
+  255c1c: f81f03a0     	stur	x0, [x29, #-0x10]
+  255c20: d0fff3a1     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  255c24: 91131821     	add	x1, x1, #0x4c6
+  255c28: d0fff3a2     	adrp	x2, 0xcb000 <vsnprintf+0xcb000>
+  255c2c: 913bb042     	add	x2, x2, #0xeec
+  255c30: 910003e0     	mov	x0, sp
+  255c34: d10043a3     	sub	x3, x29, #0x10
+  255c38: 9401bec2     	bl	0x2c5740 <_ZNK10QJniObject10callMethodIvJP8_jobjectEEEDaPKcS4_DpOT0_@plt>  ;;; CALL auto QJniObject::callMethod<void, _jobject*>(char const*, char const*, _jobject*&&) const
+  255c3c: 52852508     	mov	w8, #0x2928             // =10536
+  255c40: 72a00b48     	movk	w8, #0x5a, lsl #16
+  255c44: b81f03a8     	stur	w8, [x29, #-0x10]
+  255c48: 90fff3c1     	adrp	x1, 0xcd000 <vsnprintf+0xcd000>
+  255c4c: 910e8c21     	add	x1, x1, #0x3a3
+  255c50: 910003e0     	mov	x0, sp
+  255c54: d10043a2     	sub	x2, x29, #0x10
+  255c58: 9401bebe     	bl	0x2c5750 <_ZNK10QJniObject10callMethodIhJEEEDaPKcS2_DpOT0_@plt>  ;;; CALL auto QJniObject::callMethod<unsigned char>(char const*, char const*) const
+  255c5c: 72001c1f     	tst	w0, #0xff
+  255c60: 54000360     	b.eq	0x255ccc <SW::AndroidSerialPort::open()+0x110>
+  255c64: a94057f7     	ldp	x23, x21, [sp]
+  255c68: b40000f5     	cbz	x21, 0x255c84 <SW::AndroidSerialPort::open()+0xc8>
+  255c6c: 52800020     	mov	w0, #0x1                // =1
+  255c70: aa1503e1     	mov	x1, x21
+  255c74: 94019d93     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  255c78: 910012a1     	add	x1, x21, #0x4
+  255c7c: 52800020     	mov	w0, #0x1                // =1
+  255c80: 94019d90     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  255c84: f9400a74     	ldr	x20, [x19, #0x10]
+  255c88: a900d677     	stp	x23, x21, [x19, #0x8]
+  255c8c: b4000214     	cbz	x20, 0x255ccc <SW::AndroidSerialPort::open()+0x110>
+  255c90: 91001281     	add	x1, x20, #0x4
+  255c94: 12800000     	mov	w0, #-0x1               // =-1
+  255c98: 94019d8a     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  255c9c: 7100041f     	cmp	w0, #0x1
+  255ca0: 54000081     	b.ne	0x255cb0 <SW::AndroidSerialPort::open()+0xf4>
+  255ca4: f9400688     	ldr	x8, [x20, #0x8]
+  255ca8: aa1403e0     	mov	x0, x20
+  255cac: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  255cb0: 12800000     	mov	w0, #-0x1               // =-1
+  255cb4: aa1403e1     	mov	x1, x20
+  255cb8: 94019d82     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  255cbc: 7100041f     	cmp	w0, #0x1
+  255cc0: 54000061     	b.ne	0x255ccc <SW::AndroidSerialPort::open()+0x110>
+  255cc4: aa1403e0     	mov	x0, x20
+  255cc8: 9401adb2     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  255ccc: 910003e0     	mov	x0, sp
+  255cd0: 9401bbe4     	bl	0x2c4c60 <_ZN10QJniObjectD1Ev@plt>  ;;; CALL QJniObject::~QJniObject()
+  255cd4: 910043e0     	add	x0, sp, #0x10
+  255cd8: 9401bbe2     	bl	0x2c4c60 <_ZN10QJniObjectD1Ev@plt>  ;;; CALL QJniObject::~QJniObject()
+  255cdc: f94016c8     	ldr	x8, [x22, #0x28]
+  255ce0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  255ce4: eb09011f     	cmp	x8, x9
+  255ce8: 540002e1     	b.ne	0x255d44 <SW::AndroidSerialPort::open()+0x188>
+  255cec: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  255cf0: f94023f7     	ldr	x23, [sp, #0x40]
+  255cf4: a94557f6     	ldp	x22, x21, [sp, #0x50]
+  255cf8: a9437bfd     	ldp	x29, x30, [sp, #0x30]
+  255cfc: 9101c3ff     	add	sp, sp, #0x70
+  255d00: d65f03c0     	ret
+  255d04: 97fd8e02     	bl	0x1b950c <__clang_call_terminate>  ;;; CALL __clang_call_terminate
+  255d08: 14000004     	b	0x255d18 <SW::AndroidSerialPort::open()+0x15c>
+  255d0c: aa0003f3     	mov	x19, x0
+  255d10: 14000005     	b	0x255d24 <SW::AndroidSerialPort::open()+0x168>
+  255d14: 97fd8dfe     	bl	0x1b950c <__clang_call_terminate>  ;;; CALL __clang_call_terminate
+  255d18: aa0003f3     	mov	x19, x0
+  255d1c: 910003e0     	mov	x0, sp
+  255d20: 9401bbd0     	bl	0x2c4c60 <_ZN10QJniObjectD1Ev@plt>  ;;; CALL QJniObject::~QJniObject()
+  255d24: 910043e0     	add	x0, sp, #0x10
+  255d28: 9401bbce     	bl	0x2c4c60 <_ZN10QJniObjectD1Ev@plt>  ;;; CALL QJniObject::~QJniObject()
+  255d2c: f94016c8     	ldr	x8, [x22, #0x28]
+  255d30: f85f83a9     	ldur	x9, [x29, #-0x8]
+  255d34: eb09011f     	cmp	x8, x9
+  255d38: 54000061     	b.ne	0x255d44 <SW::AndroidSerialPort::open()+0x188>
+  255d3c: aa1303e0     	mov	x0, x19
+  255d40: 94019dd1     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  255d44: 9401ad1b     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000255e2c <SW::AndroidSerialPort::valid()>:
+  255e2c: 91002000     	add	x0, x0, #0x8
+  255e30: 1401bbb0     	b	0x2c4cf0 <_ZNK10QJniObject7isValidEv@plt>
+
+0000000000255e34 <SW::AndroidSerialPort::write(SW::CBytes const&)>:
+  255e34: d10143ff     	sub	sp, sp, #0x50
+  255e38: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  255e3c: a90357f6     	stp	x22, x21, [sp, #0x30]
+  255e40: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  255e44: 910083fd     	add	x29, sp, #0x20
+  255e48: d53bd056     	mrs	x22, TPIDR_EL0
+  255e4c: aa0003f3     	mov	x19, x0
+  255e50: aa0103f4     	mov	x20, x1
+  255e54: f94016c8     	ldr	x8, [x22, #0x28]
+  255e58: f81f83a8     	stur	x8, [x29, #-0x8]
+  255e5c: f9400008     	ldr	x8, [x0]
+  255e60: f9400d08     	ldr	x8, [x8, #0x18]
+  255e64: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  255e68: 36000560     	tbz	w0, #0x0, 0x255f14 <SW::AndroidSerialPort::write(SW::CBytes const&)+0xe0>
+  255e6c: 910043e0     	add	x0, sp, #0x10
+  255e70: 9401bb80     	bl	0x2c4c70 <_ZN15QJniEnvironmentC1Ev@plt>  ;;; CALL QJniEnvironment::QJniEnvironment()
+  255e74: 910043e0     	add	x0, sp, #0x10
+  255e78: 9401be42     	bl	0x2c5780 <_ZNK15QJniEnvironmentptEv@plt>  ;;; CALL QJniEnvironment::operator->() const
+  255e7c: f9400008     	ldr	x8, [x0]
+  255e80: b9400a89     	ldr	w9, [x20, #0x8]
+  255e84: b940028a     	ldr	w10, [x20]
+  255e88: f942c108     	ldr	x8, [x8, #0x580]
+  255e8c: 4b0a0121     	sub	w1, w9, w10
+  255e90: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  255e94: aa0003f5     	mov	x21, x0
+  255e98: f90007e0     	str	x0, [sp, #0x8]
+  255e9c: 910043e0     	add	x0, sp, #0x10
+  255ea0: 9401be38     	bl	0x2c5780 <_ZNK15QJniEnvironmentptEv@plt>  ;;; CALL QJniEnvironment::operator->() const
+  255ea4: a9402289     	ldp	x9, x8, [x20]
+  255ea8: f940000a     	ldr	x10, [x0]
+  255eac: f943414a     	ldr	x10, [x10, #0x680]
+  255eb0: eb09011f     	cmp	x8, x9
+  255eb4: 4b090103     	sub	w3, w8, w9
+  255eb8: 9a8903e4     	csel	x4, xzr, x9, eq
+  255ebc: aa1503e1     	mov	x1, x21
+  255ec0: 2a1f03e2     	mov	w2, wzr
+  255ec4: d63f0140     	blr	x10  ;;; CALL <indirect x10>
+  255ec8: d0fff3a1     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  255ecc: 911c7421     	add	x1, x1, #0x71d
+  255ed0: d0fff3a2     	adrp	x2, 0xcb000 <vsnprintf+0xcb000>
+  255ed4: 9131c842     	add	x2, x2, #0xc72
+  255ed8: 91002260     	add	x0, x19, #0x8
+  255edc: 910023e3     	add	x3, sp, #0x8
+  255ee0: 9401be2c     	bl	0x2c5790 <_ZNK10QJniObject10callMethodIhJRP11_jbyteArrayEEEDaPKcS5_DpOT0_@plt>  ;;; CALL auto QJniObject::callMethod<unsigned char, _jbyteArray*&>(char const*, char const*, _jbyteArray*&) const
+  255ee4: 2a0003f3     	mov	w19, w0
+  255ee8: 910043e0     	add	x0, sp, #0x10
+  255eec: 9401be25     	bl	0x2c5780 <_ZNK15QJniEnvironmentptEv@plt>  ;;; CALL QJniEnvironment::operator->() const
+  255ef0: f9400008     	ldr	x8, [x0]
+  255ef4: f94007e1     	ldr	x1, [sp, #0x8]
+  255ef8: f9405d08     	ldr	x8, [x8, #0xb8]
+  255efc: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  255f00: 72001e7f     	tst	w19, #0xff
+  255f04: 910043e0     	add	x0, sp, #0x10
+  255f08: 1a9f07f3     	cset	w19, ne
+  255f0c: 9401bb69     	bl	0x2c4cb0 <_ZN15QJniEnvironmentD1Ev@plt>  ;;; CALL QJniEnvironment::~QJniEnvironment()
+  255f10: 14000002     	b	0x255f18 <SW::AndroidSerialPort::write(SW::CBytes const&)+0xe4>
+  255f14: 2a1f03f3     	mov	w19, wzr
+  255f18: f94016c8     	ldr	x8, [x22, #0x28]
+  255f1c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  255f20: eb09011f     	cmp	x8, x9
+  255f24: 54000221     	b.ne	0x255f68 <SW::AndroidSerialPort::write(SW::CBytes const&)+0x134>
+  255f28: 2a1303e0     	mov	w0, w19
+  255f2c: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  255f30: a94357f6     	ldp	x22, x21, [sp, #0x30]
+  255f34: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  255f38: 910143ff     	add	sp, sp, #0x50
+  255f3c: d65f03c0     	ret
+  255f40: 14000001     	b	0x255f44 <SW::AndroidSerialPort::write(SW::CBytes const&)+0x110>
+  255f44: aa0003f3     	mov	x19, x0
+  255f48: 910043e0     	add	x0, sp, #0x10
+  255f4c: 9401bb59     	bl	0x2c4cb0 <_ZN15QJniEnvironmentD1Ev@plt>  ;;; CALL QJniEnvironment::~QJniEnvironment()
+  255f50: f94016c8     	ldr	x8, [x22, #0x28]
+  255f54: f85f83a9     	ldur	x9, [x29, #-0x8]
+  255f58: eb09011f     	cmp	x8, x9
+  255f5c: 54000061     	b.ne	0x255f68 <SW::AndroidSerialPort::write(SW::CBytes const&)+0x134>
+  255f60: aa1303e0     	mov	x0, x19
+  255f64: 94019d48     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  255f68: 9401ac92     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000256098 <SW::AndroidSerialPort::readByte(unsigned int, char&)>:
+  256098: d10103ff     	sub	sp, sp, #0x40
+  25609c: a9017bfd     	stp	x29, x30, [sp, #0x10]
+  2560a0: a90257f6     	stp	x22, x21, [sp, #0x20]
+  2560a4: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  2560a8: 910043fd     	add	x29, sp, #0x10
+  2560ac: d53bd056     	mrs	x22, TPIDR_EL0
+  2560b0: aa0203f3     	mov	x19, x2
+  2560b4: aa0003f4     	mov	x20, x0
+  2560b8: f94016c8     	ldr	x8, [x22, #0x28]
+  2560bc: 2a0103f5     	mov	w21, w1
+  2560c0: f90007e8     	str	x8, [sp, #0x8]
+  2560c4: f9400008     	ldr	x8, [x0]
+  2560c8: f9400d08     	ldr	x8, [x8, #0x18]
+  2560cc: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  2560d0: 36000260     	tbz	w0, #0x0, 0x25611c <SW::AndroidSerialPort::readByte(unsigned int, char&)+0x84>
+  2560d4: d0fff3a1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  2560d8: 91396421     	add	x1, x1, #0xe59
+  2560dc: b0fff3a2     	adrp	x2, 0xcb000 <vsnprintf+0xcb000>
+  2560e0: 912ee842     	add	x2, x2, #0xbba
+  2560e4: 91002280     	add	x0, x20, #0x8
+  2560e8: 910013e3     	add	x3, sp, #0x4
+  2560ec: b90007f5     	str	w21, [sp, #0x4]
+  2560f0: 9401bdb0     	bl	0x2c57b0 <_ZNK10QJniObject10callMethodIsJiEEEDaPKcS2_DpOT0_@plt>  ;;; CALL auto QJniObject::callMethod<short, int>(char const*, char const*, int&&) const
+  2560f4: 12003c08     	and	w8, w0, #0xffff
+  2560f8: 7103fd1f     	cmp	w8, #0xff
+  2560fc: 54000108     	b.hi	0x25611c <SW::AndroidSerialPort::readByte(unsigned int, char&)+0x84>
+  256100: 39000260     	strb	w0, [x19]
+  256104: 52800020     	mov	w0, #0x1                // =1
+  256108: f94016c8     	ldr	x8, [x22, #0x28]
+  25610c: f94007e9     	ldr	x9, [sp, #0x8]
+  256110: eb09011f     	cmp	x8, x9
+  256114: 540000e0     	b.eq	0x256130 <SW::AndroidSerialPort::readByte(unsigned int, char&)+0x98>
+  256118: 9401ac26     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+  25611c: 2a1f03e0     	mov	w0, wzr
+  256120: f94016c8     	ldr	x8, [x22, #0x28]
+  256124: f94007e9     	ldr	x9, [sp, #0x8]
+  256128: eb09011f     	cmp	x8, x9
+  25612c: 54ffff61     	b.ne	0x256118 <SW::AndroidSerialPort::readByte(unsigned int, char&)+0x80>
+  256130: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  256134: a94257f6     	ldp	x22, x21, [sp, #0x20]
+  256138: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+  25613c: 910103ff     	add	sp, sp, #0x40
+  256140: d65f03c0     	ret
+
+0000000000256270 <SW::AndroidSerialPort::clearReadBuffer()>:
+  256270: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  256274: f9000bf3     	str	x19, [sp, #0x10]
+  256278: 910003fd     	mov	x29, sp
+  25627c: f9400008     	ldr	x8, [x0]
+  256280: aa0003f3     	mov	x19, x0
+  256284: f9400d08     	ldr	x8, [x8, #0x18]
+  256288: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  25628c: 36000120     	tbz	w0, #0x0, 0x2562b0 <SW::AndroidSerialPort::clearReadBuffer()+0x40>
+  256290: d0fff3a1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  256294: 9113d421     	add	x1, x1, #0x4f5
+  256298: d0fff3a2     	adrp	x2, 0xcc000 <vsnprintf+0xcc000>
+  25629c: 9102c842     	add	x2, x2, #0xb2
+  2562a0: 91002260     	add	x0, x19, #0x8
+  2562a4: f9400bf3     	ldr	x19, [sp, #0x10]
+  2562a8: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2562ac: 1401bd29     	b	0x2c5750 <_ZNK10QJniObject10callMethodIhJEEEDaPKcS2_DpOT0_@plt>
+  2562b0: f9400bf3     	ldr	x19, [sp, #0x10]
+  2562b4: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2562b8: d65f03c0     	ret
+
+00000000002563d8 <SW::AndroidSerialPort::setBaudRate(unsigned int)>:
+  2563d8: d10103ff     	sub	sp, sp, #0x40
+  2563dc: a9017bfd     	stp	x29, x30, [sp, #0x10]
+  2563e0: f90013f5     	str	x21, [sp, #0x20]
+  2563e4: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  2563e8: 910043fd     	add	x29, sp, #0x10
+  2563ec: d53bd055     	mrs	x21, TPIDR_EL0
+  2563f0: aa0003f3     	mov	x19, x0
+  2563f4: 2a0103f4     	mov	w20, w1
+  2563f8: f94016a8     	ldr	x8, [x21, #0x28]
+  2563fc: f90007e8     	str	x8, [sp, #0x8]
+  256400: f9400008     	ldr	x8, [x0]
+  256404: f9400d08     	ldr	x8, [x8, #0x18]
+  256408: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  25640c: 36000180     	tbz	w0, #0x0, 0x25643c <SW::AndroidSerialPort::setBaudRate(unsigned int)+0x64>
+  256410: b0fff3a1     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  256414: 911c8c21     	add	x1, x1, #0x723
+  256418: b0fff3a2     	adrp	x2, 0xcb000 <vsnprintf+0xcb000>
+  25641c: 912a3042     	add	x2, x2, #0xa8c
+  256420: 91002260     	add	x0, x19, #0x8
+  256424: 910013e3     	add	x3, sp, #0x4
+  256428: b90007f4     	str	w20, [sp, #0x4]
+  25642c: 9401bce9     	bl	0x2c57d0 <_ZNK10QJniObject10callMethodIhJiEEEDaPKcS2_DpOT0_@plt>  ;;; CALL auto QJniObject::callMethod<unsigned char, int>(char const*, char const*, int&&) const
+  256430: 72001c1f     	tst	w0, #0xff
+  256434: 1a9f07e0     	cset	w0, ne
+  256438: 14000002     	b	0x256440 <SW::AndroidSerialPort::setBaudRate(unsigned int)+0x68>
+  25643c: 2a1f03e0     	mov	w0, wzr
+  256440: f94016a8     	ldr	x8, [x21, #0x28]
+  256444: f94007e9     	ldr	x9, [sp, #0x8]
+  256448: eb09011f     	cmp	x8, x9
+  25644c: 540000c1     	b.ne	0x256464 <SW::AndroidSerialPort::setBaudRate(unsigned int)+0x8c>
+  256450: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  256454: f94013f5     	ldr	x21, [sp, #0x20]
+  256458: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+  25645c: 910103ff     	add	sp, sp, #0x40
+  256460: d65f03c0     	ret
+  256464: 9401ab53     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000256594 <SW::AndroidSerialPort::setRTS(bool)>:
+  256594: d10103ff     	sub	sp, sp, #0x40
+  256598: a9017bfd     	stp	x29, x30, [sp, #0x10]
+  25659c: f90013f5     	str	x21, [sp, #0x20]
+  2565a0: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  2565a4: 910043fd     	add	x29, sp, #0x10
+  2565a8: d53bd055     	mrs	x21, TPIDR_EL0
+  2565ac: aa0003f3     	mov	x19, x0
+  2565b0: 2a0103f4     	mov	w20, w1
+  2565b4: f94016a8     	ldr	x8, [x21, #0x28]
+  2565b8: f90007e8     	str	x8, [sp, #0x8]
+  2565bc: f9400008     	ldr	x8, [x0]
+  2565c0: f9400d08     	ldr	x8, [x8, #0x18]
+  2565c4: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  2565c8: 360001a0     	tbz	w0, #0x0, 0x2565fc <SW::AndroidSerialPort::setRTS(bool)+0x68>
+  2565cc: 12000288     	and	w8, w20, #0x1
+  2565d0: d0fff3a1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  2565d4: 9108ac21     	add	x1, x1, #0x22b
+  2565d8: b0fff3a2     	adrp	x2, 0xcb000 <vsnprintf+0xcb000>
+  2565dc: 9135b042     	add	x2, x2, #0xd6c
+  2565e0: 91002260     	add	x0, x19, #0x8
+  2565e4: 910013e3     	add	x3, sp, #0x4
+  2565e8: 390013e8     	strb	w8, [sp, #0x4]
+  2565ec: 9401bc7d     	bl	0x2c57e0 <_ZNK10QJniObject10callMethodIhJhEEEDaPKcS2_DpOT0_@plt>  ;;; CALL auto QJniObject::callMethod<unsigned char, unsigned char>(char const*, char const*, unsigned char&&) const
+  2565f0: 72001c1f     	tst	w0, #0xff
+  2565f4: 1a9f07e0     	cset	w0, ne
+  2565f8: 14000002     	b	0x256600 <SW::AndroidSerialPort::setRTS(bool)+0x6c>
+  2565fc: 2a1f03e0     	mov	w0, wzr
+  256600: f94016a8     	ldr	x8, [x21, #0x28]
+  256604: f94007e9     	ldr	x9, [sp, #0x8]
+  256608: eb09011f     	cmp	x8, x9
+  25660c: 540000c1     	b.ne	0x256624 <SW::AndroidSerialPort::setRTS(bool)+0x90>
+  256610: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  256614: f94013f5     	ldr	x21, [sp, #0x20]
+  256618: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+  25661c: 910103ff     	add	sp, sp, #0x40
+  256620: d65f03c0     	ret
+  256624: 9401aae3     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000256754 <SW::AndroidSerialPort::isCTSSet(bool&)>:
+  256754: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  256758: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  25675c: 910003fd     	mov	x29, sp
+  256760: f9400008     	ldr	x8, [x0]
+  256764: aa0003f4     	mov	x20, x0
+  256768: aa0103f3     	mov	x19, x1
+  25676c: f9400d08     	ldr	x8, [x8, #0x18]
+  256770: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  256774: 360001e0     	tbz	w0, #0x0, 0x2567b0 <SW::AndroidSerialPort::isCTSSet(bool&)+0x5c>
+  256778: b0fff3a1     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  25677c: 913c9021     	add	x1, x1, #0xf24
+  256780: d0fff3a2     	adrp	x2, 0xcc000 <vsnprintf+0xcc000>
+  256784: 9102d842     	add	x2, x2, #0xb6
+  256788: 91002280     	add	x0, x20, #0x8
+  25678c: 9401bc19     	bl	0x2c57f0 <_ZNK10QJniObject10callMethodIaJEEEDaPKcS2_DpOT0_@plt>  ;;; CALL auto QJniObject::callMethod<signed char>(char const*, char const*) const
+  256790: 12001c08     	and	w8, w0, #0xff
+  256794: 7100051f     	cmp	w8, #0x1
+  256798: 540000c8     	b.hi	0x2567b0 <SW::AndroidSerialPort::isCTSSet(bool&)+0x5c>
+  25679c: 39000260     	strb	w0, [x19]
+  2567a0: 52800020     	mov	w0, #0x1                // =1
+  2567a4: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2567a8: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2567ac: d65f03c0     	ret
+  2567b0: 2a1f03e0     	mov	w0, wzr
+  2567b4: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2567b8: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2567bc: d65f03c0     	ret
+

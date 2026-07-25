@@ -1,0 +1,762 @@
+00000000002510a0 <SW::MountTaskManager::Impl::lastTask(SW::MountResource)>:
+  2510a0: a9bc7bfd     	stp	x29, x30, [sp, #-0x40]!
+  2510a4: f9000bf7     	str	x23, [sp, #0x10]
+  2510a8: a90257f6     	stp	x22, x21, [sp, #0x20]
+  2510ac: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  2510b0: 910003fd     	mov	x29, sp
+  2510b4: aa0003f3     	mov	x19, x0
+  2510b8: 9101c000     	add	x0, x0, #0x70
+  2510bc: 2a0103f4     	mov	w20, w1
+  2510c0: 9401c478     	bl	0x2c22a0 <_ZNSt6__ndk15mutex4lockEv@plt>  ;;; CALL std::__ndk1::mutex::lock()
+  2510c4: aa1303f7     	mov	x23, x19
+  2510c8: f84d0ee8     	ldr	x8, [x23, #0xd0]!
+  2510cc: b50000c8     	cbnz	x8, 0x2510e4 <SW::MountTaskManager::Impl::lastTask(SW::MountResource)+0x44>
+  2510d0: aa1703f6     	mov	x22, x23
+  2510d4: 1400000c     	b	0x251104 <SW::MountTaskManager::Impl::lastTask(SW::MountResource)+0x64>
+  2510d8: f94002c8     	ldr	x8, [x22]  ; vptr of SW::MountTaskManager
+  2510dc: aa1603f7     	mov	x23, x22
+  2510e0: b4000128     	cbz	x8, 0x251104 <SW::MountTaskManager::Impl::lastTask(SW::MountResource)+0x64>
+  2510e4: aa0803f6     	mov	x22, x8
+  2510e8: b9401d08     	ldr	w8, [x8, #0x1c]  ; -> <SW::MountTaskManager vt+0x1c>
+  2510ec: 6b14011f     	cmp	w8, w20
+  2510f0: 54ffff4c     	b.gt	0x2510d8 <SW::MountTaskManager::Impl::lastTask(SW::MountResource)+0x38>
+  2510f4: 540002ea     	b.ge	0x251150 <SW::MountTaskManager::Impl::lastTask(SW::MountResource)+0xb0>
+  2510f8: f94006c8     	ldr	x8, [x22, #0x8]  ; -> SW::MountTaskManager::~MountTaskManager()
+  2510fc: b5ffff48     	cbnz	x8, 0x2510e4 <SW::MountTaskManager::Impl::lastTask(SW::MountResource)+0x44>
+  251100: 910022d7     	add	x23, x22, #0x8
+  251104: 52800500     	mov	w0, #0x28               // =40
+  251108: 9401bffe     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  25110c: a9007c1f     	stp	xzr, xzr, [x0]
+  251110: aa0003f5     	mov	x21, x0
+  251114: aa0003e1     	mov	x1, x0
+  251118: f9000816     	str	x22, [x0, #0x10]
+  25111c: f90002e0     	str	x0, [x23]
+  251120: f9406668     	ldr	x8, [x19, #0xc8]
+  251124: 2903fc14     	stp	w20, wzr, [x0, #0x1c]
+  251128: f9400108     	ldr	x8, [x8]
+  25112c: b4000068     	cbz	x8, 0x251138 <SW::MountTaskManager::Impl::lastTask(SW::MountResource)+0x98>
+  251130: f9006668     	str	x8, [x19, #0xc8]
+  251134: f94002e1     	ldr	x1, [x23]
+  251138: f9406a60     	ldr	x0, [x19, #0xd0]
+  25113c: 97feadf1     	bl	0x1fc900 <void std::__ndk1::__tree_balance_after_insert[abi:ne190000]<std::__ndk1::__tree_node_base<void*>*>(std::__ndk1::__tree_node_base<void*>*, std::__ndk1::__tree_node_base<void*>*)>  ;;; CALL void std::__ndk1::__tree_balance_after_insert[abi:ne190000]<std::__ndk1::__tree_node_base<void*
+  251140: f9406e68     	ldr	x8, [x19, #0xd8]
+  251144: 91000508     	add	x8, x8, #0x1
+  251148: f9006e68     	str	x8, [x19, #0xd8]
+  25114c: 14000002     	b	0x251154 <SW::MountTaskManager::Impl::lastTask(SW::MountResource)+0xb4>
+  251150: aa1603f5     	mov	x21, x22
+  251154: b94022b4     	ldr	w20, [x21, #0x20]  ; -> SW::MountTaskManager::kvLoad(SW::MountResource, int)
+  251158: 9101c260     	add	x0, x19, #0x70
+  25115c: 9401c459     	bl	0x2c22c0 <_ZNSt6__ndk15mutex6unlockEv@plt>  ;;; CALL std::__ndk1::mutex::unlock()
+  251160: 2a1403e0     	mov	w0, w20
+  251164: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  251168: f9400bf7     	ldr	x23, [sp, #0x10]
+  25116c: a94257f6     	ldp	x22, x21, [sp, #0x20]
+  251170: a8c47bfd     	ldp	x29, x30, [sp], #0x40
+  251174: d65f03c0     	ret
+  251178: aa0003f4     	mov	x20, x0
+  25117c: 9101c260     	add	x0, x19, #0x70
+  251180: 9401c450     	bl	0x2c22c0 <_ZNSt6__ndk15mutex6unlockEv@plt>  ;;; CALL std::__ndk1::mutex::unlock()
+  251184: aa1403e0     	mov	x0, x20
+  251188: 9401b0bf     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000025118c <SW::MountTaskManager::Impl::lastTasks()>:
+  25118c: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  251190: f9000bf5     	str	x21, [sp, #0x10]
+  251194: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  251198: 910003fd     	mov	x29, sp
+  25119c: aa0003f3     	mov	x19, x0
+  2511a0: 9101c000     	add	x0, x0, #0x70
+  2511a4: aa0803f4     	mov	x20, x8
+  2511a8: 9401c43e     	bl	0x2c22a0 <_ZNSt6__ndk15mutex4lockEv@plt>  ;;; CALL std::__ndk1::mutex::lock()
+  2511ac: f9406661     	ldr	x1, [x19, #0xc8]
+  2511b0: aa1403e8     	mov	x8, x20
+  2511b4: f9000a9f     	str	xzr, [x20, #0x10]
+  2511b8: f8008d1f     	str	xzr, [x8, #0x8]!
+  2511bc: f9000288     	str	x8, [x20]
+  2511c0: 91034262     	add	x2, x19, #0xd0
+  2511c4: aa1403e0     	mov	x0, x20
+  2511c8: 9401d102     	bl	0x2c55d0 <_ZNSt6__ndk13mapIN2SW13MountResourceENS1_11MountTaskIDENS_4lessIS2_EENS_9allocatorINS_4pairIKS2_S3_EEEEE6insertB8ne190000INS_20__map_const_iteratorINS_21__tree_const_iteratorINS_12__value_typeIS2_S3_EEPNS_11__tree_nodeISG_PvEElEEEEEEvT_SN_@plt>  ;;; CALL void std::__ndk1::map<SW::MountResource, SW::MountTaskID, std::__ndk1::less<SW::MountResource>, std::__ndk1::allocator<std::__ndk1::pair<SW::MountResource const, SW::MountTaskID>>>::insert[abi:ne190000]<std::__ndk1::__map_const_iterator<std::__ndk1::__tree_const_iterator<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>, std::__ndk1::__tree_node<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>, void*>*, long>>>(std::__ndk1::__map_const_iterator<std::__ndk1::__tree_const_iterator<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>, std::__ndk1::__tree_node<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>, void*>*, long>>, std::__ndk1::__map_const_iterator<std::__ndk1::__tree_const_iterator<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>, std::__ndk1::__tree_node<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>, void*>*, long>>)
+  2511cc: 9101c260     	add	x0, x19, #0x70
+  2511d0: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  2511d4: f9400bf5     	ldr	x21, [sp, #0x10]
+  2511d8: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  2511dc: 1401c439     	b	0x2c22c0 <_ZNSt6__ndk15mutex6unlockEv@plt>
+  2511e0: f9400681     	ldr	x1, [x20, #0x8]
+  2511e4: aa0003f5     	mov	x21, x0
+  2511e8: aa1403e0     	mov	x0, x20
+  2511ec: 94000a1d     	bl	0x253a60 <std::__ndk1::__tree<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>, std::__ndk1::__map_value_compare<SW::MountResource, std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>, std::__ndk1::less<SW::MountResource>, true>, std::__ndk1::allocator<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>>>::destroy(std::__ndk1::__tree_node<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>, void*>*)>  ;;; CALL std::__ndk1::__tree<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID
+  2511f0: 9101c260     	add	x0, x19, #0x70
+  2511f4: 9401c433     	bl	0x2c22c0 <_ZNSt6__ndk15mutex6unlockEv@plt>  ;;; CALL std::__ndk1::mutex::unlock()
+  2511f8: aa1503e0     	mov	x0, x21
+  2511fc: 9401b0a2     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000025226c <SW::MountTaskManager::Impl::cancelAll()>:
+  25226c: a9bc7bfd     	stp	x29, x30, [sp, #-0x40]!
+  252270: f9000bf7     	str	x23, [sp, #0x10]
+  252274: a90257f6     	stp	x22, x21, [sp, #0x20]
+  252278: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  25227c: 910003fd     	mov	x29, sp
+  252280: aa0003f3     	mov	x19, x0
+  252284: 9101c000     	add	x0, x0, #0x70
+  252288: 9401c006     	bl	0x2c22a0 <_ZNSt6__ndk15mutex4lockEv@plt>  ;;; CALL std::__ndk1::mutex::lock()
+  25228c: f9406268     	ldr	x8, [x19, #0xc0]
+  252290: b4000148     	cbz	x8, 0x2522b8 <SW::MountTaskManager::Impl::cancelAll()+0x4c>
+  252294: a94b5268     	ldp	x8, x20, [x19, #0xb0]
+  252298: 9102c276     	add	x22, x19, #0xb0
+  25229c: f900627f     	str	xzr, [x19, #0xc0]
+  2522a0: f9400508     	ldr	x8, [x8, #0x8]
+  2522a4: f9400289     	ldr	x9, [x20]
+  2522a8: eb16029f     	cmp	x20, x22
+  2522ac: f9000528     	str	x8, [x9, #0x8]
+  2522b0: f9000109     	str	x9, [x8]
+  2522b4: 54000301     	b.ne	0x252314 <SW::MountTaskManager::Impl::cancelAll()+0xa8>
+  2522b8: f9405274     	ldr	x20, [x19, #0xa0]
+  2522bc: 91026275     	add	x21, x19, #0x98
+  2522c0: eb15029f     	cmp	x20, x21
+  2522c4: 54000120     	b.eq	0x2522e8 <SW::MountTaskManager::Impl::cancelAll()+0x7c>
+  2522c8: f9400a88     	ldr	x8, [x20, #0x10]
+  2522cc: f9401100     	ldr	x0, [x8, #0x20]
+  2522d0: f9400008     	ldr	x8, [x0]
+  2522d4: f9400908     	ldr	x8, [x8, #0x10]
+  2522d8: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  2522dc: f9400694     	ldr	x20, [x20, #0x8]
+  2522e0: eb15029f     	cmp	x20, x21
+  2522e4: 54ffff21     	b.ne	0x2522c8 <SW::MountTaskManager::Impl::cancelAll()+0x5c>
+  2522e8: 9101c260     	add	x0, x19, #0x70
+  2522ec: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  2522f0: f9400bf7     	ldr	x23, [sp, #0x10]
+  2522f4: a94257f6     	ldp	x22, x21, [sp, #0x20]
+  2522f8: a8c47bfd     	ldp	x29, x30, [sp], #0x40
+  2522fc: 1401bff1     	b	0x2c22c0 <_ZNSt6__ndk15mutex6unlockEv@plt>
+  252300: aa1403e0     	mov	x0, x20
+  252304: 9401bc23     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  252308: eb1602ff     	cmp	x23, x22
+  25230c: aa1703f4     	mov	x20, x23
+  252310: 54fffd40     	b.eq	0x2522b8 <SW::MountTaskManager::Impl::cancelAll()+0x4c>
+  252314: f9400e95     	ldr	x21, [x20, #0x18]
+  252318: f9400697     	ldr	x23, [x20, #0x8]
+  25231c: b4ffff35     	cbz	x21, 0x252300 <SW::MountTaskManager::Impl::cancelAll()+0x94>
+  252320: 910022a1     	add	x1, x21, #0x8
+  252324: 92800000     	mov	x0, #-0x1               // =-1
+  252328: 9401abfe     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  25232c: b5fffea0     	cbnz	x0, 0x252300 <SW::MountTaskManager::Impl::cancelAll()+0x94>
+  252330: f94002a8     	ldr	x8, [x21]
+  252334: aa1503e0     	mov	x0, x21
+  252338: f9400908     	ldr	x8, [x8, #0x10]
+  25233c: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  252340: aa1503e0     	mov	x0, x21
+  252344: 9401bb8f     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  252348: 17ffffee     	b	0x252300 <SW::MountTaskManager::Impl::cancelAll()+0x94>
+  25234c: aa0003f4     	mov	x20, x0
+  252350: 9101c260     	add	x0, x19, #0x70
+  252354: 9401bfdb     	bl	0x2c22c0 <_ZNSt6__ndk15mutex6unlockEv@plt>  ;;; CALL std::__ndk1::mutex::unlock()
+  252358: aa1403e0     	mov	x0, x20
+  25235c: 9401ac4a     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+00000000002527bc <SW::MountTaskManager::Impl::_runNextPending()>:
+  2527bc: d10203ff     	sub	sp, sp, #0x80
+  2527c0: a9037bfd     	stp	x29, x30, [sp, #0x30]
+  2527c4: a90467fa     	stp	x26, x25, [sp, #0x40]
+  2527c8: a9055ff8     	stp	x24, x23, [sp, #0x50]
+  2527cc: a90657f6     	stp	x22, x21, [sp, #0x60]
+  2527d0: a9074ff4     	stp	x20, x19, [sp, #0x70]
+  2527d4: 9100c3fd     	add	x29, sp, #0x30
+  2527d8: d53bd057     	mrs	x23, TPIDR_EL0
+  2527dc: 9102c018     	add	x24, x0, #0xb0
+  2527e0: f94016e8     	ldr	x8, [x23, #0x28]
+  2527e4: f81f83a8     	stur	x8, [x29, #-0x8]
+  2527e8: f9405c14     	ldr	x20, [x0, #0xb8]
+  2527ec: eb18029f     	cmp	x20, x24
+  2527f0: 54000520     	b.eq	0x252894 <SW::MountTaskManager::Impl::_runNextPending()+0xd8>
+  2527f4: aa0003f3     	mov	x19, x0
+  2527f8: 910043f9     	add	x25, sp, #0x10
+  2527fc: 14000004     	b	0x25280c <SW::MountTaskManager::Impl::_runNextPending()+0x50>
+  252800: f9400694     	ldr	x20, [x20, #0x8]
+  252804: eb18029f     	cmp	x20, x24
+  252808: 54000460     	b.eq	0x252894 <SW::MountTaskManager::Impl::_runNextPending()+0xd8>
+  25280c: 910043e8     	add	x8, sp, #0x10
+  252810: 91004281     	add	x1, x20, #0x10
+  252814: aa1303e0     	mov	x0, x19
+  252818: 9401cb7a     	bl	0x2c5600 <_ZN2SW16MountTaskManager4Impl23_conflictedRunningTasksERKNSt6__ndk110shared_ptrINS0_5EntryEEE@plt>  ;;; CALL SW::MountTaskManager::Impl::_conflictedRunningTasks(std::__ndk1::shared_ptr<SW::MountTaskManager::Entry> const&)
+  25281c: f94013e8     	ldr	x8, [sp, #0x20]
+  252820: b40006e8     	cbz	x8, 0x2528fc <SW::MountTaskManager::Impl::_runNextPending()+0x140>
+  252824: a94157e8     	ldp	x8, x21, [sp, #0x10]
+  252828: f9400508     	ldr	x8, [x8, #0x8]
+  25282c: f94002a9     	ldr	x9, [x21]
+  252830: eb1902bf     	cmp	x21, x25
+  252834: f9000528     	str	x8, [x9, #0x8]
+  252838: f9000109     	str	x9, [x8]
+  25283c: f90013ff     	str	xzr, [sp, #0x20]
+  252840: 540000e1     	b.ne	0x25285c <SW::MountTaskManager::Impl::_runNextPending()+0xa0>
+  252844: 17ffffef     	b	0x252800 <SW::MountTaskManager::Impl::_runNextPending()+0x44>
+  252848: aa1503e0     	mov	x0, x21
+  25284c: 9401bad1     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  252850: eb19035f     	cmp	x26, x25
+  252854: aa1a03f5     	mov	x21, x26
+  252858: 54fffd40     	b.eq	0x252800 <SW::MountTaskManager::Impl::_runNextPending()+0x44>
+  25285c: f9400eb6     	ldr	x22, [x21, #0x18]
+  252860: f94006ba     	ldr	x26, [x21, #0x8]
+  252864: b4ffff36     	cbz	x22, 0x252848 <SW::MountTaskManager::Impl::_runNextPending()+0x8c>
+  252868: 910022c1     	add	x1, x22, #0x8
+  25286c: 92800000     	mov	x0, #-0x1               // =-1
+  252870: 9401aaac     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  252874: b5fffea0     	cbnz	x0, 0x252848 <SW::MountTaskManager::Impl::_runNextPending()+0x8c>
+  252878: f94002c8     	ldr	x8, [x22]
+  25287c: aa1603e0     	mov	x0, x22
+  252880: f9400908     	ldr	x8, [x8, #0x10]
+  252884: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  252888: aa1603e0     	mov	x0, x22
+  25288c: 9401ba3d     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  252890: 17ffffee     	b	0x252848 <SW::MountTaskManager::Impl::_runNextPending()+0x8c>
+  252894: a9017fff     	stp	xzr, xzr, [sp, #0x10]
+  252898: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  25289c: b4000173     	cbz	x19, 0x2528c8 <SW::MountTaskManager::Impl::_runNextPending()+0x10c>
+  2528a0: 91002261     	add	x1, x19, #0x8
+  2528a4: 92800000     	mov	x0, #-0x1               // =-1
+  2528a8: 9401aa9e     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  2528ac: b50000e0     	cbnz	x0, 0x2528c8 <SW::MountTaskManager::Impl::_runNextPending()+0x10c>
+  2528b0: f9400268     	ldr	x8, [x19]  ; vptr of SW::MountTaskManager
+  2528b4: aa1303e0     	mov	x0, x19
+  2528b8: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::MountTaskManager::lastTask(SW::MountResource)
+  2528bc: d63f0100     	blr	x8  ;;; CALL SW::MountTaskManager::lastTask(SW::MountResource)
+  2528c0: aa1303e0     	mov	x0, x19
+  2528c4: 9401ba2f     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  2528c8: f94016e8     	ldr	x8, [x23, #0x28]
+  2528cc: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2528d0: f100029f     	cmp	x20, #0x0
+  2528d4: 1a9f07e0     	cset	w0, ne
+  2528d8: eb09011f     	cmp	x8, x9
+  2528dc: 540008c1     	b.ne	0x2529f4 <SW::MountTaskManager::Impl::_runNextPending()+0x238>
+  2528e0: a9474ff4     	ldp	x20, x19, [sp, #0x70]
+  2528e4: a94657f6     	ldp	x22, x21, [sp, #0x60]
+  2528e8: a9455ff8     	ldp	x24, x23, [sp, #0x50]
+  2528ec: a94467fa     	ldp	x26, x25, [sp, #0x40]
+  2528f0: a9437bfd     	ldp	x29, x30, [sp, #0x30]
+  2528f4: 910203ff     	add	sp, sp, #0x80
+  2528f8: d65f03c0     	ret
+  2528fc: eb18029f     	cmp	x20, x24
+  252900: a9017fff     	stp	xzr, xzr, [sp, #0x10]
+  252904: 54fffca0     	b.eq	0x252898 <SW::MountTaskManager::Impl::_runNextPending()+0xdc>
+  252908: a9415696     	ldp	x22, x21, [x20, #0x10]
+  25290c: b4000095     	cbz	x21, 0x25291c <SW::MountTaskManager::Impl::_runNextPending()+0x160>
+  252910: 910022a1     	add	x1, x21, #0x8
+  252914: 52800020     	mov	w0, #0x1                // =1
+  252918: 9401aa76     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  25291c: a90157f6     	stp	x22, x21, [sp, #0x10]
+  252920: b4fffbd6     	cbz	x22, 0x252898 <SW::MountTaskManager::Impl::_runNextPending()+0xdc>
+  252924: a9402289     	ldp	x9, x8, [x20]
+  252928: f9000528     	str	x8, [x9, #0x8]
+  25292c: f9000109     	str	x9, [x8]
+  252930: f9406268     	ldr	x8, [x19, #0xc0]
+  252934: d1000508     	sub	x8, x8, #0x1
+  252938: f9006268     	str	x8, [x19, #0xc0]
+  25293c: f9400e95     	ldr	x21, [x20, #0x18]
+  252940: b4000175     	cbz	x21, 0x25296c <SW::MountTaskManager::Impl::_runNextPending()+0x1b0>
+  252944: 910022a1     	add	x1, x21, #0x8
+  252948: 92800000     	mov	x0, #-0x1               // =-1
+  25294c: 9401aa75     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  252950: b50000e0     	cbnz	x0, 0x25296c <SW::MountTaskManager::Impl::_runNextPending()+0x1b0>
+  252954: f94002a8     	ldr	x8, [x21]
+  252958: aa1503e0     	mov	x0, x21
+  25295c: f9400908     	ldr	x8, [x8, #0x10]
+  252960: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  252964: aa1503e0     	mov	x0, x21
+  252968: 9401ba06     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  25296c: aa1403e0     	mov	x0, x20
+  252970: 9401ba88     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  252974: a94153e8     	ldp	x8, x20, [sp, #0x10]
+  252978: a90053e8     	stp	x8, x20, [sp]
+  25297c: b4000094     	cbz	x20, 0x25298c <SW::MountTaskManager::Impl::_runNextPending()+0x1d0>
+  252980: 91002281     	add	x1, x20, #0x8
+  252984: 52800020     	mov	w0, #0x1                // =1
+  252988: 9401aa5a     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  25298c: 910003e1     	mov	x1, sp
+  252990: aa1303e0     	mov	x0, x19
+  252994: 9401cb1f     	bl	0x2c5610 <_ZN2SW16MountTaskManager4Impl6_startENSt6__ndk110shared_ptrINS0_5EntryEEE@plt>  ;;; CALL SW::MountTaskManager::Impl::_start(std::__ndk1::shared_ptr<SW::MountTaskManager::Entry>)
+  252998: b4fff814     	cbz	x20, 0x252898 <SW::MountTaskManager::Impl::_runNextPending()+0xdc>
+  25299c: 91002281     	add	x1, x20, #0x8
+  2529a0: 92800000     	mov	x0, #-0x1               // =-1
+  2529a4: 9401aa5f     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  2529a8: b5fff780     	cbnz	x0, 0x252898 <SW::MountTaskManager::Impl::_runNextPending()+0xdc>
+  2529ac: f9400288     	ldr	x8, [x20]
+  2529b0: aa1403e0     	mov	x0, x20
+  2529b4: f9400908     	ldr	x8, [x8, #0x10]
+  2529b8: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  2529bc: aa1403e0     	mov	x0, x20
+  2529c0: 9401b9f0     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  2529c4: 17ffffb5     	b	0x252898 <SW::MountTaskManager::Impl::_runNextPending()+0xdc>
+  2529c8: aa0003f3     	mov	x19, x0
+  2529cc: 910003e0     	mov	x0, sp
+  2529d0: 97fffcb3     	bl	0x251c9c <std::__ndk1::shared_ptr<SW::MountTaskManager::Entry>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::MountTaskManager::Entry
+  2529d4: 910043e0     	add	x0, sp, #0x10
+  2529d8: 97fffcb1     	bl	0x251c9c <std::__ndk1::shared_ptr<SW::MountTaskManager::Entry>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::MountTaskManager::Entry
+  2529dc: f94016e8     	ldr	x8, [x23, #0x28]
+  2529e0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2529e4: eb09011f     	cmp	x8, x9
+  2529e8: 54000061     	b.ne	0x2529f4 <SW::MountTaskManager::Impl::_runNextPending()+0x238>
+  2529ec: aa1303e0     	mov	x0, x19
+  2529f0: 9401aaa5     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  2529f4: 9401b9ef     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000252b78 <SW::MountTaskManager::MountTaskManager(SW::MountTaskManager::D)>:
+  252b78: d10243ff     	sub	sp, sp, #0x90
+  252b7c: a9057bfd     	stp	x29, x30, [sp, #0x50]
+  252b80: f90033f7     	str	x23, [sp, #0x60]
+  252b84: a90757f6     	stp	x22, x21, [sp, #0x70]
+  252b88: a9084ff4     	stp	x20, x19, [sp, #0x80]
+  252b8c: 910143fd     	add	x29, sp, #0x50
+  252b90: 6f00e400     	movi	v0.2d, #0000000000000000
+  252b94: d53bd056     	mrs	x22, TPIDR_EL0
+  252b98: aa0003f3     	mov	x19, x0
+  252b9c: f94016c8     	ldr	x8, [x22, #0x28]
+  252ba0: aa0003f4     	mov	x20, x0
+  252ba4: f81f83a8     	stur	x8, [x29, #-0x8]
+  252ba8: f0000428     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  252bac: 3c844000     	stur	q0, [x0, #0x44]
+  252bb0: 3c838000     	stur	q0, [x0, #0x38]
+  252bb4: f9440908     	ldr	x8, [x8, #0x810]
+  252bb8: 3c828000     	stur	q0, [x0, #0x28]
+  252bbc: 3c818000     	stur	q0, [x0, #0x18]
+  252bc0: 91004108     	add	x8, x8, #0x10
+  252bc4: 3c808000     	stur	q0, [x0, #0x8]
+  252bc8: f9000008     	str	x8, [x0]
+  252bcc: 3c858e80     	str	q0, [x20, #0x58]!
+  252bd0: 3c868000     	stur	q0, [x0, #0x68]
+  252bd4: 910043e8     	add	x8, sp, #0x10
+  252bd8: 910003e0     	mov	x0, sp
+  252bdc: 940004f5     	bl	0x253fb0 <std::__ndk1::shared_ptr<SW::MountTaskManager::Impl> std::__ndk1::allocate_shared[abi:ne190000]<SW::MountTaskManager::Impl, std::__ndk1::allocator<SW::MountTaskManager::Impl>, SW::MountTaskManager::D, 0>(std::__ndk1::allocator<SW::MountTaskManager::Impl> const&, SW::MountTaskManager::D&&)>  ;;; CALL std::__ndk1::shared_ptr<SW::MountTaskManager::Impl
+  252be0: 3dc007e0     	ldr	q0, [sp, #0x10]
+  252be4: f9403275     	ldr	x21, [x19, #0x60]
+  252be8: a9017fff     	stp	xzr, xzr, [sp, #0x10]
+  252bec: 3c858260     	stur	q0, [x19, #0x58]
+  252bf0: b4000175     	cbz	x21, 0x252c1c <SW::MountTaskManager::MountTaskManager(SW::MountTaskManager::D)+0xa4>
+  252bf4: 910022a1     	add	x1, x21, #0x8
+  252bf8: 92800000     	mov	x0, #-0x1               // =-1
+  252bfc: 9401a9c9     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  252c00: b50000e0     	cbnz	x0, 0x252c1c <SW::MountTaskManager::MountTaskManager(SW::MountTaskManager::D)+0xa4>
+  252c04: f94002a8     	ldr	x8, [x21]
+  252c08: aa1503e0     	mov	x0, x21
+  252c0c: f9400908     	ldr	x8, [x8, #0x10]
+  252c10: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  252c14: aa1503e0     	mov	x0, x21
+  252c18: 9401b95a     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  252c1c: f9400ff5     	ldr	x21, [sp, #0x18]
+  252c20: b4000175     	cbz	x21, 0x252c4c <SW::MountTaskManager::MountTaskManager(SW::MountTaskManager::D)+0xd4>
+  252c24: 910022a1     	add	x1, x21, #0x8
+  252c28: 92800000     	mov	x0, #-0x1               // =-1
+  252c2c: 9401a9bd     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  252c30: b50000e0     	cbnz	x0, 0x252c4c <SW::MountTaskManager::MountTaskManager(SW::MountTaskManager::D)+0xd4>
+  252c34: f94002a8     	ldr	x8, [x21]
+  252c38: aa1503e0     	mov	x0, x21
+  252c3c: f9400908     	ldr	x8, [x8, #0x10]
+  252c40: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  252c44: aa1503e0     	mov	x0, x21
+  252c48: 9401b94e     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  252c4c: a945d677     	ldp	x23, x21, [x19, #0x58]
+  252c50: b40000f5     	cbz	x21, 0x252c6c <SW::MountTaskManager::MountTaskManager(SW::MountTaskManager::D)+0xf4>
+  252c54: 910042a1     	add	x1, x21, #0x10
+  252c58: 52800020     	mov	w0, #0x1                // =1
+  252c5c: 9401a9a5     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  252c60: 910042a1     	add	x1, x21, #0x10
+  252c64: 52800020     	mov	w0, #0x1                // =1
+  252c68: 9401a9a2     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  252c6c: f94036e0     	ldr	x0, [x23, #0x68]
+  252c70: a90656f7     	stp	x23, x21, [x23, #0x60]
+  252c74: b4000040     	cbz	x0, 0x252c7c <SW::MountTaskManager::MountTaskManager(SW::MountTaskManager::D)+0x104>
+  252c78: 9401b942     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  252c7c: b4000075     	cbz	x21, 0x252c88 <SW::MountTaskManager::MountTaskManager(SW::MountTaskManager::D)+0x110>
+  252c80: aa1503e0     	mov	x0, x21
+  252c84: 9401b93f     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  252c88: f9402e60     	ldr	x0, [x19, #0x58]
+  252c8c: f0000408     	adrp	x8, 0x2d5000 <vtable for SW::QtKVStore+0x10>
+  252c90: 9112e108     	add	x8, x8, #0x4b8
+  252c94: 910043f5     	add	x21, sp, #0x10
+  252c98: a9014fe8     	stp	x8, x19, [sp, #0x10]
+  252c9c: f9001bf5     	str	x21, [sp, #0x30]
+  252ca0: 910003e8     	mov	x8, sp
+  252ca4: 910043e1     	add	x1, sp, #0x10
+  252ca8: 9401bda6     	bl	0x2c2340 <_ZN7eventpp9internal_16CallbackListBaseIFvvENS_15DefaultPoliciesEE6appendERKNSt6__ndk18functionIS2_EE@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (), eventpp::DefaultPolicies>::append(std::__ndk1::function<void ()> const&)
+  252cac: 3dc003e0     	ldr	q0, [sp]
+  252cb0: f9403a60     	ldr	x0, [x19, #0x70]
+  252cb4: a9007fff     	stp	xzr, xzr, [sp]
+  252cb8: 3c868260     	stur	q0, [x19, #0x68]
+  252cbc: b40000a0     	cbz	x0, 0x252cd0 <SW::MountTaskManager::MountTaskManager(SW::MountTaskManager::D)+0x158>
+  252cc0: 9401b930     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  252cc4: f94007e0     	ldr	x0, [sp, #0x8]
+  252cc8: b4000040     	cbz	x0, 0x252cd0 <SW::MountTaskManager::MountTaskManager(SW::MountTaskManager::D)+0x158>
+  252ccc: 9401b92d     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  252cd0: f9401be0     	ldr	x0, [sp, #0x30]
+  252cd4: 910043e8     	add	x8, sp, #0x10
+  252cd8: eb08001f     	cmp	x0, x8
+  252cdc: 54000080     	b.eq	0x252cec <SW::MountTaskManager::MountTaskManager(SW::MountTaskManager::D)+0x174>
+  252ce0: b4000100     	cbz	x0, 0x252d00 <SW::MountTaskManager::MountTaskManager(SW::MountTaskManager::D)+0x188>
+  252ce4: 52800508     	mov	w8, #0x28               // =40
+  252ce8: 14000003     	b	0x252cf4 <SW::MountTaskManager::MountTaskManager(SW::MountTaskManager::D)+0x17c>
+  252cec: 52800408     	mov	w8, #0x20               // =32
+  252cf0: 910043e0     	add	x0, sp, #0x10
+  252cf4: f9400009     	ldr	x9, [x0]
+  252cf8: f8686928     	ldr	x8, [x9, x8]
+  252cfc: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  252d00: f94016c8     	ldr	x8, [x22, #0x28]
+  252d04: f85f83a9     	ldur	x9, [x29, #-0x8]
+  252d08: eb09011f     	cmp	x8, x9
+  252d0c: 54000461     	b.ne	0x252d98 <SW::MountTaskManager::MountTaskManager(SW::MountTaskManager::D)+0x220>
+  252d10: a9484ff4     	ldp	x20, x19, [sp, #0x80]
+  252d14: f94033f7     	ldr	x23, [sp, #0x60]
+  252d18: a94757f6     	ldp	x22, x21, [sp, #0x70]
+  252d1c: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+  252d20: 910243ff     	add	sp, sp, #0x90
+  252d24: d65f03c0     	ret
+  252d28: f9401be8     	ldr	x8, [sp, #0x30]
+  252d2c: eb15011f     	cmp	x8, x21
+  252d30: aa0003f5     	mov	x21, x0
+  252d34: 54000081     	b.ne	0x252d44 <SW::MountTaskManager::MountTaskManager(SW::MountTaskManager::D)+0x1cc>
+  252d38: 52800409     	mov	w9, #0x20               // =32
+  252d3c: 910043e8     	add	x8, sp, #0x10
+  252d40: 14000003     	b	0x252d4c <SW::MountTaskManager::MountTaskManager(SW::MountTaskManager::D)+0x1d4>
+  252d44: b4000108     	cbz	x8, 0x252d64 <SW::MountTaskManager::MountTaskManager(SW::MountTaskManager::D)+0x1ec>
+  252d48: 52800509     	mov	w9, #0x28               // =40
+  252d4c: f940010a     	ldr	x10, [x8]
+  252d50: aa0803e0     	mov	x0, x8
+  252d54: f8696949     	ldr	x9, [x10, x9]
+  252d58: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  252d5c: 14000002     	b	0x252d64 <SW::MountTaskManager::MountTaskManager(SW::MountTaskManager::D)+0x1ec>
+  252d60: aa0003f5     	mov	x21, x0
+  252d64: f9403a60     	ldr	x0, [x19, #0x70]
+  252d68: b4000040     	cbz	x0, 0x252d70 <SW::MountTaskManager::MountTaskManager(SW::MountTaskManager::D)+0x1f8>
+  252d6c: 9401b905     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  252d70: aa1403e0     	mov	x0, x20
+  252d74: 9400000a     	bl	0x252d9c <std::__ndk1::shared_ptr<SW::MountTaskManager::Impl>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::MountTaskManager::Impl
+  252d78: aa1303e0     	mov	x0, x19
+  252d7c: 9401ca35     	bl	0x2c5650 <_ZN2SW17IMountTaskManagerD2Ev@plt>  ;;; CALL SW::IMountTaskManager::~IMountTaskManager()
+  252d80: f94016c8     	ldr	x8, [x22, #0x28]
+  252d84: f85f83a9     	ldur	x9, [x29, #-0x8]
+  252d88: eb09011f     	cmp	x8, x9
+  252d8c: 54000061     	b.ne	0x252d98 <SW::MountTaskManager::MountTaskManager(SW::MountTaskManager::D)+0x220>
+  252d90: aa1503e0     	mov	x0, x21
+  252d94: 9401a9bc     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  252d98: 9401b906     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000252fcc <SW::MountTaskManager::lastTask(SW::MountResource)>:
+  252fcc: f9402c00     	ldr	x0, [x0, #0x58]
+  252fd0: 1401c97c     	b	0x2c55c0 <_ZN2SW16MountTaskManager4Impl8lastTaskENS_13MountResourceE@plt>
+
+0000000000252fd4 <SW::MountTaskManager::lastTasks()>:
+  252fd4: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  252fd8: f9000bf5     	str	x21, [sp, #0x10]
+  252fdc: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  252fe0: 910003fd     	mov	x29, sp
+  252fe4: f9402c14     	ldr	x20, [x0, #0x58]
+  252fe8: aa0803f3     	mov	x19, x8
+  252fec: 9101c280     	add	x0, x20, #0x70
+  252ff0: 9401bcac     	bl	0x2c22a0 <_ZNSt6__ndk15mutex4lockEv@plt>  ;;; CALL std::__ndk1::mutex::lock()
+  252ff4: aa1303e8     	mov	x8, x19
+  252ff8: f9000a7f     	str	xzr, [x19, #0x10]
+  252ffc: f8008d1f     	str	xzr, [x8, #0x8]!
+  253000: f9406681     	ldr	x1, [x20, #0xc8]
+  253004: f9000268     	str	x8, [x19]
+  253008: 91034282     	add	x2, x20, #0xd0
+  25300c: aa1303e0     	mov	x0, x19
+  253010: 9401c970     	bl	0x2c55d0 <_ZNSt6__ndk13mapIN2SW13MountResourceENS1_11MountTaskIDENS_4lessIS2_EENS_9allocatorINS_4pairIKS2_S3_EEEEE6insertB8ne190000INS_20__map_const_iteratorINS_21__tree_const_iteratorINS_12__value_typeIS2_S3_EEPNS_11__tree_nodeISG_PvEElEEEEEEvT_SN_@plt>  ;;; CALL void std::__ndk1::map<SW::MountResource, SW::MountTaskID, std::__ndk1::less<SW::MountResource>, std::__ndk1::allocator<std::__ndk1::pair<SW::MountResource const, SW::MountTaskID>>>::insert[abi:ne190000]<std::__ndk1::__map_const_iterator<std::__ndk1::__tree_const_iterator<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>, std::__ndk1::__tree_node<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>, void*>*, long>>>(std::__ndk1::__map_const_iterator<std::__ndk1::__tree_const_iterator<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>, std::__ndk1::__tree_node<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>, void*>*, long>>, std::__ndk1::__map_const_iterator<std::__ndk1::__tree_const_iterator<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>, std::__ndk1::__tree_node<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>, void*>*, long>>)
+  253014: 9101c280     	add	x0, x20, #0x70
+  253018: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  25301c: f9400bf5     	ldr	x21, [sp, #0x10]
+  253020: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  253024: 1401bca7     	b	0x2c22c0 <_ZNSt6__ndk15mutex6unlockEv@plt>
+  253028: f9400661     	ldr	x1, [x19, #0x8]
+  25302c: aa1403f5     	mov	x21, x20
+  253030: aa0003f4     	mov	x20, x0
+  253034: aa1303e0     	mov	x0, x19
+  253038: 9400028a     	bl	0x253a60 <std::__ndk1::__tree<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>, std::__ndk1::__map_value_compare<SW::MountResource, std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>, std::__ndk1::less<SW::MountResource>, true>, std::__ndk1::allocator<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>>>::destroy(std::__ndk1::__tree_node<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>, void*>*)>  ;;; CALL std::__ndk1::__tree<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID
+  25303c: 9101c2a0     	add	x0, x21, #0x70
+  253040: 9401bca0     	bl	0x2c22c0 <_ZNSt6__ndk15mutex6unlockEv@plt>  ;;; CALL std::__ndk1::mutex::unlock()
+  253044: aa1403e0     	mov	x0, x20
+  253048: 9401a90f     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000025304c <SW::MountTaskManager::kvLoad(SW::MountResource, int)>:
+  25304c: d101c3ff     	sub	sp, sp, #0x70
+  253050: a9047bfd     	stp	x29, x30, [sp, #0x40]
+  253054: f9002bf5     	str	x21, [sp, #0x50]
+  253058: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  25305c: 910103fd     	add	x29, sp, #0x40
+  253060: d53bd055     	mrs	x21, TPIDR_EL0
+  253064: aa0803f3     	mov	x19, x8
+  253068: 910003f4     	mov	x20, sp
+  25306c: f94016a8     	ldr	x8, [x21, #0x28]
+  253070: f81f83a8     	stur	x8, [x29, #-0x8]
+  253074: d0000408     	adrp	x8, 0x2d5000 <vtable for SW::QtKVStore+0x10>
+  253078: 9114e108     	add	x8, x8, #0x538
+  25307c: f9402c00     	ldr	x0, [x0, #0x58]
+  253080: a9004fe8     	stp	x8, x19, [sp]
+  253084: 2a0203e8     	mov	w8, w2
+  253088: a9007e7f     	stp	xzr, xzr, [x19]
+  25308c: f9000be8     	str	x8, [sp, #0x10]
+  253090: f90013f4     	str	x20, [sp, #0x20]
+  253094: 910003e2     	mov	x2, sp
+  253098: 9401c976     	bl	0x2c5670 <_ZN2SW16MountTaskManager4Impl10forRunningENS_13MountResourceENSt6__ndk18functionIFvPNS_10IMountTaskEEEE@plt>  ;;; CALL SW::MountTaskManager::Impl::forRunning(SW::MountResource, std::__ndk1::function<void (SW::IMountTask*)>)
+  25309c: f94013e0     	ldr	x0, [sp, #0x20]
+  2530a0: eb14001f     	cmp	x0, x20
+  2530a4: 54000080     	b.eq	0x2530b4 <SW::MountTaskManager::kvLoad(SW::MountResource, int)+0x68>
+  2530a8: b4000100     	cbz	x0, 0x2530c8 <SW::MountTaskManager::kvLoad(SW::MountResource, int)+0x7c>
+  2530ac: 52800508     	mov	w8, #0x28               // =40
+  2530b0: 14000003     	b	0x2530bc <SW::MountTaskManager::kvLoad(SW::MountResource, int)+0x70>
+  2530b4: 52800408     	mov	w8, #0x20               // =32
+  2530b8: 910003e0     	mov	x0, sp
+  2530bc: f9400009     	ldr	x9, [x0]
+  2530c0: f8686928     	ldr	x8, [x9, x8]
+  2530c4: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  2530c8: f94016a8     	ldr	x8, [x21, #0x28]
+  2530cc: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2530d0: eb09011f     	cmp	x8, x9
+  2530d4: 54000361     	b.ne	0x253140 <SW::MountTaskManager::kvLoad(SW::MountResource, int)+0xf4>
+  2530d8: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  2530dc: f9402bf5     	ldr	x21, [sp, #0x50]
+  2530e0: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+  2530e4: 9101c3ff     	add	sp, sp, #0x70
+  2530e8: d65f03c0     	ret
+  2530ec: f94013e8     	ldr	x8, [sp, #0x20]
+  2530f0: eb14011f     	cmp	x8, x20
+  2530f4: aa0003f4     	mov	x20, x0
+  2530f8: 54000081     	b.ne	0x253108 <SW::MountTaskManager::kvLoad(SW::MountResource, int)+0xbc>
+  2530fc: 52800409     	mov	w9, #0x20               // =32
+  253100: 910003e8     	mov	x8, sp
+  253104: 14000003     	b	0x253110 <SW::MountTaskManager::kvLoad(SW::MountResource, int)+0xc4>
+  253108: b40000c8     	cbz	x8, 0x253120 <SW::MountTaskManager::kvLoad(SW::MountResource, int)+0xd4>
+  25310c: 52800509     	mov	w9, #0x28               // =40
+  253110: f940010a     	ldr	x10, [x8]
+  253114: aa0803e0     	mov	x0, x8
+  253118: f8696949     	ldr	x9, [x10, x9]
+  25311c: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  253120: aa1303e0     	mov	x0, x19
+  253124: 94000097     	bl	0x253380 <std::__ndk1::any::~any[abi:ne190000]()>  ;;; CALL std::__ndk1::any::~any[abi:ne190000]()
+  253128: f94016a8     	ldr	x8, [x21, #0x28]
+  25312c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  253130: eb09011f     	cmp	x8, x9
+  253134: 54000061     	b.ne	0x253140 <SW::MountTaskManager::kvLoad(SW::MountResource, int)+0xf4>
+  253138: aa1403e0     	mov	x0, x20
+  25313c: 9401a8d2     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  253140: 9401b81c     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000002536c8 <SW::MountTaskManager::cancelAll()>:
+  2536c8: f9402c00     	ldr	x0, [x0, #0x58]
+  2536cc: 1401c7d5     	b	0x2c5620 <_ZN2SW16MountTaskManager4Impl9cancelAllEv@plt>
+
+0000000000254100 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)>:
+  254100: d101c3ff     	sub	sp, sp, #0x70
+  254104: a9017bfd     	stp	x29, x30, [sp, #0x10]
+  254108: a9026ffc     	stp	x28, x27, [sp, #0x20]
+  25410c: a90367fa     	stp	x26, x25, [sp, #0x30]
+  254110: a9045ff8     	stp	x24, x23, [sp, #0x40]
+  254114: a90557f6     	stp	x22, x21, [sp, #0x50]
+  254118: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  25411c: 910043fd     	add	x29, sp, #0x10
+  254120: 6f00e400     	movi	v0.2d, #0000000000000000
+  254124: aa0003f3     	mov	x19, x0
+  254128: aa0003f4     	mov	x20, x0
+  25412c: 3c83c000     	stur	q0, [x0, #0x3c]
+  254130: ad000000     	stp	q0, q0, [x0]
+  254134: ad010000     	stp	q0, q0, [x0, #0x20]
+  254138: a9402029     	ldp	x9, x8, [x1]
+  25413c: a9852289     	stp	x9, x8, [x20, #0x50]!
+  254140: b40000a8     	cbz	x8, 0x254154 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x54>
+  254144: 91002101     	add	x1, x8, #0x8
+  254148: 52800020     	mov	w0, #0x1                // =1
+  25414c: 9401a469     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  254150: 6f00e400     	movi	v0.2d, #0000000000000000
+  254154: aa1303f6     	mov	x22, x19
+  254158: 3c870ec0     	str	q0, [x22, #0x70]!
+  25415c: 9100a2c8     	add	x8, x22, #0x28
+  254160: a90222df     	stp	xzr, x8, [x22, #0x20]
+  254164: aa1603f7     	mov	x23, x22
+  254168: aa1603f8     	mov	x24, x22
+  25416c: f90007e8     	str	x8, [sp, #0x8]
+  254170: a9037ec8     	stp	x8, xzr, [x22, #0x30]
+  254174: 910102c8     	add	x8, x22, #0x40
+  254178: 3d8006c0     	str	q0, [x22, #0x10]
+  25417c: 3c9f02c0     	stur	q0, [x22, #-0x10]
+  254180: a90422c8     	stp	x8, x8, [x22, #0x40]
+  254184: f90003e8     	str	x8, [sp]
+  254188: f9002adf     	str	xzr, [x22, #0x50]
+  25418c: f8060eff     	str	xzr, [x23, #0x60]!
+  254190: f8058f17     	str	x23, [x24, #0x58]!
+  254194: f90036df     	str	xzr, [x22, #0x68]
+  254198: 52800500     	mov	w0, #0x28               // =40
+  25419c: 9401b3d9     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  2541a0: 528dee1c     	mov	w28, #0x6f70            // =28528
+  2541a4: aa0003e1     	mov	x1, x0
+  2541a8: aa0003fa     	mov	x26, x0
+  2541ac: 2903fc1f     	stp	wzr, wzr, [x0, #0x1c]
+  2541b0: 72ae6e9c     	movk	w28, #0x7374, lsl #16
+  2541b4: a9007c1f     	stp	xzr, xzr, [x0]
+  2541b8: f9000817     	str	x23, [x0, #0x10]
+  2541bc: a90c8260     	stp	x0, x0, [x19, #0xc8]
+  2541c0: 97fea1d0     	bl	0x1fc900 <void std::__ndk1::__tree_balance_after_insert[abi:ne190000]<std::__ndk1::__tree_node_base<void*>*>(std::__ndk1::__tree_node_base<void*>*, std::__ndk1::__tree_node_base<void*>*)>  ;;; CALL void std::__ndk1::__tree_balance_after_insert[abi:ne190000]<std::__ndk1::__tree_node_base<void*
+  2541c4: a94d2279     	ldp	x25, x8, [x19, #0xd0]
+  2541c8: aa1703f5     	mov	x21, x23
+  2541cc: aa1703fb     	mov	x27, x23
+  2541d0: b900235c     	str	w28, [x26, #0x20]
+  2541d4: 91000508     	add	x8, x8, #0x1
+  2541d8: f9006e68     	str	x8, [x19, #0xd8]
+  2541dc: b40001f9     	cbz	x25, 0x254218 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x118>
+  2541e0: aa1903e8     	mov	x8, x25
+  2541e4: 14000004     	b	0x2541f4 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0xf4>
+  2541e8: f9400368     	ldr	x8, [x27]  ; vptr of SW::MountTaskManager
+  2541ec: aa1b03f5     	mov	x21, x27
+  2541f0: b4000148     	cbz	x8, 0x254218 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x118>
+  2541f4: aa0803fb     	mov	x27, x8
+  2541f8: b9401d08     	ldr	w8, [x8, #0x1c]  ; -> <SW::MountTaskManager vt+0x1c>
+  2541fc: 7100091f     	cmp	w8, #0x2
+  254200: 54ffff4a     	b.ge	0x2541e8 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0xe8>
+  254204: 7100051f     	cmp	w8, #0x1
+  254208: 540003a0     	b.eq	0x25427c <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x17c>
+  25420c: f9400768     	ldr	x8, [x27, #0x8]  ; -> SW::MountTaskManager::~MountTaskManager()
+  254210: b5ffff28     	cbnz	x8, 0x2541f4 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0xf4>
+  254214: 91002375     	add	x21, x27, #0x8
+  254218: 52800500     	mov	w0, #0x28               // =40
+  25421c: 9401b3b9     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  254220: d0fff3a8     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  254224: a9007c1f     	stp	xzr, xzr, [x0]
+  254228: aa0003fa     	mov	x26, x0
+  25422c: fd468d00     	ldr	d0, [x8, #0xd18]
+  254230: f900081b     	str	x27, [x0, #0x10]
+  254234: aa0003e1     	mov	x1, x0
+  254238: fc01c000     	stur	d0, [x0, #0x1c]
+  25423c: f90002a0     	str	x0, [x21]
+  254240: f9400308     	ldr	x8, [x24]  ; vptr of SW::MountTaskManager
+  254244: f9400108     	ldr	x8, [x8]  ; -> SW::MountTaskManager::~MountTaskManager()
+  254248: b4000068     	cbz	x8, 0x254254 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x154>
+  25424c: f9000308     	str	x8, [x24]
+  254250: f94002a1     	ldr	x1, [x21]
+  254254: f9406a60     	ldr	x0, [x19, #0xd0]
+  254258: 97fea1aa     	bl	0x1fc900 <void std::__ndk1::__tree_balance_after_insert[abi:ne190000]<std::__ndk1::__tree_node_base<void*>*>(std::__ndk1::__tree_node_base<void*>*, std::__ndk1::__tree_node_base<void*>*)>  ;;; CALL void std::__ndk1::__tree_balance_after_insert[abi:ne190000]<std::__ndk1::__tree_node_base<void*
+  25425c: a94d2279     	ldp	x25, x8, [x19, #0xd0]
+  254260: 91000508     	add	x8, x8, #0x1
+  254264: f9006e68     	str	x8, [x19, #0xd8]
+  254268: aa1703f5     	mov	x21, x23
+  25426c: aa1703fb     	mov	x27, x23
+  254270: b900235c     	str	w28, [x26, #0x20]
+  254274: b50000f9     	cbnz	x25, 0x254290 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x190>
+  254278: 14000014     	b	0x2542c8 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x1c8>
+  25427c: aa1b03fa     	mov	x26, x27
+  254280: aa1703f5     	mov	x21, x23
+  254284: aa1703fb     	mov	x27, x23
+  254288: b900235c     	str	w28, [x26, #0x20]
+  25428c: b40001f9     	cbz	x25, 0x2542c8 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x1c8>
+  254290: aa1903e8     	mov	x8, x25
+  254294: 14000004     	b	0x2542a4 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x1a4>
+  254298: f9400368     	ldr	x8, [x27]  ; vptr of SW::MountTaskManager
+  25429c: aa1b03f5     	mov	x21, x27
+  2542a0: b4000148     	cbz	x8, 0x2542c8 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x1c8>
+  2542a4: aa0803fb     	mov	x27, x8
+  2542a8: b9401d08     	ldr	w8, [x8, #0x1c]  ; -> <SW::MountTaskManager vt+0x1c>
+  2542ac: 71000d1f     	cmp	w8, #0x3
+  2542b0: 54ffff4a     	b.ge	0x254298 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x198>
+  2542b4: 7100091f     	cmp	w8, #0x2
+  2542b8: 540003e0     	b.eq	0x254334 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x234>
+  2542bc: f9400768     	ldr	x8, [x27, #0x8]  ; -> SW::MountTaskManager::~MountTaskManager()
+  2542c0: b5ffff28     	cbnz	x8, 0x2542a4 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x1a4>
+  2542c4: 91002375     	add	x21, x27, #0x8
+  2542c8: 52800500     	mov	w0, #0x28               // =40
+  2542cc: 9401b38d     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  2542d0: d0fff3a8     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  2542d4: a9007c1f     	stp	xzr, xzr, [x0]
+  2542d8: aa0003fa     	mov	x26, x0
+  2542dc: fd46b900     	ldr	d0, [x8, #0xd70]
+  2542e0: f900081b     	str	x27, [x0, #0x10]
+  2542e4: aa0003e1     	mov	x1, x0
+  2542e8: fc01c000     	stur	d0, [x0, #0x1c]
+  2542ec: f90002a0     	str	x0, [x21]
+  2542f0: f9400308     	ldr	x8, [x24]  ; vptr of SW::MountTaskManager
+  2542f4: f9400108     	ldr	x8, [x8]  ; -> SW::MountTaskManager::~MountTaskManager()
+  2542f8: b4000068     	cbz	x8, 0x254304 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x204>
+  2542fc: f9000308     	str	x8, [x24]
+  254300: f94002a1     	ldr	x1, [x21]
+  254304: f9406a60     	ldr	x0, [x19, #0xd0]
+  254308: 97fea17e     	bl	0x1fc900 <void std::__ndk1::__tree_balance_after_insert[abi:ne190000]<std::__ndk1::__tree_node_base<void*>*>(std::__ndk1::__tree_node_base<void*>*, std::__ndk1::__tree_node_base<void*>*)>  ;;; CALL void std::__ndk1::__tree_balance_after_insert[abi:ne190000]<std::__ndk1::__tree_node_base<void*
+  25430c: f9406e68     	ldr	x8, [x19, #0xd8]
+  254310: 91000508     	add	x8, x8, #0x1
+  254314: f9006e68     	str	x8, [x19, #0xd8]
+  254318: f94002f9     	ldr	x25, [x23]  ; vptr of SW::MountTaskManager
+  25431c: 528e6d08     	mov	w8, #0x7368             // =29544
+  254320: aa1703fb     	mov	x27, x23
+  254324: 72ac6d88     	movk	w8, #0x636c, lsl #16
+  254328: b9002348     	str	w8, [x26, #0x20]
+  25432c: b5000139     	cbnz	x25, 0x254350 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x250>
+  254330: 14000016     	b	0x254388 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x288>
+  254334: aa1b03fa     	mov	x26, x27
+  254338: f94002f9     	ldr	x25, [x23]  ; vptr of SW::MountTaskManager
+  25433c: 528e6d08     	mov	w8, #0x7368             // =29544
+  254340: aa1703fb     	mov	x27, x23
+  254344: 72ac6d88     	movk	w8, #0x636c, lsl #16
+  254348: b9002348     	str	w8, [x26, #0x20]
+  25434c: b40001f9     	cbz	x25, 0x254388 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x288>
+  254350: aa1903e8     	mov	x8, x25
+  254354: 14000004     	b	0x254364 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x264>
+  254358: f9400368     	ldr	x8, [x27]  ; vptr of SW::MountTaskManager
+  25435c: aa1b03f7     	mov	x23, x27
+  254360: b4000148     	cbz	x8, 0x254388 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x288>
+  254364: aa0803fb     	mov	x27, x8
+  254368: b9401d08     	ldr	w8, [x8, #0x1c]  ; -> <SW::MountTaskManager vt+0x1c>
+  25436c: 7100111f     	cmp	w8, #0x4
+  254370: 54ffff4a     	b.ge	0x254358 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x258>
+  254374: 71000d1f     	cmp	w8, #0x3
+  254378: 54000320     	b.eq	0x2543dc <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x2dc>
+  25437c: f9400768     	ldr	x8, [x27, #0x8]  ; -> SW::MountTaskManager::~MountTaskManager()
+  254380: b5ffff28     	cbnz	x8, 0x254364 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x264>
+  254384: 91002377     	add	x23, x27, #0x8
+  254388: 52800500     	mov	w0, #0x28               // =40
+  25438c: 9401b35d     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  254390: d0fff3a8     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  254394: a9007c1f     	stp	xzr, xzr, [x0]
+  254398: aa0003fa     	mov	x26, x0
+  25439c: fd46f100     	ldr	d0, [x8, #0xde0]
+  2543a0: f900081b     	str	x27, [x0, #0x10]
+  2543a4: aa0003e1     	mov	x1, x0
+  2543a8: fc01c000     	stur	d0, [x0, #0x1c]
+  2543ac: f90002e0     	str	x0, [x23]
+  2543b0: f9400308     	ldr	x8, [x24]  ; vptr of SW::MountTaskManager
+  2543b4: f9400108     	ldr	x8, [x8]  ; -> SW::MountTaskManager::~MountTaskManager()
+  2543b8: b4000068     	cbz	x8, 0x2543c4 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x2c4>
+  2543bc: f9000308     	str	x8, [x24]
+  2543c0: f94002e1     	ldr	x1, [x23]
+  2543c4: f9406a60     	ldr	x0, [x19, #0xd0]
+  2543c8: 97fea14e     	bl	0x1fc900 <void std::__ndk1::__tree_balance_after_insert[abi:ne190000]<std::__ndk1::__tree_node_base<void*>*>(std::__ndk1::__tree_node_base<void*>*, std::__ndk1::__tree_node_base<void*>*)>  ;;; CALL void std::__ndk1::__tree_balance_after_insert[abi:ne190000]<std::__ndk1::__tree_node_base<void*
+  2543cc: f9406e68     	ldr	x8, [x19, #0xd8]
+  2543d0: 91000508     	add	x8, x8, #0x1
+  2543d4: f9006e68     	str	x8, [x19, #0xd8]
+  2543d8: 14000002     	b	0x2543e0 <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x2e0>
+  2543dc: aa1b03fa     	mov	x26, x27
+  2543e0: b900235f     	str	wzr, [x26, #0x20]
+  2543e4: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  2543e8: a94557f6     	ldp	x22, x21, [sp, #0x50]
+  2543ec: a9445ff8     	ldp	x24, x23, [sp, #0x40]
+  2543f0: a94367fa     	ldp	x26, x25, [sp, #0x30]
+  2543f4: a9426ffc     	ldp	x28, x27, [sp, #0x20]
+  2543f8: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+  2543fc: 9101c3ff     	add	sp, sp, #0x70
+  254400: d65f03c0     	ret
+  254404: 14000002     	b	0x25440c <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x30c>
+  254408: 14000001     	b	0x25440c <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x30c>
+  25440c: aa0003fa     	mov	x26, x0
+  254410: 14000003     	b	0x25441c <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x31c>
+  254414: aa0003fa     	mov	x26, x0
+  254418: aa1f03f9     	mov	x25, xzr
+  25441c: aa1803e0     	mov	x0, x24
+  254420: aa1903e1     	mov	x1, x25
+  254424: 97fffd8f     	bl	0x253a60 <std::__ndk1::__tree<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>, std::__ndk1::__map_value_compare<SW::MountResource, std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>, std::__ndk1::less<SW::MountResource>, true>, std::__ndk1::allocator<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>>>::destroy(std::__ndk1::__tree_node<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID>, void*>*)>  ;;; CALL std::__ndk1::__tree<std::__ndk1::__value_type<SW::MountResource, SW::MountTaskID
+  254428: f94003e0     	ldr	x0, [sp]
+  25442c: 97fff756     	bl	0x252184 <std::__ndk1::__list_imp<std::__ndk1::shared_ptr<SW::MountTaskManager::Entry>, std::__ndk1::allocator<std::__ndk1::shared_ptr<SW::MountTaskManager::Entry>>>::~__list_imp()>  ;;; CALL std::__ndk1::__list_imp<std::__ndk1::shared_ptr<SW::MountTaskManager::Entry
+  254430: f94007e0     	ldr	x0, [sp, #0x8]
+  254434: 97fff754     	bl	0x252184 <std::__ndk1::__list_imp<std::__ndk1::shared_ptr<SW::MountTaskManager::Entry>, std::__ndk1::allocator<std::__ndk1::shared_ptr<SW::MountTaskManager::Entry>>>::~__list_imp()>  ;;; CALL std::__ndk1::__list_imp<std::__ndk1::shared_ptr<SW::MountTaskManager::Entry
+  254438: aa1603e0     	mov	x0, x22
+  25443c: 9401b77d     	bl	0x2c2230 <_ZNSt6__ndk15mutexD1Ev@plt>  ;;; CALL std::__ndk1::mutex::~mutex()
+  254440: f9403660     	ldr	x0, [x19, #0x68]
+  254444: b4000040     	cbz	x0, 0x25444c <SW::MountTaskManager::Impl::Impl(SW::MountTaskManager::D)+0x34c>
+  254448: 9401b34e     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  25444c: aa1403e0     	mov	x0, x20
+  254450: 9401bbf0     	bl	0x2c3410 <_ZN2SW16MountTaskManager1DD2Ev@plt>  ;;; CALL SW::MountTaskManager::D::~D()
+  254454: aa1303e0     	mov	x0, x19
+  254458: 9401b702     	bl	0x2c2060 <_ZN7eventpp9internal_16CallbackListBaseIFvvENS_15DefaultPoliciesEED2Ev@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (), eventpp::DefaultPolicies>::~CallbackListBase()
+  25445c: aa1a03e0     	mov	x0, x26
+  254460: 9401a409     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+

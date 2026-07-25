@@ -1,0 +1,612 @@
+0000000000232454 <SW::SwCmd::extendedSetting(SW::AXISID, int)>:
+  232454: d10183ff     	sub	sp, sp, #0x60
+  232458: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  23245c: f9001bf7     	str	x23, [sp, #0x30]
+  232460: a90457f6     	stp	x22, x21, [sp, #0x40]
+  232464: a9054ff4     	stp	x20, x19, [sp, #0x50]
+  232468: 910083fd     	add	x29, sp, #0x20
+  23246c: d53bd057     	mrs	x23, TPIDR_EL0
+  232470: aa0803f3     	mov	x19, x8
+  232474: 2a0003f4     	mov	w20, w0
+  232478: f94016e8     	ldr	x8, [x23, #0x28]
+  23247c: 2a0103e0     	mov	w0, w1
+  232480: 52800061     	mov	w1, #0x3                // =3
+  232484: f81f83a8     	stur	x8, [x29, #-0x8]
+  232488: 910003e8     	mov	x8, sp
+  23248c: 94024409     	bl	0x2c34b0 <_ZN2SW6CBytes9Int_B16LEEij@plt>  ;;; CALL SW::CBytes::Int_B16LE(int, unsigned int)  [x1=3(0x3)]
+  232490: a94027f5     	ldp	x21, x9, [sp]
+  232494: 52800ae8     	mov	w8, #0x57               // =87
+  232498: b9000274     	str	w20, [x19]
+  23249c: aa1303f4     	mov	x20, x19
+  2324a0: 39001268     	strb	w8, [x19, #0x4]
+  2324a4: eb150136     	subs	x22, x9, x21
+  2324a8: f8008e9f     	str	xzr, [x20, #0x8]!
+  2324ac: a9017e7f     	stp	xzr, xzr, [x19, #0x10]
+  2324b0: 54000160     	b.eq	0x2324dc <SW::SwCmd::extendedSetting(SW::AXISID, int)+0x88>
+  2324b4: b7f80316     	tbnz	x22, #0x3f, 0x232514 <SW::SwCmd::extendedSetting(SW::AXISID, int)+0xc0>
+  2324b8: aa1603e0     	mov	x0, x22
+  2324bc: 94023b11     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  2324c0: 8b160014     	add	x20, x0, x22
+  2324c4: aa1503e1     	mov	x1, x21
+  2324c8: aa1603e2     	mov	x2, x22
+  2324cc: f9000660     	str	x0, [x19, #0x8]
+  2324d0: f9000e74     	str	x20, [x19, #0x18]
+  2324d4: 9402406b     	bl	0x2c2680 <memcpy@plt>  ;;; CALL memcpy
+  2324d8: f9000a74     	str	x20, [x19, #0x10]
+  2324dc: b4000095     	cbz	x21, 0x2324ec <SW::SwCmd::extendedSetting(SW::AXISID, int)+0x98>
+  2324e0: aa1503e0     	mov	x0, x21
+  2324e4: f90007f5     	str	x21, [sp, #0x8]
+  2324e8: 94023baa     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2324ec: f94016e8     	ldr	x8, [x23, #0x28]
+  2324f0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2324f4: eb09011f     	cmp	x8, x9
+  2324f8: 54000461     	b.ne	0x232584 <SW::SwCmd::extendedSetting(SW::AXISID, int)+0x130>
+  2324fc: a9454ff4     	ldp	x20, x19, [sp, #0x50]
+  232500: f9401bf7     	ldr	x23, [sp, #0x30]
+  232504: a94457f6     	ldp	x22, x21, [sp, #0x40]
+  232508: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  23250c: 910183ff     	add	sp, sp, #0x60
+  232510: d65f03c0     	ret
+  232514: f94016e8     	ldr	x8, [x23, #0x28]
+  232518: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23251c: eb09011f     	cmp	x8, x9
+  232520: 54000321     	b.ne	0x232584 <SW::SwCmd::extendedSetting(SW::AXISID, int)+0x130>
+  232524: aa1403e0     	mov	x0, x20
+  232528: 97ff3c7e     	bl	0x201720 <std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char
+  23252c: f9400288     	ldr	x8, [x20]
+  232530: aa0003f4     	mov	x20, x0
+  232534: b5000128     	cbnz	x8, 0x232558 <SW::SwCmd::extendedSetting(SW::AXISID, int)+0x104>
+  232538: f94003e0     	ldr	x0, [sp]
+  23253c: b5000180     	cbnz	x0, 0x23256c <SW::SwCmd::extendedSetting(SW::AXISID, int)+0x118>
+  232540: f94016e8     	ldr	x8, [x23, #0x28]
+  232544: f85f83a9     	ldur	x9, [x29, #-0x8]
+  232548: eb09011f     	cmp	x8, x9
+  23254c: 540001c1     	b.ne	0x232584 <SW::SwCmd::extendedSetting(SW::AXISID, int)+0x130>
+  232550: aa1403e0     	mov	x0, x20
+  232554: 94022bcc     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  232558: aa0803e0     	mov	x0, x8
+  23255c: f9000a68     	str	x8, [x19, #0x10]
+  232560: 94023b8c     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  232564: f94003e0     	ldr	x0, [sp]
+  232568: b4fffec0     	cbz	x0, 0x232540 <SW::SwCmd::extendedSetting(SW::AXISID, int)+0xec>
+  23256c: f90007e0     	str	x0, [sp, #0x8]
+  232570: 94023b88     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  232574: f94016e8     	ldr	x8, [x23, #0x28]
+  232578: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23257c: eb09011f     	cmp	x8, x9
+  232580: 54fffe80     	b.eq	0x232550 <SW::SwCmd::extendedSetting(SW::AXISID, int)+0xfc>
+  232584: 94023b0b     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000232588 <SW::SwCmdCoder::encodeInt(int)>:
+  232588: 52800061     	mov	w1, #0x3                // =3
+  23258c: 140243c9     	b	0x2c34b0 <_ZN2SW6CBytes9Int_B16LEEij@plt>
+
+0000000000232590 <SW::SwCmd::extendedInquire(SW::AXISID, int)>:
+  232590: d10183ff     	sub	sp, sp, #0x60
+  232594: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  232598: f9001bf7     	str	x23, [sp, #0x30]
+  23259c: a90457f6     	stp	x22, x21, [sp, #0x40]
+  2325a0: a9054ff4     	stp	x20, x19, [sp, #0x50]
+  2325a4: 910083fd     	add	x29, sp, #0x20
+  2325a8: d53bd057     	mrs	x23, TPIDR_EL0
+  2325ac: aa0803f3     	mov	x19, x8
+  2325b0: 2a0003f4     	mov	w20, w0
+  2325b4: f94016e8     	ldr	x8, [x23, #0x28]
+  2325b8: 2a0103e0     	mov	w0, w1
+  2325bc: 52800061     	mov	w1, #0x3                // =3
+  2325c0: f81f83a8     	stur	x8, [x29, #-0x8]
+  2325c4: 910003e8     	mov	x8, sp
+  2325c8: 940243ba     	bl	0x2c34b0 <_ZN2SW6CBytes9Int_B16LEEij@plt>  ;;; CALL SW::CBytes::Int_B16LE(int, unsigned int)  [x1=3(0x3)]
+  2325cc: a94027f5     	ldp	x21, x9, [sp]
+  2325d0: 52800e28     	mov	w8, #0x71               // =113
+  2325d4: b9000274     	str	w20, [x19]
+  2325d8: aa1303f4     	mov	x20, x19
+  2325dc: 39001268     	strb	w8, [x19, #0x4]
+  2325e0: eb150136     	subs	x22, x9, x21
+  2325e4: f8008e9f     	str	xzr, [x20, #0x8]!
+  2325e8: a9017e7f     	stp	xzr, xzr, [x19, #0x10]
+  2325ec: 54000160     	b.eq	0x232618 <SW::SwCmd::extendedInquire(SW::AXISID, int)+0x88>
+  2325f0: b7f80316     	tbnz	x22, #0x3f, 0x232650 <SW::SwCmd::extendedInquire(SW::AXISID, int)+0xc0>
+  2325f4: aa1603e0     	mov	x0, x22
+  2325f8: 94023ac2     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  2325fc: 8b160014     	add	x20, x0, x22
+  232600: aa1503e1     	mov	x1, x21
+  232604: aa1603e2     	mov	x2, x22
+  232608: f9000660     	str	x0, [x19, #0x8]
+  23260c: f9000e74     	str	x20, [x19, #0x18]
+  232610: 9402401c     	bl	0x2c2680 <memcpy@plt>  ;;; CALL memcpy
+  232614: f9000a74     	str	x20, [x19, #0x10]
+  232618: b4000095     	cbz	x21, 0x232628 <SW::SwCmd::extendedInquire(SW::AXISID, int)+0x98>
+  23261c: aa1503e0     	mov	x0, x21
+  232620: f90007f5     	str	x21, [sp, #0x8]
+  232624: 94023b5b     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  232628: f94016e8     	ldr	x8, [x23, #0x28]
+  23262c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  232630: eb09011f     	cmp	x8, x9
+  232634: 54000461     	b.ne	0x2326c0 <SW::SwCmd::extendedInquire(SW::AXISID, int)+0x130>
+  232638: a9454ff4     	ldp	x20, x19, [sp, #0x50]
+  23263c: f9401bf7     	ldr	x23, [sp, #0x30]
+  232640: a94457f6     	ldp	x22, x21, [sp, #0x40]
+  232644: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  232648: 910183ff     	add	sp, sp, #0x60
+  23264c: d65f03c0     	ret
+  232650: f94016e8     	ldr	x8, [x23, #0x28]
+  232654: f85f83a9     	ldur	x9, [x29, #-0x8]
+  232658: eb09011f     	cmp	x8, x9
+  23265c: 54000321     	b.ne	0x2326c0 <SW::SwCmd::extendedInquire(SW::AXISID, int)+0x130>
+  232660: aa1403e0     	mov	x0, x20
+  232664: 97ff3c2f     	bl	0x201720 <std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char
+  232668: f9400288     	ldr	x8, [x20]
+  23266c: aa0003f4     	mov	x20, x0
+  232670: b5000128     	cbnz	x8, 0x232694 <SW::SwCmd::extendedInquire(SW::AXISID, int)+0x104>
+  232674: f94003e0     	ldr	x0, [sp]
+  232678: b5000180     	cbnz	x0, 0x2326a8 <SW::SwCmd::extendedInquire(SW::AXISID, int)+0x118>
+  23267c: f94016e8     	ldr	x8, [x23, #0x28]
+  232680: f85f83a9     	ldur	x9, [x29, #-0x8]
+  232684: eb09011f     	cmp	x8, x9
+  232688: 540001c1     	b.ne	0x2326c0 <SW::SwCmd::extendedInquire(SW::AXISID, int)+0x130>
+  23268c: aa1403e0     	mov	x0, x20
+  232690: 94022b7d     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  232694: aa0803e0     	mov	x0, x8
+  232698: f9000a68     	str	x8, [x19, #0x10]
+  23269c: 94023b3d     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2326a0: f94003e0     	ldr	x0, [sp]
+  2326a4: b4fffec0     	cbz	x0, 0x23267c <SW::SwCmd::extendedInquire(SW::AXISID, int)+0xec>
+  2326a8: f90007e0     	str	x0, [sp, #0x8]
+  2326ac: 94023b39     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2326b0: f94016e8     	ldr	x8, [x23, #0x28]
+  2326b4: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2326b8: eb09011f     	cmp	x8, x9
+  2326bc: 54fffe80     	b.eq	0x23268c <SW::SwCmd::extendedInquire(SW::AXISID, int)+0xfc>
+  2326c0: 94023abc     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000002326c4 <SW::SwCmd::x(SW::AXISID, unsigned char, SW::CBytes const&)>:
+  2326c4: d10183ff     	sub	sp, sp, #0x60
+  2326c8: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  2326cc: f9001bf7     	str	x23, [sp, #0x30]
+  2326d0: a90457f6     	stp	x22, x21, [sp, #0x40]
+  2326d4: a9054ff4     	stp	x20, x19, [sp, #0x50]
+  2326d8: 910083fd     	add	x29, sp, #0x20
+  2326dc: d53bd057     	mrs	x23, TPIDR_EL0
+  2326e0: aa0803f3     	mov	x19, x8
+  2326e4: 2a0003f5     	mov	w21, w0
+  2326e8: f94016e8     	ldr	x8, [x23, #0x28]
+  2326ec: 12001c20     	and	w0, w1, #0xff
+  2326f0: 52800021     	mov	w1, #0x1                // =1
+  2326f4: aa0203f4     	mov	x20, x2
+  2326f8: f81f83a8     	stur	x8, [x29, #-0x8]
+  2326fc: 910003e8     	mov	x8, sp
+  232700: 9402436c     	bl	0x2c34b0 <_ZN2SW6CBytes9Int_B16LEEij@plt>  ;;; CALL SW::CBytes::Int_B16LE(int, unsigned int)  [x1=1(0x1)]
+  232704: 910003e0     	mov	x0, sp
+  232708: aa1403e1     	mov	x1, x20
+  23270c: 94024815     	bl	0x2c4760 <_ZN2SW6CBytes6AppendERKS0_@plt>  ;;; CALL SW::CBytes::Append(SW::CBytes const&)
+  232710: aa1303f4     	mov	x20, x19
+  232714: a9017e7f     	stp	xzr, xzr, [x19, #0x10]
+  232718: 52800b09     	mov	w9, #0x58               // =88
+  23271c: f8008e9f     	str	xzr, [x20, #0x8]!
+  232720: a9402016     	ldp	x22, x8, [x0]
+  232724: b9000275     	str	w21, [x19]
+  232728: 39001269     	strb	w9, [x19, #0x4]
+  23272c: eb160115     	subs	x21, x8, x22
+  232730: 54000160     	b.eq	0x23275c <SW::SwCmd::x(SW::AXISID, unsigned char, SW::CBytes const&)+0x98>
+  232734: b7f80315     	tbnz	x21, #0x3f, 0x232794 <SW::SwCmd::x(SW::AXISID, unsigned char, SW::CBytes const&)+0xd0>
+  232738: aa1503e0     	mov	x0, x21
+  23273c: 94023a71     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  232740: 8b150014     	add	x20, x0, x21
+  232744: aa1603e1     	mov	x1, x22
+  232748: aa1503e2     	mov	x2, x21
+  23274c: f9000660     	str	x0, [x19, #0x8]
+  232750: f9000e74     	str	x20, [x19, #0x18]
+  232754: 94023fcb     	bl	0x2c2680 <memcpy@plt>  ;;; CALL memcpy
+  232758: f9000a74     	str	x20, [x19, #0x10]
+  23275c: f94003e0     	ldr	x0, [sp]
+  232760: b4000060     	cbz	x0, 0x23276c <SW::SwCmd::x(SW::AXISID, unsigned char, SW::CBytes const&)+0xa8>
+  232764: f90007e0     	str	x0, [sp, #0x8]
+  232768: 94023b0a     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23276c: f94016e8     	ldr	x8, [x23, #0x28]
+  232770: f85f83a9     	ldur	x9, [x29, #-0x8]
+  232774: eb09011f     	cmp	x8, x9
+  232778: 540004e1     	b.ne	0x232814 <SW::SwCmd::x(SW::AXISID, unsigned char, SW::CBytes const&)+0x150>
+  23277c: a9454ff4     	ldp	x20, x19, [sp, #0x50]
+  232780: f9401bf7     	ldr	x23, [sp, #0x30]
+  232784: a94457f6     	ldp	x22, x21, [sp, #0x40]
+  232788: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  23278c: 910183ff     	add	sp, sp, #0x60
+  232790: d65f03c0     	ret
+  232794: f94016e8     	ldr	x8, [x23, #0x28]
+  232798: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23279c: eb09011f     	cmp	x8, x9
+  2327a0: 540003a1     	b.ne	0x232814 <SW::SwCmd::x(SW::AXISID, unsigned char, SW::CBytes const&)+0x150>
+  2327a4: aa1403e0     	mov	x0, x20
+  2327a8: 97ff3bde     	bl	0x201720 <std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char
+  2327ac: aa0003f4     	mov	x20, x0
+  2327b0: f94003e0     	ldr	x0, [sp]
+  2327b4: b40000e0     	cbz	x0, 0x2327d0 <SW::SwCmd::x(SW::AXISID, unsigned char, SW::CBytes const&)+0x10c>
+  2327b8: 14000011     	b	0x2327fc <SW::SwCmd::x(SW::AXISID, unsigned char, SW::CBytes const&)+0x138>
+  2327bc: f9400288     	ldr	x8, [x20]
+  2327c0: aa0003f4     	mov	x20, x0
+  2327c4: b5000128     	cbnz	x8, 0x2327e8 <SW::SwCmd::x(SW::AXISID, unsigned char, SW::CBytes const&)+0x124>
+  2327c8: f94003e0     	ldr	x0, [sp]
+  2327cc: b5000180     	cbnz	x0, 0x2327fc <SW::SwCmd::x(SW::AXISID, unsigned char, SW::CBytes const&)+0x138>
+  2327d0: f94016e8     	ldr	x8, [x23, #0x28]
+  2327d4: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2327d8: eb09011f     	cmp	x8, x9
+  2327dc: 540001c1     	b.ne	0x232814 <SW::SwCmd::x(SW::AXISID, unsigned char, SW::CBytes const&)+0x150>
+  2327e0: aa1403e0     	mov	x0, x20
+  2327e4: 94022b28     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  2327e8: aa0803e0     	mov	x0, x8
+  2327ec: f9000a68     	str	x8, [x19, #0x10]
+  2327f0: 94023ae8     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2327f4: f94003e0     	ldr	x0, [sp]
+  2327f8: b4fffec0     	cbz	x0, 0x2327d0 <SW::SwCmd::x(SW::AXISID, unsigned char, SW::CBytes const&)+0x10c>
+  2327fc: f90007e0     	str	x0, [sp, #0x8]
+  232800: 94023ae4     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  232804: f94016e8     	ldr	x8, [x23, #0x28]
+  232808: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23280c: eb09011f     	cmp	x8, x9
+  232810: 54fffe80     	b.eq	0x2327e0 <SW::SwCmd::x(SW::AXISID, unsigned char, SW::CBytes const&)+0x11c>
+  232814: 94023a67     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000232818 <SW::SwCmd::xRead(SW::AXISID, unsigned char)>:
+  232818: d10143ff     	sub	sp, sp, #0x50
+  23281c: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  232820: f9001bf5     	str	x21, [sp, #0x30]
+  232824: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  232828: 910083fd     	add	x29, sp, #0x20
+  23282c: d53bd055     	mrs	x21, TPIDR_EL0
+  232830: aa0803f4     	mov	x20, x8
+  232834: 2a0003f3     	mov	w19, w0
+  232838: f94016a8     	ldr	x8, [x21, #0x28]
+  23283c: 12001c20     	and	w0, w1, #0xff
+  232840: 52800021     	mov	w1, #0x1                // =1
+  232844: f81f83a8     	stur	x8, [x29, #-0x8]
+  232848: 910003e8     	mov	x8, sp
+  23284c: 940247cd     	bl	0x2c4780 <_ZN2SW6CBytes9Int_B16BEEij@plt>  ;;; CALL SW::CBytes::Int_B16BE(int, unsigned int)  [x1=1(0x1)]
+  232850: 910003e2     	mov	x2, sp
+  232854: aa1403e8     	mov	x8, x20
+  232858: 2a1303e0     	mov	w0, w19
+  23285c: 2a1f03e1     	mov	w1, wzr
+  232860: 940247bc     	bl	0x2c4750 <_ZN2SW5SwCmd1xENS_6AXISIDEhRKNS_6CBytesE@plt>  ;;; CALL SW::SwCmd::x(SW::AXISID, unsigned char, SW::CBytes const&)
+  232864: f94003e0     	ldr	x0, [sp]
+  232868: b4000060     	cbz	x0, 0x232874 <SW::SwCmd::xRead(SW::AXISID, unsigned char)+0x5c>
+  23286c: f90007e0     	str	x0, [sp, #0x8]
+  232870: 94023ac8     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  232874: f94016a8     	ldr	x8, [x21, #0x28]
+  232878: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23287c: eb09011f     	cmp	x8, x9
+  232880: 54000241     	b.ne	0x2328c8 <SW::SwCmd::xRead(SW::AXISID, unsigned char)+0xb0>
+  232884: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  232888: f9401bf5     	ldr	x21, [sp, #0x30]
+  23288c: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  232890: 910143ff     	add	sp, sp, #0x50
+  232894: d65f03c0     	ret
+  232898: f94003e8     	ldr	x8, [sp]
+  23289c: aa0003f3     	mov	x19, x0
+  2328a0: b4000088     	cbz	x8, 0x2328b0 <SW::SwCmd::xRead(SW::AXISID, unsigned char)+0x98>
+  2328a4: aa0803e0     	mov	x0, x8
+  2328a8: f90007e8     	str	x8, [sp, #0x8]
+  2328ac: 94023ab9     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2328b0: f94016a8     	ldr	x8, [x21, #0x28]
+  2328b4: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2328b8: eb09011f     	cmp	x8, x9
+  2328bc: 54000061     	b.ne	0x2328c8 <SW::SwCmd::xRead(SW::AXISID, unsigned char)+0xb0>
+  2328c0: aa1303e0     	mov	x0, x19
+  2328c4: 94022af0     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  2328c8: 94023a3a     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000002328cc <SW::SwCmd::xOperation(SW::AXISID, unsigned char)>:
+  2328cc: d10143ff     	sub	sp, sp, #0x50
+  2328d0: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  2328d4: f9001bf5     	str	x21, [sp, #0x30]
+  2328d8: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  2328dc: 910083fd     	add	x29, sp, #0x20
+  2328e0: d53bd055     	mrs	x21, TPIDR_EL0
+  2328e4: aa0803f4     	mov	x20, x8
+  2328e8: 2a0003f3     	mov	w19, w0
+  2328ec: f94016a8     	ldr	x8, [x21, #0x28]
+  2328f0: 12001c20     	and	w0, w1, #0xff
+  2328f4: 52800021     	mov	w1, #0x1                // =1
+  2328f8: f81f83a8     	stur	x8, [x29, #-0x8]
+  2328fc: 910003e8     	mov	x8, sp
+  232900: 940247a0     	bl	0x2c4780 <_ZN2SW6CBytes9Int_B16BEEij@plt>  ;;; CALL SW::CBytes::Int_B16BE(int, unsigned int)  [x1=1(0x1)]
+  232904: 910003e2     	mov	x2, sp
+  232908: aa1403e8     	mov	x8, x20
+  23290c: 2a1303e0     	mov	w0, w19
+  232910: 528000a1     	mov	w1, #0x5                // =5
+  232914: 9402478f     	bl	0x2c4750 <_ZN2SW5SwCmd1xENS_6AXISIDEhRKNS_6CBytesE@plt>  ;;; CALL SW::SwCmd::x(SW::AXISID, unsigned char, SW::CBytes const&)  [x1=5(0x5)]
+  232918: f94003e0     	ldr	x0, [sp]
+  23291c: b4000060     	cbz	x0, 0x232928 <SW::SwCmd::xOperation(SW::AXISID, unsigned char)+0x5c>
+  232920: f90007e0     	str	x0, [sp, #0x8]
+  232924: 94023a9b     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  232928: f94016a8     	ldr	x8, [x21, #0x28]
+  23292c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  232930: eb09011f     	cmp	x8, x9
+  232934: 54000241     	b.ne	0x23297c <SW::SwCmd::xOperation(SW::AXISID, unsigned char)+0xb0>
+  232938: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  23293c: f9401bf5     	ldr	x21, [sp, #0x30]
+  232940: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  232944: 910143ff     	add	sp, sp, #0x50
+  232948: d65f03c0     	ret
+  23294c: f94003e8     	ldr	x8, [sp]
+  232950: aa0003f3     	mov	x19, x0
+  232954: b4000088     	cbz	x8, 0x232964 <SW::SwCmd::xOperation(SW::AXISID, unsigned char)+0x98>
+  232958: aa0803e0     	mov	x0, x8
+  23295c: f90007e8     	str	x8, [sp, #0x8]
+  232960: 94023a8c     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  232964: f94016a8     	ldr	x8, [x21, #0x28]
+  232968: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23296c: eb09011f     	cmp	x8, x9
+  232970: 54000061     	b.ne	0x23297c <SW::SwCmd::xOperation(SW::AXISID, unsigned char)+0xb0>
+  232974: aa1303e0     	mov	x0, x19
+  232978: 94022ac3     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23297c: 94023a0d     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000232980 <SW::SwCmd::encode() const>:
+  232980: d10103ff     	sub	sp, sp, #0x40
+  232984: a9017bfd     	stp	x29, x30, [sp, #0x10]
+  232988: f90013f5     	str	x21, [sp, #0x20]
+  23298c: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  232990: 910043fd     	add	x29, sp, #0x10
+  232994: d53bd055     	mrs	x21, TPIDR_EL0
+  232998: aa0803f3     	mov	x19, x8
+  23299c: aa0003f4     	mov	x20, x0
+  2329a0: f94016a8     	ldr	x8, [x21, #0x28]
+  2329a4: 52800060     	mov	w0, #0x3                // =3
+  2329a8: f90007e8     	str	x8, [sp, #0x8]
+  2329ac: a9007e7f     	stp	xzr, xzr, [x19]
+  2329b0: f9000a7f     	str	xzr, [x19, #0x10]
+  2329b4: 940239d3     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  2329b8: b9400288     	ldr	w8, [x20]
+  2329bc: 3940128b     	ldrb	w11, [x20, #0x4]
+  2329c0: 91000c09     	add	x9, x0, #0x3
+  2329c4: 5280074a     	mov	w10, #0x3a              // =58
+  2329c8: a9002660     	stp	x0, x9, [x19]
+  2329cc: 7100011f     	cmp	w8, #0x0
+  2329d0: 52800628     	mov	w8, #0x31               // =49
+  2329d4: f9000a69     	str	x9, [x19, #0x10]
+  2329d8: 1a880508     	cinc	w8, w8, ne
+  2329dc: 3900000a     	strb	w10, [x0]
+  2329e0: 3900040b     	strb	w11, [x0, #0x1]
+  2329e4: 39000808     	strb	w8, [x0, #0x2]
+  2329e8: 91002281     	add	x1, x20, #0x8
+  2329ec: aa1303e0     	mov	x0, x19
+  2329f0: 9402475c     	bl	0x2c4760 <_ZN2SW6CBytes6AppendERKS0_@plt>  ;;; CALL SW::CBytes::Append(SW::CBytes const&)
+  2329f4: 528001a8     	mov	w8, #0xd                // =13
+  2329f8: 390013e8     	strb	w8, [sp, #0x4]
+  2329fc: 910013e1     	add	x1, sp, #0x4
+  232a00: aa1303e0     	mov	x0, x19
+  232a04: 52800022     	mov	w2, #0x1                // =1
+  232a08: 94024766     	bl	0x2c47a0 <_ZN2SW6CBytes6AppendEPKcj@plt>  ;;; CALL SW::CBytes::Append(char const*, unsigned int)  [x2=1(0x1)]
+  232a0c: f94016a8     	ldr	x8, [x21, #0x28]
+  232a10: f94007e9     	ldr	x9, [sp, #0x8]
+  232a14: eb09011f     	cmp	x8, x9
+  232a18: 54000241     	b.ne	0x232a60 <SW::SwCmd::encode() const+0xe0>
+  232a1c: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  232a20: f94013f5     	ldr	x21, [sp, #0x20]
+  232a24: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+  232a28: 910103ff     	add	sp, sp, #0x40
+  232a2c: d65f03c0     	ret
+  232a30: 14000001     	b	0x232a34 <SW::SwCmd::encode() const+0xb4>
+  232a34: aa0003f4     	mov	x20, x0
+  232a38: f9400260     	ldr	x0, [x19]
+  232a3c: b4000060     	cbz	x0, 0x232a48 <SW::SwCmd::encode() const+0xc8>
+  232a40: f9000660     	str	x0, [x19, #0x8]
+  232a44: 94023a53     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  232a48: f94016a8     	ldr	x8, [x21, #0x28]
+  232a4c: f94007e9     	ldr	x9, [sp, #0x8]
+  232a50: eb09011f     	cmp	x8, x9
+  232a54: 54000061     	b.ne	0x232a60 <SW::SwCmd::encode() const+0xe0>
+  232a58: aa1403e0     	mov	x0, x20
+  232a5c: 94022a8a     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  232a60: 940239d4     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000232a64 <SW::SwCmdCoder::decodeInt(SW::CBytes const&)>:
+  232a64: d10143ff     	sub	sp, sp, #0x50
+  232a68: a9037bfd     	stp	x29, x30, [sp, #0x30]
+  232a6c: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  232a70: 9100c3fd     	add	x29, sp, #0x30
+  232a74: d53bd054     	mrs	x20, TPIDR_EL0
+  232a78: f9401688     	ldr	x8, [x20, #0x28]
+  232a7c: f81f83a8     	stur	x8, [x29, #-0x8]
+  232a80: a9402009     	ldp	x9, x8, [x0]
+  232a84: cb090108     	sub	x8, x8, x9
+  232a88: 51001109     	sub	w9, w8, #0x4
+  232a8c: 1200010a     	and	w10, w8, #0x1
+  232a90: 7100113f     	cmp	w9, #0x4
+  232a94: 7a409940     	ccmp	w10, #0x0, #0x0, ls
+  232a98: 54000060     	b.eq	0x232aa4 <SW::SwCmdCoder::decodeInt(SW::CBytes const&)+0x40>
+  232a9c: aa1f03e0     	mov	x0, xzr
+  232aa0: 14000011     	b	0x232ae4 <SW::SwCmdCoder::decodeInt(SW::CBytes const&)+0x80>
+  232aa4: 51000502     	sub	w2, w8, #0x1
+  232aa8: 910023e8     	add	x8, sp, #0x8
+  232aac: 52800021     	mov	w1, #0x1                // =1
+  232ab0: 94024284     	bl	0x2c34c0 <_ZNK2SW6CBytes5SliceEmm@plt>  ;;; CALL SW::CBytes::Slice(unsigned long, unsigned long) const  [x1=1(0x1)]
+  232ab4: 910023e0     	add	x0, sp, #0x8
+  232ab8: d10033a1     	sub	x1, x29, #0xc
+  232abc: 94024285     	bl	0x2c34d0 <_ZNK2SW6CBytes9B16LE_IntERi@plt>  ;;; CALL SW::CBytes::B16LE_Int(int&) const
+  232ac0: 2a0003f3     	mov	w19, w0
+  232ac4: f94007e0     	ldr	x0, [sp, #0x8]
+  232ac8: b4000060     	cbz	x0, 0x232ad4 <SW::SwCmdCoder::decodeInt(SW::CBytes const&)+0x70>
+  232acc: f9000be0     	str	x0, [sp, #0x10]
+  232ad0: 94023a30     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  232ad4: b85f43a8     	ldur	w8, [x29, #-0xc]
+  232ad8: 7200027f     	tst	w19, #0x1
+  232adc: b2600108     	orr	x8, x8, #0x100000000
+  232ae0: 9a9f1100     	csel	x0, x8, xzr, ne
+  232ae4: f9401688     	ldr	x8, [x20, #0x28]
+  232ae8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  232aec: eb09011f     	cmp	x8, x9
+  232af0: 54000221     	b.ne	0x232b34 <SW::SwCmdCoder::decodeInt(SW::CBytes const&)+0xd0>
+  232af4: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  232af8: a9437bfd     	ldp	x29, x30, [sp, #0x30]
+  232afc: 910143ff     	add	sp, sp, #0x50
+  232b00: d65f03c0     	ret
+  232b04: f94007e8     	ldr	x8, [sp, #0x8]
+  232b08: aa0003f3     	mov	x19, x0
+  232b0c: b4000088     	cbz	x8, 0x232b1c <SW::SwCmdCoder::decodeInt(SW::CBytes const&)+0xb8>
+  232b10: aa0803e0     	mov	x0, x8
+  232b14: f9000be8     	str	x8, [sp, #0x10]
+  232b18: 94023a1e     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  232b1c: f9401688     	ldr	x8, [x20, #0x28]
+  232b20: f85f83a9     	ldur	x9, [x29, #-0x8]
+  232b24: eb09011f     	cmp	x8, x9
+  232b28: 54000061     	b.ne	0x232b34 <SW::SwCmdCoder::decodeInt(SW::CBytes const&)+0xd0>
+  232b2c: aa1303e0     	mov	x0, x19
+  232b30: 94022a55     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  232b34: 9402399f     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000232b38 <SW::SwCmdCoder::encodeX32Int(int)>:
+  232b38: 52800081     	mov	w1, #0x4                // =4
+  232b3c: 14024711     	b	0x2c4780 <_ZN2SW6CBytes9Int_B16BEEij@plt>
+
+0000000000232b40 <SW::SwCmdCoder::decodeX32Int(SW::CBytes const&)>:
+  232b40: d10143ff     	sub	sp, sp, #0x50
+  232b44: a9037bfd     	stp	x29, x30, [sp, #0x30]
+  232b48: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  232b4c: 9100c3fd     	add	x29, sp, #0x30
+  232b50: d53bd054     	mrs	x20, TPIDR_EL0
+  232b54: f9401688     	ldr	x8, [x20, #0x28]
+  232b58: f81f83a8     	stur	x8, [x29, #-0x8]
+  232b5c: a9402009     	ldp	x9, x8, [x0]
+  232b60: cb090108     	sub	x8, x8, x9
+  232b64: f100291f     	cmp	x8, #0xa
+  232b68: 54000241     	b.ne	0x232bb0 <SW::SwCmdCoder::decodeX32Int(SW::CBytes const&)+0x70>
+  232b6c: 910023e8     	add	x8, sp, #0x8
+  232b70: 52800021     	mov	w1, #0x1                // =1
+  232b74: 52800122     	mov	w2, #0x9                // =9
+  232b78: 94024252     	bl	0x2c34c0 <_ZNK2SW6CBytes5SliceEmm@plt>  ;;; CALL SW::CBytes::Slice(unsigned long, unsigned long) const  [x1=1(0x1), x2=9(0x9)]
+  232b7c: 910023e0     	add	x0, sp, #0x8
+  232b80: d10033a1     	sub	x1, x29, #0xc
+  232b84: 94024717     	bl	0x2c47e0 <_ZNK2SW6CBytes9B16BE_IntERi@plt>  ;;; CALL SW::CBytes::B16BE_Int(int&) const
+  232b88: 2a0003f3     	mov	w19, w0
+  232b8c: f94007e0     	ldr	x0, [sp, #0x8]
+  232b90: b4000060     	cbz	x0, 0x232b9c <SW::SwCmdCoder::decodeX32Int(SW::CBytes const&)+0x5c>
+  232b94: f9000be0     	str	x0, [sp, #0x10]
+  232b98: 940239fe     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  232b9c: b85f43a8     	ldur	w8, [x29, #-0xc]
+  232ba0: 7200027f     	tst	w19, #0x1
+  232ba4: b2600108     	orr	x8, x8, #0x100000000
+  232ba8: 9a9f1100     	csel	x0, x8, xzr, ne
+  232bac: 14000002     	b	0x232bb4 <SW::SwCmdCoder::decodeX32Int(SW::CBytes const&)+0x74>
+  232bb0: aa1f03e0     	mov	x0, xzr
+  232bb4: f9401688     	ldr	x8, [x20, #0x28]
+  232bb8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  232bbc: eb09011f     	cmp	x8, x9
+  232bc0: 54000221     	b.ne	0x232c04 <SW::SwCmdCoder::decodeX32Int(SW::CBytes const&)+0xc4>
+  232bc4: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  232bc8: a9437bfd     	ldp	x29, x30, [sp, #0x30]
+  232bcc: 910143ff     	add	sp, sp, #0x50
+  232bd0: d65f03c0     	ret
+  232bd4: f94007e8     	ldr	x8, [sp, #0x8]
+  232bd8: aa0003f3     	mov	x19, x0
+  232bdc: b4000088     	cbz	x8, 0x232bec <SW::SwCmdCoder::decodeX32Int(SW::CBytes const&)+0xac>
+  232be0: aa0803e0     	mov	x0, x8
+  232be4: f9000be8     	str	x8, [sp, #0x10]
+  232be8: 940239ea     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  232bec: f9401688     	ldr	x8, [x20, #0x28]
+  232bf0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  232bf4: eb09011f     	cmp	x8, x9
+  232bf8: 54000061     	b.ne	0x232c04 <SW::SwCmdCoder::decodeX32Int(SW::CBytes const&)+0xc4>
+  232bfc: aa1303e0     	mov	x0, x19
+  232c00: 94022a21     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  232c04: 9402396b     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000232c08 <SW::SwCmdCoder::parseMCVersion(SW::CBytes const&)>:
+  232c08: d10143ff     	sub	sp, sp, #0x50
+  232c0c: a9037bfd     	stp	x29, x30, [sp, #0x30]
+  232c10: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  232c14: 9100c3fd     	add	x29, sp, #0x30
+  232c18: d53bd054     	mrs	x20, TPIDR_EL0
+  232c1c: f9401688     	ldr	x8, [x20, #0x28]
+  232c20: f81f83a8     	stur	x8, [x29, #-0x8]
+  232c24: a9402009     	ldp	x9, x8, [x0]
+  232c28: eb090108     	subs	x8, x8, x9
+  232c2c: 54000440     	b.eq	0x232cb4 <SW::SwCmdCoder::parseMCVersion(SW::CBytes const&)+0xac>
+  232c30: aa1f03eb     	mov	x11, xzr
+  232c34: 5280010a     	mov	w10, #0x8               // =8
+  232c38: 386b692b     	ldrb	w11, [x9, x11]
+  232c3c: 7100f57f     	cmp	w11, #0x3d
+  232c40: 540000c0     	b.eq	0x232c58 <SW::SwCmdCoder::parseMCVersion(SW::CBytes const&)+0x50>
+  232c44: 51001d4b     	sub	w11, w10, #0x7
+  232c48: 1100054a     	add	w10, w10, #0x1
+  232c4c: eb0b011f     	cmp	x8, x11
+  232c50: 54ffff48     	b.hi	0x232c38 <SW::SwCmdCoder::parseMCVersion(SW::CBytes const&)+0x30>
+  232c54: 14000017     	b	0x232cb0 <SW::SwCmdCoder::parseMCVersion(SW::CBytes const&)+0xa8>
+  232c58: eb2a411f     	cmp	x8, w10, uxtw
+  232c5c: 540002a1     	b.ne	0x232cb0 <SW::SwCmdCoder::parseMCVersion(SW::CBytes const&)+0xa8>
+  232c60: 51001d41     	sub	w1, w10, #0x7
+  232c64: 910023e8     	add	x8, sp, #0x8
+  232c68: 528000c2     	mov	w2, #0x6                // =6
+  232c6c: f81f03bf     	stur	xzr, [x29, #-0x10]
+  232c70: 940246e4     	bl	0x2c4800 <_ZNK2SW6CBytes8SliceLenEmm@plt>  ;;; CALL SW::CBytes::SliceLen(unsigned long, unsigned long) const  [x2=6(0x6)]
+  232c74: 910023e0     	add	x0, sp, #0x8
+  232c78: d10043a1     	sub	x1, x29, #0x10
+  232c7c: 940246e5     	bl	0x2c4810 <_ZNK2SW6CBytes10B16BE_LongERl@plt>  ;;; CALL SW::CBytes::B16BE_Long(long&) const
+  232c80: 2a0003f3     	mov	w19, w0
+  232c84: f94007e0     	ldr	x0, [sp, #0x8]
+  232c88: b4000060     	cbz	x0, 0x232c94 <SW::SwCmdCoder::parseMCVersion(SW::CBytes const&)+0x8c>
+  232c8c: f9000be0     	str	x0, [sp, #0x10]
+  232c90: 940239c0     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  232c94: 360000f3     	tbz	w19, #0x0, 0x232cb0 <SW::SwCmdCoder::parseMCVersion(SW::CBytes const&)+0xa8>
+  232c98: b85f03aa     	ldur	w10, [x29, #-0x10]
+  232c9c: 52a0200b     	mov	w11, #0x1000000         // =16777216
+  232ca0: 53101d49     	ubfiz	w9, w10, #16, #8
+  232ca4: 53105d48     	ubfx	w8, w10, #16, #8
+  232ca8: 12181d4a     	and	w10, w10, #0xff00
+  232cac: 14000005     	b	0x232cc0 <SW::SwCmdCoder::parseMCVersion(SW::CBytes const&)+0xb8>
+  232cb0: 2a1f03e8     	mov	w8, wzr
+  232cb4: 2a1f03ea     	mov	w10, wzr
+  232cb8: 2a1f03e9     	mov	w9, wzr
+  232cbc: 2a1f03eb     	mov	w11, wzr
+  232cc0: f940168c     	ldr	x12, [x20, #0x28]
+  232cc4: f85f83ad     	ldur	x13, [x29, #-0x8]
+  232cc8: eb0d019f     	cmp	x12, x13
+  232ccc: 54000281     	b.ne	0x232d1c <SW::SwCmdCoder::parseMCVersion(SW::CBytes const&)+0x114>
+  232cd0: 2a080148     	orr	w8, w10, w8
+  232cd4: 2a0b0129     	orr	w9, w9, w11
+  232cd8: 2a090100     	orr	w0, w8, w9
+  232cdc: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  232ce0: a9437bfd     	ldp	x29, x30, [sp, #0x30]
+  232ce4: 910143ff     	add	sp, sp, #0x50
+  232ce8: d65f03c0     	ret
+  232cec: f94007e8     	ldr	x8, [sp, #0x8]
+  232cf0: aa0003f3     	mov	x19, x0
+  232cf4: b4000088     	cbz	x8, 0x232d04 <SW::SwCmdCoder::parseMCVersion(SW::CBytes const&)+0xfc>
+  232cf8: aa0803e0     	mov	x0, x8
+  232cfc: f9000be8     	str	x8, [sp, #0x10]
+  232d00: 940239a4     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  232d04: f9401688     	ldr	x8, [x20, #0x28]
+  232d08: f85f83a9     	ldur	x9, [x29, #-0x8]
+  232d0c: eb09011f     	cmp	x8, x9
+  232d10: 54000061     	b.ne	0x232d1c <SW::SwCmdCoder::parseMCVersion(SW::CBytes const&)+0x114>
+  232d14: aa1303e0     	mov	x0, x19
+  232d18: 940229db     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  232d1c: 94023925     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000232d20 <SW::SwCmdCoder::cmdXEncodeTime(long, unsigned int)>:
+  232d20: d2c80009     	mov	x9, #0x400000000000     // =70368744177664
+  232d24: 9e620000     	scvtf	d0, x0
+  232d28: f2e811e9     	movk	x9, #0x408f, lsl #48
+  232d2c: 9e670121     	fmov	d1, x9
+  232d30: 1e611800     	fdiv	d0, d0, d1
+  232d34: 1e630021     	ucvtf	d1, w1
+  232d38: 52800101     	mov	w1, #0x8                // =8
+  232d3c: 1e610800     	fmul	d0, d0, d1
+  232d40: 9e780000     	fcvtzs	x0, d0
+  232d44: 140246b7     	b	0x2c4820 <_ZN2SW6CBytes10Long_B16BEElj@plt>
+
+0000000000232d48 <SW::SwCmdCoder::cmdXEncodeTime_MsToInt(long, unsigned int)>:
+  232d48: d2c80008     	mov	x8, #0x400000000000     // =70368744177664
+  232d4c: 9e620000     	scvtf	d0, x0
+  232d50: f2e811e8     	movk	x8, #0x408f, lsl #48
+  232d54: 9e670101     	fmov	d1, x8
+  232d58: 1e611800     	fdiv	d0, d0, d1
+  232d5c: 1e630021     	ucvtf	d1, w1
+  232d60: 1e610800     	fmul	d0, d0, d1
+  232d64: 9e780000     	fcvtzs	x0, d0
+  232d68: d65f03c0     	ret
+
+0000000000232d6c <SW::SwCmdCoder::cmdXEncodeTime_IntToBytes(long)>:
+  232d6c: 52800101     	mov	w1, #0x8                // =8
+  232d70: 140246ac     	b	0x2c4820 <_ZN2SW6CBytes10Long_B16BEElj@plt>
+

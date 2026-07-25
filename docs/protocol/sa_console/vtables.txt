@@ -1,0 +1,1947 @@
+==== vtable for SW::AndroidExtension @ 0x2d36d0
+  +0x00  SW::AndroidExtension::metaObject() const
+  +0x08  SW::AndroidExtension::qt_metacast(char const*)
+  +0x10  SW::AndroidExtension::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::AndroidExtension::~AndroidExtension()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+
+==== vtable for SW::AndroidSerialPort @ 0x2d5738
+  +0x00  SW::AndroidSerialPort::~AndroidSerialPort()
+  +0x08  SW::AndroidSerialPort::~AndroidSerialPort()
+  +0x10  SW::AndroidSerialPort::open()
+  +0x18  SW::AndroidSerialPort::valid()
+  +0x20  SW::AndroidSerialPort::write(SW::CBytes const&)
+  +0x28  SW::AndroidSerialPort::readByte(unsigned int, char&)
+  +0x30  SW::AndroidSerialPort::clearReadBuffer()
+  +0x38  SW::AndroidSerialPort::setBaudRate(unsigned int)
+  +0x40  SW::AndroidSerialPort::setRTS(bool)
+  +0x48  SW::AndroidSerialPort::isCTSSet(bool&)
+
+==== vtable for SW::AppVersion @ 0x2cec70
+  +0x00  SW::AppVersion::metaObject() const
+  +0x08  SW::AppVersion::qt_metacast(char const*)
+  +0x10  SW::AppVersion::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::AppVersion::~AppVersion()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+
+==== vtable for SW::AstroCalc @ 0x2d3ea8
+  +0x00  SW::AstroCalc::~AstroCalc()
+  +0x08  SW::AstroCalc::~AstroCalc()
+  +0x10  SW::AstroCalc::gmstRad()
+  +0x18  SW::AstroCalc::lmstRad()
+  +0x20  SW::AstroCalc::haDecToAzAlt(SW::U_ASTRO_COORD)
+  +0x28  SW::AstroCalc::azAltToHADec(SW::U_ASTRO_COORD)
+  +0x30  SW::AstroCalc::haDecToAlt(SW::U_ASTRO_COORD)
+  +0x38  SW::AstroCalc::calcCoords_AtTime(SW::AstroCoord, SW::CoordType, double)
+  +0x40  SW::AstroCalc::calcCoords(SW::AstroCoord, SW::CoordType)
+  +0x48  SW::AstroCalc::calcCoord_Future(SW::AstroCoord, SW::CoordType, long)
+  +0x50  SW::AstroCalc::calcCoord(SW::AstroCoord, SW::CoordType)
+  +0x58  SW::AstroCalc::calcCoordsFromRDJ2000(SW::U_ASTRO_COORD, SW::CoordType, double, double)
+  +0x60  SW::AstroCalc::calcPolarisPolarScopeClockRad()
+  +0x68  SW::AstroCalc::calcPolarisHaRad()
+  +0x70  SW::AstroCalc::calcOctansPolarScopeInfo()
+
+==== vtable for SW::AstroClock @ 0x2d4e00
+  +0x00  SW::AstroClock::~AstroClock()
+  +0x08  SW::AstroClock::~AstroClock()
+  +0x10  SW::AstroClock::unixMs()
+  +0x18  SW::AstroClock::jd()
+  +0x20  SW::AstroClock::time_t()
+
+==== vtable for SW::AxisStopTask @ 0x2d52a0
+  +0x00  SW::AxisStopTask::~AxisStopTask()
+  +0x08  SW::AxisStopTask::~AxisStopTask()
+  +0x10  SW::AxisStopTask::id() const
+  +0x18  SW::AxisStopTask::requiredResources() const
+  +0x20  SW::AxisStopTask::run()
+
+==== vtable for SW::CParamsSolver::CA_Cycle @ 0x2d1c28
+  +0x00  SW::CParamsSolver::Param::~Param()
+  +0x08  SW::CParamsSolver::CA_Cycle::~CA_Cycle()
+  +0x10  SW::CParamsSolver::CA_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)
+
+==== vtable for SW::CParamsSolver::CA_Range @ 0x2d1ce8
+  +0x00  SW::CParamsSolver::Param::~Param()
+  +0x08  SW::CParamsSolver::CA_Range::~CA_Range()
+  +0x10  SW::CParamsSolver::CA_Range::calcFromGroup(SW::CParamsSolver::PGroup*)
+
+==== vtable for SW::CParamsSolver::CA_Total @ 0x2d1be8
+  +0x00  SW::CParamsSolver::Param::~Param()
+  +0x08  SW::CParamsSolver::CA_Total::~CA_Total()
+  +0x10  SW::CParamsSolver::CA_Total::calcFromGroup(SW::CParamsSolver::PGroup*)
+
+==== vtable for SW::CParamsSolver::CFps @ 0x2d1e68
+  +0x00  SW::CParamsSolver::Param::~Param()
+  +0x08  SW::CParamsSolver::CFps::~CFps()
+  +0x10  SW::CParamsSolver::CFps::calcFromGroup(SW::CParamsSolver::PGroup*)
+
+==== vtable for SW::CParamsSolver::CN_Cycles @ 0x2d1b68
+  +0x00  SW::CParamsSolver::Param::~Param()
+  +0x08  SW::CParamsSolver::CN_Cycles::~CN_Cycles()
+  +0x10  SW::CParamsSolver::CN_Cycles::calcFromGroup(SW::CParamsSolver::PGroup*)
+
+==== vtable for SW::CParamsSolver::CN_Swings @ 0x2d1d28
+  +0x00  SW::CParamsSolver::Param::~Param()
+  +0x08  SW::CParamsSolver::CN_Swings::~CN_Swings()
+  +0x10  SW::CParamsSolver::CN_Swings::calcFromGroup(SW::CParamsSolver::PGroup*)
+
+==== vtable for SW::CParamsSolver::CT_Cycle @ 0x2d1d68
+  +0x00  SW::CParamsSolver::Param::~Param()
+  +0x08  SW::CParamsSolver::CT_Cycle::~CT_Cycle()
+  +0x10  SW::CParamsSolver::CT_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)
+
+==== vtable for SW::CParamsSolver::CT_Exposure @ 0x2d1da8
+  +0x00  SW::CParamsSolver::Param::~Param()
+  +0x08  SW::CParamsSolver::CT_Exposure::~CT_Exposure()
+  +0x10  SW::CParamsSolver::CT_Exposure::calcFromGroup(SW::CParamsSolver::PGroup*)
+
+==== vtable for SW::CParamsSolver::CT_Move @ 0x2d1e28
+  +0x00  SW::CParamsSolver::Param::~Param()
+  +0x08  SW::CParamsSolver::CT_Move::~CT_Move()
+  +0x10  SW::CParamsSolver::CT_Move::calcFromGroup(SW::CParamsSolver::PGroup*)
+
+==== vtable for SW::CParamsSolver::CT_Settle @ 0x2d1de8
+  +0x00  SW::CParamsSolver::Param::~Param()
+  +0x08  SW::CParamsSolver::CT_Settle::~CT_Settle()
+  +0x10  SW::CParamsSolver::CT_Settle::calcFromGroup(SW::CParamsSolver::PGroup*)
+
+==== vtable for SW::CParamsSolver::CT_Total @ 0x2d1b28
+  +0x00  SW::CParamsSolver::Param::~Param()
+  +0x08  SW::CParamsSolver::CT_Total::~CT_Total()
+  +0x10  SW::CParamsSolver::CT_Total::calcFromGroup(SW::CParamsSolver::PGroup*)
+
+==== vtable for SW::CParamsSolver::CT_Video @ 0x2d1ba8
+  +0x00  SW::CParamsSolver::Param::~Param()
+  +0x08  SW::CParamsSolver::CT_Video::~CT_Video()
+  +0x10  SW::CParamsSolver::CT_Video::calcFromGroup(SW::CParamsSolver::PGroup*)
+
+==== vtable for SW::CParamsSolver::CV_Cycle @ 0x2d1ca8
+  +0x00  SW::CParamsSolver::Param::~Param()
+  +0x08  SW::CParamsSolver::CV_Cycle::~CV_Cycle()
+  +0x10  SW::CParamsSolver::CV_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)
+
+==== vtable for SW::CParamsSolver::CV_Total @ 0x2d1c68
+  +0x00  SW::CParamsSolver::Param::~Param()
+  +0x08  SW::CParamsSolver::CV_Total::~CV_Total()
+  +0x10  SW::CParamsSolver::CV_Total::calcFromGroup(SW::CParamsSolver::PGroup*)
+
+==== vtable for SW::CParamsSolver::Param @ 0x2d1af0
+  +0x00  SW::CParamsSolver::Param::~Param()
+  +0x08  SW::CParamsSolver::Param::~Param()
+  +0x10  __cxa_pure_virtual
+
+==== vtable for SW::CRealClock @ 0x2d4e60
+  +0x00  SW::IClock::~IClock()
+  +0x08  SW::CRealClock::~CRealClock()
+  +0x10  SW::CRealClock::unixMs()
+
+==== vtable for SW::ConnectableHelper @ 0x2d40e8
+  +0x00  QObject::metaObject() const
+  +0x08  QObject::qt_metacast(char const*)
+  +0x10  QObject::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::ConnectableHelper::~ConnectableHelper()
+  +0x20  SW::ConnectableHelper::~ConnectableHelper()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::ConnectableHelper::devicesList()
+  +0x68  SW::ConnectableHelper::startConnect()
+  +0x70  SW::ConnectableHelper::selectDevice(int)
+  +0x78  SW::ConnectableHelper::setDeviceListFilter(std::__ndk1::function<bool (unsigned char)>)
+  +0x80  SW::ConnectableHelper::setHandler(std::__ndk1::function<void (SW::SwConverserEtal)>)
+
+==== vtable for SW::ConnectionSettings @ 0x2d4198
+  +0x00  SW::IConnectionSettings::metaObject() const
+  +0x08  SW::IConnectionSettings::qt_metacast(char const*)
+  +0x10  SW::IConnectionSettings::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::ConnectionSettings::~ConnectionSettings()
+  +0x20  SW::ConnectionSettings::~ConnectionSettings()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::ConnectionSettings::dualModeChoice() const
+  +0x68  SW::ConnectionSettings::setDualModeChoice(SW::DualModeChoice_::E)
+  +0x70  SW::ConnectionSettings::connectAtLaunch() const
+  +0x78  SW::ConnectionSettings::setConnectAtLaunch(bool)
+  +0x80  SW::ConnectionSettings::type() const
+  +0x88  SW::ConnectionSettings::setType(SW::ConnectionType_::E)
+  +0x90  SW::ConnectionSettings::readTimeoutMs_other() const
+  +0x98  SW::ConnectionSettings::setReadTimeoutMs_other(unsigned int)
+  +0xa0  SW::ConnectionSettings::maxRetryCount() const
+  +0xa8  SW::ConnectionSettings::setMaxRetryCount(unsigned int)
+  +0xb0  SW::ConnectionSettings::searchIP() const
+  +0xb8  SW::ConnectionSettings::setSearchIP(bool)
+  +0xc0  SW::ConnectionSettings::fixedIP() const
+  +0xc8  SW::ConnectionSettings::setFixedIP(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>)
+  +0xd0  SW::ConnectionSettings::serialPortSupported() const
+  +0xd8  SW::ConnectionSettings::serialPortNeedsPortName() const
+  +0xe0  SW::ConnectionSettings::foundSerialPorts() const
+  +0xe8  SW::ConnectionSettings::detectSerialPorts()
+  +0xf0  SW::ConnectionSettings::foundSerialPortsIndex() const
+  +0xf8  SW::ConnectionSettings::setFoundSerialPortsIndex(int)
+  +0x100  SW::ConnectionSettings::serialPortName() const
+  +0x108  SW::ConnectionSettings::setSerialPortName(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>)
+  +0x110  SW::ConnectionSettings::maxUpgradeBaud() const
+  +0x118  SW::ConnectionSettings::setMaxUpgradeBaud(unsigned int)
+  +0x120  SW::ConnectionSettings::bleSupported() const
+  +0x128  SW::ConnectionSettings::discoveryTimeoutMs_BLE() const
+  +0x130  SW::ConnectionSettings::setDiscoveryTimeoutMs_BLE(unsigned int)
+  +0x138  SW::ConnectionSettings::readTimeoutMs_BLE() const
+  +0x140  SW::ConnectionSettings::setReadTimeoutMs_BLE(unsigned int)
+
+==== vtable for SW::ControlledCancellable @ 0x2d5638
+  +0x00  SW::ControlledCancellable::~ControlledCancellable()
+  +0x08  SW::ControlledCancellable::~ControlledCancellable()
+  +0x10  SW::ControlledCancellable::isCancelled()
+  +0x18  SW::ControlledCancellable::sleepAwaitCancel(unsigned long)
+  +0x20  SW::ControlledCancellable::setCallback(std::__ndk1::function<void ()>)
+  +0x28  SW::ControlledCancellable::cancel()
+  +0x30  raw 0xfffffffffffffff8
+
+==== vtable for SW::ConverserTimeoutForwarder @ 0x2d3648
+  +0x00  SW::ConverserTimeoutForwarder::metaObject() const
+  +0x08  SW::ConverserTimeoutForwarder::qt_metacast(char const*)
+  +0x10  SW::ConverserTimeoutForwarder::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::ConverserTimeoutForwarder::~ConverserTimeoutForwarder()
+  +0x20  SW::ConverserTimeoutForwarder::~ConverserTimeoutForwarder()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+
+==== vtable for SW::EEPROMConverser @ 0x2d1338
+  +0x00  SW::EEPROMConverser::~EEPROMConverser()
+  +0x08  SW::EEPROMConverser::~EEPROMConverser()
+  +0x10  SW::EEPROMConverser::readInt8(unsigned short)
+  +0x18  SW::EEPROMConverser::readInt16(unsigned short)
+  +0x20  SW::EEPROMConverser::readInt32(unsigned short)
+  +0x28  SW::EEPROMConverser::writeInt8(unsigned short, signed char)
+  +0x30  SW::EEPROMConverser::writeInt32(unsigned short, int)
+  +0x38  SW::EEPROMConverser::readString(unsigned short, unsigned int)
+  +0x40  SW::EEPROMConverser::writeString(unsigned short, unsigned int, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+
+==== vtable for SW::EmulatorSettings @ 0x2d3218
+  +0x00  SW::EmulatorSettings::metaObject() const
+  +0x08  SW::EmulatorSettings::qt_metacast(char const*)
+  +0x10  SW::EmulatorSettings::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::EmulatorSettings::~EmulatorSettings()
+  +0x20  SW::EmulatorSettings::~EmulatorSettings()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+
+==== vtable for SW::HandleController @ 0x2d3880
+  +0x00  SW::HandleController::metaObject() const
+  +0x08  SW::HandleController::qt_metacast(char const*)
+  +0x10  SW::HandleController::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::HandleController::~HandleController()
+  +0x20  SW::HandleController::~HandleController()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+
+==== vtable for SW::HandleControllerNative @ 0x2d3908
+  +0x00  SW::HandleControllerNative::metaObject() const
+  +0x08  SW::HandleControllerNative::qt_metacast(char const*)
+  +0x10  SW::HandleControllerNative::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::HandleControllerNative::~HandleControllerNative()
+  +0x20  SW::HandleControllerNative::~HandleControllerNative()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::HandleControllerNative::getHandleControllers() const
+  +0x68  SW::HandleControllerNative::start()
+  +0x70  SW::HandleControllerNative::stop()
+  +0x78  SW::HandleControllerNative::handleGenericMotionEvent(_jobject*)
+  +0x80  SW::HandleControllerNative::handleKeyEvent(_jobject*)
+  +0x88  raw 0xfffffffffffffff0
+
+==== vtable for SW::HelpFile @ 0x2cd7d8
+  +0x00  SW::IHelpFile::metaObject() const
+  +0x08  SW::IHelpFile::qt_metacast(char const*)
+  +0x10  SW::IHelpFile::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::HelpFile::~HelpFile()
+  +0x20  SW::HelpFile::~HelpFile()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::HelpFile::helpUrl() const
+  +0x68  SW::HelpFile::openInExternalApp() const
+
+==== vtable for SW::IAstroFormat @ 0x2d74c0
+  +0x00  SW::IAstroFormat::metaObject() const
+  +0x08  SW::IAstroFormat::qt_metacast(char const*)
+  +0x10  SW::IAstroFormat::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::IAstroFormat::~IAstroFormat()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+  +0x70  __cxa_pure_virtual
+  +0x78  SW::IAstroFormat::sec_hms(double)
+  +0x80  __cxa_pure_virtual
+  +0x88  __cxa_pure_virtual
+  +0x90  __cxa_pure_virtual
+  +0x98  __cxa_pure_virtual
+  +0xa0  __cxa_pure_virtual
+  +0xa8  __cxa_pure_virtual
+  +0xb0  __cxa_pure_virtual
+  +0xb8  __cxa_pure_virtual
+  +0xc0  __cxa_pure_virtual
+  +0xc8  __cxa_pure_virtual
+  +0xd0  __cxa_pure_virtual
+  +0xd8  __cxa_pure_virtual
+  +0xe0  __cxa_pure_virtual
+  +0xe8  __cxa_pure_virtual
+
+==== vtable for SW::IConnectable @ 0x2d33f8
+  +0x00  SW::IConnectable::metaObject() const
+  +0x08  SW::IConnectable::qt_metacast(char const*)
+  +0x10  SW::IConnectable::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::IConnectable::~IConnectable()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+  +0x70  __cxa_pure_virtual
+  +0x78  __cxa_pure_virtual
+  +0x80  __cxa_pure_virtual
+  +0x88  __cxa_pure_virtual
+  +0x90  __cxa_pure_virtual
+  +0x98  __cxa_pure_virtual
+  +0xa0  __cxa_pure_virtual
+  +0xa8  __cxa_pure_virtual
+  +0xb0  __cxa_pure_virtual
+
+==== vtable for SW::IConnectableHelper @ 0x2ccd98
+  +0x00  QObject::metaObject() const
+  +0x08  QObject::qt_metacast(char const*)
+  +0x10  QObject::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::IConnectableHelper::~IConnectableHelper()
+  +0x20  SW::IConnectableHelper::~IConnectableHelper()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+  +0x70  __cxa_pure_virtual
+  +0x78  __cxa_pure_virtual
+  +0x80  __cxa_pure_virtual
+
+==== vtable for SW::IConnectionSettings @ 0x2d34d8
+  +0x00  SW::IConnectionSettings::metaObject() const
+  +0x08  SW::IConnectionSettings::qt_metacast(char const*)
+  +0x10  SW::IConnectionSettings::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::IConnectionSettings::~IConnectionSettings()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+  +0x70  __cxa_pure_virtual
+  +0x78  __cxa_pure_virtual
+  +0x80  __cxa_pure_virtual
+  +0x88  __cxa_pure_virtual
+  +0x90  __cxa_pure_virtual
+  +0x98  __cxa_pure_virtual
+  +0xa0  __cxa_pure_virtual
+  +0xa8  __cxa_pure_virtual
+  +0xb0  __cxa_pure_virtual
+  +0xb8  __cxa_pure_virtual
+  +0xc0  __cxa_pure_virtual
+  +0xc8  __cxa_pure_virtual
+  +0xd0  __cxa_pure_virtual
+  +0xd8  __cxa_pure_virtual
+  +0xe0  __cxa_pure_virtual
+  +0xe8  __cxa_pure_virtual
+  +0xf0  __cxa_pure_virtual
+  +0xf8  __cxa_pure_virtual
+  +0x100  __cxa_pure_virtual
+  +0x108  __cxa_pure_virtual
+  +0x110  __cxa_pure_virtual
+  +0x118  __cxa_pure_virtual
+  +0x120  __cxa_pure_virtual
+  +0x128  __cxa_pure_virtual
+  +0x130  __cxa_pure_virtual
+  +0x138  __cxa_pure_virtual
+  +0x140  __cxa_pure_virtual
+
+==== vtable for SW::IConverser @ 0x2d4530
+  +0x00  SW::IConverser::~IConverser()
+  +0x08  SW::IConverser::~IConverser()
+  +0x10  __cxa_pure_virtual
+  +0x18  __cxa_pure_virtual
+  +0x20  __cxa_pure_virtual
+
+==== vtable for SW::IConverserRaw @ 0x2d44a8
+  +0x00  SW::IConverserRaw::~IConverserRaw()
+  +0x08  SW::IConverserRaw::~IConverserRaw()
+  +0x10  __cxa_pure_virtual
+
+==== vtable for SW::IHandleControllerNative @ 0x2d37e0
+  +0x00  SW::IHandleControllerNative::metaObject() const
+  +0x08  SW::IHandleControllerNative::qt_metacast(char const*)
+  +0x10  SW::IHandleControllerNative::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::IHandleControllerNative::~IHandleControllerNative()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+  +0x70  __cxa_pure_virtual
+
+==== vtable for SW::IHelpFile @ 0x2d2188
+  +0x00  SW::IHelpFile::metaObject() const
+  +0x08  SW::IHelpFile::qt_metacast(char const*)
+  +0x10  SW::IHelpFile::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::IHelpFile::~IHelpFile()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+
+==== vtable for SW::ILanguageManager @ 0x2d75d8
+  +0x00  SW::ILanguageManager::metaObject() const
+  +0x08  SW::ILanguageManager::qt_metacast(char const*)
+  +0x10  SW::ILanguageManager::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::ILanguageManager::~ILanguageManager()
+  +0x20  SW::ILanguageManager::~ILanguageManager()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+
+==== vtable for SW::ILocation @ 0x2d32a0
+  +0x00  SW::ILocation::metaObject() const
+  +0x08  SW::ILocation::qt_metacast(char const*)
+  +0x10  SW::ILocation::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::ILocation::~ILocation()
+  +0x20  SW::ILocation::~ILocation()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+  +0x70  __cxa_pure_virtual
+  +0x78  __cxa_pure_virtual
+  +0x80  __cxa_pure_virtual
+  +0x88  __cxa_pure_virtual
+  +0x90  __cxa_pure_virtual
+
+==== vtable for SW::ILocationSensor @ 0x2d3a38
+  +0x00  SW::ILocationSensor::metaObject() const
+  +0x08  SW::ILocationSensor::qt_metacast(char const*)
+  +0x10  SW::ILocationSensor::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::ILocationSensor::~ILocationSensor()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+  +0x70  __cxa_pure_virtual
+  +0x78  __cxa_pure_virtual
+
+==== vtable for SW::IMountAxis @ 0x2d1080
+  +0x00  SW::IMountAxis::~IMountAxis()
+  +0x08  SW::IMountAxis::~IMountAxis()
+  +0x10  __cxa_pure_virtual
+  +0x18  __cxa_pure_virtual
+  +0x20  __cxa_pure_virtual
+  +0x28  __cxa_pure_virtual
+  +0x30  __cxa_pure_virtual
+  +0x38  __cxa_pure_virtual
+  +0x40  __cxa_pure_virtual
+  +0x48  __cxa_pure_virtual
+  +0x50  __cxa_pure_virtual
+  +0x58  __cxa_pure_virtual
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+  +0x70  __cxa_pure_virtual
+  +0x78  __cxa_pure_virtual
+  +0x80  __cxa_pure_virtual
+  +0x88  __cxa_pure_virtual
+  +0x90  __cxa_pure_virtual
+  +0x98  __cxa_pure_virtual
+  +0xa0  __cxa_pure_virtual
+
+==== vtable for SW::IMountTask @ 0x2d15b8
+  +0x00  SW::IMountTask::~IMountTask()
+  +0x08  SW::IMountTask::~IMountTask()
+  +0x10  __cxa_pure_virtual
+  +0x18  __cxa_pure_virtual
+  +0x20  __cxa_pure_virtual
+  +0x28  raw 0x0
+
+==== vtable for SW::IMountTaskManager @ 0x2d5368
+  +0x00  SW::IMountTaskManager::~IMountTaskManager()
+  +0x08  SW::IMountTaskManager::~IMountTaskManager()
+  +0x10  __cxa_pure_virtual
+  +0x18  __cxa_pure_virtual
+  +0x20  SW::IMountTaskManager::kvLoad(SW::MountResource, int)
+  +0x28  SW::IMountTaskManager::kvSave(SW::MountResource, int, std::__ndk1::any)
+  +0x30  __cxa_pure_virtual
+  +0x38  __cxa_pure_virtual
+  +0x40  raw 0x0
+
+==== vtable for SW::IPerMountDataBasic @ 0x2d3360
+  +0x00  SW::IPerMountDataBasic::metaObject() const
+  +0x08  SW::IPerMountDataBasic::qt_metacast(char const*)
+  +0x10  SW::IPerMountDataBasic::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::IPerMountDataBasic::~IPerMountDataBasic()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+
+==== vtable for SW::IPlatformUrl @ 0x2d2220
+  +0x00  SW::IPlatformUrl::metaObject() const
+  +0x08  SW::IPlatformUrl::qt_metacast(char const*)
+  +0x10  SW::IPlatformUrl::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::IPlatformUrl::~IPlatformUrl()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+  +0x70  __cxa_pure_virtual
+
+==== vtable for SW::ISAM @ 0x2cecf8
+  +0x00  SW::ISAM::metaObject() const
+  +0x08  SW::ISAM::qt_metacast(char const*)
+  +0x10  SW::ISAM::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::ISAM::~ISAM()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+  +0x70  __cxa_pure_virtual
+  +0x78  __cxa_pure_virtual
+  +0x80  __cxa_pure_virtual
+  +0x88  __cxa_pure_virtual
+  +0x90  __cxa_pure_virtual
+  +0x98  __cxa_pure_virtual
+  +0xa0  __cxa_pure_virtual
+  +0xa8  __cxa_pure_virtual
+  +0xb0  __cxa_pure_virtual
+  +0xb8  __cxa_pure_virtual
+  +0xc0  __cxa_pure_virtual
+  +0xc8  __cxa_pure_virtual
+  +0xd0  __cxa_pure_virtual
+  +0xd8  __cxa_pure_virtual
+  +0xe0  __cxa_pure_virtual
+  +0xe8  __cxa_pure_virtual
+  +0xf0  __cxa_pure_virtual
+  +0xf8  __cxa_pure_virtual
+  +0x100  __cxa_pure_virtual
+  +0x108  __cxa_pure_virtual
+  +0x110  __cxa_pure_virtual
+  +0x118  __cxa_pure_virtual
+  +0x120  __cxa_pure_virtual
+  +0x128  __cxa_pure_virtual
+  +0x130  __cxa_pure_virtual
+  +0x138  __cxa_pure_virtual
+
+==== vtable for SW::ISAMConnector @ 0x2cee60
+  +0x00  SW::ISAMConnector::metaObject() const
+  +0x08  SW::ISAMConnector::qt_metacast(char const*)
+  +0x10  SW::ISAMConnector::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::ISAMConnector::~ISAMConnector()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+  +0x70  __cxa_pure_virtual
+  +0x78  __cxa_pure_virtual
+
+==== vtable for SW::ISAMSettings @ 0x2cf160
+  +0x00  SW::ISAMSettings::metaObject() const
+  +0x08  SW::ISAMSettings::qt_metacast(char const*)
+  +0x10  SW::ISAMSettings::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::ISAMSettings::~ISAMSettings()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+  +0x70  __cxa_pure_virtual
+  +0x78  __cxa_pure_virtual
+
+==== vtable for SW::ISAMSync @ 0x2cf208
+  +0x00  SW::ISAMSync::metaObject() const
+  +0x08  SW::ISAMSync::qt_metacast(char const*)
+  +0x10  SW::ISAMSync::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::ISAMSync::~ISAMSync()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+  +0x70  __cxa_pure_virtual
+  +0x78  __cxa_pure_virtual
+  +0x80  __cxa_pure_virtual
+  +0x88  __cxa_pure_virtual
+  +0x90  __cxa_pure_virtual
+  +0x98  __cxa_pure_virtual
+  +0xa0  __cxa_pure_virtual
+  +0xa8  __cxa_pure_virtual
+  +0xb0  __cxa_pure_virtual
+  +0xb8  __cxa_pure_virtual
+  +0xc0  __cxa_pure_virtual
+  +0xc8  __cxa_pure_virtual
+  +0xd0  __cxa_pure_virtual
+  +0xd8  __cxa_pure_virtual
+  +0xe0  __cxa_pure_virtual
+  +0xe8  __cxa_pure_virtual
+  +0xf0  __cxa_pure_virtual
+  +0xf8  __cxa_pure_virtual
+  +0x100  __cxa_pure_virtual
+  +0x108  __cxa_pure_virtual
+  +0x110  __cxa_pure_virtual
+  +0x118  __cxa_pure_virtual
+  +0x120  __cxa_pure_virtual
+  +0x128  __cxa_pure_virtual
+  +0x130  __cxa_pure_virtual
+  +0x138  __cxa_pure_virtual
+  +0x140  __cxa_pure_virtual
+
+==== vtable for SW::ISAMTaskState @ 0x2cefe8
+  +0x00  SW::ISAMTaskState::metaObject() const
+  +0x08  SW::ISAMTaskState::qt_metacast(char const*)
+  +0x10  SW::ISAMTaskState::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::ISAMTaskState::~ISAMTaskState()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+  +0x70  __cxa_pure_virtual
+  +0x78  __cxa_pure_virtual
+  +0x80  __cxa_pure_virtual
+  +0x88  __cxa_pure_virtual
+  +0x90  __cxa_pure_virtual
+  +0x98  __cxa_pure_virtual
+  +0xa0  __cxa_pure_virtual
+
+==== vtable for SW::ISwDevice @ 0x2d47f8
+  +0x00  SW::ISwDevice::~ISwDevice()
+  +0x08  SW::ISwDevice::~ISwDevice()
+  +0x10  __cxa_pure_virtual
+  +0x18  __cxa_pure_virtual
+  +0x20  __cxa_pure_virtual
+  +0x28  __cxa_pure_virtual
+  +0x30  __cxa_pure_virtual
+  +0x38  __cxa_pure_virtual
+  +0x40  __cxa_pure_virtual
+  +0x48  __cxa_pure_virtual
+  +0x50  __cxa_pure_virtual
+  +0x58  __cxa_pure_virtual
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+  +0x70  __cxa_pure_virtual
+  +0x78  __cxa_pure_virtual
+  +0x80  __cxa_pure_virtual
+  +0x88  __cxa_pure_virtual
+  +0x90  __cxa_pure_virtual
+  +0x98  __cxa_pure_virtual
+  +0xa0  __cxa_pure_virtual
+  +0xa8  __cxa_pure_virtual
+  +0xb0  __cxa_pure_virtual
+  +0xb8  SW::ISwDevice::speedFineAdjustmentPrecision_debugString()
+  +0xc0  __cxa_pure_virtual
+  +0xc8  raw 0x0
+
+==== vtable for SW::ITaskEstimator @ 0x2cf378
+  +0x00  SW::ITaskEstimator::metaObject() const
+  +0x08  SW::ITaskEstimator::qt_metacast(char const*)
+  +0x10  SW::ITaskEstimator::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::ITaskEstimator::~ITaskEstimator()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+
+==== vtable for SW::ITaskProfile @ 0x2cf8d8
+  +0x00  SW::ITaskProfile::metaObject() const
+  +0x08  SW::ITaskProfile::qt_metacast(char const*)
+  +0x10  SW::ITaskProfile::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::ITaskProfile::~ITaskProfile()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+  +0x70  __cxa_pure_virtual
+  +0x78  __cxa_pure_virtual
+  +0x80  __cxa_pure_virtual
+  +0x88  __cxa_pure_virtual
+  +0x90  __cxa_pure_virtual
+  +0x98  __cxa_pure_virtual
+  +0xa0  __cxa_pure_virtual
+  +0xa8  __cxa_pure_virtual
+
+==== vtable for SW::ITaskProfileList @ 0x2cf9b0
+  +0x00  SW::ITaskProfileList::metaObject() const
+  +0x08  SW::ITaskProfileList::qt_metacast(char const*)
+  +0x10  SW::ITaskProfileList::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::ITaskProfileList::~ITaskProfileList()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+  +0x70  __cxa_pure_virtual
+  +0x78  __cxa_pure_virtual
+  +0x80  __cxa_pure_virtual
+  +0x88  __cxa_pure_virtual
+
+==== vtable for SW::ITaskProfile_AP @ 0x2cfa68
+  +0x00  SW::ITaskProfile_AP::metaObject() const
+  +0x08  SW::ITaskProfile_AP::qt_metacast(char const*)
+  +0x10  SW::ITaskProfile_AP::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::ITaskProfile_AP::~ITaskProfile_AP()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+  +0x70  __cxa_pure_virtual
+  +0x78  __cxa_pure_virtual
+  +0x80  __cxa_pure_virtual
+  +0x88  __cxa_pure_virtual
+  +0x90  __cxa_pure_virtual
+  +0x98  __cxa_pure_virtual
+  +0xa0  __cxa_pure_virtual
+  +0xa8  __cxa_pure_virtual
+  +0xb0  __cxa_pure_virtual
+  +0xb8  __cxa_pure_virtual
+  +0xc0  __cxa_pure_virtual
+  +0xc8  __cxa_pure_virtual
+  +0xd0  __cxa_pure_virtual
+  +0xd8  __cxa_pure_virtual
+  +0xe0  __cxa_pure_virtual
+  +0xe8  __cxa_pure_virtual
+  +0xf0  __cxa_pure_virtual
+  +0xf8  __cxa_pure_virtual
+  +0x100  __cxa_pure_virtual
+  +0x108  __cxa_pure_virtual
+  +0x110  __cxa_pure_virtual
+  +0x118  __cxa_pure_virtual
+  +0x120  __cxa_pure_virtual
+
+==== vtable for SW::ITaskProfile_ATL @ 0x2cfbb8
+  +0x00  SW::ITaskProfile_ATL::metaObject() const
+  +0x08  SW::ITaskProfile_ATL::qt_metacast(char const*)
+  +0x10  SW::ITaskProfile_ATL::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::ITaskProfile_ATL::~ITaskProfile_ATL()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+  +0x70  __cxa_pure_virtual
+  +0x78  __cxa_pure_virtual
+  +0x80  __cxa_pure_virtual
+  +0x88  __cxa_pure_virtual
+  +0x90  __cxa_pure_virtual
+  +0x98  __cxa_pure_virtual
+  +0xa0  __cxa_pure_virtual
+  +0xa8  __cxa_pure_virtual
+  +0xb0  __cxa_pure_virtual
+  +0xb8  __cxa_pure_virtual
+  +0xc0  __cxa_pure_virtual
+  +0xc8  __cxa_pure_virtual
+  +0xd0  __cxa_pure_virtual
+  +0xd8  __cxa_pure_virtual
+  +0xe0  __cxa_pure_virtual
+  +0xe8  __cxa_pure_virtual
+  +0xf0  __cxa_pure_virtual
+  +0xf8  __cxa_pure_virtual
+  +0x100  __cxa_pure_virtual
+  +0x108  __cxa_pure_virtual
+  +0x110  __cxa_pure_virtual
+  +0x118  __cxa_pure_virtual
+  +0x120  __cxa_pure_virtual
+  +0x128  __cxa_pure_virtual
+  +0x130  __cxa_pure_virtual
+  +0x138  __cxa_pure_virtual
+  +0x140  __cxa_pure_virtual
+  +0x148  __cxa_pure_virtual
+  +0x150  __cxa_pure_virtual
+
+==== vtable for SW::ITaskProfile_RegLong @ 0x2cfd38
+  +0x00  SW::ITaskProfile_RegLong::metaObject() const
+  +0x08  SW::ITaskProfile_RegLong::qt_metacast(char const*)
+  +0x10  SW::ITaskProfile_RegLong::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::ITaskProfile_RegLong::~ITaskProfile_RegLong()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  __cxa_pure_virtual
+  +0x68  __cxa_pure_virtual
+  +0x70  __cxa_pure_virtual
+  +0x78  __cxa_pure_virtual
+  +0x80  __cxa_pure_virtual
+  +0x88  __cxa_pure_virtual
+  +0x90  __cxa_pure_virtual
+  +0x98  __cxa_pure_virtual
+  +0xa0  __cxa_pure_virtual
+  +0xa8  __cxa_pure_virtual
+  +0xb0  __cxa_pure_virtual
+  +0xb8  __cxa_pure_virtual
+  +0xc0  __cxa_pure_virtual
+  +0xc8  __cxa_pure_virtual
+  +0xd0  __cxa_pure_virtual
+  +0xd8  __cxa_pure_virtual
+  +0xe0  __cxa_pure_virtual
+  +0xe8  __cxa_pure_virtual
+  +0xf0  __cxa_pure_virtual
+  +0xf8  __cxa_pure_virtual
+  +0x100  __cxa_pure_virtual
+  +0x108  __cxa_pure_virtual
+  +0x110  __cxa_pure_virtual
+  +0x118  __cxa_pure_virtual
+  +0x120  __cxa_pure_virtual
+  +0x128  __cxa_pure_virtual
+  +0x130  __cxa_pure_virtual
+  +0x138  __cxa_pure_virtual
+  +0x140  __cxa_pure_virtual
+  +0x148  __cxa_pure_virtual
+  +0x150  __cxa_pure_virtual
+  +0x158  __cxa_pure_virtual
+  +0x160  __cxa_pure_virtual
+  +0x168  __cxa_pure_virtual
+  +0x170  __cxa_pure_virtual
+  +0x178  __cxa_pure_virtual
+  +0x180  __cxa_pure_virtual
+  +0x188  __cxa_pure_virtual
+  +0x190  __cxa_pure_virtual
+  +0x198  __cxa_pure_virtual
+  +0x1a0  __cxa_pure_virtual
+  +0x1a8  __cxa_pure_virtual
+  +0x1b0  __cxa_pure_virtual
+  +0x1b8  __cxa_pure_virtual
+  +0x1c0  __cxa_pure_virtual
+  +0x1c8  __cxa_pure_virtual
+  +0x1d0  __cxa_pure_virtual
+  +0x1d8  __cxa_pure_virtual
+  +0x1e0  __cxa_pure_virtual
+  +0x1e8  __cxa_pure_virtual
+  +0x1f0  __cxa_pure_virtual
+  +0x1f8  __cxa_pure_virtual
+  +0x200  __cxa_pure_virtual
+  +0x208  __cxa_pure_virtual
+
+==== vtable for SW::LanguageManager @ 0x2d7670
+  +0x00  SW::LanguageManager::metaObject() const
+  +0x08  SW::LanguageManager::qt_metacast(char const*)
+  +0x10  SW::LanguageManager::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::LanguageManager::~LanguageManager()
+  +0x20  SW::LanguageManager::~LanguageManager()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::LanguageManager::language()
+  +0x68  SW::LanguageManager::stdLocale()
+
+==== vtable for SW::LanguageManager::DoubleLengthTranslator @ 0x2d7c00
+  +0x00  QTranslator::metaObject() const
+  +0x08  QTranslator::qt_metacast(char const*)
+  +0x10  QTranslator::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QTranslator::~QTranslator()
+  +0x20  SW::LanguageManager::DoubleLengthTranslator::~DoubleLengthTranslator()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::LanguageManager::DoubleLengthTranslator::translate(char const*, char const*, char const*, int) const
+  +0x68  QTranslator::isEmpty() const
+
+==== vtable for SW::Location @ 0x2d3f58
+  +0x00  SW::ILocation::metaObject() const
+  +0x08  SW::ILocation::qt_metacast(char const*)
+  +0x10  SW::ILocation::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::Location::~Location()
+  +0x20  SW::Location::~Location()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::Location::location() const
+  +0x68  SW::Location::setLocation(SW::CLocation const&)
+  +0x70  SW::Location::longitudeRad() const
+  +0x78  SW::Location::latitudeRad() const
+  +0x80  SW::Location::mockLatitude() const
+  +0x88  SW::Location::altitudeMeter() const
+  +0x90  SW::Location::temperatureCelsius() const
+
+==== vtable for SW::MountTaskManager @ 0x2d52f0
+  +0x00  SW::MountTaskManager::~MountTaskManager()
+  +0x08  SW::MountTaskManager::~MountTaskManager()
+  +0x10  SW::MountTaskManager::lastTask(SW::MountResource)
+  +0x18  SW::MountTaskManager::lastTasks()
+  +0x20  SW::MountTaskManager::kvLoad(SW::MountResource, int)
+  +0x28  SW::MountTaskManager::kvSave(SW::MountResource, int, std::__ndk1::any)
+  +0x30  SW::MountTaskManager::start(std::__ndk1::shared_ptr<SW::IMountTask>, std::__ndk1::function<void ()>, std::__ndk1::function<void (SW::CmdRet)>)
+  +0x38  SW::MountTaskManager::cancelAll()
+
+==== vtable for SW::NullCancellable @ 0x2d4f00
+  +0x00  SW::ICancellable::~ICancellable()
+  +0x08  SW::NullCancellable::~NullCancellable()
+  +0x10  SW::NullCancellable::isCancelled()
+  +0x18  SW::NullCancellable::sleepAwaitCancel(unsigned long)
+  +0x20  SW::NullCancellable::setCallback(std::__ndk1::function<void ()>)
+
+==== vtable for SW::NullPerMountDataBasic @ 0x2d0f98
+  +0x00  SW::IPerMountDataBasic::metaObject() const
+  +0x08  SW::IPerMountDataBasic::qt_metacast(char const*)
+  +0x10  SW::IPerMountDataBasic::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::NullPerMountDataBasic::~NullPerMountDataBasic()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::NullPerMountDataBasic::speedFineAdjustmentFactor() const
+  +0x68  SW::NullPerMountDataBasic::set_speedFineAdjustmentFactor(double)
+
+==== vtable for SW::OpenLocationSetting @ 0x2d3758
+  +0x00  SW::OpenLocationSetting::metaObject() const
+  +0x08  SW::OpenLocationSetting::qt_metacast(char const*)
+  +0x10  SW::OpenLocationSetting::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::OpenLocationSetting::~OpenLocationSetting()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+
+==== vtable for SW::PeriodicPositionReadTask @ 0x2d56e8
+  +0x00  SW::PeriodicPositionReadTask::~PeriodicPositionReadTask()
+  +0x08  SW::PeriodicPositionReadTask::~PeriodicPositionReadTask()
+  +0x10  SW::PeriodicPositionReadTask::id() const
+  +0x18  SW::PeriodicPositionReadTask::requiredResources() const
+  +0x20  SW::PeriodicPositionReadTask::run()
+
+==== vtable for SW::PlatformUrl @ 0x2d22c0
+  +0x00  SW::PlatformUrl::metaObject() const
+  +0x08  SW::PlatformUrl::qt_metacast(char const*)
+  +0x10  SW::PlatformUrl::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::PlatformUrl::~PlatformUrl()
+  +0x20  SW::PlatformUrl::~PlatformUrl()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::PlatformUrl::setUrlHandler(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&, std::__ndk1::function<void (std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)>)
+  +0x68  SW::PlatformUrl::unsetUrlHandler(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  +0x70  SW::PlatformUrl::openUrl(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+
+==== vtable for SW::PolarScopeInfo @ 0x2d2360
+  +0x00  SW::PolarScopeInfo::metaObject() const
+  +0x08  SW::PolarScopeInfo::qt_metacast(char const*)
+  +0x10  SW::PolarScopeInfo::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::PolarScopeInfo::~PolarScopeInfo()
+  +0x20  SW::PolarScopeInfo::~PolarScopeInfo()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+
+==== vtable for SW::PolarScopePaintedItem @ 0x2d23e8
+  +0x00  SW::PolarScopePaintedItem::metaObject() const
+  +0x08  SW::PolarScopePaintedItem::qt_metacast(char const*)
+  +0x10  SW::PolarScopePaintedItem::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::PolarScopePaintedItem::~PolarScopePaintedItem()
+  +0x20  SW::PolarScopePaintedItem::~PolarScopePaintedItem()
+  +0x28  QQuickItem::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  QQuickItem::boundingRect() const
+  +0x68  QQuickItem::clipRect() const
+  +0x70  QQuickItem::contains(QPointF const&) const
+  +0x78  QQuickItem::inputMethodQuery(Qt::InputMethodQuery) const
+  +0x80  QQuickPaintedItem::isTextureProvider() const
+  +0x88  QQuickPaintedItem::textureProvider() const
+  +0x90  QQuickPaintedItem::itemChange(QQuickItem::ItemChange, QQuickItem::ItemChangeData const&)
+  +0x98  QQuickItem::geometryChange(QRectF const&, QRectF const&)
+  +0xa0  QQuickItem::classBegin()
+  +0xa8  QQuickItem::componentComplete()
+  +0xb0  QQuickItem::keyPressEvent(QKeyEvent*)
+  +0xb8  QQuickItem::keyReleaseEvent(QKeyEvent*)
+  +0xc0  QQuickItem::inputMethodEvent(QInputMethodEvent*)
+  +0xc8  QQuickItem::focusInEvent(QFocusEvent*)
+  +0xd0  QQuickItem::focusOutEvent(QFocusEvent*)
+  +0xd8  QQuickItem::mousePressEvent(QMouseEvent*)
+  +0xe0  QQuickItem::mouseMoveEvent(QMouseEvent*)
+  +0xe8  QQuickItem::mouseReleaseEvent(QMouseEvent*)
+  +0xf0  QQuickItem::mouseDoubleClickEvent(QMouseEvent*)
+  +0xf8  QQuickItem::mouseUngrabEvent()
+  +0x100  QQuickItem::touchUngrabEvent()
+  +0x108  QQuickItem::wheelEvent(QWheelEvent*)
+  +0x110  QQuickItem::touchEvent(QTouchEvent*)
+  +0x118  QQuickItem::hoverEnterEvent(QHoverEvent*)
+  +0x120  QQuickItem::hoverMoveEvent(QHoverEvent*)
+  +0x128  QQuickItem::hoverLeaveEvent(QHoverEvent*)
+  +0x130  QQuickItem::dragEnterEvent(QDragEnterEvent*)
+  +0x138  QQuickItem::dragMoveEvent(QDragMoveEvent*)
+  +0x140  QQuickItem::dragLeaveEvent(QDragLeaveEvent*)
+  +0x148  QQuickItem::dropEvent(QDropEvent*)
+  +0x150  QQuickItem::childMouseEventFilter(QQuickItem*, QEvent*)
+  +0x158  QQuickPaintedItem::updatePaintNode(QSGNode*, QQuickItem::UpdatePaintNodeData*)
+  +0x160  QQuickPaintedItem::releaseResources()
+  +0x168  QQuickItem::updatePolish()
+  +0x170  SW::PolarScopePaintedItem::paint(QPainter*)
+  +0x178  raw 0xfffffffffffffff0
+
+==== vtable for SW::QAstroFormat @ 0x2d7ce8
+  +0x00  SW::IAstroFormat::metaObject() const
+  +0x08  SW::IAstroFormat::qt_metacast(char const*)
+  +0x10  SW::IAstroFormat::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::QAstroFormat::~QAstroFormat()
+  +0x20  SW::QAstroFormat::~QAstroFormat()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::QAstroFormat::hour_00am(double)
+  +0x68  SW::QAstroFormat::time_000(tm)
+  +0x70  SW::QAstroFormat::time_000tz(tm)
+  +0x78  SW::QAstroFormat::sec_hms(double)
+  +0x80  SW::QAstroFormat::pscopePos_00(double)
+  +0x88  SW::QAstroFormat::vmag(float)
+  +0x90  SW::QAstroFormat::rad_deg00(double)
+  +0x98  SW::QAstroFormat::ha_01(double)
+  +0xa0  SW::QAstroFormat::ha_000(double)
+  +0xa8  SW::QAstroFormat::haDec_000(SW::U_ASTRO_COORD)
+  +0xb0  SW::QAstroFormat::azAlt_0(SW::U_ASTRO_COORD)
+  +0xb8  SW::QAstroFormat::azAlt_00(SW::U_ASTRO_COORD)
+  +0xc0  SW::QAstroFormat::azAlt_000(SW::U_ASTRO_COORD)
+  +0xc8  SW::QAstroFormat::axis_000(SW::U_ASTRO_COORD)
+  +0xd0  SW::QAstroFormat::longitude_00(double)
+  +0xd8  SW::QAstroFormat::longitude_000(double)
+  +0xe0  SW::QAstroFormat::latitude_00(double)
+  +0xe8  SW::QAstroFormat::latitude_000(double)
+
+==== vtable for SW::QAstroFormatSettings @ 0x2d7708
+  +0x00  SW::QAstroFormatSettings::metaObject() const
+  +0x08  SW::QAstroFormatSettings::qt_metacast(char const*)
+  +0x10  SW::QAstroFormatSettings::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::QAstroFormatSettings::~QAstroFormatSettings()
+  +0x20  SW::QAstroFormatSettings::~QAstroFormatSettings()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+
+==== vtable for SW::QAstroRate @ 0x2d3190
+  +0x00  SW::QAstroRate::metaObject() const
+  +0x08  SW::QAstroRate::qt_metacast(char const*)
+  +0x10  SW::QAstroRate::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::QAstroRate::~QAstroRate()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+
+==== vtable for SW::QSAMHelper @ 0x2cf7b8
+  +0x00  SW::QSAMHelper::metaObject() const
+  +0x08  SW::QSAMHelper::qt_metacast(char const*)
+  +0x10  SW::QSAMHelper::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::QSAMHelper::~QSAMHelper()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+
+==== vtable for SW::QmlKVStore @ 0x2d7790
+  +0x00  SW::QmlKVStore::metaObject() const
+  +0x08  SW::QmlKVStore::qt_metacast(char const*)
+  +0x10  SW::QmlKVStore::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::QmlKVStore::~QmlKVStore()
+  +0x20  SW::QmlKVStore::~QmlKVStore()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+
+==== vtable for SW::QtAndroidHome @ 0x2d7818
+  +0x00  SW::QtAndroidHome::metaObject() const
+  +0x08  SW::QtAndroidHome::qt_metacast(char const*)
+  +0x10  SW::QtAndroidHome::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::QtAndroidHome::~QtAndroidHome()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+
+==== vtable for SW::QtFileUtil @ 0x2d4f60
+  +0x00  SW::QtFileUtil::~QtFileUtil()
+  +0x08  SW::QtFileUtil::~QtFileUtil()
+  +0x10  SW::QtFileUtil::writableDir()
+  +0x18  SW::QtFileUtil::temporaryDir()
+  +0x20  SW::QtFileUtil::cacheDir()
+  +0x28  SW::QtFileUtil::userMovableAppDir()
+  +0x30  SW::QtFileUtil::setExcludedFromBackup(std::__ndk1::basic_string_view<char, std::__ndk1::char_traits<char>>)
+  +0x38  SW::QtFileUtil::bundledAssetUrl(std::__ndk1::basic_string_view<char, std::__ndk1::char_traits<char>>)
+  +0x40  SW::QtFileUtil::bundledAssetLocalPath(std::__ndk1::basic_string_view<char, std::__ndk1::char_traits<char>>)
+  +0x48  SW::QtFileUtil::localFileExists(std::__ndk1::basic_string_view<char, std::__ndk1::char_traits<char>>)
+  +0x50  SW::QtFileUtil::recursiveCopyDirectory(std::__ndk1::basic_string_view<char, std::__ndk1::char_traits<char>>, std::__ndk1::basic_string_view<char, std::__ndk1::char_traits<char>>, bool)
+
+==== vtable for SW::QtKVStore @ 0x2d4ff0
+  +0x00  SW::QtKVStore::~QtKVStore()
+  +0x08  SW::QtKVStore::~QtKVStore()
+  +0x10  SW::QtKVStore::getRootObject()
+  +0x18  SW::QtKVStore::setRootObject(QJsonObject const&)
+  +0x20  SW::QtKVStore::loadString(std::__ndk1::basic_string_view<char, std::__ndk1::char_traits<char>>, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>) const
+  +0x28  SW::QtKVStore::loadBool(std::__ndk1::basic_string_view<char, std::__ndk1::char_traits<char>>, bool) const
+  +0x30  SW::QtKVStore::loadInt(std::__ndk1::basic_string_view<char, std::__ndk1::char_traits<char>>, int) const
+  +0x38  SW::QtKVStore::loadDouble(std::__ndk1::basic_string_view<char, std::__ndk1::char_traits<char>>, double) const
+  +0x40  SW::QtKVStore::saveString(std::__ndk1::basic_string_view<char, std::__ndk1::char_traits<char>>, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>)
+  +0x48  SW::QtKVStore::saveBool(std::__ndk1::basic_string_view<char, std::__ndk1::char_traits<char>>, bool)
+  +0x50  SW::QtKVStore::saveInt(std::__ndk1::basic_string_view<char, std::__ndk1::char_traits<char>>, int)
+  +0x58  SW::QtKVStore::saveDouble(std::__ndk1::basic_string_view<char, std::__ndk1::char_traits<char>>, double)
+  +0x60  SW::QtKVStore::exists(std::__ndk1::basic_string_view<char, std::__ndk1::char_traits<char>>) const
+  +0x68  SW::QtKVStore::remove(std::__ndk1::basic_string_view<char, std::__ndk1::char_traits<char>>)
+
+==== vtable for SW::QtLocationSensor @ 0x2d3ae0
+  +0x00  SW::QtLocationSensor::metaObject() const
+  +0x08  SW::QtLocationSensor::qt_metacast(char const*)
+  +0x10  SW::QtLocationSensor::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::QtLocationSensor::~QtLocationSensor()
+  +0x20  SW::QtLocationSensor::~QtLocationSensor()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::QtLocationSensor::active()
+  +0x68  SW::QtLocationSensor::setActive(bool)
+  +0x70  SW::QtLocationSensor::state()
+  +0x78  SW::QtLocationSensor::reading()
+
+==== vtable for SW::QtLocationSensor::D @ 0x2d50f8
+  +0x00  SW::QtLocationSensor::D::metaObject() const
+  +0x08  SW::QtLocationSensor::D::qt_metacast(char const*)
+  +0x10  SW::QtLocationSensor::D::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::QtLocationSensor::D::~D()
+  +0x20  SW::QtLocationSensor::D::~D()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+
+==== vtable for SW::QtUDPBroadcaster @ 0x2d4c80
+  +0x00  SW::IUDPBroadcaster::~IUDPBroadcaster()
+  +0x08  SW::QtUDPBroadcaster::~QtUDPBroadcaster()
+  +0x10  SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)
+  +0x18  SW::QtUDPBroadcaster::broadcastLoop(unsigned short, std::__ndk1::list<SW::CBytes, std::__ndk1::allocator<SW::CBytes>> const&, std::__ndk1::function<bool ()>, std::__ndk1::function<bool (SW::UDPBroadcasterResult const&)>)
+  +0x20  SW::QtUDPBroadcaster::broadcastInfoText()
+
+==== vtable for SW::SAM @ 0x2cf410
+  +0x00  SW::SAM::metaObject() const
+  +0x08  SW::SAM::qt_metacast(char const*)
+  +0x10  SW::SAM::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::SAM::~SAM()
+  +0x20  SW::SAM::~SAM()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::SAM::connect()
+  +0x68  SW::SAM::disconnect()
+  +0x70  SW::SAM::readStatus()
+  +0x78  SW::SAM::lastPowerStatus()
+  +0x80  SW::SAM::readPowerStatus()
+  +0x88  SW::SAM::programManualMode()
+  +0x90  SW::SAM::programAutoMode(SW::SAMParamSet const&)
+  +0x98  SW::SAM::deviceName()
+  +0xa0  SW::SAM::readWifiSettings()
+  +0xa8  SW::SAM::writeWifiSettings(SW::WifiSettings const&)
+  +0xb0  SW::SAM::readWifiTimeoutSec()
+  +0xb8  SW::SAM::writeWifiTimeoutSec(unsigned int)
+  +0xc0  SW::SAM::writePolarSightLightOn(bool)
+  +0xc8  SW::SAM::readPolarSightLightTimeoutSec()
+  +0xd0  SW::SAM::writePolarSightLightTimeoutSec(unsigned int)
+  +0xd8  SW::SAM::readPowerOnAutoPreviousTask()
+  +0xe0  SW::SAM::writePowerOnAutoPreviousTask(bool)
+  +0xe8  SW::SAM::readAutoShutdownSec()
+  +0xf0  SW::SAM::writeAutoShutdownSec(unsigned int)
+  +0xf8  SW::SAM::isSAWifi()
+  +0x100  SW::SAM::hasPolarSightLight()
+  +0x108  SW::SAM::hasAutoShutdown()
+  +0x110  SW::SAM::hasDithering()
+  +0x118  SW::SAM::slewAxisAsync(double)
+  +0x120  SW::SAM::lastAxis1()
+  +0x128  SW::SAM::periodicPositionRead()
+  +0x130  SW::SAM::setPeriodicPositionRead(bool)
+  +0x138  SW::SAM::tareLastAxis1()
+
+==== vtable for SW::SAMConnectable @ 0x2cef08
+  +0x00  SW::SAMConnectable::metaObject() const
+  +0x08  SW::SAMConnectable::qt_metacast(char const*)
+  +0x10  SW::SAMConnectable::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::SAMConnectable::~SAMConnectable()
+  +0x20  SW::SAMConnectable::~SAMConnectable()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::SAMConnectable::state() const
+  +0x68  SW::SAMConnectable::busy()
+  +0x70  SW::SAMConnectable::statusText()
+  +0x78  SW::SAMConnectable::statusDetailText()
+  +0x80  SW::SAMConnectable::devicesList()
+  +0x88  SW::SAMConnectable::nextActionText()
+  +0x90  SW::SAMConnectable::startConnectSession(SW::IConnectable::ConnectSessionInfo)
+  +0x98  SW::SAMConnectable::startSession()
+  +0xa0  SW::SAMConnectable::startNextAction()
+  +0xa8  SW::SAMConnectable::selectDevice(int)
+  +0xb0  SW::SAMConnectable::cancelSession()
+
+==== vtable for SW::SAMConnector @ 0x2cf0b8
+  +0x00  SW::SAMConnector::metaObject() const
+  +0x08  SW::SAMConnector::qt_metacast(char const*)
+  +0x10  SW::SAMConnector::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::SAMConnector::~SAMConnector()
+  +0x20  SW::SAMConnector::~SAMConnector()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::SAMConnector::connected()
+  +0x68  SW::SAMConnector::sam()
+  +0x70  SW::SAMConnector::interruptionDisconnect()
+  +0x78  SW::SAMConnector::isRunningTask()
+
+==== vtable for SW::SAMFactory @ 0x2d0e08
+  +0x00  SW::SAMFactory::~SAMFactory()
+  +0x08  SW::SAMFactory::~SAMFactory()
+  +0x10  SW::SAMFactory::make(std::__ndk1::shared_ptr<SW::ISwConverser>, std::__ndk1::shared_ptr<SW::ISwDevice>)
+
+==== vtable for SW::SAMMountTaskFactory @ 0x2d13b8
+  +0x00  SW::SAMMountTaskFactory::~SAMMountTaskFactory()
+  +0x08  SW::SAMMountTaskFactory::~SAMMountTaskFactory()
+  +0x10  SW::SAMMountTaskFactory::makeAxisSlewTask(SW::AXISID, double, bool)
+  +0x18  SW::SAMMountTaskFactory::makeAxisStopTask(SW::AXISID)
+
+==== vtable for SW::SAMSettings @ 0x2d14b0
+  +0x00  SW::ISAMSettings::metaObject() const
+  +0x08  SW::ISAMSettings::qt_metacast(char const*)
+  +0x10  SW::ISAMSettings::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::SAMSettings::~SAMSettings()
+  +0x20  SW::SAMSettings::~SAMSettings()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::SAMSettings::wifiOffOnTaskStart()
+  +0x68  SW::SAMSettings::setWifiOffOnTaskStart(bool)
+  +0x70  SW::SAMSettings::wifiOffOnDisconnect()
+  +0x78  SW::SAMSettings::setWifiOffOnDisconnect(bool)
+
+==== vtable for SW::SAMSync @ 0x2cf578
+  +0x00  SW::SAMSync::metaObject() const
+  +0x08  SW::SAMSync::qt_metacast(char const*)
+  +0x10  SW::SAMSync::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::SAMSync::~SAMSync()
+  +0x20  SW::SAMSync::~SAMSync()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::SAMSync::connect()
+  +0x68  SW::SAMSync::disconnect()
+  +0x70  SW::SAMSync::lastStatus()
+  +0x78  SW::SAMSync::readStatus()
+  +0x80  SW::SAMSync::lastPowerStatus()
+  +0x88  SW::SAMSync::readPowerStatus()
+  +0x90  SW::SAMSync::lastParamSet()
+  +0x98  SW::SAMSync::readParamSet()
+  +0xa0  SW::SAMSync::programManualMode()
+  +0xa8  SW::SAMSync::programAutoMode(SW::SAMParamSet const&)
+  +0xb0  SW::SAMSync::deviceName()
+  +0xb8  SW::SAMSync::readDeviceName()
+  +0xc0  SW::SAMSync::readWifiSettings()
+  +0xc8  SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)
+  +0xd0  SW::SAMSync::readWifiTimeoutSec()
+  +0xd8  SW::SAMSync::writeWifiTimeoutSec(unsigned int)
+  +0xe0  SW::SAMSync::writeWifiEnabled(bool)
+  +0xe8  SW::SAMSync::writePolarSightLightOn(bool)
+  +0xf0  SW::SAMSync::readPolarSightLightTimeoutSec()
+  +0xf8  SW::SAMSync::writePolarSightLightTimeoutSec(unsigned int)
+  +0x100  SW::SAMSync::readPowerOnAutoPreviousTask()
+  +0x108  SW::SAMSync::writePowerOnAutoPreviousTask(bool)
+  +0x110  SW::SAMSync::readAutoShutdownSec()
+  +0x118  SW::SAMSync::writeAutoShutdownSec(unsigned int)
+  +0x120  SW::SAMSync::isSAWifi()
+  +0x128  SW::SAMSync::hasPolarSightLight()
+  +0x130  SW::SAMSync::hasAutoShutdown()
+  +0x138  SW::SAMSync::hasDithering()
+  +0x140  SW::SAMSync::hasShutterIntervalInMs()
+
+==== vtable for SW::SAMTaskState @ 0x2cf6e8
+  +0x00  SW::SAMTaskState::metaObject() const
+  +0x08  SW::SAMTaskState::qt_metacast(char const*)
+  +0x10  SW::SAMTaskState::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  QObject::~QObject()
+  +0x20  SW::SAMTaskState::~SAMTaskState()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::SAMTaskState::status()
+  +0x68  SW::SAMTaskState::status_q()
+  +0x70  SW::SAMTaskState::readParamSet()
+  +0x78  SW::SAMTaskState::readParamSet_q()
+  +0x80  SW::SAMTaskState::paramSet_q()
+  +0x88  SW::SAMTaskState::setStatus(SW::SAMStatus const&)
+  +0x90  SW::SAMTaskState::setReadParamSet(SW::ReadSAMParamSet const&)
+  +0x98  SW::SAMTaskState::isRunningTask()
+  +0xa0  SW::SAMTaskState::isRunningTask_q()
+
+==== vtable for SW::SLConverser @ 0x2d4b40
+  +0x00  SW::SLConverser::~SLConverser()
+  +0x08  SW::SLConverser::~SLConverser()
+  +0x10  SW::SLConverser::converse(SW::CBytes const&)
+  +0x18  SW::SLConverser::timedout() const
+  +0x20  SW::SLConverser::typicalConversationMs()
+
+==== vtable for SW::SSLogQSignalLogSink @ 0x2d3b88
+  +0x00  SW::SSLogQSignalLogSink::metaObject() const
+  +0x08  SW::SSLogQSignalLogSink::qt_metacast(char const*)
+  +0x10  SW::SSLogQSignalLogSink::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::SSLogQSignalLogSink::~SSLogQSignalLogSink()
+  +0x20  SW::SSLogQSignalLogSink::~SSLogQSignalLogSink()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+
+==== vtable for SW::SerialConnectableHelper @ 0x2d4308
+  +0x00  QObject::metaObject() const
+  +0x08  QObject::qt_metacast(char const*)
+  +0x10  QObject::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::SerialConnectableHelper::~SerialConnectableHelper()
+  +0x20  SW::SerialConnectableHelper::~SerialConnectableHelper()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::SerialConnectableHelper::devicesList()
+  +0x68  SW::SerialConnectableHelper::startConnect()
+  +0x70  SW::SerialConnectableHelper::selectDevice(int)
+  +0x78  SW::SerialConnectableHelper::setDeviceListFilter(std::__ndk1::function<bool (unsigned char)>)
+  +0x80  SW::SerialConnectableHelper::setHandler(std::__ndk1::function<void (SW::SwConverserEtal)>)
+
+==== vtable for SW::SerialSwDeviceFactory @ 0x2d43b8
+  +0x00  SW::SerialSwDeviceFactory::~SerialSwDeviceFactory()
+  +0x08  SW::SerialSwDeviceFactory::~SerialSwDeviceFactory()
+  +0x10  SW::SerialSwDeviceFactory::make(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>)
+
+==== vtable for SW::SimpleAxisSlewTask @ 0x2d1558
+  +0x00  SW::SimpleAxisSlewTask::~SimpleAxisSlewTask()
+  +0x08  SW::SimpleAxisSlewTask::~SimpleAxisSlewTask()
+  +0x10  SW::SimpleAxisSlewTask::id() const
+  +0x18  SW::SimpleAxisSlewTask::requiredResources() const
+  +0x20  SW::SimpleAxisSlewTask::run()
+
+==== vtable for SW::SleepWaitable @ 0x2d5180
+  +0x00  SW::IWaitable::~IWaitable()
+  +0x08  SW::SleepWaitable::~SleepWaitable()
+  +0x10  SW::SleepWaitable::wait(unsigned long)
+
+==== vtable for SW::SwConverser @ 0x2d4b90
+  +0x00  SW::SwConverser::~SwConverser()
+  +0x08  SW::SwConverser::~SwConverser()
+  +0x10  SW::SwConverser::converse(SW::SwCmd const&)
+  +0x18  SW::SwConverser::converse(SW::CBytes const&)
+  +0x20  SW::SwConverser::converseReadInt(SW::SwCmd const&)
+  +0x28  SW::SwConverser::converseReadX32Int(SW::SwCmd const&)
+  +0x30  SW::SwConverser::converseReadX32Int(SW::CBytes const&)
+
+==== vtable for SW::SwDevice @ 0x2d46f8
+  +0x00  SW::SwDevice::~SwDevice()
+  +0x08  SW::SwDevice::~SwDevice()
+  +0x10  SW::SwDevice::initRead(bool, SW::ISwDevice::LogicalMode)
+  +0x18  SW::SwDevice::initialized()
+  +0x20  SW::SwDevice::initReadMCVersion(SW::AXISID)
+  +0x28  SW::SwDevice::mcVersion(SW::AXISID)
+  +0x30  SW::SwDevice::mountModelCode()
+  +0x38  SW::SwDevice::initReadMountStaticAttr()
+  +0x40  SW::SwDevice::mountStaticAttr()
+  +0x48  SW::SwDevice::readStatusEx()
+  +0x50  SW::SwDevice::lastStatusEx()
+  +0x58  SW::SwDevice::supportsCmdX()
+  +0x60  SW::SwDevice::updateAxisStatus(SW::AXISID)
+  +0x68  SW::SwDevice::lastAxisStatus(SW::AXISID)
+  +0x70  SW::SwDevice::setAxisInitialized(SW::AXISID)
+  +0x78  SW::SwDevice::radToStep(SW::AXISID, double)
+  +0x80  SW::SwDevice::radToStep64(SW::AXISID, double)
+  +0x88  SW::SwDevice::stepToRad(SW::AXISID, int)
+  +0x90  SW::SwDevice::axisPos_LogicalToRaw(SW::AXISID, double)
+  +0x98  SW::SwDevice::axisPos_RawToLogical(SW::AXISID, double)
+  +0xa0  SW::SwDevice::rpsToStride(SW::AXISID, double)
+  +0xa8  SW::SwDevice::strideToRps(SW::AXISID, unsigned int)
+  +0xb0  SW::SwDevice::speedFineAdjustmentPrecision()
+  +0xb8  SW::SwDevice::speedFineAdjustmentPrecision_debugString()
+  +0xc0  SW::SwDevice::setSerialBaudRate(SW::AXISID, unsigned int)
+
+==== vtable for SW::SwMountAxis @ 0x2d4018
+  +0x00  SW::SwMountAxis::~SwMountAxis()
+  +0x08  SW::SwMountAxis::~SwMountAxis()
+  +0x10  SW::SwMountAxis::initRead(bool)
+  +0x18  SW::SwMountAxis::lastTrackingSpeedRps(SW::AXISID)
+  +0x20  SW::SwMountAxis::setLastTrackingSpeedRps(SW::AXISID, double)
+  +0x28  SW::SwMountAxis::lastDirectionPositive(SW::AXISID)
+  +0x30  SW::SwMountAxis::updateAxisPosition(SW::AXISID)
+  +0x38  SW::SwMountAxis::updateBothAxisPosition()
+  +0x40  SW::SwMountAxis::lastAxisPosition(SW::AXISID)
+  +0x48  SW::SwMountAxis::setAxisPosition(SW::AXISID, double)
+  +0x50  SW::SwMountAxis::axisPositionMinMax(SW::AXISID)
+  +0x58  SW::SwMountAxis::updateAxisStatus(SW::AXISID)
+  +0x60  SW::SwMountAxis::lastAxisStatus(SW::AXISID)
+  +0x68  SW::SwMountAxis::axisSlew(SW::AXISID, double)
+  +0x70  SW::SwMountAxis::axisSlewTo(SW::AXISID, double)
+  +0x78  SW::SwMountAxis::axisStop(SW::AXISID)
+  +0x80  SW::SwMountAxis::supportsAxisSlewToSlew()
+  +0x88  SW::SwMountAxis::axisSlewToSlew(SW::AXISID, double, double)
+  +0x90  SW::SwMountAxis::hasAxisIndex()
+  +0x98  SW::SwMountAxis::readAxisIndex(SW::AXISID)
+  +0xa0  SW::SwMountAxis::resetAxisIndex(SW::AXISID)
+
+==== vtable for SW::SwSerialPortConverser @ 0x2d4c00
+  +0x00  SW::SwSerialPortConverser::~SwSerialPortConverser()
+  +0x08  SW::SwSerialPortConverser::~SwSerialPortConverser()
+  +0x10  SW::SwSerialPortConverser::converse(SW::CBytes const&)
+
+==== vtable for SW::TCCancellable @ 0x2d51d0
+  +0x00  SW::TCCancellable::~TCCancellable()
+  +0x08  SW::TCCancellable::~TCCancellable()
+  +0x10  SW::TCCancellable::isCancelled()
+  +0x18  SW::TCCancellable::sleepAwaitCancel(unsigned long)
+  +0x20  SW::TCCancellable::setCallback(std::__ndk1::function<void ()>)
+  +0x28  SW::TCCancellable::getICancellable()
+  +0x30  SW::TCCancellable::setCancellable(std::__ndk1::shared_ptr<SW::ICancellable>)
+  +0x38  raw 0xfffffffffffffff8
+
+==== vtable for SW::TaskEstimator @ 0x2cf840
+  +0x00  SW::TaskEstimator::metaObject() const
+  +0x08  SW::TaskEstimator::qt_metacast(char const*)
+  +0x10  SW::TaskEstimator::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::TaskEstimator::~TaskEstimator()
+  +0x20  SW::TaskEstimator::~TaskEstimator()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::TaskEstimator::estimate()
+  +0x68  SW::TaskEstimator::estimate_q()
+
+==== vtable for SW::TaskProfileJSON_AP @ 0x2d1a50
+  +0x00  SW::TaskProfileJSON_AP::~TaskProfileJSON_AP()
+  +0x08  SW::TaskProfileJSON_AP::~TaskProfileJSON_AP()
+  +0x10  SW::TaskProfileJSON_AP::loadProfile(QJsonObject)
+  +0x18  SW::TaskProfileJSON_AP::saveProfile(SW::ITaskProfile*)
+
+==== vtable for SW::TaskProfileJSON_ATL @ 0x2d1aa8
+  +0x00  SW::TaskProfileJSON_ATL::~TaskProfileJSON_ATL()
+  +0x08  SW::TaskProfileJSON_ATL::~TaskProfileJSON_ATL()
+  +0x10  SW::TaskProfileJSON_ATL::loadProfile(QJsonObject)
+  +0x18  SW::TaskProfileJSON_ATL::saveProfile(SW::ITaskProfile*)
+
+==== vtable for SW::TaskProfileJSON_RegLong @ 0x2d1ea8
+  +0x00  SW::TaskProfileJSON_RegLong::~TaskProfileJSON_RegLong()
+  +0x08  SW::TaskProfileJSON_RegLong::~TaskProfileJSON_RegLong()
+  +0x10  SW::TaskProfileJSON_RegLong::loadProfile(QJsonObject)
+  +0x18  SW::TaskProfileJSON_RegLong::saveProfile(SW::ITaskProfile*)
+
+==== vtable for SW::TaskProfileList @ 0x2cff70
+  +0x00  SW::TaskProfileList::metaObject() const
+  +0x08  SW::TaskProfileList::qt_metacast(char const*)
+  +0x10  SW::TaskProfileList::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::TaskProfileList::~TaskProfileList()
+  +0x20  SW::TaskProfileList::~TaskProfileList()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::TaskProfileList::list()
+  +0x68  SW::TaskProfileList::setList(QList<QObject*> const&)
+  +0x70  SW::TaskProfileList::load(int)
+  +0x78  SW::TaskProfileList::save(SW::ITaskProfile*)
+  +0x80  SW::TaskProfileList::unnamedProfile_load()
+  +0x88  SW::TaskProfileList::unnamedProfile_save(SW::ITaskProfile*)
+
+==== vtable for SW::TaskProfile_AP @ 0x2d0028
+  +0x00  SW::TaskProfile_AP::metaObject() const
+  +0x08  SW::TaskProfile_AP::qt_metacast(char const*)
+  +0x10  SW::TaskProfile_AP::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::TaskProfile_AP::~TaskProfile_AP()
+  +0x20  SW::TaskProfile_AP::~TaskProfile_AP()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::TaskProfile_AP::valid()
+  +0x68  SW::TaskProfile_AP::errorMessage()
+  +0x70  SW::TaskProfile_AP::paramSet()
+  +0x78  SW::TaskProfile_AP::paramSet_q()
+  +0x80  SW::TaskProfile_AP::updateWithParamSet(SW::SAMParamSet const&)
+  +0x88  SW::TaskProfile_AP::inputString()
+  +0x90  SW::TaskProfile_AP::set_inputString(QString)
+  +0x98  SW::TaskProfile_AP::name()
+  +0xa0  SW::TaskProfile_AP::set_name(QString)
+  +0xa8  SW::TaskProfile_AP::clone()
+  +0xb0  SW::TaskProfile_AP::exposureSec()
+  +0xb8  SW::TaskProfile_AP::photoIntervalSec()
+  +0xc0  SW::TaskProfile_AP::photos()
+  +0xc8  SW::TaskProfile_AP::trackingRateDegPerSec()
+  +0xd0  SW::TaskProfile_AP::ditheringRangeArcMin()
+  +0xd8  SW::TaskProfile_AP::set_exposureSec(double)
+  +0xe0  SW::TaskProfile_AP::set_photoIntervalSec(double)
+  +0xe8  SW::TaskProfile_AP::set_photos(int)
+  +0xf0  SW::TaskProfile_AP::set_trackingRateDegPerSec(double)
+  +0xf8  SW::TaskProfile_AP::set_ditheringRangeArcMin(double)
+  +0x100  SW::TaskProfile_AP::input_photos()
+  +0x108  SW::TaskProfile_AP::input_ditheringRangeArcMin()
+  +0x110  SW::TaskProfile_AP::set_input_photos(bool)
+  +0x118  SW::TaskProfile_AP::set_input_ditheringRangeArcMin(bool)
+  +0x120  SW::TaskProfile_AP::totalTimeSec()
+
+==== vtable for SW::TaskProfile_AP_Factory @ 0x2d1640
+  +0x00  SW::TaskProfile_AP_Factory::~TaskProfile_AP_Factory()
+  +0x08  SW::TaskProfile_AP_Factory::~TaskProfile_AP_Factory()
+  +0x10  SW::TaskProfile_AP_Factory::make()
+
+==== vtable for SW::TaskProfile_ATL @ 0x2d0178
+  +0x00  SW::TaskProfile_ATL::metaObject() const
+  +0x08  SW::TaskProfile_ATL::qt_metacast(char const*)
+  +0x10  SW::TaskProfile_ATL::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::TaskProfile_ATL::~TaskProfile_ATL()
+  +0x20  SW::TaskProfile_ATL::~TaskProfile_ATL()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::TaskProfile_ATL::valid()
+  +0x68  SW::TaskProfile_ATL::errorMessage()
+  +0x70  SW::TaskProfile_ATL::paramSet()
+  +0x78  SW::TaskProfile_ATL::paramSet_q()
+  +0x80  SW::TaskProfile_ATL::updateWithParamSet(SW::SAMParamSet const&)
+  +0x88  SW::TaskProfile_ATL::inputString()
+  +0x90  SW::TaskProfile_ATL::set_inputString(QString)
+  +0x98  SW::TaskProfile_ATL::name()
+  +0xa0  SW::TaskProfile_ATL::set_name(QString)
+  +0xa8  SW::TaskProfile_ATL::clone()
+  +0xb0  SW::TaskProfile_ATL::exposureSec()
+  +0xb8  SW::TaskProfile_ATL::videoTimeSpanHour()
+  +0xc0  SW::TaskProfile_ATL::videoLengthSec()
+  +0xc8  SW::TaskProfile_ATL::frameRateFps()
+  +0xd0  SW::TaskProfile_ATL::photos()
+  +0xd8  SW::TaskProfile_ATL::trackingRateDegPerSec()
+  +0xe0  SW::TaskProfile_ATL::set_exposureSec(double)
+  +0xe8  SW::TaskProfile_ATL::set_videoTimeSpanHour(double)
+  +0xf0  SW::TaskProfile_ATL::set_videoLengthSec(double)
+  +0xf8  SW::TaskProfile_ATL::set_frameRateFps(int)
+  +0x100  SW::TaskProfile_ATL::set_photos(int)
+  +0x108  SW::TaskProfile_ATL::set_trackingRateDegPerSec(double)
+  +0x110  SW::TaskProfile_ATL::input_videoTimeSpanHour()
+  +0x118  SW::TaskProfile_ATL::input_videoLengthSec()
+  +0x120  SW::TaskProfile_ATL::input_photos()
+  +0x128  SW::TaskProfile_ATL::set_input_videoTimeSpanHour(bool)
+  +0x130  SW::TaskProfile_ATL::set_input_videoLengthSec(bool)
+  +0x138  SW::TaskProfile_ATL::set_input_photos(bool)
+  +0x140  SW::TaskProfile_ATL::calc_videoTimeSpanHour()
+  +0x148  SW::TaskProfile_ATL::calc_videoLengthSec()
+  +0x150  SW::TaskProfile_ATL::calc_photos()
+
+==== vtable for SW::TaskProfile_ATL_Factory @ 0x2d1730
+  +0x00  SW::TaskProfile_ATL_Factory::~TaskProfile_ATL_Factory()
+  +0x08  SW::TaskProfile_ATL_Factory::~TaskProfile_ATL_Factory()
+  +0x10  SW::TaskProfile_ATL_Factory::make()
+
+==== vtable for SW::TaskProfile_RegLong @ 0x2d02f8
+  +0x00  SW::TaskProfile_RegLong::metaObject() const
+  +0x08  SW::TaskProfile_RegLong::qt_metacast(char const*)
+  +0x10  SW::TaskProfile_RegLong::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::TaskProfile_RegLong::~TaskProfile_RegLong()
+  +0x20  SW::TaskProfile_RegLong::~TaskProfile_RegLong()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::TaskProfile_RegLong::valid()
+  +0x68  SW::TaskProfile_RegLong::errorMessage()
+  +0x70  SW::TaskProfile_RegLong::paramSet()
+  +0x78  SW::TaskProfile_RegLong::paramSet_q()
+  +0x80  SW::TaskProfile_RegLong::updateWithParamSet(SW::SAMParamSet const&)
+  +0x88  SW::TaskProfile_RegLong::inputString()
+  +0x90  SW::TaskProfile_RegLong::set_inputString(QString)
+  +0x98  SW::TaskProfile_RegLong::name()
+  +0xa0  SW::TaskProfile_RegLong::set_name(QString)
+  +0xa8  SW::TaskProfile_RegLong::clone()
+  +0xb0  SW::TaskProfile_RegLong::regularExposure()
+  +0xb8  SW::TaskProfile_RegLong::exposureSec()
+  +0xc0  SW::TaskProfile_RegLong::videoTimeSpanHour()
+  +0xc8  SW::TaskProfile_RegLong::videoLengthSec()
+  +0xd0  SW::TaskProfile_RegLong::frameRateFps()
+  +0xd8  SW::TaskProfile_RegLong::photos()
+  +0xe0  SW::TaskProfile_RegLong::framePeriodSec()
+  +0xe8  SW::TaskProfile_RegLong::swingRangeDeg()
+  +0xf0  SW::TaskProfile_RegLong::swingCount()
+  +0xf8  SW::TaskProfile_RegLong::speedDph()
+  +0x100  SW::TaskProfile_RegLong::clockwise()
+  +0x108  SW::TaskProfile_RegLong::set_exposureSec(double)
+  +0x110  SW::TaskProfile_RegLong::set_videoTimeSpanHour(double)
+  +0x118  SW::TaskProfile_RegLong::set_videoLengthSec(double)
+  +0x120  SW::TaskProfile_RegLong::set_frameRateFps(int)
+  +0x128  SW::TaskProfile_RegLong::set_photos(int)
+  +0x130  SW::TaskProfile_RegLong::set_framePeriodSec(double)
+  +0x138  SW::TaskProfile_RegLong::set_swingRangeDeg(double)
+  +0x140  SW::TaskProfile_RegLong::set_swingCount(int)
+  +0x148  SW::TaskProfile_RegLong::set_speedDph(double)
+  +0x150  SW::TaskProfile_RegLong::set_clockwise(bool)
+  +0x158  SW::TaskProfile_RegLong::input_videoTimeSpanHour()
+  +0x160  SW::TaskProfile_RegLong::input_videoLengthSec()
+  +0x168  SW::TaskProfile_RegLong::input_photos()
+  +0x170  SW::TaskProfile_RegLong::input_framePeriodSec()
+  +0x178  SW::TaskProfile_RegLong::input_swingRangeDeg()
+  +0x180  SW::TaskProfile_RegLong::input_speedDph()
+  +0x188  SW::TaskProfile_RegLong::set_input_videoTimeSpanHour(bool)
+  +0x190  SW::TaskProfile_RegLong::set_input_videoLengthSec(bool)
+  +0x198  SW::TaskProfile_RegLong::set_input_photos(bool)
+  +0x1a0  SW::TaskProfile_RegLong::set_input_framePeriodSec(bool)
+  +0x1a8  SW::TaskProfile_RegLong::set_input_swingRangeDeg(bool)
+  +0x1b0  SW::TaskProfile_RegLong::set_input_speedDph(bool)
+  +0x1b8  SW::TaskProfile_RegLong::calc_exposureSec()
+  +0x1c0  SW::TaskProfile_RegLong::calc_videoTimeSpanHour()
+  +0x1c8  SW::TaskProfile_RegLong::calc_videoLengthSec()
+  +0x1d0  SW::TaskProfile_RegLong::calc_photos()
+  +0x1d8  SW::TaskProfile_RegLong::calc_framePeriodSec()
+  +0x1e0  SW::TaskProfile_RegLong::calc_swingRangeDeg()
+  +0x1e8  SW::TaskProfile_RegLong::calc_speedDph()
+  +0x1f0  SW::TaskProfile_RegLong::block_input_swingRangeDeg()
+  +0x1f8  SW::TaskProfile_RegLong::enable_swingCount()
+  +0x200  SW::TaskProfile_RegLong::invalidExposure()
+  +0x208  SW::TaskProfile_RegLong::invalidSpeed()
+
+==== vtable for SW::TaskProfile_RegLong_Factory @ 0x2d1820
+  +0x00  SW::ITaskProfile_RegLong_Factory::~ITaskProfile_RegLong_Factory()
+  +0x08  SW::TaskProfile_RegLong_Factory::~TaskProfile_RegLong_Factory()
+  +0x10  SW::TaskProfile_RegLong_Factory::make()
+
+==== vtable for SW::ToastManagerUIStub @ 0x2d78a0
+  +0x00  SW::ToastManagerUIStub::metaObject() const
+  +0x08  SW::ToastManagerUIStub::qt_metacast(char const*)
+  +0x10  SW::ToastManagerUIStub::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::ToastManagerUIStub::~ToastManagerUIStub()
+  +0x20  SW::ToastManagerUIStub::~ToastManagerUIStub()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::ToastManagerUIStub::write(std::__ndk1::basic_string_view<char, std::__ndk1::char_traits<char>>)
+  +0x68  raw 0xfffffffffffffff0
+
+==== vtable for SW::UDPConnectableHelper @ 0x2d4910
+  +0x00  QObject::metaObject() const
+  +0x08  QObject::qt_metacast(char const*)
+  +0x10  QObject::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::UDPConnectableHelper::~UDPConnectableHelper()
+  +0x20  SW::UDPConnectableHelper::~UDPConnectableHelper()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+  +0x60  SW::UDPConnectableHelper::devicesList()
+  +0x68  SW::UDPConnectableHelper::startConnect()
+  +0x70  SW::UDPConnectableHelper::selectDevice(int)
+  +0x78  SW::UDPConnectableHelper::setDeviceListFilter(std::__ndk1::function<bool (unsigned char)>)
+  +0x80  SW::UDPConnectableHelper::setHandler(std::__ndk1::function<void (SW::SwConverserEtal)>)
+
+==== vtable for SW::UDPConverser @ 0x2d4c40
+  +0x00  SW::UDPConverser::~UDPConverser()
+  +0x08  SW::UDPConverser::~UDPConverser()
+  +0x10  SW::UDPConverser::converse(SW::CBytes const&)
+
+==== vtable for SW::UDPSwDeviceFactory @ 0x2d4a50
+  +0x00  SW::UDPSwDeviceFactory::~UDPSwDeviceFactory()
+  +0x08  SW::UDPSwDeviceFactory::~UDPSwDeviceFactory()
+  +0x10  SW::UDPSwDeviceFactory::make(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&, SW::UdpRemoteHost const&)
+
+==== vtable for SW::UnixUDP @ 0x2d5820
+  +0x00  SW::UnixUDP::~UnixUDP()
+  +0x08  SW::UnixUDP::~UnixUDP()
+  +0x10  SW::UnixUDP::valid()
+  +0x18  SW::UnixUDP::write(SW::CBytes const&)
+  +0x20  SW::UnixUDP::read()
+  +0x28  SW::UnixUDP::clearReadBuffer()
+  +0x30  SW::UnixUDP::changeLocalPort()
+
+==== vtable for SW::WindowRect @ 0x2d7988
+  +0x00  SW::WindowRect::metaObject() const
+  +0x08  SW::WindowRect::qt_metacast(char const*)
+  +0x10  SW::WindowRect::qt_metacall(QMetaObject::Call, int, void**)
+  +0x18  SW::WindowRect::~WindowRect()
+  +0x20  SW::WindowRect::~WindowRect()
+  +0x28  QObject::event(QEvent*)
+  +0x30  QObject::eventFilter(QObject*, QEvent*)
+  +0x38  QObject::timerEvent(QTimerEvent*)
+  +0x40  QObject::childEvent(QChildEvent*)
+  +0x48  QObject::customEvent(QEvent*)
+  +0x50  QObject::connectNotify(QMetaMethod const&)
+  +0x58  QObject::disconnectNotify(QMetaMethod const&)
+

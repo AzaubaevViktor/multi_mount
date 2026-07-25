@@ -1,0 +1,76 @@
+0000000000201ca8 <SW::SAMSettings::wifiOffOnTaskStart()>:
+  201ca8: f9400800     	ldr	x0, [x0, #0x10]
+  201cac: d0fff641     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  201cb0: 911f7821     	add	x1, x1, #0x7de
+  201cb4: 528001c2     	mov	w2, #0xe                // =14
+  201cb8: 2a1f03e3     	mov	w3, wzr
+  201cbc: f9400008     	ldr	x8, [x0]
+  201cc0: f9401504     	ldr	x4, [x8, #0x28]
+  201cc4: d61f0080     	br	x4
+
+0000000000201cc8 <SW::SAMSettings::setWifiOffOnTaskStart(bool)>:
+  201cc8: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  201ccc: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  201cd0: 910003fd     	mov	x29, sp
+  201cd4: f9400008     	ldr	x8, [x0]
+  201cd8: aa0003f3     	mov	x19, x0
+  201cdc: 12000034     	and	w20, w1, #0x1
+  201ce0: f9403108     	ldr	x8, [x8, #0x60]
+  201ce4: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  201ce8: 12000008     	and	w8, w0, #0x1
+  201cec: 6b14011f     	cmp	w8, w20
+  201cf0: 540001a0     	b.eq	0x201d24 <SW::SAMSettings::setWifiOffOnTaskStart(bool)+0x5c>
+  201cf4: f9400a60     	ldr	x0, [x19, #0x10]
+  201cf8: d0fff641     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  201cfc: 911f7821     	add	x1, x1, #0x7de
+  201d00: 528001c2     	mov	w2, #0xe                // =14
+  201d04: 2a1403e3     	mov	w3, w20
+  201d08: f9400008     	ldr	x8, [x0]
+  201d0c: f9402508     	ldr	x8, [x8, #0x48]
+  201d10: d63f0100     	blr	x8  ;;; CALL <indirect x8>  [x2=14(0xe)]
+  201d14: aa1303e0     	mov	x0, x19
+  201d18: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  201d1c: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  201d20: 140302ec     	b	0x2c28d0 <_ZN2SW12ISAMSettings12valueChangedEv@plt>
+  201d24: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  201d28: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  201d2c: d65f03c0     	ret
+
+0000000000201d30 <SW::SAMSettings::wifiOffOnDisconnect()>:
+  201d30: f9400800     	ldr	x0, [x0, #0x10]
+  201d34: f0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  201d38: 912f5021     	add	x1, x1, #0xbd4
+  201d3c: 52800202     	mov	w2, #0x10               // =16
+  201d40: 2a1f03e3     	mov	w3, wzr
+  201d44: f9400008     	ldr	x8, [x0]
+  201d48: f9401504     	ldr	x4, [x8, #0x28]
+  201d4c: d61f0080     	br	x4
+
+0000000000201d50 <SW::SAMSettings::setWifiOffOnDisconnect(bool)>:
+  201d50: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  201d54: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  201d58: 910003fd     	mov	x29, sp
+  201d5c: f9400008     	ldr	x8, [x0]
+  201d60: aa0003f3     	mov	x19, x0
+  201d64: 12000034     	and	w20, w1, #0x1
+  201d68: f9403908     	ldr	x8, [x8, #0x70]
+  201d6c: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  201d70: 12000008     	and	w8, w0, #0x1
+  201d74: 6b14011f     	cmp	w8, w20
+  201d78: 540001a0     	b.eq	0x201dac <SW::SAMSettings::setWifiOffOnDisconnect(bool)+0x5c>
+  201d7c: f9400a60     	ldr	x0, [x19, #0x10]
+  201d80: f0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  201d84: 912f5021     	add	x1, x1, #0xbd4
+  201d88: 52800202     	mov	w2, #0x10               // =16
+  201d8c: 2a1403e3     	mov	w3, w20
+  201d90: f9400008     	ldr	x8, [x0]
+  201d94: f9402508     	ldr	x8, [x8, #0x48]
+  201d98: d63f0100     	blr	x8  ;;; CALL <indirect x8>  [x2=16(0x10)]
+  201d9c: aa1303e0     	mov	x0, x19
+  201da0: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  201da4: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  201da8: 140302ca     	b	0x2c28d0 <_ZN2SW12ISAMSettings12valueChangedEv@plt>
+  201dac: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  201db0: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  201db4: d65f03c0     	ret
+

@@ -1,0 +1,358 @@
+0000000000237b98 <SW::SerialConnectableHelper::devicesList()>:
+  237b98: 52800049     	mov	w9, #0x2                // =2
+  237b9c: a9007d1f     	stp	xzr, xzr, [x8]
+  237ba0: a901251f     	stp	xzr, x9, [x8, #0x10]
+  237ba4: d65f03c0     	ret
+
+0000000000237ba8 <SW::SerialConnectableHelper::startConnect()>:
+  237ba8: d10143ff     	sub	sp, sp, #0x50
+  237bac: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  237bb0: f9001bf5     	str	x21, [sp, #0x30]
+  237bb4: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  237bb8: 910083fd     	add	x29, sp, #0x20
+  237bbc: d53bd055     	mrs	x21, TPIDR_EL0
+  237bc0: aa0003f3     	mov	x19, x0
+  237bc4: 52800100     	mov	w0, #0x8                // =8
+  237bc8: f94016a8     	ldr	x8, [x21, #0x28]
+  237bcc: f81f83a8     	stur	x8, [x29, #-0x8]
+  237bd0: 9402254c     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  237bd4: aa0003f4     	mov	x20, x0
+  237bd8: 94022d2a     	bl	0x2c3080 <_ZNSt6__ndk115__thread_structC1Ev@plt>  ;;; CALL std::__ndk1::__thread_struct::__thread_struct()
+  237bdc: f9000bf4     	str	x20, [sp, #0x10]
+  237be0: 52800200     	mov	w0, #0x10               // =16
+  237be4: 94022547     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  237be8: aa0003e3     	mov	x3, x0
+  237bec: a900ffe0     	stp	x0, xzr, [sp, #0x8]
+  237bf0: a9004c14     	stp	x20, x19, [x0]
+  237bf4: d503201f     	nop
+  237bf8: 10005a02     	adr	x2, 0x238738 <void* std::__ndk1::__thread_proxy[abi:ne190000]<std::__ndk1::tuple<std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct>>, SW::SerialConnectableHelper::startConnect()::$_0>>(void*)>
+  237bfc: 910003e0     	mov	x0, sp
+  237c00: aa1f03e1     	mov	x1, xzr
+  237c04: 94022d23     	bl	0x2c3090 <pthread_create@plt>  ;;; CALL pthread_create
+  237c08: 350001c0     	cbnz	w0, 0x237c40 <SW::SerialConnectableHelper::startConnect()+0x98>
+  237c0c: 910003e0     	mov	x0, sp
+  237c10: 94022d24     	bl	0x2c30a0 <_ZNSt6__ndk16thread6detachEv@plt>  ;;; CALL std::__ndk1::thread::detach()
+  237c14: 910003e0     	mov	x0, sp
+  237c18: 94022d26     	bl	0x2c30b0 <_ZNSt6__ndk16threadD1Ev@plt>  ;;; CALL std::__ndk1::thread::~thread()
+  237c1c: f94016a8     	ldr	x8, [x21, #0x28]
+  237c20: f85f83a9     	ldur	x9, [x29, #-0x8]
+  237c24: eb09011f     	cmp	x8, x9
+  237c28: 54000441     	b.ne	0x237cb0 <SW::SerialConnectableHelper::startConnect()+0x108>
+  237c2c: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  237c30: f9401bf5     	ldr	x21, [sp, #0x30]
+  237c34: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  237c38: 910143ff     	add	sp, sp, #0x50
+  237c3c: d65f03c0     	ret
+  237c40: f94016a8     	ldr	x8, [x21, #0x28]
+  237c44: f85f83a9     	ldur	x9, [x29, #-0x8]
+  237c48: eb09011f     	cmp	x8, x9
+  237c4c: 54000321     	b.ne	0x237cb0 <SW::SerialConnectableHelper::startConnect()+0x108>
+  237c50: 90fff4a1     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  237c54: 9115a021     	add	x1, x1, #0x568
+  237c58: 94022d1a     	bl	0x2c30c0 <_ZNSt6__ndk120__throw_system_errorEiPKc@plt>  ;;; CALL std::__ndk1::__throw_system_error(int, char const*)
+  237c5c: aa0003f3     	mov	x19, x0
+  237c60: 910003e0     	mov	x0, sp
+  237c64: 94022d13     	bl	0x2c30b0 <_ZNSt6__ndk16threadD1Ev@plt>  ;;; CALL std::__ndk1::thread::~thread()
+  237c68: 1400000c     	b	0x237c98 <SW::SerialConnectableHelper::startConnect()+0xf0>
+  237c6c: aa0003f3     	mov	x19, x0
+  237c70: 14000008     	b	0x237c90 <SW::SerialConnectableHelper::startConnect()+0xe8>
+  237c74: aa0003f3     	mov	x19, x0
+  237c78: aa1403e0     	mov	x0, x20
+  237c7c: 940225c5     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  237c80: 14000006     	b	0x237c98 <SW::SerialConnectableHelper::startConnect()+0xf0>
+  237c84: aa0003f3     	mov	x19, x0
+  237c88: 910023e0     	add	x0, sp, #0x8
+  237c8c: 940002d9     	bl	0x2387f0 <std::__ndk1::unique_ptr<std::__ndk1::tuple<std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct>>, SW::SerialConnectableHelper::startConnect()::$_0>, std::__ndk1::default_delete<std::__ndk1::tuple<std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct>>, SW::SerialConnectableHelper::startConnect()::$_0>>>::~unique_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::unique_ptr<std::__ndk1::tuple<std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct
+  237c90: 910043e0     	add	x0, sp, #0x10
+  237c94: 97ff05d3     	bl	0x1f93e0 <std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct>>::~unique_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct
+  237c98: f94016a8     	ldr	x8, [x21, #0x28]
+  237c9c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  237ca0: eb09011f     	cmp	x8, x9
+  237ca4: 54000061     	b.ne	0x237cb0 <SW::SerialConnectableHelper::startConnect()+0x108>
+  237ca8: aa1303e0     	mov	x0, x19
+  237cac: 940215f6     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  237cb0: 94022540     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000237cb4 <SW::SerialConnectableHelper::selectDevice(int)>:
+  237cb4: d65f03c0     	ret
+
+0000000000237d88 <SW::SerialConnectableHelper::bg_startConnect()>:
+  237d88: d106c3ff     	sub	sp, sp, #0x1b0
+  237d8c: a9187bfd     	stp	x29, x30, [sp, #0x180]
+  237d90: a91957fc     	stp	x28, x21, [sp, #0x190]
+  237d94: a91a4ff4     	stp	x20, x19, [sp, #0x1a0]
+  237d98: 910603fd     	add	x29, sp, #0x180
+  237d9c: d53bd055     	mrs	x21, TPIDR_EL0
+  237da0: aa0003f3     	mov	x19, x0
+  237da4: 52800049     	mov	w9, #0x2                // =2
+  237da8: f94016a8     	ldr	x8, [x21, #0x28]
+  237dac: 91004000     	add	x0, x0, #0x10
+  237db0: d100e3a1     	sub	x1, x29, #0x38
+  237db4: f81f83a8     	stur	x8, [x29, #-0x8]
+  237db8: 90fff4a8     	adrp	x8, 0xcb000 <vsnprintf+0xcb000>
+  237dbc: 911e5d08     	add	x8, x8, #0x797
+  237dc0: b81c83a9     	stur	w9, [x29, #-0x38]
+  237dc4: a93d7fa8     	stp	x8, xzr, [x29, #-0x30]
+  237dc8: 9402299a     	bl	0x2c2430 <_ZNK7eventpp9internal_16CallbackListBaseIFvN2SW18IConnectableHelper6StatusEENS_15DefaultPoliciesEEclES4_@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (SW::IConnectableHelper::Status), eventpp::DefaultPolicies>::operator()(SW::IConnectableHelper::Status) const
+  237dcc: f9405a60     	ldr	x0, [x19, #0xb0]
+  237dd0: f9400008     	ldr	x8, [x0]
+  237dd4: f9408109     	ldr	x9, [x8, #0x100]
+  237dd8: d10143a8     	sub	x8, x29, #0x50
+  237ddc: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  237de0: 385b03a8     	ldurb	w8, [x29, #-0x50]
+  237de4: f9406274     	ldr	x20, [x19, #0xc0]
+  237de8: 370000c8     	tbnz	w8, #0x0, 0x237e00 <SW::SerialConnectableHelper::bg_startConnect()+0x78>
+  237dec: 3cdb03a0     	ldur	q0, [x29, #-0x50]
+  237df0: f85c03a8     	ldur	x8, [x29, #-0x40]
+  237df4: 3d802fe0     	str	q0, [sp, #0xb0]
+  237df8: f90063e8     	str	x8, [sp, #0xc0]
+  237dfc: 14000004     	b	0x237e0c <SW::SerialConnectableHelper::bg_startConnect()+0x84>
+  237e00: a97b87a2     	ldp	x2, x1, [x29, #-0x48]
+  237e04: 9102c3e0     	add	x0, sp, #0xb0
+  237e08: 940228e6     	bl	0x2c21a0 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE25__init_copy_ctor_externalEPKcm@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::__init_copy_ctor_external(char const*, unsigned long)
+  237e0c: f9400288     	ldr	x8, [x20]
+  237e10: f9400909     	ldr	x9, [x8, #0x10]
+  237e14: d102c3a8     	sub	x8, x29, #0xb0
+  237e18: 9102c3e1     	add	x1, sp, #0xb0
+  237e1c: aa1403e0     	mov	x0, x20
+  237e20: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  237e24: 3942c3e8     	ldrb	w8, [sp, #0xb0]
+  237e28: 36000068     	tbz	w8, #0x0, 0x237e34 <SW::SerialConnectableHelper::bg_startConnect()+0xac>
+  237e2c: f94063e0     	ldr	x0, [sp, #0xc0]
+  237e30: 94022558     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  237e34: f85983a0     	ldur	x0, [x29, #-0x68]
+  237e38: f9400008     	ldr	x8, [x0]
+  237e3c: f9400908     	ldr	x8, [x8, #0x10]
+  237e40: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  237e44: f85983a0     	ldur	x0, [x29, #-0x68]
+  237e48: f9400008     	ldr	x8, [x0]
+  237e4c: f9400d08     	ldr	x8, [x8, #0x18]
+  237e50: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  237e54: 36000820     	tbz	w0, #0x0, 0x237f58 <SW::SerialConnectableHelper::bg_startConnect()+0x1d0>
+  237e58: d102c3a8     	sub	x8, x29, #0xb0
+  237e5c: d102c3a2     	sub	x2, x29, #0xb0
+  237e60: aa1303e0     	mov	x0, x19
+  237e64: 91012101     	add	x1, x8, #0x48
+  237e68: 940232fa     	bl	0x2c4a50 <_ZN2SW23SerialConnectableHelper9setupBaudERKNSt6__ndk110shared_ptrINS_11ISerialPortEEERKNS2_INS_9ISwDeviceEEE@plt>  ;;; CALL SW::SerialConnectableHelper::setupBaud(std::__ndk1::shared_ptr<SW::ISerialPort> const&, std::__ndk1::shared_ptr<SW::ISwDevice> const&)
+  237e6c: 36000de0     	tbz	w0, #0x0, 0x238028 <SW::SerialConnectableHelper::bg_startConnect()+0x2a0>
+  237e70: f9407a60     	ldr	x0, [x19, #0xf0]
+  237e74: b4001020     	cbz	x0, 0x238078 <SW::SerialConnectableHelper::bg_startConnect()+0x2f0>
+  237e78: ad7a87a0     	ldp	q0, q1, [x29, #-0xb0]
+  237e7c: f85903a8     	ldur	x8, [x29, #-0x70]
+  237e80: a9357fbf     	stp	xzr, xzr, [x29, #-0xb0]
+  237e84: a9367fbf     	stp	xzr, xzr, [x29, #-0xa0]
+  237e88: ad0007e0     	stp	q0, q1, [sp]
+  237e8c: ad7b87a0     	ldp	q0, q1, [x29, #-0x90]
+  237e90: a9377fbf     	stp	xzr, xzr, [x29, #-0x90]
+  237e94: f90023e8     	str	x8, [sp, #0x40]
+  237e98: ad0107e0     	stp	q0, q1, [sp, #0x20]
+  237e9c: a938ffbf     	stp	xzr, xzr, [x29, #-0x78]
+  237ea0: f81803bf     	stur	xzr, [x29, #-0x80]
+  237ea4: f9400008     	ldr	x8, [x0]
+  237ea8: f9401908     	ldr	x8, [x8, #0x30]
+  237eac: 910003e1     	mov	x1, sp
+  237eb0: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  237eb4: 3940c3e8     	ldrb	w8, [sp, #0x30]
+  237eb8: 36000068     	tbz	w8, #0x0, 0x237ec4 <SW::SerialConnectableHelper::bg_startConnect()+0x13c>
+  237ebc: f94023e0     	ldr	x0, [sp, #0x40]
+  237ec0: 94022534     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  237ec4: f94017f3     	ldr	x19, [sp, #0x28]
+  237ec8: b4000173     	cbz	x19, 0x237ef4 <SW::SerialConnectableHelper::bg_startConnect()+0x16c>
+  237ecc: 91002261     	add	x1, x19, #0x8
+  237ed0: 92800000     	mov	x0, #-0x1               // =-1
+  237ed4: 94021513     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  237ed8: b50000e0     	cbnz	x0, 0x237ef4 <SW::SerialConnectableHelper::bg_startConnect()+0x16c>
+  237edc: f9400268     	ldr	x8, [x19]
+  237ee0: aa1303e0     	mov	x0, x19
+  237ee4: f9400908     	ldr	x8, [x8, #0x10]
+  237ee8: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  237eec: aa1303e0     	mov	x0, x19
+  237ef0: 940224a4     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  237ef4: f9400ff3     	ldr	x19, [sp, #0x18]
+  237ef8: b4000173     	cbz	x19, 0x237f24 <SW::SerialConnectableHelper::bg_startConnect()+0x19c>
+  237efc: 91002261     	add	x1, x19, #0x8
+  237f00: 92800000     	mov	x0, #-0x1               // =-1
+  237f04: 94021507     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  237f08: b50000e0     	cbnz	x0, 0x237f24 <SW::SerialConnectableHelper::bg_startConnect()+0x19c>
+  237f0c: f9400268     	ldr	x8, [x19]
+  237f10: aa1303e0     	mov	x0, x19
+  237f14: f9400908     	ldr	x8, [x8, #0x10]
+  237f18: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  237f1c: aa1303e0     	mov	x0, x19
+  237f20: 94022498     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  237f24: f94007f3     	ldr	x19, [sp, #0x8]
+  237f28: b4000a93     	cbz	x19, 0x238078 <SW::SerialConnectableHelper::bg_startConnect()+0x2f0>
+  237f2c: 91002261     	add	x1, x19, #0x8
+  237f30: 92800000     	mov	x0, #-0x1               // =-1
+  237f34: 940214fb     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  237f38: b5000a00     	cbnz	x0, 0x238078 <SW::SerialConnectableHelper::bg_startConnect()+0x2f0>
+  237f3c: f9400268     	ldr	x8, [x19]
+  237f40: aa1303e0     	mov	x0, x19
+  237f44: f9400908     	ldr	x8, [x8, #0x10]
+  237f48: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  237f4c: aa1303e0     	mov	x0, x19
+  237f50: 9402248c     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  237f54: 14000049     	b	0x238078 <SW::SerialConnectableHelper::bg_startConnect()+0x2f0>
+  237f58: b0fff4a0     	adrp	x0, 0xcc000 <vsnprintf+0xcc000>
+  237f5c: 91354000     	add	x0, x0, #0xd50
+  237f60: 90fff4a1     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  237f64: 91168021     	add	x1, x1, #0x5a0
+  237f68: 9101a3e8     	add	x8, sp, #0x68
+  237f6c: aa1f03e2     	mov	x2, xzr
+  237f70: 12800003     	mov	w3, #-0x1               // =-1
+  237f74: 94022ba3     	bl	0x2c2e00 <_ZN16QCoreApplication9translateEPKcS1_S1_i@plt>  ;;; CALL QCoreApplication::translate(char const*, char const*, char const*, int)  [x3=-1(0xffffffff)]
+  237f78: d10083a8     	sub	x8, x29, #0x20
+  237f7c: 9101a3e0     	add	x0, sp, #0x68
+  237f80: 94022770     	bl	0x2c1d40 <_ZN7QString13toUtf8_helperERKS_@plt>  ;;; CALL QString::toUtf8_helper(QString const&)
+  237f84: 910203e8     	add	x8, sp, #0x80
+  237f88: d10083a0     	sub	x0, x29, #0x20
+  237f8c: 94022855     	bl	0x2c20e0 <_ZNK10QByteArray11toStdStringEv@plt>  ;;; CALL QByteArray::toStdString() const
+  237f90: f85e03a1     	ldur	x1, [x29, #-0x20]
+  237f94: b4000121     	cbz	x1, 0x237fb8 <SW::SerialConnectableHelper::bg_startConnect()+0x230>
+  237f98: 12800000     	mov	w0, #-0x1               // =-1
+  237f9c: 940214c9     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  237fa0: 7100041f     	cmp	w0, #0x1
+  237fa4: 540000a1     	b.ne	0x237fb8 <SW::SerialConnectableHelper::bg_startConnect()+0x230>
+  237fa8: f85e03a0     	ldur	x0, [x29, #-0x20]
+  237fac: 52800021     	mov	w1, #0x1                // =1
+  237fb0: 52800102     	mov	w2, #0x8                // =8
+  237fb4: 9402244b     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=1(0x1), x2=8(0x8)]
+  237fb8: 394203e8     	ldrb	w8, [sp, #0x80]
+  237fbc: a948abeb     	ldp	x11, x10, [sp, #0x88]
+  237fc0: 910203e9     	add	x9, sp, #0x80
+  237fc4: 5280006c     	mov	w12, #0x3               // =3
+  237fc8: 7200011f     	tst	w8, #0x1
+  237fcc: d341fd08     	lsr	x8, x8, #1
+  237fd0: b9009bec     	str	w12, [sp, #0x98]
+  237fd4: 9a891549     	csinc	x9, x10, x9, ne
+  237fd8: 9a8b0108     	csel	x8, x8, x11, eq
+  237fdc: a90a23e9     	stp	x9, x8, [sp, #0xa0]
+  237fe0: 91004260     	add	x0, x19, #0x10
+  237fe4: 910263e1     	add	x1, sp, #0x98
+  237fe8: 94022912     	bl	0x2c2430 <_ZNK7eventpp9internal_16CallbackListBaseIFvN2SW18IConnectableHelper6StatusEENS_15DefaultPoliciesEEclES4_@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (SW::IConnectableHelper::Status), eventpp::DefaultPolicies>::operator()(SW::IConnectableHelper::Status) const
+  237fec: 394203e8     	ldrb	w8, [sp, #0x80]
+  237ff0: 36000068     	tbz	w8, #0x0, 0x237ffc <SW::SerialConnectableHelper::bg_startConnect()+0x274>
+  237ff4: f9404be0     	ldr	x0, [sp, #0x90]
+  237ff8: 940224e6     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  237ffc: f94037e1     	ldr	x1, [sp, #0x68]
+  238000: b40003c1     	cbz	x1, 0x238078 <SW::SerialConnectableHelper::bg_startConnect()+0x2f0>
+  238004: 12800000     	mov	w0, #-0x1               // =-1
+  238008: 940214ae     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  23800c: 7100041f     	cmp	w0, #0x1
+  238010: 54000341     	b.ne	0x238078 <SW::SerialConnectableHelper::bg_startConnect()+0x2f0>
+  238014: f94037e0     	ldr	x0, [sp, #0x68]
+  238018: 52800041     	mov	w1, #0x2                // =2
+  23801c: 52800102     	mov	w2, #0x8                // =8
+  238020: 94022430     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  238024: 14000015     	b	0x238078 <SW::SerialConnectableHelper::bg_startConnect()+0x2f0>
+  238028: d10083a8     	sub	x8, x29, #0x20
+  23802c: 52800040     	mov	w0, #0x2                // =2
+  238030: d10083b4     	sub	x20, x29, #0x20
+  238034: 94022c33     	bl	0x2c3100 <_ZN2SW16CmdRetTypeStringENS_11CmdRetType_1EE@plt>  ;;; CALL SW::CmdRetTypeString(SW::CmdRetType_::E)
+  238038: 385e03a8     	ldurb	w8, [x29, #-0x20]
+  23803c: a97ea7aa     	ldp	x10, x9, [x29, #-0x18]
+  238040: 5280006b     	mov	w11, #0x3               // =3
+  238044: 7200011f     	tst	w8, #0x1
+  238048: d341fd08     	lsr	x8, x8, #1
+  23804c: b90053eb     	str	w11, [sp, #0x50]
+  238050: 9a941529     	csinc	x9, x9, x20, ne
+  238054: 9a8a0108     	csel	x8, x8, x10, eq
+  238058: a905a3e9     	stp	x9, x8, [sp, #0x58]
+  23805c: 91004260     	add	x0, x19, #0x10
+  238060: 910143e1     	add	x1, sp, #0x50
+  238064: 940228f3     	bl	0x2c2430 <_ZNK7eventpp9internal_16CallbackListBaseIFvN2SW18IConnectableHelper6StatusEENS_15DefaultPoliciesEEclES4_@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (SW::IConnectableHelper::Status), eventpp::DefaultPolicies>::operator()(SW::IConnectableHelper::Status) const
+  238068: 385e03a8     	ldurb	w8, [x29, #-0x20]
+  23806c: 36000068     	tbz	w8, #0x0, 0x238078 <SW::SerialConnectableHelper::bg_startConnect()+0x2f0>
+  238070: f85f03a0     	ldur	x0, [x29, #-0x10]
+  238074: 940224c7     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  238078: d102c3a0     	sub	x0, x29, #0xb0
+  23807c: 94023279     	bl	0x2c4a60 <_ZN2SW22ISerialSwDeviceFactory6OutputD2Ev@plt>  ;;; CALL SW::ISerialSwDeviceFactory::Output::~Output()
+  238080: 385b03a8     	ldurb	w8, [x29, #-0x50]
+  238084: 36000068     	tbz	w8, #0x0, 0x238090 <SW::SerialConnectableHelper::bg_startConnect()+0x308>
+  238088: f85c03a0     	ldur	x0, [x29, #-0x40]
+  23808c: 940224c1     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  238090: f94016a8     	ldr	x8, [x21, #0x28]
+  238094: f85f83a9     	ldur	x9, [x29, #-0x8]
+  238098: eb09011f     	cmp	x8, x9
+  23809c: 54000a01     	b.ne	0x2381dc <SW::SerialConnectableHelper::bg_startConnect()+0x454>
+  2380a0: a95a4ff4     	ldp	x20, x19, [sp, #0x1a0]
+  2380a4: a95957fc     	ldp	x28, x21, [sp, #0x190]
+  2380a8: a9587bfd     	ldp	x29, x30, [sp, #0x180]
+  2380ac: 9106c3ff     	add	sp, sp, #0x1b0
+  2380b0: d65f03c0     	ret
+  2380b4: aa0003f3     	mov	x19, x0
+  2380b8: 910003e0     	mov	x0, sp
+  2380bc: 940229e1     	bl	0x2c2840 <_ZN2SW15SwConverserEtalD2Ev@plt>  ;;; CALL SW::SwConverserEtal::~SwConverserEtal()
+  2380c0: 1400003d     	b	0x2381b4 <SW::SerialConnectableHelper::bg_startConnect()+0x42c>
+  2380c4: 385e03a8     	ldurb	w8, [x29, #-0x20]
+  2380c8: aa0003f3     	mov	x19, x0
+  2380cc: 36000748     	tbz	w8, #0x0, 0x2381b4 <SW::SerialConnectableHelper::bg_startConnect()+0x42c>
+  2380d0: f85f03a0     	ldur	x0, [x29, #-0x10]
+  2380d4: 940224af     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2380d8: 14000037     	b	0x2381b4 <SW::SerialConnectableHelper::bg_startConnect()+0x42c>
+  2380dc: 14000035     	b	0x2381b0 <SW::SerialConnectableHelper::bg_startConnect()+0x428>
+  2380e0: 394203e8     	ldrb	w8, [sp, #0x80]
+  2380e4: aa0003f3     	mov	x19, x0
+  2380e8: 36000228     	tbz	w8, #0x0, 0x23812c <SW::SerialConnectableHelper::bg_startConnect()+0x3a4>
+  2380ec: f9404be0     	ldr	x0, [sp, #0x90]
+  2380f0: 940224a8     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2380f4: 1400000e     	b	0x23812c <SW::SerialConnectableHelper::bg_startConnect()+0x3a4>
+  2380f8: f85e03a1     	ldur	x1, [x29, #-0x20]
+  2380fc: aa0003f3     	mov	x19, x0
+  238100: b4000161     	cbz	x1, 0x23812c <SW::SerialConnectableHelper::bg_startConnect()+0x3a4>
+  238104: 12800000     	mov	w0, #-0x1               // =-1
+  238108: 9402146e     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  23810c: 7100041f     	cmp	w0, #0x1
+  238110: 540000e1     	b.ne	0x23812c <SW::SerialConnectableHelper::bg_startConnect()+0x3a4>
+  238114: f85e03a0     	ldur	x0, [x29, #-0x20]
+  238118: 52800021     	mov	w1, #0x1                // =1
+  23811c: 52800102     	mov	w2, #0x8                // =8
+  238120: 940223f0     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=1(0x1), x2=8(0x8)]
+  238124: 14000002     	b	0x23812c <SW::SerialConnectableHelper::bg_startConnect()+0x3a4>
+  238128: aa0003f3     	mov	x19, x0
+  23812c: f94037e1     	ldr	x1, [sp, #0x68]
+  238130: b4000421     	cbz	x1, 0x2381b4 <SW::SerialConnectableHelper::bg_startConnect()+0x42c>
+  238134: 12800000     	mov	w0, #-0x1               // =-1
+  238138: 94021462     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  23813c: 7100041f     	cmp	w0, #0x1
+  238140: 540003a1     	b.ne	0x2381b4 <SW::SerialConnectableHelper::bg_startConnect()+0x42c>
+  238144: f94037e0     	ldr	x0, [sp, #0x68]
+  238148: 52800041     	mov	w1, #0x2                // =2
+  23814c: 52800102     	mov	w2, #0x8                // =8
+  238150: 940223e4     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  238154: 14000018     	b	0x2381b4 <SW::SerialConnectableHelper::bg_startConnect()+0x42c>
+  238158: 14000016     	b	0x2381b0 <SW::SerialConnectableHelper::bg_startConnect()+0x428>
+  23815c: 14000015     	b	0x2381b0 <SW::SerialConnectableHelper::bg_startConnect()+0x428>
+  238160: aa0003f3     	mov	x19, x0
+  238164: 385b03a8     	ldurb	w8, [x29, #-0x50]
+  238168: 360000e8     	tbz	w8, #0x0, 0x238184 <SW::SerialConnectableHelper::bg_startConnect()+0x3fc>
+  23816c: 14000016     	b	0x2381c4 <SW::SerialConnectableHelper::bg_startConnect()+0x43c>
+  238170: 3942c3e8     	ldrb	w8, [sp, #0xb0]
+  238174: aa0003f3     	mov	x19, x0
+  238178: 37000128     	tbnz	w8, #0x0, 0x23819c <SW::SerialConnectableHelper::bg_startConnect()+0x414>
+  23817c: 385b03a8     	ldurb	w8, [x29, #-0x50]
+  238180: 37000228     	tbnz	w8, #0x0, 0x2381c4 <SW::SerialConnectableHelper::bg_startConnect()+0x43c>
+  238184: f94016a8     	ldr	x8, [x21, #0x28]
+  238188: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23818c: eb09011f     	cmp	x8, x9
+  238190: 54000261     	b.ne	0x2381dc <SW::SerialConnectableHelper::bg_startConnect()+0x454>
+  238194: aa1303e0     	mov	x0, x19
+  238198: 940214bb     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23819c: f94063e0     	ldr	x0, [sp, #0xc0]
+  2381a0: 9402247c     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2381a4: 385b03a8     	ldurb	w8, [x29, #-0x50]
+  2381a8: 3607fee8     	tbz	w8, #0x0, 0x238184 <SW::SerialConnectableHelper::bg_startConnect()+0x3fc>
+  2381ac: 14000006     	b	0x2381c4 <SW::SerialConnectableHelper::bg_startConnect()+0x43c>
+  2381b0: aa0003f3     	mov	x19, x0
+  2381b4: d102c3a0     	sub	x0, x29, #0xb0
+  2381b8: 9402322a     	bl	0x2c4a60 <_ZN2SW22ISerialSwDeviceFactory6OutputD2Ev@plt>  ;;; CALL SW::ISerialSwDeviceFactory::Output::~Output()
+  2381bc: 385b03a8     	ldurb	w8, [x29, #-0x50]
+  2381c0: 3607fe28     	tbz	w8, #0x0, 0x238184 <SW::SerialConnectableHelper::bg_startConnect()+0x3fc>
+  2381c4: f85c03a0     	ldur	x0, [x29, #-0x40]
+  2381c8: 94022472     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2381cc: f94016a8     	ldr	x8, [x21, #0x28]
+  2381d0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2381d4: eb09011f     	cmp	x8, x9
+  2381d8: 54fffde0     	b.eq	0x238194 <SW::SerialConnectableHelper::bg_startConnect()+0x40c>
+  2381dc: 940223f5     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+

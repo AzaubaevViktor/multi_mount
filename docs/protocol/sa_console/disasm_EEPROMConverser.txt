@@ -1,0 +1,703 @@
+0000000000200a58 <SW::EEPROMConverser::readInt8(unsigned short)>:
+  200a58: d102c3ff     	sub	sp, sp, #0xb0
+  200a5c: a9077bfd     	stp	x29, x30, [sp, #0x70]
+  200a60: a9085ff8     	stp	x24, x23, [sp, #0x80]
+  200a64: a90957f6     	stp	x22, x21, [sp, #0x90]
+  200a68: a90a4ff4     	stp	x20, x19, [sp, #0xa0]
+  200a6c: 9101c3fd     	add	x29, sp, #0x70
+  200a70: d53bd057     	mrs	x23, TPIDR_EL0
+  200a74: aa0003f3     	mov	x19, x0
+  200a78: 12003c20     	and	w0, w1, #0xffff
+  200a7c: f94016e8     	ldr	x8, [x23, #0x28]
+  200a80: 52800041     	mov	w1, #0x2                // =2
+  200a84: f81f83a8     	stur	x8, [x29, #-0x8]
+  200a88: d10083a8     	sub	x8, x29, #0x20
+  200a8c: 94030a89     	bl	0x2c34b0 <_ZN2SW6CBytes9Int_B16LEEij@plt>  ;;; CALL SW::CBytes::Int_B16LE(int, unsigned int)  [x1=2(0x2)]
+  200a90: a97e27b5     	ldp	x21, x9, [x29, #-0x20]
+  200a94: 52800868     	mov	w8, #0x43               // =67
+  200a98: f9400674     	ldr	x20, [x19, #0x8]  ; this->m[0x8] : SW::SwConverser
+  200a9c: b90013ff     	str	wzr, [sp, #0x10]
+  200aa0: 390053e8     	strb	w8, [sp, #0x14]
+  200aa4: eb150136     	subs	x22, x9, x21
+  200aa8: a9027fff     	stp	xzr, xzr, [sp, #0x20]
+  200aac: f9000fff     	str	xzr, [sp, #0x18]
+  200ab0: 54000160     	b.eq	0x200adc <SW::EEPROMConverser::readInt8(unsigned short)+0x84>
+  200ab4: b7f80c96     	tbnz	x22, #0x3f, 0x200c44 <SW::EEPROMConverser::readInt8(unsigned short)+0x1ec>
+  200ab8: aa1603e0     	mov	x0, x22
+  200abc: 94030191     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  200ac0: 8b160018     	add	x24, x0, x22
+  200ac4: aa1503e1     	mov	x1, x21
+  200ac8: aa1603e2     	mov	x2, x22
+  200acc: f9000fe0     	str	x0, [sp, #0x18]
+  200ad0: f90017f8     	str	x24, [sp, #0x28]
+  200ad4: 940306eb     	bl	0x2c2680 <memcpy@plt>  ;;; CALL memcpy
+  200ad8: f90013f8     	str	x24, [sp, #0x20]
+  200adc: f9400288     	ldr	x8, [x20]  ; vptr of SW::SwConverser
+  200ae0: f9400909     	ldr	x9, [x8, #0x10]  ; -> SW::SwConverser::converse(SW::SwCmd const&)
+  200ae4: 9100c3e8     	add	x8, sp, #0x30
+  200ae8: 910043e1     	add	x1, sp, #0x10
+  200aec: aa1403e0     	mov	x0, x20
+  200af0: d63f0120     	blr	x9  ;;; CALL SW::SwConverser::converse(SW::SwCmd const&)
+  200af4: f9401fe0     	ldr	x0, [sp, #0x38]
+  200af8: b94033f4     	ldr	w20, [sp, #0x30]
+  200afc: b4000060     	cbz	x0, 0x200b08 <SW::EEPROMConverser::readInt8(unsigned short)+0xb0>
+  200b00: f90023e0     	str	x0, [sp, #0x40]
+  200b04: 94030223     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  200b08: f9400fe0     	ldr	x0, [sp, #0x18]
+  200b0c: b4000060     	cbz	x0, 0x200b18 <SW::EEPROMConverser::readInt8(unsigned short)+0xc0>
+  200b10: f90013e0     	str	x0, [sp, #0x20]
+  200b14: 9403021f     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  200b18: 34000094     	cbz	w20, 0x200b28 <SW::EEPROMConverser::readInt8(unsigned short)+0xd0>
+  200b1c: aa1f03f3     	mov	x19, xzr
+  200b20: aa1f03f5     	mov	x21, xzr
+  200b24: 14000037     	b	0x200c00 <SW::EEPROMConverser::readInt8(unsigned short)+0x1a8>
+  200b28: 52800dc8     	mov	w8, #0x6e               // =110
+  200b2c: f9400660     	ldr	x0, [x19, #0x8]
+  200b30: b90013ff     	str	wzr, [sp, #0x10]
+  200b34: 390053e8     	strb	w8, [sp, #0x14]
+  200b38: a9027fff     	stp	xzr, xzr, [sp, #0x20]
+  200b3c: f9000fff     	str	xzr, [sp, #0x18]
+  200b40: f9400008     	ldr	x8, [x0]
+  200b44: f9400909     	ldr	x9, [x8, #0x10]
+  200b48: 9100c3e8     	add	x8, sp, #0x30
+  200b4c: 910043e1     	add	x1, sp, #0x10
+  200b50: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  200b54: f9400fe0     	ldr	x0, [sp, #0x18]
+  200b58: b4000060     	cbz	x0, 0x200b64 <SW::EEPROMConverser::readInt8(unsigned short)+0x10c>
+  200b5c: f90013e0     	str	x0, [sp, #0x20]
+  200b60: 9403020c     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  200b64: b94033f4     	ldr	w20, [sp, #0x30]
+  200b68: 34000094     	cbz	w20, 0x200b78 <SW::EEPROMConverser::readInt8(unsigned short)+0x120>
+  200b6c: aa1f03f3     	mov	x19, xzr
+  200b70: aa1f03f5     	mov	x21, xzr
+  200b74: 1400001f     	b	0x200bf0 <SW::EEPROMConverser::readInt8(unsigned short)+0x198>
+  200b78: 3940d3e8     	ldrb	w8, [sp, #0x34]
+  200b7c: b9000fff     	str	wzr, [sp, #0xc]
+  200b80: 36000708     	tbz	w8, #0x0, 0x200c60 <SW::EEPROMConverser::readInt8(unsigned short)+0x208>
+  200b84: a943a3e9     	ldp	x9, x8, [sp, #0x38]
+  200b88: cb090108     	sub	x8, x8, x9
+  200b8c: f100111f     	cmp	x8, #0x4
+  200b90: 540002a1     	b.ne	0x200be4 <SW::EEPROMConverser::readInt8(unsigned short)+0x18c>
+  200b94: 9100c3e9     	add	x9, sp, #0x30
+  200b98: 910043e8     	add	x8, sp, #0x10
+  200b9c: 52800021     	mov	w1, #0x1                // =1
+  200ba0: 91002120     	add	x0, x9, #0x8
+  200ba4: 52800062     	mov	w2, #0x3                // =3
+  200ba8: 94030a46     	bl	0x2c34c0 <_ZNK2SW6CBytes5SliceEmm@plt>  ;;; CALL SW::CBytes::Slice(unsigned long, unsigned long) const  [x1=1(0x1), x2=3(0x3)]
+  200bac: 910043e0     	add	x0, sp, #0x10
+  200bb0: 910033e1     	add	x1, sp, #0xc
+  200bb4: 94030a47     	bl	0x2c34d0 <_ZNK2SW6CBytes9B16LE_IntERi@plt>  ;;; CALL SW::CBytes::B16LE_Int(int&) const
+  200bb8: 2a0003f3     	mov	w19, w0
+  200bbc: f9400be0     	ldr	x0, [sp, #0x10]
+  200bc0: b4000060     	cbz	x0, 0x200bcc <SW::EEPROMConverser::readInt8(unsigned short)+0x174>
+  200bc4: f9000fe0     	str	x0, [sp, #0x18]
+  200bc8: 940301f2     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  200bcc: 360000d3     	tbz	w19, #0x0, 0x200be4 <SW::EEPROMConverser::readInt8(unsigned short)+0x18c>
+  200bd0: 394033e8     	ldrb	w8, [sp, #0xc]
+  200bd4: 2a1f03f4     	mov	w20, wzr
+  200bd8: d2c00033     	mov	x19, #0x100000000       // =4294967296
+  200bdc: d3585d15     	lsl	x21, x8, #40
+  200be0: 14000004     	b	0x200bf0 <SW::EEPROMConverser::readInt8(unsigned short)+0x198>
+  200be4: aa1f03f3     	mov	x19, xzr
+  200be8: aa1f03f5     	mov	x21, xzr
+  200bec: 52800094     	mov	w20, #0x4               // =4
+  200bf0: f9401fe0     	ldr	x0, [sp, #0x38]
+  200bf4: b4000060     	cbz	x0, 0x200c00 <SW::EEPROMConverser::readInt8(unsigned short)+0x1a8>
+  200bf8: f90023e0     	str	x0, [sp, #0x40]
+  200bfc: 940301e5     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  200c00: f85e03a0     	ldur	x0, [x29, #-0x20]
+  200c04: b4000060     	cbz	x0, 0x200c10 <SW::EEPROMConverser::readInt8(unsigned short)+0x1b8>
+  200c08: f81e83a0     	stur	x0, [x29, #-0x18]
+  200c0c: 940301e1     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  200c10: f94016e8     	ldr	x8, [x23, #0x28]
+  200c14: f85f83a9     	ldur	x9, [x29, #-0x8]
+  200c18: eb09011f     	cmp	x8, x9
+  200c1c: 540008a1     	b.ne	0x200d30 <SW::EEPROMConverser::readInt8(unsigned short)+0x2d8>
+  200c20: 2a1403e8     	mov	w8, w20
+  200c24: aa150269     	orr	x9, x19, x21
+  200c28: aa080120     	orr	x0, x9, x8
+  200c2c: a94a4ff4     	ldp	x20, x19, [sp, #0xa0]
+  200c30: a94957f6     	ldp	x22, x21, [sp, #0x90]
+  200c34: a9485ff8     	ldp	x24, x23, [sp, #0x80]
+  200c38: a9477bfd     	ldp	x29, x30, [sp, #0x70]
+  200c3c: 9102c3ff     	add	sp, sp, #0xb0
+  200c40: d65f03c0     	ret
+  200c44: f94016e8     	ldr	x8, [x23, #0x28]
+  200c48: f85f83a9     	ldur	x9, [x29, #-0x8]
+  200c4c: eb09011f     	cmp	x8, x9
+  200c50: 54000701     	b.ne	0x200d30 <SW::EEPROMConverser::readInt8(unsigned short)+0x2d8>
+  200c54: 910043e8     	add	x8, sp, #0x10
+  200c58: 91002100     	add	x0, x8, #0x8
+  200c5c: 940002b1     	bl	0x201720 <std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char
+  200c60: 52800200     	mov	w0, #0x10               // =16
+  200c64: 94030253     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  200c68: aa0003f4     	mov	x20, x0
+  200c6c: 90fff661     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  200c70: 9135a421     	add	x1, x1, #0xd69
+  200c74: 940308eb     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  200c78: f94016e8     	ldr	x8, [x23, #0x28]
+  200c7c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  200c80: eb09011f     	cmp	x8, x9
+  200c84: 54000561     	b.ne	0x200d30 <SW::EEPROMConverser::readInt8(unsigned short)+0x2d8>
+  200c88: b00006c1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  200c8c: b00006c2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  200c90: aa1403e0     	mov	x0, x20
+  200c94: f9409c21     	ldr	x1, [x1, #0x138]
+  200c98: f940a042     	ldr	x2, [x2, #0x140]
+  200c9c: 9403024d     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  200ca0: f9400be8     	ldr	x8, [sp, #0x10]
+  200ca4: aa0003f3     	mov	x19, x0
+  200ca8: b4000188     	cbz	x8, 0x200cd8 <SW::EEPROMConverser::readInt8(unsigned short)+0x280>
+  200cac: aa0803e0     	mov	x0, x8
+  200cb0: f9000fe8     	str	x8, [sp, #0x18]
+  200cb4: 940301b7     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  200cb8: 14000008     	b	0x200cd8 <SW::EEPROMConverser::readInt8(unsigned short)+0x280>
+  200cbc: aa0003f3     	mov	x19, x0
+  200cc0: 14000006     	b	0x200cd8 <SW::EEPROMConverser::readInt8(unsigned short)+0x280>
+  200cc4: aa0003f3     	mov	x19, x0
+  200cc8: 14000004     	b	0x200cd8 <SW::EEPROMConverser::readInt8(unsigned short)+0x280>
+  200ccc: aa0003f3     	mov	x19, x0
+  200cd0: aa1403e0     	mov	x0, x20
+  200cd4: 9403052b     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  200cd8: f9401fe0     	ldr	x0, [sp, #0x38]
+  200cdc: b4000160     	cbz	x0, 0x200d08 <SW::EEPROMConverser::readInt8(unsigned short)+0x2b0>
+  200ce0: f90023e0     	str	x0, [sp, #0x40]
+  200ce4: 14000008     	b	0x200d04 <SW::EEPROMConverser::readInt8(unsigned short)+0x2ac>
+  200ce8: 14000002     	b	0x200cf0 <SW::EEPROMConverser::readInt8(unsigned short)+0x298>
+  200cec: 14000001     	b	0x200cf0 <SW::EEPROMConverser::readInt8(unsigned short)+0x298>
+  200cf0: f9400fe8     	ldr	x8, [sp, #0x18]
+  200cf4: aa0003f3     	mov	x19, x0
+  200cf8: b4000088     	cbz	x8, 0x200d08 <SW::EEPROMConverser::readInt8(unsigned short)+0x2b0>
+  200cfc: f90013e8     	str	x8, [sp, #0x20]
+  200d00: aa0803e0     	mov	x0, x8
+  200d04: 940301a3     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  200d08: f85e03a0     	ldur	x0, [x29, #-0x20]
+  200d0c: b4000060     	cbz	x0, 0x200d18 <SW::EEPROMConverser::readInt8(unsigned short)+0x2c0>
+  200d10: f81e83a0     	stur	x0, [x29, #-0x18]
+  200d14: 9403019f     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  200d18: f94016e8     	ldr	x8, [x23, #0x28]
+  200d1c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  200d20: eb09011f     	cmp	x8, x9
+  200d24: 54000061     	b.ne	0x200d30 <SW::EEPROMConverser::readInt8(unsigned short)+0x2d8>
+  200d28: aa1303e0     	mov	x0, x19
+  200d2c: 9402f1d6     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  200d30: 94030120     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000200d34 <SW::EEPROMConverser::readInt16(unsigned short)>:
+  200d34: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  200d38: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  200d3c: 910003fd     	mov	x29, sp
+  200d40: 52800042     	mov	w2, #0x2                // =2
+  200d44: 94030903     	bl	0x2c3150 <_ZN2SW15EEPROMConverser8readIntNEtj@plt>  ;;; CALL SW::EEPROMConverser::readIntN(unsigned short, unsigned int)  [x2=2(0x2)]
+  200d48: f2407c08     	ands	x8, x0, #0xffffffff
+  200d4c: 540000a0     	b.eq	0x200d60 <SW::EEPROMConverser::readInt16(unsigned short)+0x2c>
+  200d50: aa0803e0     	mov	x0, x8
+  200d54: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  200d58: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  200d5c: d65f03c0     	ret
+  200d60: f2601c1f     	tst	x0, #0xff00000000
+  200d64: 540000e0     	b.eq	0x200d80 <SW::EEPROMConverser::readInt16(unsigned short)+0x4c>
+  200d68: d2c00029     	mov	x9, #0x100000000        // =4294967296
+  200d6c: aa01c129     	orr	x9, x9, x1, lsl #48
+  200d70: aa080120     	orr	x0, x9, x8
+  200d74: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  200d78: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  200d7c: d65f03c0     	ret
+  200d80: 52800200     	mov	w0, #0x10               // =16
+  200d84: 9403020b     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  200d88: aa0003f3     	mov	x19, x0
+  200d8c: 90fff661     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  200d90: 9135a421     	add	x1, x1, #0xd69
+  200d94: 940308a3     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  200d98: b00006c1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  200d9c: b00006c2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  200da0: aa1303e0     	mov	x0, x19
+  200da4: f9409c21     	ldr	x1, [x1, #0x138]
+  200da8: f940a042     	ldr	x2, [x2, #0x140]
+  200dac: 94030209     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  200db0: aa0003f4     	mov	x20, x0
+  200db4: aa1303e0     	mov	x0, x19
+  200db8: 940304f2     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  200dbc: aa1403e0     	mov	x0, x20
+  200dc0: 9402f1b1     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+0000000000200dc4 <SW::EEPROMConverser::readIntN(unsigned short, unsigned int)>:
+  200dc4: d101c3ff     	sub	sp, sp, #0x70
+  200dc8: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  200dcc: f9001bf9     	str	x25, [sp, #0x30]
+  200dd0: a9045ff8     	stp	x24, x23, [sp, #0x40]
+  200dd4: a90557f6     	stp	x22, x21, [sp, #0x50]
+  200dd8: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  200ddc: 910083fd     	add	x29, sp, #0x20
+  200de0: d53bd057     	mrs	x23, TPIDR_EL0
+  200de4: f94016e8     	ldr	x8, [x23, #0x28]
+  200de8: f81f83a8     	stur	x8, [x29, #-0x8]
+  200dec: a9007fff     	stp	xzr, xzr, [sp]
+  200df0: f9000bff     	str	xzr, [sp, #0x10]
+  200df4: 34000382     	cbz	w2, 0x200e64 <SW::EEPROMConverser::readIntN(unsigned short, unsigned int)+0xa0>
+  200df8: 2a0203f6     	mov	w22, w2
+  200dfc: aa0003f5     	mov	x21, x0
+  200e00: 2a0103f4     	mov	w20, w1
+  200e04: aa1603e0     	mov	x0, x22
+  200e08: 940300be     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  200e0c: 8b160019     	add	x25, x0, x22
+  200e10: 2a1f03e1     	mov	w1, wzr
+  200e14: aa1603e2     	mov	x2, x22
+  200e18: aa0003f3     	mov	x19, x0
+  200e1c: f90003e0     	str	x0, [sp]
+  200e20: f9000bf9     	str	x25, [sp, #0x10]
+  200e24: 94030877     	bl	0x2c3000 <memset@plt>  ;;; CALL memset
+  200e28: aa1f03f8     	mov	x24, xzr
+  200e2c: f90007f9     	str	x25, [sp, #0x8]
+  200e30: f94002a8     	ldr	x8, [x21]  ; vptr of SW::EEPROMConverser
+  200e34: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::EEPROMConverser::readInt8(unsigned short)
+  200e38: 0b140301     	add	w1, w24, w20
+  200e3c: aa1503e0     	mov	x0, x21
+  200e40: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt8(unsigned short)
+  200e44: 350001e0     	cbnz	w0, 0x200e80 <SW::EEPROMConverser::readIntN(unsigned short, unsigned int)+0xbc>
+  200e48: f2601c1f     	tst	x0, #0xff00000000
+  200e4c: 540003e0     	b.eq	0x200ec8 <SW::EEPROMConverser::readIntN(unsigned short, unsigned int)+0x104>
+  200e50: d368fc08     	lsr	x8, x0, #40
+  200e54: 38386a68     	strb	w8, [x19, x24]
+  200e58: 91000718     	add	x24, x24, #0x1
+  200e5c: eb1802df     	cmp	x22, x24
+  200e60: 54fffe81     	b.ne	0x200e30 <SW::EEPROMConverser::readIntN(unsigned short, unsigned int)+0x6c>
+  200e64: 910003e0     	mov	x0, sp
+  200e68: 9403099e     	bl	0x2c34e0 <_ZNK2SW6CBytes11BytesLE_IntEv@plt>  ;;; CALL SW::CBytes::BytesLE_Int() const
+  200e6c: f94003f3     	ldr	x19, [sp]
+  200e70: 2a0003f4     	mov	w20, w0
+  200e74: d2c00035     	mov	x21, #0x100000000       // =4294967296
+  200e78: b5000093     	cbnz	x19, 0x200e88 <SW::EEPROMConverser::readIntN(unsigned short, unsigned int)+0xc4>
+  200e7c: 14000006     	b	0x200e94 <SW::EEPROMConverser::readIntN(unsigned short, unsigned int)+0xd0>
+  200e80: aa1f03f4     	mov	x20, xzr
+  200e84: 92407c15     	and	x21, x0, #0xffffffff
+  200e88: aa1303e0     	mov	x0, x19
+  200e8c: f90007f3     	str	x19, [sp, #0x8]
+  200e90: 94030140     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  200e94: f94016e8     	ldr	x8, [x23, #0x28]
+  200e98: f85f83a9     	ldur	x9, [x29, #-0x8]
+  200e9c: eb09011f     	cmp	x8, x9
+  200ea0: 540005a1     	b.ne	0x200f54 <SW::EEPROMConverser::readIntN(unsigned short, unsigned int)+0x190>
+  200ea4: aa1503e0     	mov	x0, x21
+  200ea8: aa1403e1     	mov	x1, x20
+  200eac: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  200eb0: f9401bf9     	ldr	x25, [sp, #0x30]
+  200eb4: a94557f6     	ldp	x22, x21, [sp, #0x50]
+  200eb8: a9445ff8     	ldp	x24, x23, [sp, #0x40]
+  200ebc: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  200ec0: 9101c3ff     	add	sp, sp, #0x70
+  200ec4: d65f03c0     	ret
+  200ec8: 52800200     	mov	w0, #0x10               // =16
+  200ecc: 940301b9     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  200ed0: aa0003f5     	mov	x21, x0
+  200ed4: 90fff661     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  200ed8: 9135a421     	add	x1, x1, #0xd69
+  200edc: 94030851     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  200ee0: f94016e8     	ldr	x8, [x23, #0x28]
+  200ee4: f85f83a9     	ldur	x9, [x29, #-0x8]
+  200ee8: eb09011f     	cmp	x8, x9
+  200eec: 54000341     	b.ne	0x200f54 <SW::EEPROMConverser::readIntN(unsigned short, unsigned int)+0x190>
+  200ef0: b00006c1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  200ef4: b00006c2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  200ef8: aa1503e0     	mov	x0, x21
+  200efc: f9409c21     	ldr	x1, [x1, #0x138]
+  200f00: f940a042     	ldr	x2, [x2, #0x140]
+  200f04: 940301b3     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  200f08: f94003f3     	ldr	x19, [sp]
+  200f0c: aa0003f4     	mov	x20, x0
+  200f10: b5000113     	cbnz	x19, 0x200f30 <SW::EEPROMConverser::readIntN(unsigned short, unsigned int)+0x16c>
+  200f14: 1400000a     	b	0x200f3c <SW::EEPROMConverser::readIntN(unsigned short, unsigned int)+0x178>
+  200f18: 14000005     	b	0x200f2c <SW::EEPROMConverser::readIntN(unsigned short, unsigned int)+0x168>
+  200f1c: aa0003f4     	mov	x20, x0
+  200f20: aa1503e0     	mov	x0, x21
+  200f24: 94030497     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  200f28: 14000002     	b	0x200f30 <SW::EEPROMConverser::readIntN(unsigned short, unsigned int)+0x16c>
+  200f2c: aa0003f4     	mov	x20, x0
+  200f30: aa1303e0     	mov	x0, x19
+  200f34: f90007f3     	str	x19, [sp, #0x8]
+  200f38: 94030116     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  200f3c: f94016e8     	ldr	x8, [x23, #0x28]
+  200f40: f85f83a9     	ldur	x9, [x29, #-0x8]
+  200f44: eb09011f     	cmp	x8, x9
+  200f48: 54000061     	b.ne	0x200f54 <SW::EEPROMConverser::readIntN(unsigned short, unsigned int)+0x190>
+  200f4c: aa1403e0     	mov	x0, x20
+  200f50: 9402f14d     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  200f54: 94030097     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000200f58 <SW::EEPROMConverser::readInt32(unsigned short)>:
+  200f58: a9bf7bfd     	stp	x29, x30, [sp, #-0x10]!
+  200f5c: 910003fd     	mov	x29, sp
+  200f60: 52800082     	mov	w2, #0x4                // =4
+  200f64: 9403087b     	bl	0x2c3150 <_ZN2SW15EEPROMConverser8readIntNEtj@plt>  ;;; CALL SW::EEPROMConverser::readIntN(unsigned short, unsigned int)  [x2=4(0x4)]
+  200f68: 92407c21     	and	x1, x1, #0xffffffff
+  200f6c: a8c17bfd     	ldp	x29, x30, [sp], #0x10
+  200f70: d65f03c0     	ret
+
+0000000000200f74 <SW::EEPROMConverser::writeInt8(unsigned short, signed char)>:
+  200f74: 1403087b     	b	0x2c3160 <_ZN2SW15EEPROMConverser18writeInt8_internalEta@plt>
+
+0000000000200f78 <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)>:
+  200f78: d10343ff     	sub	sp, sp, #0xd0
+  200f7c: a9087bfd     	stp	x29, x30, [sp, #0x80]
+  200f80: f9004bf9     	str	x25, [sp, #0x90]
+  200f84: a90a5ff8     	stp	x24, x23, [sp, #0xa0]
+  200f88: a90b57f6     	stp	x22, x21, [sp, #0xb0]
+  200f8c: a90c4ff4     	stp	x20, x19, [sp, #0xc0]
+  200f90: 910203fd     	add	x29, sp, #0x80
+  200f94: d53bd058     	mrs	x24, TPIDR_EL0
+  200f98: aa0003f3     	mov	x19, x0
+  200f9c: 12003c20     	and	w0, w1, #0xffff
+  200fa0: f9401708     	ldr	x8, [x24, #0x28]
+  200fa4: 52800041     	mov	w1, #0x2                // =2
+  200fa8: 2a0203f4     	mov	w20, w2
+  200fac: f81f83a8     	stur	x8, [x29, #-0x8]
+  200fb0: d10083a8     	sub	x8, x29, #0x20
+  200fb4: 9403093f     	bl	0x2c34b0 <_ZN2SW6CBytes9Int_B16LEEij@plt>  ;;; CALL SW::CBytes::Int_B16LE(int, unsigned int)  [x1=2(0x2)]
+  200fb8: a97e27b6     	ldp	x22, x9, [x29, #-0x20]
+  200fbc: 52800868     	mov	w8, #0x43               // =67
+  200fc0: f9400675     	ldr	x21, [x19, #0x8]  ; this->m[0x8] : SW::SwConverser
+  200fc4: b90023ff     	str	wzr, [sp, #0x20]
+  200fc8: 390093e8     	strb	w8, [sp, #0x24]
+  200fcc: eb160137     	subs	x23, x9, x22
+  200fd0: a9037fff     	stp	xzr, xzr, [sp, #0x30]
+  200fd4: f90017ff     	str	xzr, [sp, #0x28]
+  200fd8: 54000160     	b.eq	0x201004 <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0x8c>
+  200fdc: b7f80a97     	tbnz	x23, #0x3f, 0x20112c <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0x1b4>
+  200fe0: aa1703e0     	mov	x0, x23
+  200fe4: 94030047     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  200fe8: 8b170019     	add	x25, x0, x23
+  200fec: aa1603e1     	mov	x1, x22
+  200ff0: aa1703e2     	mov	x2, x23
+  200ff4: f90017e0     	str	x0, [sp, #0x28]
+  200ff8: f9001ff9     	str	x25, [sp, #0x38]
+  200ffc: 940305a1     	bl	0x2c2680 <memcpy@plt>  ;;; CALL memcpy
+  201000: f9001bf9     	str	x25, [sp, #0x30]
+  201004: f94002a8     	ldr	x8, [x21]  ; vptr of SW::SwConverser
+  201008: f9400909     	ldr	x9, [x8, #0x10]  ; -> SW::SwConverser::converse(SW::SwCmd const&)
+  20100c: 910103e8     	add	x8, sp, #0x40
+  201010: 910083e1     	add	x1, sp, #0x20
+  201014: aa1503e0     	mov	x0, x21
+  201018: d63f0120     	blr	x9  ;;; CALL SW::SwConverser::converse(SW::SwCmd const&)
+  20101c: f94027e0     	ldr	x0, [sp, #0x48]
+  201020: b94043f5     	ldr	w21, [sp, #0x40]
+  201024: b4000060     	cbz	x0, 0x201030 <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0xb8>
+  201028: f9002be0     	str	x0, [sp, #0x50]
+  20102c: 940300d9     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  201030: f94017e0     	ldr	x0, [sp, #0x28]
+  201034: b4000060     	cbz	x0, 0x201040 <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0xc8>
+  201038: f9001be0     	str	x0, [sp, #0x30]
+  20103c: 940300d5     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  201040: 35000575     	cbnz	w21, 0x2010ec <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0x174>
+  201044: 13001e80     	sxtb	w0, w20
+  201048: 910023e8     	add	x8, sp, #0x8
+  20104c: 52800021     	mov	w1, #0x1                // =1
+  201050: 94030918     	bl	0x2c34b0 <_ZN2SW6CBytes9Int_B16LEEij@plt>  ;;; CALL SW::CBytes::Int_B16LE(int, unsigned int)  [x1=1(0x1)]
+  201054: a940a7f4     	ldp	x20, x9, [sp, #0x8]
+  201058: 528009c8     	mov	w8, #0x4e               // =78
+  20105c: f9400673     	ldr	x19, [x19, #0x8]  ; this->m[0x8] : SW::SwConverser
+  201060: b90023ff     	str	wzr, [sp, #0x20]
+  201064: 390093e8     	strb	w8, [sp, #0x24]
+  201068: eb140135     	subs	x21, x9, x20
+  20106c: a9037fff     	stp	xzr, xzr, [sp, #0x30]
+  201070: f90017ff     	str	xzr, [sp, #0x28]
+  201074: 54000160     	b.eq	0x2010a0 <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0x128>
+  201078: b7f80695     	tbnz	x21, #0x3f, 0x201148 <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0x1d0>
+  20107c: aa1503e0     	mov	x0, x21
+  201080: 94030020     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  201084: 8b150016     	add	x22, x0, x21
+  201088: aa1403e1     	mov	x1, x20
+  20108c: aa1503e2     	mov	x2, x21
+  201090: f90017e0     	str	x0, [sp, #0x28]
+  201094: f9001ff6     	str	x22, [sp, #0x38]
+  201098: 9403057a     	bl	0x2c2680 <memcpy@plt>  ;;; CALL memcpy
+  20109c: f9001bf6     	str	x22, [sp, #0x30]
+  2010a0: f9400268     	ldr	x8, [x19]  ; vptr of SW::SwConverser
+  2010a4: f9400909     	ldr	x9, [x8, #0x10]  ; -> SW::SwConverser::converse(SW::SwCmd const&)
+  2010a8: 910103e8     	add	x8, sp, #0x40
+  2010ac: 910083e1     	add	x1, sp, #0x20
+  2010b0: aa1303e0     	mov	x0, x19
+  2010b4: d63f0120     	blr	x9  ;;; CALL SW::SwConverser::converse(SW::SwCmd const&)
+  2010b8: f94027e0     	ldr	x0, [sp, #0x48]
+  2010bc: b94043f5     	ldr	w21, [sp, #0x40]
+  2010c0: b4000060     	cbz	x0, 0x2010cc <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0x154>
+  2010c4: f9002be0     	str	x0, [sp, #0x50]
+  2010c8: 940300b2     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2010cc: f94017e0     	ldr	x0, [sp, #0x28]
+  2010d0: b4000060     	cbz	x0, 0x2010dc <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0x164>
+  2010d4: f9001be0     	str	x0, [sp, #0x30]
+  2010d8: 940300ae     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2010dc: f94007e0     	ldr	x0, [sp, #0x8]
+  2010e0: b4000060     	cbz	x0, 0x2010ec <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0x174>
+  2010e4: f9000be0     	str	x0, [sp, #0x10]
+  2010e8: 940300aa     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2010ec: f85e03a0     	ldur	x0, [x29, #-0x20]
+  2010f0: b4000060     	cbz	x0, 0x2010fc <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0x184>
+  2010f4: f81e83a0     	stur	x0, [x29, #-0x18]
+  2010f8: 940300a6     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2010fc: f9401708     	ldr	x8, [x24, #0x28]
+  201100: f85f83a9     	ldur	x9, [x29, #-0x8]
+  201104: eb09011f     	cmp	x8, x9
+  201108: 540006a1     	b.ne	0x2011dc <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0x264>
+  20110c: 2a1503e0     	mov	w0, w21
+  201110: a94c4ff4     	ldp	x20, x19, [sp, #0xc0]
+  201114: f9404bf9     	ldr	x25, [sp, #0x90]
+  201118: a94b57f6     	ldp	x22, x21, [sp, #0xb0]
+  20111c: a94a5ff8     	ldp	x24, x23, [sp, #0xa0]
+  201120: a9487bfd     	ldp	x29, x30, [sp, #0x80]
+  201124: 910343ff     	add	sp, sp, #0xd0
+  201128: d65f03c0     	ret
+  20112c: f9401708     	ldr	x8, [x24, #0x28]
+  201130: f85f83a9     	ldur	x9, [x29, #-0x8]
+  201134: eb09011f     	cmp	x8, x9
+  201138: 54000521     	b.ne	0x2011dc <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0x264>
+  20113c: 910083e8     	add	x8, sp, #0x20
+  201140: 91002100     	add	x0, x8, #0x8
+  201144: 94000177     	bl	0x201720 <std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char
+  201148: f9401708     	ldr	x8, [x24, #0x28]
+  20114c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  201150: eb09011f     	cmp	x8, x9
+  201154: 54000441     	b.ne	0x2011dc <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0x264>
+  201158: 910083e8     	add	x8, sp, #0x20
+  20115c: 91002100     	add	x0, x8, #0x8
+  201160: 94000170     	bl	0x201720 <std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char
+  201164: 14000003     	b	0x201170 <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0x1f8>
+  201168: aa0003f3     	mov	x19, x0
+  20116c: 14000012     	b	0x2011b4 <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0x23c>
+  201170: f94017e8     	ldr	x8, [sp, #0x28]
+  201174: aa0003f3     	mov	x19, x0
+  201178: b4000088     	cbz	x8, 0x201188 <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0x210>
+  20117c: aa0803e0     	mov	x0, x8
+  201180: f9001be8     	str	x8, [sp, #0x30]
+  201184: 94030083     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  201188: f94007e0     	ldr	x0, [sp, #0x8]
+  20118c: b4000140     	cbz	x0, 0x2011b4 <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0x23c>
+  201190: f9000be0     	str	x0, [sp, #0x10]
+  201194: 14000007     	b	0x2011b0 <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0x238>
+  201198: 14000001     	b	0x20119c <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0x224>
+  20119c: f94017e8     	ldr	x8, [sp, #0x28]
+  2011a0: aa0003f3     	mov	x19, x0
+  2011a4: b4000088     	cbz	x8, 0x2011b4 <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0x23c>
+  2011a8: f9001be8     	str	x8, [sp, #0x30]
+  2011ac: aa0803e0     	mov	x0, x8
+  2011b0: 94030078     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2011b4: f85e03a0     	ldur	x0, [x29, #-0x20]
+  2011b8: b4000060     	cbz	x0, 0x2011c4 <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0x24c>
+  2011bc: f81e83a0     	stur	x0, [x29, #-0x18]
+  2011c0: 94030074     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2011c4: f9401708     	ldr	x8, [x24, #0x28]
+  2011c8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2011cc: eb09011f     	cmp	x8, x9
+  2011d0: 54000061     	b.ne	0x2011dc <SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)+0x264>
+  2011d4: aa1303e0     	mov	x0, x19
+  2011d8: 9402f0ab     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  2011dc: 9402fff5     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000002011e0 <SW::EEPROMConverser::writeInt32(unsigned short, int)>:
+  2011e0: d10143ff     	sub	sp, sp, #0x50
+  2011e4: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  2011e8: f9001bf5     	str	x21, [sp, #0x30]
+  2011ec: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  2011f0: 910083fd     	add	x29, sp, #0x20
+  2011f4: d53bd055     	mrs	x21, TPIDR_EL0
+  2011f8: 2a0103f4     	mov	w20, w1
+  2011fc: aa0003f3     	mov	x19, x0
+  201200: f94016a8     	ldr	x8, [x21, #0x28]
+  201204: 2a0203e0     	mov	w0, w2
+  201208: 52800081     	mov	w1, #0x4                // =4
+  20120c: f81f83a8     	stur	x8, [x29, #-0x8]
+  201210: 910003e8     	mov	x8, sp
+  201214: 940308b7     	bl	0x2c34f0 <_ZN2SW6CBytes11Int_BytesLEEij@plt>  ;;; CALL SW::CBytes::Int_BytesLE(int, unsigned int)  [x1=4(0x4)]
+  201218: f94003e8     	ldr	x8, [sp]
+  20121c: 39400102     	ldrb	w2, [x8]
+  201220: aa1303e0     	mov	x0, x19
+  201224: 2a1403e1     	mov	w1, w20
+  201228: 940307ce     	bl	0x2c3160 <_ZN2SW15EEPROMConverser18writeInt8_internalEta@plt>  ;;; CALL SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)
+  20122c: 35000240     	cbnz	w0, 0x201274 <SW::EEPROMConverser::writeInt32(unsigned short, int)+0x94>
+  201230: f94003e8     	ldr	x8, [sp]
+  201234: 39400502     	ldrb	w2, [x8, #0x1]
+  201238: 11000681     	add	w1, w20, #0x1
+  20123c: aa1303e0     	mov	x0, x19
+  201240: 940307c8     	bl	0x2c3160 <_ZN2SW15EEPROMConverser18writeInt8_internalEta@plt>  ;;; CALL SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)
+  201244: 35000180     	cbnz	w0, 0x201274 <SW::EEPROMConverser::writeInt32(unsigned short, int)+0x94>
+  201248: f94003e8     	ldr	x8, [sp]
+  20124c: 39400902     	ldrb	w2, [x8, #0x2]
+  201250: 11000a81     	add	w1, w20, #0x2
+  201254: aa1303e0     	mov	x0, x19
+  201258: 940307c2     	bl	0x2c3160 <_ZN2SW15EEPROMConverser18writeInt8_internalEta@plt>  ;;; CALL SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)
+  20125c: 350000c0     	cbnz	w0, 0x201274 <SW::EEPROMConverser::writeInt32(unsigned short, int)+0x94>
+  201260: f94003e8     	ldr	x8, [sp]
+  201264: 39400d02     	ldrb	w2, [x8, #0x3]
+  201268: 11000e81     	add	w1, w20, #0x3
+  20126c: aa1303e0     	mov	x0, x19
+  201270: 940307bc     	bl	0x2c3160 <_ZN2SW15EEPROMConverser18writeInt8_internalEta@plt>  ;;; CALL SW::EEPROMConverser::writeInt8_internal(unsigned short, signed char)
+  201274: f94003e8     	ldr	x8, [sp]
+  201278: b40000c8     	cbz	x8, 0x201290 <SW::EEPROMConverser::writeInt32(unsigned short, int)+0xb0>
+  20127c: 2a0003f3     	mov	w19, w0
+  201280: aa0803e0     	mov	x0, x8
+  201284: f90007e8     	str	x8, [sp, #0x8]
+  201288: 94030042     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20128c: 2a1303e0     	mov	w0, w19
+  201290: f94016a8     	ldr	x8, [x21, #0x28]
+  201294: f85f83a9     	ldur	x9, [x29, #-0x8]
+  201298: eb09011f     	cmp	x8, x9
+  20129c: 54000241     	b.ne	0x2012e4 <SW::EEPROMConverser::writeInt32(unsigned short, int)+0x104>
+  2012a0: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  2012a4: f9401bf5     	ldr	x21, [sp, #0x30]
+  2012a8: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  2012ac: 910143ff     	add	sp, sp, #0x50
+  2012b0: d65f03c0     	ret
+  2012b4: f94003e8     	ldr	x8, [sp]
+  2012b8: aa0003f3     	mov	x19, x0
+  2012bc: b4000088     	cbz	x8, 0x2012cc <SW::EEPROMConverser::writeInt32(unsigned short, int)+0xec>
+  2012c0: aa0803e0     	mov	x0, x8
+  2012c4: f90007e8     	str	x8, [sp, #0x8]
+  2012c8: 94030032     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2012cc: f94016a8     	ldr	x8, [x21, #0x28]
+  2012d0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2012d4: eb09011f     	cmp	x8, x9
+  2012d8: 54000061     	b.ne	0x2012e4 <SW::EEPROMConverser::writeInt32(unsigned short, int)+0x104>
+  2012dc: aa1303e0     	mov	x0, x19
+  2012e0: 9402f069     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  2012e4: 9402ffb3     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000002012e8 <SW::EEPROMConverser::readString(unsigned short, unsigned int)>:
+  2012e8: d101c3ff     	sub	sp, sp, #0x70
+  2012ec: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  2012f0: f9001bf9     	str	x25, [sp, #0x30]
+  2012f4: a9045ff8     	stp	x24, x23, [sp, #0x40]
+  2012f8: a90557f6     	stp	x22, x21, [sp, #0x50]
+  2012fc: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  201300: 910083fd     	add	x29, sp, #0x20
+  201304: d53bd059     	mrs	x25, TPIDR_EL0
+  201308: aa0803f3     	mov	x19, x8
+  20130c: 2a0103f4     	mov	w20, w1
+  201310: f9401728     	ldr	x8, [x25, #0x28]
+  201314: aa0003f5     	mov	x21, x0
+  201318: 71005c5f     	cmp	w2, #0x17
+  20131c: 2a0203f6     	mov	w22, w2
+  201320: f81f83a8     	stur	x8, [x29, #-0x8]
+  201324: 54000122     	b.hs	0x201348 <SW::EEPROMConverser::readString(unsigned short, unsigned int)+0x60>
+  201328: 531f7848     	lsl	w8, w2, #1
+  20132c: 910003e9     	mov	x9, sp
+  201330: b2400137     	orr	x23, x9, #0x1
+  201334: 390003e8     	strb	w8, [sp]
+  201338: 35000202     	cbnz	w2, 0x201378 <SW::EEPROMConverser::readString(unsigned short, unsigned int)+0x90>
+  20133c: aa1f03e1     	mov	x1, xzr
+  201340: 38366aff     	strb	wzr, [x23, x22]
+  201344: 1400002a     	b	0x2013ec <SW::EEPROMConverser::readString(unsigned short, unsigned int)+0x104>
+  201348: 927d72c8     	and	x8, x22, #0xfffffff8
+  20134c: b2400ac9     	orr	x9, x22, #0x7
+  201350: 91002108     	add	x8, x8, #0x8
+  201354: f1005d3f     	cmp	x9, #0x17
+  201358: 9a890108     	csel	x8, x8, x9, eq
+  20135c: 91000518     	add	x24, x8, #0x1
+  201360: aa1803e0     	mov	x0, x24
+  201364: 9402ff67     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  201368: aa0003f7     	mov	x23, x0
+  20136c: b2400308     	orr	x8, x24, #0x1
+  201370: a90083f6     	stp	x22, x0, [sp, #0x8]
+  201374: f90003e8     	str	x8, [sp]
+  201378: aa1703e0     	mov	x0, x23
+  20137c: 52800801     	mov	w1, #0x40               // =64
+  201380: aa1603e2     	mov	x2, x22
+  201384: 9403071f     	bl	0x2c3000 <memset@plt>  ;;; CALL memset  [x1=64(0x40)]
+  201388: 910003e8     	mov	x8, sp
+  20138c: aa1f03f8     	mov	x24, xzr
+  201390: 38366aff     	strb	wzr, [x23, x22]
+  201394: b2400117     	orr	x23, x8, #0x1
+  201398: f94002a8     	ldr	x8, [x21]  ; vptr of SW::EEPROMConverser
+  20139c: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::EEPROMConverser::readInt8(unsigned short)
+  2013a0: 0b140301     	add	w1, w24, w20
+  2013a4: aa1503e0     	mov	x0, x21
+  2013a8: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt8(unsigned short)
+  2013ac: 35000620     	cbnz	w0, 0x201470 <SW::EEPROMConverser::readString(unsigned short, unsigned int)+0x188>
+  2013b0: f2601c1f     	tst	x0, #0xff00000000
+  2013b4: 540006c0     	b.eq	0x20148c <SW::EEPROMConverser::readString(unsigned short, unsigned int)+0x1a4>
+  2013b8: d368bc08     	ubfx	x8, x0, #40, #8
+  2013bc: 34000168     	cbz	w8, 0x2013e8 <SW::EEPROMConverser::readString(unsigned short, unsigned int)+0x100>
+  2013c0: 394003e8     	ldrb	w8, [sp]
+  2013c4: f9400be9     	ldr	x9, [sp, #0x10]
+  2013c8: 7200011f     	tst	w8, #0x1
+  2013cc: d368fc08     	lsr	x8, x0, #40
+  2013d0: 9a8902e9     	csel	x9, x23, x9, eq
+  2013d4: 38386928     	strb	w8, [x9, x24]
+  2013d8: 91000718     	add	x24, x24, #0x1
+  2013dc: eb1802df     	cmp	x22, x24
+  2013e0: 54fffdc1     	b.ne	0x201398 <SW::EEPROMConverser::readString(unsigned short, unsigned int)+0xb0>
+  2013e4: 2a1603f8     	mov	w24, w22
+  2013e8: 2a1803e1     	mov	w1, w24
+  2013ec: 910003e0     	mov	x0, sp
+  2013f0: 2a1f03e2     	mov	w2, wzr
+  2013f4: 94030843     	bl	0x2c3500 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE6resizeEmc@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::resize(unsigned long, char)
+  2013f8: 394003e8     	ldrb	w8, [sp]
+  2013fc: 52800029     	mov	w9, #0x1                // =1
+  201400: b900027f     	str	wzr, [x19]
+  201404: 39001269     	strb	w9, [x19, #0x4]
+  201408: 37000108     	tbnz	w8, #0x0, 0x201428 <SW::EEPROMConverser::readString(unsigned short, unsigned int)+0x140>
+  20140c: 3dc003e0     	ldr	q0, [sp]
+  201410: f9400be8     	ldr	x8, [sp, #0x10]
+  201414: 3c808260     	stur	q0, [x19, #0x8]
+  201418: f8018268     	stur	x8, [x19, #0x18]
+  20141c: 394003e8     	ldrb	w8, [sp]
+  201420: 370000e8     	tbnz	w8, #0x0, 0x20143c <SW::EEPROMConverser::readString(unsigned short, unsigned int)+0x154>
+  201424: 14000008     	b	0x201444 <SW::EEPROMConverser::readString(unsigned short, unsigned int)+0x15c>
+  201428: a94087e2     	ldp	x2, x1, [sp, #0x8]
+  20142c: 91002260     	add	x0, x19, #0x8
+  201430: 9403035c     	bl	0x2c21a0 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE25__init_copy_ctor_externalEPKcm@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::__init_copy_ctor_external(char const*, unsigned long)
+  201434: 394003e8     	ldrb	w8, [sp]
+  201438: 36000068     	tbz	w8, #0x0, 0x201444 <SW::EEPROMConverser::readString(unsigned short, unsigned int)+0x15c>
+  20143c: f9400be0     	ldr	x0, [sp, #0x10]
+  201440: 9402ffd4     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  201444: f9401728     	ldr	x8, [x25, #0x28]
+  201448: f85f83a9     	ldur	x9, [x29, #-0x8]
+  20144c: eb09011f     	cmp	x8, x9
+  201450: 54000601     	b.ne	0x201510 <SW::EEPROMConverser::readString(unsigned short, unsigned int)+0x228>
+  201454: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  201458: f9401bf9     	ldr	x25, [sp, #0x30]
+  20145c: a94557f6     	ldp	x22, x21, [sp, #0x50]
+  201460: a9445ff8     	ldp	x24, x23, [sp, #0x40]
+  201464: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  201468: 9101c3ff     	add	sp, sp, #0x70
+  20146c: d65f03c0     	ret
+  201470: b9000260     	str	w0, [x19]
+  201474: 3900127f     	strb	wzr, [x19, #0x4]
+  201478: a9017e7f     	stp	xzr, xzr, [x19, #0x10]
+  20147c: f900067f     	str	xzr, [x19, #0x8]
+  201480: 394003e8     	ldrb	w8, [sp]
+  201484: 3707fdc8     	tbnz	w8, #0x0, 0x20143c <SW::EEPROMConverser::readString(unsigned short, unsigned int)+0x154>
+  201488: 17ffffef     	b	0x201444 <SW::EEPROMConverser::readString(unsigned short, unsigned int)+0x15c>
+  20148c: 52800200     	mov	w0, #0x10               // =16
+  201490: 94030048     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  201494: aa0003f4     	mov	x20, x0
+  201498: f0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  20149c: 9135a421     	add	x1, x1, #0xd69
+  2014a0: 940306e0     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  2014a4: f9401728     	ldr	x8, [x25, #0x28]
+  2014a8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2014ac: eb09011f     	cmp	x8, x9
+  2014b0: 54000301     	b.ne	0x201510 <SW::EEPROMConverser::readString(unsigned short, unsigned int)+0x228>
+  2014b4: 900006c1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  2014b8: 900006c2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  2014bc: aa1403e0     	mov	x0, x20
+  2014c0: f9409c21     	ldr	x1, [x1, #0x138]
+  2014c4: f940a042     	ldr	x2, [x2, #0x140]
+  2014c8: 94030042     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  2014cc: 14000006     	b	0x2014e4 <SW::EEPROMConverser::readString(unsigned short, unsigned int)+0x1fc>
+  2014d0: 14000005     	b	0x2014e4 <SW::EEPROMConverser::readString(unsigned short, unsigned int)+0x1fc>
+  2014d4: aa0003f3     	mov	x19, x0
+  2014d8: aa1403e0     	mov	x0, x20
+  2014dc: 94030329     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  2014e0: 14000002     	b	0x2014e8 <SW::EEPROMConverser::readString(unsigned short, unsigned int)+0x200>
+  2014e4: aa0003f3     	mov	x19, x0
+  2014e8: 394003e8     	ldrb	w8, [sp]
+  2014ec: 36000068     	tbz	w8, #0x0, 0x2014f8 <SW::EEPROMConverser::readString(unsigned short, unsigned int)+0x210>
+  2014f0: f9400be0     	ldr	x0, [sp, #0x10]
+  2014f4: 9402ffa7     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2014f8: f9401728     	ldr	x8, [x25, #0x28]
+  2014fc: f85f83a9     	ldur	x9, [x29, #-0x8]
+  201500: eb09011f     	cmp	x8, x9
+  201504: 54000061     	b.ne	0x201510 <SW::EEPROMConverser::readString(unsigned short, unsigned int)+0x228>
+  201508: aa1303e0     	mov	x0, x19
+  20150c: 9402efde     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  201510: 9402ff28     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+

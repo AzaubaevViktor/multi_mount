@@ -1,0 +1,2435 @@
+00000000001daf9c <SW::SAMSync::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)>:
+  1daf9c: d65f03c0     	ret
+
+00000000001dafa0 <SW::SAMSync::metaObject() const>:
+  1dafa0: f9400400     	ldr	x0, [x0, #0x8]
+  1dafa4: f9401c08     	ldr	x8, [x0, #0x38]
+  1dafa8: b4000048     	cbz	x8, 0x1dafb0 <SW::SAMSync::metaObject() const+0x10>
+  1dafac: 14039e0d     	b	0x2c27e0 <_ZNK11QObjectData17dynamicMetaObjectEv@plt>
+  1dafb0: d00007e0     	adrp	x0, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1dafb4: f9474c00     	ldr	x0, [x0, #0xe98]
+  1dafb8: d65f03c0     	ret
+
+00000000001dafbc <SW::SAMSync::qt_metacast(char const*)>:
+  1dafbc: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  1dafc0: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  1dafc4: 910003fd     	mov	x29, sp
+  1dafc8: b40002c1     	cbz	x1, 0x1db020 <SW::SAMSync::qt_metacast(char const*)+0x64>
+  1dafcc: aa0103f3     	mov	x19, x1
+  1dafd0: aa0003f4     	mov	x20, x0
+  1dafd4: d0fff981     	adrp	x1, 0x10c000 <qt_meta_data_CLASSSWSCOPEISAMTaskStateENDCLASS+0x90>
+  1dafd8: 9117e021     	add	x1, x1, #0x5f8
+  1dafdc: aa1303e0     	mov	x0, x19
+  1dafe0: 94039e04     	bl	0x2c27f0 <strcmp@plt>  ;;; CALL strcmp
+  1dafe4: 34000160     	cbz	w0, 0x1db010 <SW::SAMSync::qt_metacast(char const*)+0x54>
+  1dafe8: f0fff981     	adrp	x1, 0x10d000 <qt_meta_data_CLASSSWSCOPEITaskProfile_ATLENDCLASS+0x78>
+  1dafec: 912a0021     	add	x1, x1, #0xa80
+  1daff0: aa1303e0     	mov	x0, x19
+  1daff4: 94039dff     	bl	0x2c27f0 <strcmp@plt>  ;;; CALL strcmp
+  1daff8: 340000c0     	cbz	w0, 0x1db010 <SW::SAMSync::qt_metacast(char const*)+0x54>
+  1daffc: aa1403e0     	mov	x0, x20
+  1db000: aa1303e1     	mov	x1, x19
+  1db004: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  1db008: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  1db00c: 14039d39     	b	0x2c24f0 <_ZN7QObject11qt_metacastEPKc@plt>
+  1db010: aa1403e0     	mov	x0, x20
+  1db014: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  1db018: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  1db01c: d65f03c0     	ret
+  1db020: aa1f03e0     	mov	x0, xzr
+  1db024: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  1db028: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  1db02c: d65f03c0     	ret
+
+00000000001db030 <SW::SAMSync::qt_metacall(QMetaObject::Call, int, void**)>:
+  1db030: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  1db034: f9000bf5     	str	x21, [sp, #0x10]
+  1db038: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  1db03c: 910003fd     	mov	x29, sp
+  1db040: aa0303f4     	mov	x20, x3
+  1db044: 2a0103f5     	mov	w21, w1
+  1db048: aa0003f3     	mov	x19, x0
+  1db04c: 94039d2d     	bl	0x2c2500 <_ZN7QObject11qt_metacallEN11QMetaObject4CallEiPPv@plt>  ;;; CALL QObject::qt_metacall(QMetaObject::Call, int, void**)
+  1db050: 37f80240     	tbnz	w0, #0x1f, 0x1db098 <SW::SAMSync::qt_metacall(QMetaObject::Call, int, void**)+0x68>
+  1db054: 71001ebf     	cmp	w21, #0x7
+  1db058: 54000180     	b.eq	0x1db088 <SW::SAMSync::qt_metacall(QMetaObject::Call, int, void**)+0x58>
+  1db05c: 350001f5     	cbnz	w21, 0x1db098 <SW::SAMSync::qt_metacall(QMetaObject::Call, int, void**)+0x68>
+  1db060: 350001a0     	cbnz	w0, 0x1db094 <SW::SAMSync::qt_metacall(QMetaObject::Call, int, void**)+0x64>
+  1db064: b00007e1     	adrp	x1, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1db068: 2a0003f4     	mov	w20, w0
+  1db06c: aa1303e0     	mov	x0, x19
+  1db070: f9474021     	ldr	x1, [x1, #0xe80]
+  1db074: 2a1f03e2     	mov	w2, wzr
+  1db078: aa1f03e3     	mov	x3, xzr
+  1db07c: 94039de1     	bl	0x2c2800 <_ZN11QMetaObject8activateEP7QObjectPKS_iPPv@plt>  ;;; CALL QMetaObject::activate(QObject*, QMetaObject const*, int, void**)
+  1db080: 2a1403e0     	mov	w0, w20
+  1db084: 14000004     	b	0x1db094 <SW::SAMSync::qt_metacall(QMetaObject::Call, int, void**)+0x64>
+  1db088: 35000060     	cbnz	w0, 0x1db094 <SW::SAMSync::qt_metacall(QMetaObject::Call, int, void**)+0x64>
+  1db08c: f9400288     	ldr	x8, [x20]
+  1db090: f900011f     	str	xzr, [x8]
+  1db094: 51000400     	sub	w0, w0, #0x1
+  1db098: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  1db09c: f9400bf5     	ldr	x21, [sp, #0x10]
+  1db0a0: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  1db0a4: d65f03c0     	ret
+
+0000000000201ff8 <SW::SAMSync::connect()>:
+  201ff8: d102c3ff     	sub	sp, sp, #0xb0
+  201ffc: a9087bfd     	stp	x29, x30, [sp, #0x80]
+  202000: f9004bf5     	str	x21, [sp, #0x90]
+  202004: a90a4ff4     	stp	x20, x19, [sp, #0xa0]
+  202008: 910203fd     	add	x29, sp, #0x80
+  20200c: d53bd054     	mrs	x20, TPIDR_EL0
+  202010: aa0003f3     	mov	x19, x0
+  202014: 52800021     	mov	w1, #0x1                // =1
+  202018: f9401688     	ldr	x8, [x20, #0x28]
+  20201c: 52800022     	mov	w2, #0x1                // =1
+  202020: f81f83a8     	stur	x8, [x29, #-0x8]
+  202024: f9403000     	ldr	x0, [x0, #0x60]  ; this->m[0x60] : SW::SwDevice
+  202028: f9400008     	ldr	x8, [x0]  ; vptr of SW::SwDevice
+  20202c: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::SwDevice::initRead(bool, SW::ISwDevice::LogicalMode)
+  202030: d63f0100     	blr	x8  ;;; CALL SW::SwDevice::initRead(bool, SW::ISwDevice::LogicalMode)  [x1=1(0x1), x2=1(0x1)]
+  202034: 35000460     	cbnz	w0, 0x2020c0 <SW::SAMSync::connect()+0xc8>
+  202038: f9403a60     	ldr	x0, [x19, #0x70]  ; this->m[0x70] : SW::SwMountAxis
+  20203c: 52800021     	mov	w1, #0x1                // =1
+  202040: f9400008     	ldr	x8, [x0]  ; vptr of SW::SwMountAxis
+  202044: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::SwMountAxis::initRead(bool)
+  202048: d63f0100     	blr	x8  ;;; CALL SW::SwMountAxis::initRead(bool)  [x1=1(0x1)]
+  20204c: 350003a0     	cbnz	w0, 0x2020c0 <SW::SAMSync::connect()+0xc8>
+  202050: f9400268     	ldr	x8, [x19]  ; vptr of SW::SAMSync
+  202054: aa1303e0     	mov	x0, x19
+  202058: f9405d09     	ldr	x9, [x8, #0xb8]  ; -> SW::SAMSync::readDeviceName()
+  20205c: 910023e8     	add	x8, sp, #0x8
+  202060: d63f0120     	blr	x9  ;;; CALL SW::SAMSync::readDeviceName()
+  202064: 394043e8     	ldrb	w8, [sp, #0x10]
+  202068: b9400be0     	ldr	w0, [sp, #0x8]
+  20206c: 360000c8     	tbz	w8, #0x0, 0x202084 <SW::SAMSync::connect()+0x8c>
+  202070: f94013e8     	ldr	x8, [sp, #0x20]
+  202074: 2a0003f5     	mov	w21, w0
+  202078: aa0803e0     	mov	x0, x8
+  20207c: 9402fcc5     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  202080: 2a1503e0     	mov	w0, w21
+  202084: 350001e0     	cbnz	w0, 0x2020c0 <SW::SAMSync::connect()+0xc8>
+  202088: f9400268     	ldr	x8, [x19]  ; vptr of SW::SAMSync
+  20208c: aa1303e0     	mov	x0, x19
+  202090: f9403d09     	ldr	x9, [x8, #0x78]  ; -> SW::SAMSync::readStatus()
+  202094: 910023e8     	add	x8, sp, #0x8
+  202098: d63f0120     	blr	x9  ;;; CALL SW::SAMSync::readStatus()
+  20209c: b9400be0     	ldr	w0, [sp, #0x8]
+  2020a0: 35000100     	cbnz	w0, 0x2020c0 <SW::SAMSync::connect()+0xc8>
+  2020a4: f9400268     	ldr	x8, [x19]  ; vptr of SW::SAMSync
+  2020a8: aa1303e0     	mov	x0, x19
+  2020ac: f9404509     	ldr	x9, [x8, #0x88]  ; -> SW::SAMSync::readPowerStatus()
+  2020b0: 910023e8     	add	x8, sp, #0x8
+  2020b4: d63f0120     	blr	x9  ;;; CALL SW::SAMSync::readPowerStatus()
+  2020b8: b9400be0     	ldr	w0, [sp, #0x8]
+  2020bc: 34000140     	cbz	w0, 0x2020e4 <SW::SAMSync::connect()+0xec>
+  2020c0: f9401688     	ldr	x8, [x20, #0x28]
+  2020c4: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2020c8: eb09011f     	cmp	x8, x9
+  2020cc: 54000941     	b.ne	0x2021f4 <SW::SAMSync::connect()+0x1fc>
+  2020d0: a94a4ff4     	ldp	x20, x19, [sp, #0xa0]
+  2020d4: f9404bf5     	ldr	x21, [sp, #0x90]
+  2020d8: a9487bfd     	ldp	x29, x30, [sp, #0x80]
+  2020dc: 9102c3ff     	add	sp, sp, #0xb0
+  2020e0: d65f03c0     	ret
+  2020e4: f9400268     	ldr	x8, [x19]  ; vptr of SW::SAMSync
+  2020e8: aa1303e0     	mov	x0, x19
+  2020ec: f9403909     	ldr	x9, [x8, #0x70]  ; -> SW::SAMSync::lastStatus()
+  2020f0: 910023e8     	add	x8, sp, #0x8
+  2020f4: d63f0120     	blr	x9  ;;; CALL SW::SAMSync::lastStatus()
+  2020f8: 3940a3e8     	ldrb	w8, [sp, #0x28]
+  2020fc: 360004a8     	tbz	w8, #0x0, 0x202190 <SW::SAMSync::connect()+0x198>
+  202100: b94013e8     	ldr	w8, [sp, #0x10]
+  202104: 34000108     	cbz	w8, 0x202124 <SW::SAMSync::connect()+0x12c>
+  202108: f9400268     	ldr	x8, [x19]  ; vptr of SW::SAMSync
+  20210c: aa1303e0     	mov	x0, x19
+  202110: f9404d09     	ldr	x9, [x8, #0x98]  ; -> SW::SAMSync::readParamSet()
+  202114: 910023e8     	add	x8, sp, #0x8
+  202118: d63f0120     	blr	x9  ;;; CALL SW::SAMSync::readParamSet()
+  20211c: b9400be0     	ldr	w0, [sp, #0x8]
+  202120: 35fffd00     	cbnz	w0, 0x2020c0 <SW::SAMSync::connect()+0xc8>
+  202124: f9403260     	ldr	x0, [x19, #0x60]  ; this->m[0x60] : SW::SwDevice
+  202128: 2a1f03e1     	mov	w1, wzr
+  20212c: f9400008     	ldr	x8, [x0]  ; vptr of SW::SwDevice
+  202130: f9403508     	ldr	x8, [x8, #0x68]  ; -> SW::SwDevice::lastAxisStatus(SW::AXISID)
+  202134: d63f0100     	blr	x8  ;;; CALL SW::SwDevice::lastAxisStatus(SW::AXISID)
+  202138: b7800100     	tbnz	x0, #0x30, 0x202158 <SW::SAMSync::connect()+0x160>
+  20213c: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  202140: 52800d81     	mov	w1, #0x6c               // =108
+  202144: 52800022     	mov	w2, #0x1                // =1
+  202148: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  20214c: f9401508     	ldr	x8, [x8, #0x28]  ; -> SW::EEPROMConverser::writeInt8(unsigned short, signed char)
+  202150: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeInt8(unsigned short, signed char)  [x1=108(0x6c), x2=1(0x1)]
+  202154: 17ffffdb     	b	0x2020c0 <SW::SAMSync::connect()+0xc8>
+  202158: f9403a60     	ldr	x0, [x19, #0x70]  ; this->m[0x70] : SW::SwMountAxis
+  20215c: 2f00e400     	movi	d0, #0000000000000000
+  202160: 2a1f03e1     	mov	w1, wzr
+  202164: f9400008     	ldr	x8, [x0]  ; vptr of SW::SwMountAxis
+  202168: f9402508     	ldr	x8, [x8, #0x48]  ; -> SW::SwMountAxis::setAxisPosition(SW::AXISID, double)
+  20216c: d63f0100     	blr	x8  ;;; CALL SW::SwMountAxis::setAxisPosition(SW::AXISID, double)
+  202170: 35fffa80     	cbnz	w0, 0x2020c0 <SW::SAMSync::connect()+0xc8>
+  202174: f9403260     	ldr	x0, [x19, #0x60]  ; this->m[0x60] : SW::SwDevice
+  202178: 2a1f03e1     	mov	w1, wzr
+  20217c: f9400008     	ldr	x8, [x0]  ; vptr of SW::SwDevice
+  202180: f9403908     	ldr	x8, [x8, #0x70]  ; -> SW::SwDevice::setAxisInitialized(SW::AXISID)
+  202184: d63f0100     	blr	x8  ;;; CALL SW::SwDevice::setAxisInitialized(SW::AXISID)
+  202188: 35fff9c0     	cbnz	w0, 0x2020c0 <SW::SAMSync::connect()+0xc8>
+  20218c: 17ffffec     	b	0x20213c <SW::SAMSync::connect()+0x144>
+  202190: 52800200     	mov	w0, #0x10               // =16
+  202194: 9402fd07     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  202198: aa0003f3     	mov	x19, x0
+  20219c: d0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  2021a0: 910f4421     	add	x1, x1, #0x3d1
+  2021a4: 9403039f     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  2021a8: f9401688     	ldr	x8, [x20, #0x28]
+  2021ac: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2021b0: eb09011f     	cmp	x8, x9
+  2021b4: 54000201     	b.ne	0x2021f4 <SW::SAMSync::connect()+0x1fc>
+  2021b8: f00006a1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  2021bc: f00006a2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  2021c0: aa1303e0     	mov	x0, x19
+  2021c4: f9409c21     	ldr	x1, [x1, #0x138]
+  2021c8: f940a042     	ldr	x2, [x2, #0x140]
+  2021cc: 9402fd01     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  2021d0: aa0003f5     	mov	x21, x0
+  2021d4: aa1303e0     	mov	x0, x19
+  2021d8: 9402ffea     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  2021dc: f9401688     	ldr	x8, [x20, #0x28]
+  2021e0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2021e4: eb09011f     	cmp	x8, x9
+  2021e8: 54000061     	b.ne	0x2021f4 <SW::SAMSync::connect()+0x1fc>
+  2021ec: aa1503e0     	mov	x0, x21
+  2021f0: 9402eca5     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  2021f4: 9402fbef     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000002021f8 <SW::SAMSync::writeConnectionLightOn(bool)>:
+  2021f8: f9404000     	ldr	x0, [x0, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  2021fc: 52800e08     	mov	w8, #0x70               // =112
+  202200: 7200003f     	tst	w1, #0x1
+  202204: 52800d8a     	mov	w10, #0x6c              // =108
+  202208: 52800022     	mov	w2, #0x1                // =1
+  20220c: f9400009     	ldr	x9, [x0]  ; vptr of SW::EEPROMConverser
+  202210: 1a881141     	csel	w1, w10, w8, ne
+  202214: f9401523     	ldr	x3, [x9, #0x28]  ; -> SW::EEPROMConverser::writeInt8(unsigned short, signed char)
+  202218: d61f0060     	br	x3
+
+000000000020221c <SW::SAMSync::disconnect()>:
+  20221c: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  202220: f9000bf3     	str	x19, [sp, #0x10]
+  202224: 910003fd     	mov	x29, sp
+  202228: aa0003f3     	mov	x19, x0
+  20222c: f9402000     	ldr	x0, [x0, #0x40]  ; this->m[0x40] : SW::SAMSettings
+  202230: f9400008     	ldr	x8, [x0]  ; vptr of SW::SAMSettings
+  202234: f9403908     	ldr	x8, [x8, #0x70]  ; -> SW::SAMSettings::wifiOffOnDisconnect()
+  202238: d63f0100     	blr	x8  ;;; CALL SW::SAMSettings::wifiOffOnDisconnect()
+  20223c: 36000100     	tbz	w0, #0x0, 0x20225c <SW::SAMSync::disconnect()+0x40>
+  202240: f9400268     	ldr	x8, [x19]  ; vptr of SW::SAMSync
+  202244: aa1303e0     	mov	x0, x19
+  202248: f9407102     	ldr	x2, [x8, #0xe0]  ; -> SW::SAMSync::writeWifiEnabled(bool)
+  20224c: 2a1f03e1     	mov	w1, wzr
+  202250: f9400bf3     	ldr	x19, [sp, #0x10]
+  202254: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  202258: d61f0040     	br	x2
+  20225c: f9404260     	ldr	x0, [x19, #0x80]
+  202260: 52800e01     	mov	w1, #0x70               // =112
+  202264: f9400008     	ldr	x8, [x0]
+  202268: f9401503     	ldr	x3, [x8, #0x28]
+  20226c: 52800022     	mov	w2, #0x1                // =1
+  202270: f9400bf3     	ldr	x19, [sp, #0x10]
+  202274: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  202278: d61f0060     	br	x3
+
+000000000020227c <SW::SAMSync::lastStatus()>:
+  20227c: f9401800     	ldr	x0, [x0, #0x30]  ; this->m[0x30] : SW::SAMTaskState
+  202280: f9400009     	ldr	x9, [x0]  ; vptr of SW::SAMTaskState
+  202284: f9403121     	ldr	x1, [x9, #0x60]  ; -> SW::SAMTaskState::status()
+  202288: d61f0020     	br	x1
+
+000000000020228c <SW::SAMSync::readStatus()>:
+  20228c: d10183ff     	sub	sp, sp, #0x60
+  202290: a9037bfd     	stp	x29, x30, [sp, #0x30]
+  202294: f90023f5     	str	x21, [sp, #0x40]
+  202298: a9054ff4     	stp	x20, x19, [sp, #0x50]
+  20229c: 9100c3fd     	add	x29, sp, #0x30
+  2022a0: d53bd055     	mrs	x21, TPIDR_EL0
+  2022a4: aa0003f4     	mov	x20, x0
+  2022a8: 2a1f03e1     	mov	w1, wzr
+  2022ac: f94016a9     	ldr	x9, [x21, #0x28]
+  2022b0: aa0803f3     	mov	x19, x8
+  2022b4: f81f83a9     	stur	x9, [x29, #-0x8]
+  2022b8: f9404000     	ldr	x0, [x0, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  2022bc: f9400009     	ldr	x9, [x0]  ; vptr of SW::EEPROMConverser
+  2022c0: f9400929     	ldr	x9, [x9, #0x10]  ; -> SW::EEPROMConverser::readInt8(unsigned short)
+  2022c4: d63f0120     	blr	x9  ;;; CALL SW::EEPROMConverser::readInt8(unsigned short)
+  2022c8: 340001e0     	cbz	w0, 0x202304 <SW::SAMSync::readStatus()+0x78>
+  2022cc: b9000260     	str	w0, [x19]
+  2022d0: 3900127f     	strb	wzr, [x19, #0x4]
+  2022d4: f94016a8     	ldr	x8, [x21, #0x28]
+  2022d8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2022dc: eb09011f     	cmp	x8, x9
+  2022e0: 540015a1     	b.ne	0x202594 <SW::SAMSync::readStatus()+0x308>
+  2022e4: 6f00e400     	movi	v0.2d, #0000000000000000
+  2022e8: 3c818260     	stur	q0, [x19, #0x18]
+  2022ec: 3c808260     	stur	q0, [x19, #0x8]
+  2022f0: a9454ff4     	ldp	x20, x19, [sp, #0x50]
+  2022f4: f94023f5     	ldr	x21, [sp, #0x40]
+  2022f8: a9437bfd     	ldp	x29, x30, [sp, #0x30]
+  2022fc: 910183ff     	add	sp, sp, #0x60
+  202300: d65f03c0     	ret
+  202304: f2601c1f     	tst	x0, #0xff00000000
+  202308: 54000c40     	b.eq	0x202490 <SW::SAMSync::readStatus()+0x204>
+  20230c: d350fc08     	lsr	x8, x0, #16
+  202310: 39432289     	ldrb	w9, [x20, #0xc8]
+  202314: 13187d08     	asr	w8, w8, #24
+  202318: b90013e8     	str	w8, [sp, #0x10]
+  20231c: 34000349     	cbz	w9, 0x202384 <SW::SAMSync::readStatus()+0xf8>
+  202320: f9404280     	ldr	x0, [x20, #0x80]
+  202324: 52800101     	mov	w1, #0x8                // =8
+  202328: f9400008     	ldr	x8, [x0]
+  20232c: f9400908     	ldr	x8, [x8, #0x10]
+  202330: d63f0100     	blr	x8  ;;; CALL <indirect x8>  [x1=8(0x8)]
+  202334: 35fffcc0     	cbnz	w0, 0x2022cc <SW::SAMSync::readStatus()+0x40>
+  202338: f2601c1f     	tst	x0, #0xff00000000
+  20233c: 54000ca0     	b.eq	0x2024d0 <SW::SAMSync::readStatus()+0x244>
+  202340: f2581c1f     	tst	x0, #0xff0000000000
+  202344: 39432288     	ldrb	w8, [x20, #0xc8]
+  202348: 1a9f07e9     	cset	w9, ne
+  20234c: 390063e9     	strb	w9, [sp, #0x18]
+  202350: 340001c8     	cbz	w8, 0x202388 <SW::SAMSync::readStatus()+0xfc>
+  202354: f9404280     	ldr	x0, [x20, #0x80]
+  202358: 52800181     	mov	w1, #0xc                // =12
+  20235c: f9400008     	ldr	x8, [x0]
+  202360: f9400908     	ldr	x8, [x8, #0x10]
+  202364: d63f0100     	blr	x8  ;;; CALL <indirect x8>  [x1=12(0xc)]
+  202368: 35fffb20     	cbnz	w0, 0x2022cc <SW::SAMSync::readStatus()+0x40>
+  20236c: f2601c1f     	tst	x0, #0xff00000000
+  202370: 54000cc0     	b.eq	0x202508 <SW::SAMSync::readStatus()+0x27c>
+  202374: f2581c1f     	tst	x0, #0xff0000000000
+  202378: 1a9f07e8     	cset	w8, ne
+  20237c: 390067e8     	strb	w8, [sp, #0x19]
+  202380: 14000003     	b	0x20238c <SW::SAMSync::readStatus()+0x100>
+  202384: 390063ff     	strb	wzr, [sp, #0x18]
+  202388: 390067ff     	strb	wzr, [sp, #0x19]
+  20238c: f9404280     	ldr	x0, [x20, #0x80]
+  202390: 52800201     	mov	w1, #0x10               // =16
+  202394: f9400008     	ldr	x8, [x0]
+  202398: f9401108     	ldr	x8, [x8, #0x20]
+  20239c: d63f0100     	blr	x8  ;;; CALL <indirect x8>  [x1=16(0x10)]
+  2023a0: 35fff960     	cbnz	w0, 0x2022cc <SW::SAMSync::readStatus()+0x40>
+  2023a4: f2601c1f     	tst	x0, #0xff00000000
+  2023a8: 54000a20     	b.eq	0x2024ec <SW::SAMSync::readStatus()+0x260>
+  2023ac: f9400a80     	ldr	x0, [x20, #0x10]
+  2023b0: b90017e1     	str	w1, [sp, #0x14]
+  2023b4: f9400008     	ldr	x8, [x0]
+  2023b8: f9400908     	ldr	x8, [x8, #0x10]
+  2023bc: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  2023c0: 39432288     	ldrb	w8, [x20, #0xc8]
+  2023c4: f90007e0     	str	x0, [sp, #0x8]
+  2023c8: 34000328     	cbz	w8, 0x20242c <SW::SAMSync::readStatus()+0x1a0>
+  2023cc: f9404280     	ldr	x0, [x20, #0x80]
+  2023d0: 52800281     	mov	w1, #0x14               // =20
+  2023d4: f9400008     	ldr	x8, [x0]
+  2023d8: f9400908     	ldr	x8, [x8, #0x10]
+  2023dc: d63f0100     	blr	x8  ;;; CALL <indirect x8>  [x1=20(0x14)]
+  2023e0: 35fff760     	cbnz	w0, 0x2022cc <SW::SAMSync::readStatus()+0x40>
+  2023e4: f2601c1f     	tst	x0, #0xff00000000
+  2023e8: 540009e0     	b.eq	0x202524 <SW::SAMSync::readStatus()+0x298>
+  2023ec: d350fc08     	lsr	x8, x0, #16
+  2023f0: 39432289     	ldrb	w9, [x20, #0xc8]
+  2023f4: 13187d08     	asr	w8, w8, #24
+  2023f8: b9001fe8     	str	w8, [sp, #0x1c]
+  2023fc: 34000469     	cbz	w9, 0x202488 <SW::SAMSync::readStatus()+0x1fc>
+  202400: f9404280     	ldr	x0, [x20, #0x80]
+  202404: 52800301     	mov	w1, #0x18               // =24
+  202408: f9400008     	ldr	x8, [x0]
+  20240c: f9400908     	ldr	x8, [x8, #0x10]
+  202410: d63f0100     	blr	x8  ;;; CALL <indirect x8>  [x1=24(0x18)]
+  202414: 35fff5c0     	cbnz	w0, 0x2022cc <SW::SAMSync::readStatus()+0x40>
+  202418: f2601c1f     	tst	x0, #0xff00000000
+  20241c: 54000920     	b.eq	0x202540 <SW::SAMSync::readStatus()+0x2b4>
+  202420: d350fc08     	lsr	x8, x0, #16
+  202424: 13187d08     	asr	w8, w8, #24
+  202428: 14000002     	b	0x202430 <SW::SAMSync::readStatus()+0x1a4>
+  20242c: b9001fff     	str	wzr, [sp, #0x1c]
+  202430: f9401a80     	ldr	x0, [x20, #0x30]
+  202434: 910023e1     	add	x1, sp, #0x8
+  202438: b90023e8     	str	w8, [sp, #0x20]
+  20243c: f9400009     	ldr	x9, [x0]
+  202440: f9404529     	ldr	x9, [x9, #0x88]
+  202444: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  202448: 3cc083e0     	ldur	q0, [sp, #0x8]
+  20244c: 3cc183e1     	ldur	q1, [sp, #0x18]
+  202450: 52800028     	mov	w8, #0x1                // =1
+  202454: b900027f     	str	wzr, [x19]
+  202458: 39001268     	strb	w8, [x19, #0x4]
+  20245c: 3c808260     	stur	q0, [x19, #0x8]
+  202460: 3c818261     	stur	q1, [x19, #0x18]
+  202464: f94016a8     	ldr	x8, [x21, #0x28]
+  202468: f85f83a9     	ldur	x9, [x29, #-0x8]
+  20246c: eb09011f     	cmp	x8, x9
+  202470: 54000921     	b.ne	0x202594 <SW::SAMSync::readStatus()+0x308>
+  202474: a9454ff4     	ldp	x20, x19, [sp, #0x50]
+  202478: f94023f5     	ldr	x21, [sp, #0x40]
+  20247c: a9437bfd     	ldp	x29, x30, [sp, #0x30]
+  202480: 910183ff     	add	sp, sp, #0x60
+  202484: d65f03c0     	ret
+  202488: 2a1f03e8     	mov	w8, wzr
+  20248c: 17ffffe9     	b	0x202430 <SW::SAMSync::readStatus()+0x1a4>
+  202490: 52800200     	mov	w0, #0x10               // =16
+  202494: 9402fc47     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  202498: aa0003f3     	mov	x19, x0
+  20249c: d0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  2024a0: 9135a421     	add	x1, x1, #0xd69
+  2024a4: 940302df     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  2024a8: f94016a8     	ldr	x8, [x21, #0x28]
+  2024ac: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2024b0: eb09011f     	cmp	x8, x9
+  2024b4: 54000701     	b.ne	0x202594 <SW::SAMSync::readStatus()+0x308>
+  2024b8: f00006a1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  2024bc: f00006a2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  2024c0: aa1303e0     	mov	x0, x19
+  2024c4: f9409c21     	ldr	x1, [x1, #0x138]
+  2024c8: f940a042     	ldr	x2, [x2, #0x140]
+  2024cc: 9402fc41     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  2024d0: 52800200     	mov	w0, #0x10               // =16
+  2024d4: 9402fc37     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  2024d8: aa0003f3     	mov	x19, x0
+  2024dc: d0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  2024e0: 9135a421     	add	x1, x1, #0xd69
+  2024e4: 940302cf     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  2024e8: 17fffff0     	b	0x2024a8 <SW::SAMSync::readStatus()+0x21c>
+  2024ec: 52800200     	mov	w0, #0x10               // =16
+  2024f0: 9402fc30     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  2024f4: aa0003f3     	mov	x19, x0
+  2024f8: d0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  2024fc: 9135a421     	add	x1, x1, #0xd69
+  202500: 940302c8     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  202504: 17ffffe9     	b	0x2024a8 <SW::SAMSync::readStatus()+0x21c>
+  202508: 52800200     	mov	w0, #0x10               // =16
+  20250c: 9402fc29     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  202510: aa0003f3     	mov	x19, x0
+  202514: d0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  202518: 9135a421     	add	x1, x1, #0xd69
+  20251c: 940302c1     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  202520: 17ffffe2     	b	0x2024a8 <SW::SAMSync::readStatus()+0x21c>
+  202524: 52800200     	mov	w0, #0x10               // =16
+  202528: 9402fc22     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  20252c: aa0003f3     	mov	x19, x0
+  202530: d0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  202534: 9135a421     	add	x1, x1, #0xd69
+  202538: 940302ba     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  20253c: 17ffffdb     	b	0x2024a8 <SW::SAMSync::readStatus()+0x21c>
+  202540: 52800200     	mov	w0, #0x10               // =16
+  202544: 9402fc1b     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  202548: aa0003f3     	mov	x19, x0
+  20254c: d0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  202550: 9135a421     	add	x1, x1, #0xd69
+  202554: 940302b3     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  202558: 17ffffd4     	b	0x2024a8 <SW::SAMSync::readStatus()+0x21c>
+  20255c: 14000005     	b	0x202570 <SW::SAMSync::readStatus()+0x2e4>
+  202560: 14000004     	b	0x202570 <SW::SAMSync::readStatus()+0x2e4>
+  202564: 14000003     	b	0x202570 <SW::SAMSync::readStatus()+0x2e4>
+  202568: 14000002     	b	0x202570 <SW::SAMSync::readStatus()+0x2e4>
+  20256c: 14000001     	b	0x202570 <SW::SAMSync::readStatus()+0x2e4>
+  202570: f94016a8     	ldr	x8, [x21, #0x28]
+  202574: f85f83a9     	ldur	x9, [x29, #-0x8]
+  202578: aa0003f4     	mov	x20, x0
+  20257c: eb09011f     	cmp	x8, x9
+  202580: 540000a1     	b.ne	0x202594 <SW::SAMSync::readStatus()+0x308>
+  202584: aa1303e0     	mov	x0, x19
+  202588: 9402fefe     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  20258c: aa1403e0     	mov	x0, x20
+  202590: 9402ebbd     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  202594: 9402fb07     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000202668 <SW::SAMSync::lastPowerStatus()>:
+  202668: 3cca8000     	ldur	q0, [x0, #0xa8]
+  20266c: 3ccb8001     	ldur	q1, [x0, #0xb8]
+  202670: ad000500     	stp	q0, q1, [x8]
+  202674: d65f03c0     	ret
+
+0000000000202678 <SW::SAMSync::readPowerStatus()>:
+  202678: 6dbc23e9     	stp	d9, d8, [sp, #-0x40]!
+  20267c: a9017bfd     	stp	x29, x30, [sp, #0x10]
+  202680: a90257f6     	stp	x22, x21, [sp, #0x20]
+  202684: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  202688: 910043fd     	add	x29, sp, #0x10
+  20268c: aa0003f4     	mov	x20, x0
+  202690: f9400800     	ldr	x0, [x0, #0x10]  ; this->m[0x10] : SW::CRealClock
+  202694: aa0803f3     	mov	x19, x8
+  202698: f9400009     	ldr	x9, [x0]  ; vptr of SW::CRealClock
+  20269c: f9400929     	ldr	x9, [x9, #0x10]  ; -> SW::CRealClock::unixMs()
+  2026a0: d63f0120     	blr	x9  ;;; CALL SW::CRealClock::unixMs()
+  2026a4: f9404288     	ldr	x8, [x20, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  2026a8: aa0003f5     	mov	x21, x0
+  2026ac: 52800081     	mov	w1, #0x4                // =4
+  2026b0: f9400109     	ldr	x9, [x8]  ; vptr of SW::EEPROMConverser
+  2026b4: aa0803e0     	mov	x0, x8
+  2026b8: f9400d29     	ldr	x9, [x9, #0x18]  ; -> SW::EEPROMConverser::readInt16(unsigned short)
+  2026bc: d63f0120     	blr	x9  ;;; CALL SW::EEPROMConverser::readInt16(unsigned short)  [x1=4(0x4)]
+  2026c0: 35000140     	cbnz	w0, 0x2026e8 <SW::SAMSync::readPowerStatus()+0x70>
+  2026c4: f2601c1f     	tst	x0, #0xff00000000
+  2026c8: 540005c0     	b.eq	0x202780 <SW::SAMSync::readPowerStatus()+0x108>
+  2026cc: aa0003f6     	mov	x22, x0
+  2026d0: f9404280     	ldr	x0, [x20, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  2026d4: 52800381     	mov	w1, #0x1c               // =28
+  2026d8: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  2026dc: f9400d08     	ldr	x8, [x8, #0x18]  ; -> SW::EEPROMConverser::readInt16(unsigned short)
+  2026e0: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt16(unsigned short)  [x1=28(0x1c)]
+  2026e4: 34000140     	cbz	w0, 0x20270c <SW::SAMSync::readPowerStatus()+0x94>
+  2026e8: b9000260     	str	w0, [x19]
+  2026ec: 3900127f     	strb	wzr, [x19, #0x4]
+  2026f0: a9017e7f     	stp	xzr, xzr, [x19, #0x10]
+  2026f4: f900067f     	str	xzr, [x19, #0x8]
+  2026f8: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  2026fc: a94257f6     	ldp	x22, x21, [sp, #0x20]
+  202700: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+  202704: 6cc423e9     	ldp	d9, d8, [sp], #0x40
+  202708: d65f03c0     	ret
+  20270c: f2601c1f     	tst	x0, #0xff00000000
+  202710: 54000460     	b.eq	0x20279c <SW::SAMSync::readPowerStatus()+0x124>
+  202714: d370fec8     	lsr	x8, x22, #48
+  202718: 52800036     	mov	w22, #0x1               // =1
+  20271c: f9005695     	str	x21, [x20, #0xa8]
+  202720: 39030296     	strb	w22, [x20, #0xc0]
+  202724: 13003d08     	sxth	w8, w8
+  202728: 1e620100     	scvtf	d0, w8
+  20272c: d2e80b28     	mov	x8, #0x4059000000000000 // =4636737291354636288
+  202730: 9e670101     	fmov	d1, x8
+  202734: d370fc08     	lsr	x8, x0, #48
+  202738: aa1403e0     	mov	x0, x20
+  20273c: 13003d08     	sxth	w8, w8
+  202740: 1e611808     	fdiv	d8, d0, d1
+  202744: 1e620100     	scvtf	d0, w8
+  202748: d2e80b28     	mov	x8, #0x4059000000000000 // =4636737291354636288
+  20274c: 9e670101     	fmov	d1, x8
+  202750: 1e611809     	fdiv	d9, d0, d1
+  202754: 6d0b2688     	stp	d8, d9, [x20, #0xb0]
+  202758: 94030062     	bl	0x2c28e0 <_ZN2SW8ISAMSync15propertyChangedEv@plt>  ;;; CALL SW::ISAMSync::propertyChanged()
+  20275c: b900027f     	str	wzr, [x19]
+  202760: 39001276     	strb	w22, [x19, #0x4]
+  202764: f9000675     	str	x21, [x19, #0x8]
+  202768: 6d012668     	stp	d8, d9, [x19, #0x10]
+  20276c: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  202770: a94257f6     	ldp	x22, x21, [sp, #0x20]
+  202774: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+  202778: 6cc423e9     	ldp	d9, d8, [sp], #0x40
+  20277c: d65f03c0     	ret
+  202780: 52800200     	mov	w0, #0x10               // =16
+  202784: 9402fb8b     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  202788: aa0003f3     	mov	x19, x0
+  20278c: d0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  202790: 9135a421     	add	x1, x1, #0xd69
+  202794: 94030223     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  202798: 14000007     	b	0x2027b4 <SW::SAMSync::readPowerStatus()+0x13c>
+  20279c: 52800200     	mov	w0, #0x10               // =16
+  2027a0: 9402fb84     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  2027a4: aa0003f3     	mov	x19, x0
+  2027a8: d0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  2027ac: 9135a421     	add	x1, x1, #0xd69
+  2027b0: 9403021c     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  2027b4: f00006a1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  2027b8: f00006a2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  2027bc: aa1303e0     	mov	x0, x19
+  2027c0: f9409c21     	ldr	x1, [x1, #0x138]
+  2027c4: f940a042     	ldr	x2, [x2, #0x140]
+  2027c8: 9402fb82     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  2027cc: aa0003f4     	mov	x20, x0
+  2027d0: aa1303e0     	mov	x0, x19
+  2027d4: 9402fe6b     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  2027d8: aa1403e0     	mov	x0, x20
+  2027dc: 9402eb2a     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  2027e0: aa0003f4     	mov	x20, x0
+  2027e4: aa1303e0     	mov	x0, x19
+  2027e8: 9402fe66     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  2027ec: aa1403e0     	mov	x0, x20
+  2027f0: 9402eb25     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+00000000002027f4 <SW::SAMSync::lastParamSet()>:
+  2027f4: f9401800     	ldr	x0, [x0, #0x30]  ; this->m[0x30] : SW::SAMTaskState
+  2027f8: f9400009     	ldr	x9, [x0]  ; vptr of SW::SAMTaskState
+  2027fc: f9403921     	ldr	x1, [x9, #0x70]  ; -> SW::SAMTaskState::readParamSet()
+  202800: d61f0020     	br	x1
+
+0000000000202804 <SW::SAMSync::readParamSet()>:
+  202804: d10503ff     	sub	sp, sp, #0x140
+  202808: 6d0f23e9     	stp	d9, d8, [sp, #0xf0]
+  20280c: a9107bfd     	stp	x29, x30, [sp, #0x100]
+  202810: f9008bfc     	str	x28, [sp, #0x110]
+  202814: a91257f6     	stp	x22, x21, [sp, #0x120]
+  202818: a9134ff4     	stp	x20, x19, [sp, #0x130]
+  20281c: 910403fd     	add	x29, sp, #0x100
+  202820: d53bd055     	mrs	x21, TPIDR_EL0
+  202824: aa0803f3     	mov	x19, x8
+  202828: aa0003f4     	mov	x20, x0
+  20282c: f94016a8     	ldr	x8, [x21, #0x28]
+  202830: 2a1f03e1     	mov	w1, wzr
+  202834: f81e83a8     	stur	x8, [x29, #-0x18]
+  202838: 52800088     	mov	w8, #0x4                // =4
+  20283c: f9404000     	ldr	x0, [x0, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  202840: b81d03a8     	stur	w8, [x29, #-0x30]
+  202844: 381d43bf     	sturb	wzr, [x29, #-0x2c]
+  202848: f9400009     	ldr	x9, [x0]  ; vptr of SW::EEPROMConverser
+  20284c: b81d83bf     	stur	wzr, [x29, #-0x28]
+  202850: f9400928     	ldr	x8, [x9, #0x10]  ; -> SW::EEPROMConverser::readInt8(unsigned short)
+  202854: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt8(unsigned short)
+  202858: d360fc08     	lsr	x8, x0, #32
+  20285c: b81e03a0     	stur	w0, [x29, #-0x20]
+  202860: 781e43a8     	sturh	w8, [x29, #-0x1c]
+  202864: 35000880     	cbnz	w0, 0x202974 <SW::SAMSync::readParamSet()+0x170>
+  202868: f2601c1f     	tst	x0, #0xff00000000
+  20286c: 54002660     	b.eq	0x202d38 <SW::SAMSync::readParamSet()+0x534>
+  202870: f9404288     	ldr	x8, [x20, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  202874: d350fc09     	lsr	x9, x0, #16
+  202878: 52800501     	mov	w1, #0x28               // =40
+  20287c: f940010a     	ldr	x10, [x8]  ; vptr of SW::EEPROMConverser
+  202880: 13187d36     	asr	w22, w9, #24
+  202884: aa0803e0     	mov	x0, x8
+  202888: f9400949     	ldr	x9, [x10, #0x10]  ; -> SW::EEPROMConverser::readInt8(unsigned short)
+  20288c: b90073f6     	str	w22, [sp, #0x70]
+  202890: d63f0120     	blr	x9  ;;; CALL SW::EEPROMConverser::readInt8(unsigned short)  [x1=40(0x28)]
+  202894: 35000700     	cbnz	w0, 0x202974 <SW::SAMSync::readParamSet()+0x170>
+  202898: f2601c1f     	tst	x0, #0xff00000000
+  20289c: 540025c0     	b.eq	0x202d54 <SW::SAMSync::readParamSet()+0x550>
+  2028a0: f9404288     	ldr	x8, [x20, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  2028a4: f2581c1f     	tst	x0, #0xff0000000000
+  2028a8: 52800481     	mov	w1, #0x24               // =36
+  2028ac: 1a9f17ea     	cset	w10, eq
+  2028b0: f9400109     	ldr	x9, [x8]  ; vptr of SW::EEPROMConverser
+  2028b4: aa0803e0     	mov	x0, x8
+  2028b8: 3901d3ea     	strb	w10, [sp, #0x74]
+  2028bc: f9401129     	ldr	x9, [x9, #0x20]  ; -> SW::EEPROMConverser::readInt32(unsigned short)
+  2028c0: d63f0120     	blr	x9  ;;; CALL SW::EEPROMConverser::readInt32(unsigned short)  [x1=36(0x24)]
+  2028c4: 35000580     	cbnz	w0, 0x202974 <SW::SAMSync::readParamSet()+0x170>
+  2028c8: f2601c1f     	tst	x0, #0xff00000000
+  2028cc: 54002520     	b.eq	0x202d70 <SW::SAMSync::readParamSet()+0x56c>
+  2028d0: f9403280     	ldr	x0, [x20, #0x60]  ; this->m[0x60] : SW::SwDevice
+  2028d4: aa0103e2     	mov	x2, x1
+  2028d8: 2a1f03e1     	mov	w1, wzr
+  2028dc: f9400008     	ldr	x8, [x0]  ; vptr of SW::SwDevice
+  2028e0: f9405508     	ldr	x8, [x8, #0xa8]  ; -> SW::SwDevice::strideToRps(SW::AXISID, unsigned int)
+  2028e4: d63f0100     	blr	x8  ;;; CALL SW::SwDevice::strideToRps(SW::AXISID, unsigned int)
+  2028e8: 90fff648     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  2028ec: f9404280     	ldr	x0, [x20, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  2028f0: 52800601     	mov	w1, #0x30               // =48
+  2028f4: fd474108     	ldr	d8, [x8, #0xe80]
+  2028f8: d2d00008     	mov	x8, #0x800000000000     // =140737488355328
+  2028fc: f2e80cc8     	movk	x8, #0x4066, lsl #48
+  202900: 1e681800     	fdiv	d0, d0, d8
+  202904: 9e670101     	fmov	d1, x8
+  202908: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  20290c: 1e610800     	fmul	d0, d0, d1
+  202910: fd0057e0     	str	d0, [sp, #0xa8]
+  202914: f9401108     	ldr	x8, [x8, #0x20]  ; -> SW::EEPROMConverser::readInt32(unsigned short)
+  202918: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt32(unsigned short)  [x1=48(0x30)]
+  20291c: 350002c0     	cbnz	w0, 0x202974 <SW::SAMSync::readParamSet()+0x170>
+  202920: f2601c1f     	tst	x0, #0xff00000000
+  202924: 54002340     	b.eq	0x202d8c <SW::SAMSync::readParamSet()+0x588>
+  202928: f9400288     	ldr	x8, [x20]  ; vptr of SW::SAMSync
+  20292c: aa1403e0     	mov	x0, x20
+  202930: 1e620029     	scvtf	d9, w1
+  202934: f940a108     	ldr	x8, [x8, #0x140]  ; -> SW::SAMSync::hasShutterIntervalInMs()
+  202938: d63f0100     	blr	x8  ;;; CALL SW::SAMSync::hasShutterIntervalInMs()
+  20293c: d2c80008     	mov	x8, #0x400000000000     // =70368744177664
+  202940: 1e6e1000     	fmov	d0, #1.00000000
+  202944: 7200001f     	tst	w0, #0x1
+  202948: f2e811e8     	movk	x8, #0x408f, lsl #48
+  20294c: f9404280     	ldr	x0, [x20, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  202950: 52800681     	mov	w1, #0x34               // =52
+  202954: 9e670101     	fmov	d1, x8
+  202958: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  20295c: 1e601c20     	fcsel	d0, d1, d0, ne
+  202960: f9401108     	ldr	x8, [x8, #0x20]  ; -> SW::EEPROMConverser::readInt32(unsigned short)
+  202964: 1e601920     	fdiv	d0, d9, d0
+  202968: 6d0783e0     	stp	d0, d0, [sp, #0x78]
+  20296c: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt32(unsigned short)  [x1=52(0x34)]
+  202970: 340002c0     	cbz	w0, 0x2029c8 <SW::SAMSync::readParamSet()+0x1c4>
+  202974: b9000260     	str	w0, [x19]
+  202978: 3900127f     	strb	wzr, [x19, #0x4]
+  20297c: f94016a8     	ldr	x8, [x21, #0x28]
+  202980: f85e83a9     	ldur	x9, [x29, #-0x18]
+  202984: eb09011f     	cmp	x8, x9
+  202988: 54001901     	b.ne	0x202ca8 <SW::SAMSync::readParamSet()+0x4a4>
+  20298c: 6f00e400     	movi	v0.2d, #0000000000000000
+  202990: f806827f     	stur	xzr, [x19, #0x68]
+  202994: 3c858260     	stur	q0, [x19, #0x58]
+  202998: 3c848260     	stur	q0, [x19, #0x48]
+  20299c: 3c838260     	stur	q0, [x19, #0x38]
+  2029a0: 3c828260     	stur	q0, [x19, #0x28]
+  2029a4: 3c818260     	stur	q0, [x19, #0x18]
+  2029a8: 3c808260     	stur	q0, [x19, #0x8]
+  2029ac: a9534ff4     	ldp	x20, x19, [sp, #0x130]
+  2029b0: f9408bfc     	ldr	x28, [sp, #0x110]
+  2029b4: a95257f6     	ldp	x22, x21, [sp, #0x120]
+  2029b8: a9507bfd     	ldp	x29, x30, [sp, #0x100]
+  2029bc: 6d4f23e9     	ldp	d9, d8, [sp, #0xf0]
+  2029c0: 910503ff     	add	sp, sp, #0x140
+  2029c4: d65f03c0     	ret
+  2029c8: f2601c1f     	tst	x0, #0xff00000000
+  2029cc: 54001ee0     	b.eq	0x202da8 <SW::SAMSync::readParamSet()+0x5a4>
+  2029d0: f9404280     	ldr	x0, [x20, #0x80]
+  2029d4: b9008be1     	str	w1, [sp, #0x88]
+  2029d8: 52800701     	mov	w1, #0x38               // =56
+  2029dc: f9400008     	ldr	x8, [x0]
+  2029e0: f9400908     	ldr	x8, [x8, #0x10]
+  2029e4: d63f0100     	blr	x8  ;;; CALL <indirect x8>  [x1=56(0x38)]
+  2029e8: d360fc08     	lsr	x8, x0, #32
+  2029ec: aa0003e1     	mov	x1, x0
+  2029f0: b81e03a1     	stur	w1, [x29, #-0x20]
+  2029f4: 781e43a8     	sturh	w8, [x29, #-0x1c]
+  2029f8: 340001a1     	cbz	w1, 0x202a2c <SW::SAMSync::readParamSet()+0x228>
+  2029fc: f94016a8     	ldr	x8, [x21, #0x28]
+  202a00: f85e83a9     	ldur	x9, [x29, #-0x18]
+  202a04: eb09011f     	cmp	x8, x9
+  202a08: 54001501     	b.ne	0x202ca8 <SW::SAMSync::readParamSet()+0x4a4>
+  202a0c: aa1303e0     	mov	x0, x19
+  202a10: a9534ff4     	ldp	x20, x19, [sp, #0x130]
+  202a14: f9408bfc     	ldr	x28, [sp, #0x110]
+  202a18: a95257f6     	ldp	x22, x21, [sp, #0x120]
+  202a1c: a9507bfd     	ldp	x29, x30, [sp, #0x100]
+  202a20: 6d4f23e9     	ldp	d9, d8, [sp, #0xf0]
+  202a24: 910503ff     	add	sp, sp, #0x140
+  202a28: 140302c2     	b	0x2c3530 <_ZN2SW7CmdRespINS_15ReadSAMParamSetEEC2ENS_11CmdRetType_1EE@plt>
+  202a2c: d10083a0     	sub	x0, x29, #0x20
+  202a30: 940302b8     	bl	0x2c3510 <_ZN2SW7CmdRespIaEdeEv@plt>  ;;; CALL SW::CmdResp<signed char>::operator*()
+  202a34: 39400009     	ldrb	w9, [x0]
+  202a38: f9404288     	ldr	x8, [x20, #0x80]
+  202a3c: 52800781     	mov	w1, #0x3c               // =60
+  202a40: 7100013f     	cmp	w9, #0x0
+  202a44: f940010a     	ldr	x10, [x8]
+  202a48: aa0803e0     	mov	x0, x8
+  202a4c: 1a9f07e9     	cset	w9, ne
+  202a50: 3902c3e9     	strb	w9, [sp, #0xb0]
+  202a54: f9401149     	ldr	x9, [x10, #0x20]
+  202a58: d63f0120     	blr	x9  ;;; CALL <indirect x9>  [x1=60(0x3c)]
+  202a5c: aa0003e8     	mov	x8, x0
+  202a60: f81d03a0     	stur	x0, [x29, #-0x30]
+  202a64: b81d83a1     	stur	w1, [x29, #-0x28]
+  202a68: 35000608     	cbnz	w8, 0x202b28 <SW::SAMSync::readParamSet()+0x324>
+  202a6c: d100c3a0     	sub	x0, x29, #0x30
+  202a70: 940302ac     	bl	0x2c3520 <_ZN2SW7CmdRespIiEdeEv@plt>  ;;; CALL SW::CmdResp<int>::operator*()
+  202a74: b9400008     	ldr	w8, [x0]
+  202a78: f9404280     	ldr	x0, [x20, #0x80]
+  202a7c: 52800581     	mov	w1, #0x2c               // =44
+  202a80: 1e620100     	scvtf	d0, w8
+  202a84: f9400008     	ldr	x8, [x0]
+  202a88: fd005fe0     	str	d0, [sp, #0xb8]
+  202a8c: f9401108     	ldr	x8, [x8, #0x20]
+  202a90: d63f0100     	blr	x8  ;;; CALL <indirect x8>  [x1=44(0x2c)]
+  202a94: aa0003e8     	mov	x8, x0
+  202a98: f81d03a0     	stur	x0, [x29, #-0x30]
+  202a9c: b81d83a1     	stur	w1, [x29, #-0x28]
+  202aa0: 35000448     	cbnz	w8, 0x202b28 <SW::SAMSync::readParamSet()+0x324>
+  202aa4: d100c3a0     	sub	x0, x29, #0x30
+  202aa8: 9403029e     	bl	0x2c3520 <_ZN2SW7CmdRespIiEdeEv@plt>  ;;; CALL SW::CmdResp<int>::operator*()
+  202aac: b9400008     	ldr	w8, [x0]
+  202ab0: 1e649001     	fmov	d1, #10.00000000
+  202ab4: f9404280     	ldr	x0, [x20, #0x80]
+  202ab8: 52800801     	mov	w1, #0x40               // =64
+  202abc: 1e620100     	scvtf	d0, w8
+  202ac0: f9400008     	ldr	x8, [x0]
+  202ac4: 1e611800     	fdiv	d0, d0, d1
+  202ac8: fd004fe0     	str	d0, [sp, #0x98]
+  202acc: f9401108     	ldr	x8, [x8, #0x20]
+  202ad0: d63f0100     	blr	x8  ;;; CALL <indirect x8>  [x1=64(0x40)]
+  202ad4: aa0003e8     	mov	x8, x0
+  202ad8: f81d03a0     	stur	x0, [x29, #-0x30]
+  202adc: b81d83a1     	stur	w1, [x29, #-0x28]
+  202ae0: 35000248     	cbnz	w8, 0x202b28 <SW::SAMSync::readParamSet()+0x324>
+  202ae4: d100c3a0     	sub	x0, x29, #0x30
+  202ae8: 9403028e     	bl	0x2c3520 <_ZN2SW7CmdRespIiEdeEv@plt>  ;;; CALL SW::CmdResp<int>::operator*()
+  202aec: b9400008     	ldr	w8, [x0]
+  202af0: f9404280     	ldr	x0, [x20, #0x80]
+  202af4: 52800881     	mov	w1, #0x44               // =68
+  202af8: 1e620100     	scvtf	d0, w8
+  202afc: d2e80b28     	mov	x8, #0x4059000000000000 // =4636737291354636288
+  202b00: 9e670101     	fmov	d1, x8
+  202b04: f9400008     	ldr	x8, [x0]
+  202b08: 1e611800     	fdiv	d0, d0, d1
+  202b0c: fd0053e0     	str	d0, [sp, #0xa0]
+  202b10: f9401108     	ldr	x8, [x8, #0x20]
+  202b14: d63f0100     	blr	x8  ;;; CALL <indirect x8>  [x1=68(0x44)]
+  202b18: aa0003e8     	mov	x8, x0
+  202b1c: f81d03a0     	stur	x0, [x29, #-0x30]
+  202b20: b81d83a1     	stur	w1, [x29, #-0x28]
+  202b24: 34000128     	cbz	w8, 0x202b48 <SW::SAMSync::readParamSet()+0x344>
+  202b28: aa1303e0     	mov	x0, x19
+  202b2c: 2a0803e1     	mov	w1, w8
+  202b30: 94030280     	bl	0x2c3530 <_ZN2SW7CmdRespINS_15ReadSAMParamSetEEC2ENS_11CmdRetType_1EE@plt>  ;;; CALL SW::CmdResp<SW::ReadSAMParamSet>::CmdResp(SW::CmdRetType_::E)
+  202b34: f94016a8     	ldr	x8, [x21, #0x28]
+  202b38: f85e83a9     	ldur	x9, [x29, #-0x18]
+  202b3c: eb09011f     	cmp	x8, x9
+  202b40: 54000b41     	b.ne	0x202ca8 <SW::SAMSync::readParamSet()+0x4a4>
+  202b44: 17ffff9a     	b	0x2029ac <SW::SAMSync::readParamSet()+0x1a8>
+  202b48: f90003f5     	str	x21, [sp]
+  202b4c: f9403295     	ldr	x21, [x20, #0x60]
+  202b50: d100c3a0     	sub	x0, x29, #0x30
+  202b54: 94030273     	bl	0x2c3520 <_ZN2SW7CmdRespIiEdeEv@plt>  ;;; CALL SW::CmdResp<int>::operator*()
+  202b58: f94002a8     	ldr	x8, [x21]
+  202b5c: b9400002     	ldr	w2, [x0]
+  202b60: aa1503e0     	mov	x0, x21
+  202b64: 2a1f03e1     	mov	w1, wzr
+  202b68: f9404508     	ldr	x8, [x8, #0x88]
+  202b6c: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  202b70: 1e681800     	fdiv	d0, d0, d8
+  202b74: d2d00008     	mov	x8, #0x800000000000     // =140737488355328
+  202b78: aa1403e0     	mov	x0, x20
+  202b7c: f2e80cc8     	movk	x8, #0x4066, lsl #48
+  202b80: 9e670101     	fmov	d1, x8
+  202b84: f9400288     	ldr	x8, [x20]
+  202b88: f9409d08     	ldr	x8, [x8, #0x138]
+  202b8c: 1e610800     	fmul	d0, d0, d1
+  202b90: fd004be0     	str	d0, [sp, #0x90]
+  202b94: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  202b98: 36000200     	tbz	w0, #0x0, 0x202bd8 <SW::SAMSync::readParamSet()+0x3d4>
+  202b9c: 710006df     	cmp	w22, #0x1
+  202ba0: 540001c1     	b.ne	0x202bd8 <SW::SAMSync::readParamSet()+0x3d4>
+  202ba4: f9404280     	ldr	x0, [x20, #0x80]
+  202ba8: 52803401     	mov	w1, #0x1a0              // =416
+  202bac: f9400008     	ldr	x8, [x0]
+  202bb0: f9400908     	ldr	x8, [x8, #0x10]
+  202bb4: d63f0100     	blr	x8  ;;; CALL <indirect x8>  [x1=416(0x1a0)]
+  202bb8: d360fc08     	lsr	x8, x0, #32
+  202bbc: aa0003e1     	mov	x1, x0
+  202bc0: b81e03a1     	stur	w1, [x29, #-0x20]
+  202bc4: 781e43a8     	sturh	w8, [x29, #-0x1c]
+  202bc8: 34000721     	cbz	w1, 0x202cac <SW::SAMSync::readParamSet()+0x4a8>
+  202bcc: aa1303e0     	mov	x0, x19
+  202bd0: 94030258     	bl	0x2c3530 <_ZN2SW7CmdRespINS_15ReadSAMParamSetEEC2ENS_11CmdRetType_1EE@plt>  ;;; CALL SW::CmdResp<SW::ReadSAMParamSet>::CmdResp(SW::CmdRetType_::E)
+  202bd4: 14000030     	b	0x202c94 <SW::SAMSync::readParamSet()+0x490>
+  202bd8: 390303ff     	strb	wzr, [sp, #0xc0]
+  202bdc: f9404280     	ldr	x0, [x20, #0x80]
+  202be0: 52800981     	mov	w1, #0x4c               // =76
+  202be4: f9400008     	ldr	x8, [x0]
+  202be8: f9401108     	ldr	x8, [x8, #0x20]
+  202bec: d63f0100     	blr	x8  ;;; CALL <indirect x8>  [x1=76(0x4c)]
+  202bf0: aa0003e8     	mov	x8, x0
+  202bf4: f81d03a0     	stur	x0, [x29, #-0x30]
+  202bf8: b81d83a1     	stur	w1, [x29, #-0x28]
+  202bfc: 340000a8     	cbz	w8, 0x202c10 <SW::SAMSync::readParamSet()+0x40c>
+  202c00: aa1303e0     	mov	x0, x19
+  202c04: 2a0803e1     	mov	w1, w8
+  202c08: 9403024a     	bl	0x2c3530 <_ZN2SW7CmdRespINS_15ReadSAMParamSetEEC2ENS_11CmdRetType_1EE@plt>  ;;; CALL SW::CmdResp<SW::ReadSAMParamSet>::CmdResp(SW::CmdRetType_::E)
+  202c0c: 14000022     	b	0x202c94 <SW::SAMSync::readParamSet()+0x490>
+  202c10: d100c3a0     	sub	x0, x29, #0x30
+  202c14: 9101c3f5     	add	x21, sp, #0x70
+  202c18: 94030242     	bl	0x2c3520 <_ZN2SW7CmdRespIiEdeEv@plt>  ;;; CALL SW::CmdResp<int>::operator*()
+  202c1c: ad4383e1     	ldp	q1, q0, [sp, #0x70]
+  202c20: 910023e1     	add	x1, sp, #0x8
+  202c24: b9400008     	ldr	w8, [x0]
+  202c28: f9401a80     	ldr	x0, [x20, #0x30]
+  202c2c: ad0083e1     	stp	q1, q0, [sp, #0x10]
+  202c30: ad4202a1     	ldp	q1, q0, [x21, #0x40]
+  202c34: b9000be8     	str	w8, [sp, #0x8]
+  202c38: ad0283e1     	stp	q1, q0, [sp, #0x50]
+  202c3c: ad4102a1     	ldp	q1, q0, [x21, #0x20]
+  202c40: ad0183e1     	stp	q1, q0, [sp, #0x30]
+  202c44: f9400009     	ldr	x9, [x0]
+  202c48: f9404929     	ldr	x9, [x9, #0x90]
+  202c4c: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  202c50: 3cc383e0     	ldur	q0, [sp, #0x38]
+  202c54: 3cc483e1     	ldur	q1, [sp, #0x48]
+  202c58: 52800028     	mov	w8, #0x1                // =1
+  202c5c: 3cc283e2     	ldur	q2, [sp, #0x28]
+  202c60: 39001268     	strb	w8, [x19, #0x4]
+  202c64: f94037e8     	ldr	x8, [sp, #0x68]
+  202c68: 3c838260     	stur	q0, [x19, #0x38]
+  202c6c: 3cc583e0     	ldur	q0, [sp, #0x58]
+  202c70: 3c848261     	stur	q1, [x19, #0x48]
+  202c74: 3cc083e1     	ldur	q1, [sp, #0x8]
+  202c78: 3c858260     	stur	q0, [x19, #0x58]
+  202c7c: 3cc183e0     	ldur	q0, [sp, #0x18]
+  202c80: 3c808261     	stur	q1, [x19, #0x8]
+  202c84: 3c818260     	stur	q0, [x19, #0x18]
+  202c88: b900027f     	str	wzr, [x19]
+  202c8c: f9003668     	str	x8, [x19, #0x68]
+  202c90: 3c828262     	stur	q2, [x19, #0x28]
+  202c94: f94003f5     	ldr	x21, [sp]
+  202c98: f94016a8     	ldr	x8, [x21, #0x28]
+  202c9c: f85e83a9     	ldur	x9, [x29, #-0x18]
+  202ca0: eb09011f     	cmp	x8, x9
+  202ca4: 54fff500     	b.eq	0x202b44 <SW::SAMSync::readParamSet()+0x340>
+  202ca8: 9402f942     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+  202cac: d10083a0     	sub	x0, x29, #0x20
+  202cb0: 94030218     	bl	0x2c3510 <_ZN2SW7CmdRespIaEdeEv@plt>  ;;; CALL SW::CmdResp<signed char>::operator*()
+  202cb4: 39400008     	ldrb	w8, [x0]
+  202cb8: 7100011f     	cmp	w8, #0x0
+  202cbc: 1a9f07e9     	cset	w9, ne
+  202cc0: 390303e9     	strb	w9, [sp, #0xc0]
+  202cc4: 34fff8c8     	cbz	w8, 0x202bdc <SW::SAMSync::readParamSet()+0x3d8>
+  202cc8: f9404280     	ldr	x0, [x20, #0x80]
+  202ccc: 52803701     	mov	w1, #0x1b8              // =440
+  202cd0: f9400008     	ldr	x8, [x0]
+  202cd4: f9401108     	ldr	x8, [x8, #0x20]
+  202cd8: d63f0100     	blr	x8  ;;; CALL <indirect x8>  [x1=440(0x1b8)]
+  202cdc: aa0003e8     	mov	x8, x0
+  202ce0: f81d03a0     	stur	x0, [x29, #-0x30]
+  202ce4: b81d83a1     	stur	w1, [x29, #-0x28]
+  202ce8: 35fff8c8     	cbnz	w8, 0x202c00 <SW::SAMSync::readParamSet()+0x3fc>
+  202cec: f9403295     	ldr	x21, [x20, #0x60]
+  202cf0: d100c3a0     	sub	x0, x29, #0x30
+  202cf4: 9403020b     	bl	0x2c3520 <_ZN2SW7CmdRespIiEdeEv@plt>  ;;; CALL SW::CmdResp<int>::operator*()
+  202cf8: f94002a8     	ldr	x8, [x21]
+  202cfc: b9400002     	ldr	w2, [x0]
+  202d00: aa1503e0     	mov	x0, x21
+  202d04: 2a1f03e1     	mov	w1, wzr
+  202d08: f9404508     	ldr	x8, [x8, #0x88]
+  202d0c: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  202d10: 1e681800     	fdiv	d0, d0, d8
+  202d14: d2d00008     	mov	x8, #0x800000000000     // =140737488355328
+  202d18: 9101c3e0     	add	x0, sp, #0x70
+  202d1c: f2e80cc8     	movk	x8, #0x4066, lsl #48
+  202d20: 9e670101     	fmov	d1, x8
+  202d24: 1e610800     	fmul	d0, d0, d1
+  202d28: fd0067e0     	str	d0, [sp, #0xc8]
+  202d2c: 94030205     	bl	0x2c3540 <_ZNK2SW11SAMParamSet21CalcDithering_T_CycleEv@plt>  ;;; CALL SW::SAMParamSet::CalcDithering_T_Cycle() const
+  202d30: fd003fe0     	str	d0, [sp, #0x78]
+  202d34: 17ffffaa     	b	0x202bdc <SW::SAMSync::readParamSet()+0x3d8>
+  202d38: 52800200     	mov	w0, #0x10               // =16
+  202d3c: 9402fa1d     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  202d40: aa0003f3     	mov	x19, x0
+  202d44: d0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  202d48: 9135a421     	add	x1, x1, #0xd69
+  202d4c: 940300b5     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  202d50: 1400001c     	b	0x202dc0 <SW::SAMSync::readParamSet()+0x5bc>
+  202d54: 52800200     	mov	w0, #0x10               // =16
+  202d58: 9402fa16     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  202d5c: aa0003f3     	mov	x19, x0
+  202d60: d0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  202d64: 9135a421     	add	x1, x1, #0xd69
+  202d68: 940300ae     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  202d6c: 14000015     	b	0x202dc0 <SW::SAMSync::readParamSet()+0x5bc>
+  202d70: 52800200     	mov	w0, #0x10               // =16
+  202d74: 9402fa0f     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  202d78: aa0003f3     	mov	x19, x0
+  202d7c: d0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  202d80: 9135a421     	add	x1, x1, #0xd69
+  202d84: 940300a7     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  202d88: 1400000e     	b	0x202dc0 <SW::SAMSync::readParamSet()+0x5bc>
+  202d8c: 52800200     	mov	w0, #0x10               // =16
+  202d90: 9402fa08     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  202d94: aa0003f3     	mov	x19, x0
+  202d98: d0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  202d9c: 9135a421     	add	x1, x1, #0xd69
+  202da0: 940300a0     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  202da4: 14000007     	b	0x202dc0 <SW::SAMSync::readParamSet()+0x5bc>
+  202da8: 52800200     	mov	w0, #0x10               // =16
+  202dac: 9402fa01     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  202db0: aa0003f3     	mov	x19, x0
+  202db4: d0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  202db8: 9135a421     	add	x1, x1, #0xd69
+  202dbc: 94030099     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  202dc0: f94016a8     	ldr	x8, [x21, #0x28]
+  202dc4: f85e83a9     	ldur	x9, [x29, #-0x18]
+  202dc8: eb09011f     	cmp	x8, x9
+  202dcc: 54fff6e1     	b.ne	0x202ca8 <SW::SAMSync::readParamSet()+0x4a4>
+  202dd0: f00006a1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  202dd4: f00006a2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  202dd8: aa1303e0     	mov	x0, x19
+  202ddc: f9409c21     	ldr	x1, [x1, #0x138]
+  202de0: f940a042     	ldr	x2, [x2, #0x140]
+  202de4: 9402f9fb     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  202de8: 14000004     	b	0x202df8 <SW::SAMSync::readParamSet()+0x5f4>
+  202dec: 14000003     	b	0x202df8 <SW::SAMSync::readParamSet()+0x5f4>
+  202df0: 14000002     	b	0x202df8 <SW::SAMSync::readParamSet()+0x5f4>
+  202df4: 14000001     	b	0x202df8 <SW::SAMSync::readParamSet()+0x5f4>
+  202df8: f94016a8     	ldr	x8, [x21, #0x28]
+  202dfc: f85e83a9     	ldur	x9, [x29, #-0x18]
+  202e00: aa0003f4     	mov	x20, x0
+  202e04: eb09011f     	cmp	x8, x9
+  202e08: 54fff501     	b.ne	0x202ca8 <SW::SAMSync::readParamSet()+0x4a4>
+  202e0c: aa1303e0     	mov	x0, x19
+  202e10: 9402fcdc     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  202e14: aa1403e0     	mov	x0, x20
+  202e18: 9402e99b     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+0000000000202eb0 <SW::SAMSync::programManualMode()>:
+  202eb0: d10203ff     	sub	sp, sp, #0x80
+  202eb4: a9057bfd     	stp	x29, x30, [sp, #0x50]
+  202eb8: f90033f5     	str	x21, [sp, #0x60]
+  202ebc: a9074ff4     	stp	x20, x19, [sp, #0x70]
+  202ec0: 910143fd     	add	x29, sp, #0x50
+  202ec4: d53bd054     	mrs	x20, TPIDR_EL0
+  202ec8: aa0003f3     	mov	x19, x0
+  202ecc: 52800401     	mov	w1, #0x20               // =32
+  202ed0: f9401688     	ldr	x8, [x20, #0x28]
+  202ed4: 2a1f03e2     	mov	w2, wzr
+  202ed8: f81f83a8     	stur	x8, [x29, #-0x8]
+  202edc: f9404000     	ldr	x0, [x0, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  202ee0: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  202ee4: f9401508     	ldr	x8, [x8, #0x28]  ; -> SW::EEPROMConverser::writeInt8(unsigned short, signed char)
+  202ee8: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeInt8(unsigned short, signed char)  [x1=32(0x20)]
+  202eec: 35000420     	cbnz	w0, 0x202f70 <SW::SAMSync::programManualMode()+0xc0>
+  202ef0: f9401a69     	ldr	x9, [x19, #0x30]  ; this->m[0x30] : SW::SAMTaskState
+  202ef4: 2a0003f5     	mov	w21, w0
+  202ef8: f9400128     	ldr	x8, [x9]  ; vptr of SW::SAMTaskState
+  202efc: aa0903e0     	mov	x0, x9
+  202f00: f940310a     	ldr	x10, [x8, #0x60]  ; -> SW::SAMTaskState::status()
+  202f04: 910083e8     	add	x8, sp, #0x20
+  202f08: d63f0140     	blr	x10  ;;; CALL SW::SAMTaskState::status()
+  202f0c: 394103e8     	ldrb	w8, [sp, #0x40]
+  202f10: 2a1503e0     	mov	w0, w21
+  202f14: 340002e8     	cbz	w8, 0x202f70 <SW::SAMSync::programManualMode()+0xc0>
+  202f18: f9401a60     	ldr	x0, [x19, #0x30]  ; this->m[0x30] : SW::SAMTaskState
+  202f1c: f9400008     	ldr	x8, [x0]  ; vptr of SW::SAMTaskState
+  202f20: f9403109     	ldr	x9, [x8, #0x60]  ; -> SW::SAMTaskState::status()
+  202f24: 910083e8     	add	x8, sp, #0x20
+  202f28: d63f0120     	blr	x9  ;;; CALL SW::SAMTaskState::status()
+  202f2c: 394103e8     	ldrb	w8, [sp, #0x40]
+  202f30: 36000328     	tbz	w8, #0x0, 0x202f94 <SW::SAMSync::programManualMode()+0xe4>
+  202f34: ad4107e0     	ldp	q0, q1, [sp, #0x20]
+  202f38: f9400a60     	ldr	x0, [x19, #0x10]  ; this->m[0x10] : SW::CRealClock
+  202f3c: ad0007e0     	stp	q0, q1, [sp]
+  202f40: f90007ff     	str	xzr, [sp, #0x8]
+  202f44: f9400008     	ldr	x8, [x0]  ; vptr of SW::CRealClock
+  202f48: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::CRealClock::unixMs()
+  202f4c: d63f0100     	blr	x8  ;;; CALL SW::CRealClock::unixMs()
+  202f50: f9401a68     	ldr	x8, [x19, #0x30]  ; this->m[0x30] : SW::SAMTaskState
+  202f54: f90003e0     	str	x0, [sp]
+  202f58: 910003e1     	mov	x1, sp
+  202f5c: f9400109     	ldr	x9, [x8]  ; vptr of SW::SAMTaskState
+  202f60: aa0803e0     	mov	x0, x8
+  202f64: f9404529     	ldr	x9, [x9, #0x88]  ; -> SW::SAMTaskState::setStatus(SW::SAMStatus const&)
+  202f68: d63f0120     	blr	x9  ;;; CALL SW::SAMTaskState::setStatus(SW::SAMStatus const&)
+  202f6c: 2a1503e0     	mov	w0, w21
+  202f70: f9401688     	ldr	x8, [x20, #0x28]
+  202f74: f85f83a9     	ldur	x9, [x29, #-0x8]
+  202f78: eb09011f     	cmp	x8, x9
+  202f7c: 54000401     	b.ne	0x202ffc <SW::SAMSync::programManualMode()+0x14c>
+  202f80: a9474ff4     	ldp	x20, x19, [sp, #0x70]
+  202f84: f94033f5     	ldr	x21, [sp, #0x60]
+  202f88: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+  202f8c: 910203ff     	add	sp, sp, #0x80
+  202f90: d65f03c0     	ret
+  202f94: 52800200     	mov	w0, #0x10               // =16
+  202f98: aa1403f5     	mov	x21, x20
+  202f9c: 9402f985     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  202fa0: aa0003f3     	mov	x19, x0
+  202fa4: d0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  202fa8: 910f4421     	add	x1, x1, #0x3d1
+  202fac: 9403001d     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  202fb0: f94016a8     	ldr	x8, [x21, #0x28]
+  202fb4: f85f83a9     	ldur	x9, [x29, #-0x8]
+  202fb8: eb09011f     	cmp	x8, x9
+  202fbc: 54000201     	b.ne	0x202ffc <SW::SAMSync::programManualMode()+0x14c>
+  202fc0: f00006a1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  202fc4: f00006a2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  202fc8: aa1303e0     	mov	x0, x19
+  202fcc: f9409c21     	ldr	x1, [x1, #0x138]
+  202fd0: f940a042     	ldr	x2, [x2, #0x140]
+  202fd4: 9402f97f     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  202fd8: aa0003f4     	mov	x20, x0
+  202fdc: aa1303e0     	mov	x0, x19
+  202fe0: 9402fc68     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  202fe4: f94016a8     	ldr	x8, [x21, #0x28]
+  202fe8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  202fec: eb09011f     	cmp	x8, x9
+  202ff0: 54000061     	b.ne	0x202ffc <SW::SAMSync::programManualMode()+0x14c>
+  202ff4: aa1403e0     	mov	x0, x20
+  202ff8: 9402e923     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  202ffc: 9402f86d     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000203064 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)>:
+  203064: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  203068: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  20306c: 910003fd     	mov	x29, sp
+  203070: aa0003f3     	mov	x19, x0
+  203074: f9404000     	ldr	x0, [x0, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  203078: aa0103f4     	mov	x20, x1
+  20307c: 52800401     	mov	w1, #0x20               // =32
+  203080: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  203084: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::EEPROMConverser::readInt8(unsigned short)
+  203088: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt8(unsigned short)  [x1=32(0x20)]
+  20308c: aa0003e8     	mov	x8, x0
+  203090: 34000088     	cbz	w8, 0x2030a0 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x3c>
+  203094: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  203098: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  20309c: d65f03c0     	ret
+  2030a0: f2601d1f     	tst	x8, #0xff00000000
+  2030a4: 54000ea0     	b.eq	0x203278 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x214>
+  2030a8: f2581d1f     	tst	x8, #0xff0000000000
+  2030ac: 54000dc0     	b.eq	0x203264 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x200>
+  2030b0: f9401260     	ldr	x0, [x19, #0x20]  ; this->m[0x20] : SW::SleepWaitable
+  2030b4: 52800c81     	mov	w1, #0x64               // =100
+  2030b8: f9400008     	ldr	x8, [x0]  ; vptr of SW::SleepWaitable
+  2030bc: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::SleepWaitable::wait(unsigned long)
+  2030c0: d63f0100     	blr	x8  ;;; CALL SW::SleepWaitable::wait(unsigned long)  [x1=100(0x64)]
+  2030c4: 360000a0     	tbz	w0, #0x0, 0x2030d8 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x74>
+  2030c8: 52800060     	mov	w0, #0x3                // =3
+  2030cc: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2030d0: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2030d4: d65f03c0     	ret
+  2030d8: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  2030dc: 52800401     	mov	w1, #0x20               // =32
+  2030e0: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  2030e4: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::EEPROMConverser::readInt8(unsigned short)
+  2030e8: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt8(unsigned short)  [x1=32(0x20)]
+  2030ec: 35fffd40     	cbnz	w0, 0x203094 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x30>
+  2030f0: f2601c1f     	tst	x0, #0xff00000000
+  2030f4: 54000c20     	b.eq	0x203278 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x214>
+  2030f8: f2581c1f     	tst	x0, #0xff0000000000
+  2030fc: 54000b40     	b.eq	0x203264 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x200>
+  203100: f9401260     	ldr	x0, [x19, #0x20]  ; this->m[0x20] : SW::SleepWaitable
+  203104: 52800c81     	mov	w1, #0x64               // =100
+  203108: f9400008     	ldr	x8, [x0]  ; vptr of SW::SleepWaitable
+  20310c: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::SleepWaitable::wait(unsigned long)
+  203110: d63f0100     	blr	x8  ;;; CALL SW::SleepWaitable::wait(unsigned long)  [x1=100(0x64)]
+  203114: 3707fda0     	tbnz	w0, #0x0, 0x2030c8 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x64>
+  203118: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  20311c: 52800401     	mov	w1, #0x20               // =32
+  203120: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  203124: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::EEPROMConverser::readInt8(unsigned short)
+  203128: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt8(unsigned short)  [x1=32(0x20)]
+  20312c: aa0003e8     	mov	x8, x0
+  203130: 35fffb28     	cbnz	w8, 0x203094 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x30>
+  203134: f2601d1f     	tst	x8, #0xff00000000
+  203138: 54000a00     	b.eq	0x203278 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x214>
+  20313c: f2581d1f     	tst	x8, #0xff0000000000
+  203140: 54000920     	b.eq	0x203264 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x200>
+  203144: f9401260     	ldr	x0, [x19, #0x20]  ; this->m[0x20] : SW::SleepWaitable
+  203148: 52800c81     	mov	w1, #0x64               // =100
+  20314c: f9400008     	ldr	x8, [x0]  ; vptr of SW::SleepWaitable
+  203150: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::SleepWaitable::wait(unsigned long)
+  203154: d63f0100     	blr	x8  ;;; CALL SW::SleepWaitable::wait(unsigned long)  [x1=100(0x64)]
+  203158: 3707fb80     	tbnz	w0, #0x0, 0x2030c8 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x64>
+  20315c: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  203160: 52800401     	mov	w1, #0x20               // =32
+  203164: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  203168: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::EEPROMConverser::readInt8(unsigned short)
+  20316c: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt8(unsigned short)  [x1=32(0x20)]
+  203170: aa0003e8     	mov	x8, x0
+  203174: 35fff908     	cbnz	w8, 0x203094 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x30>
+  203178: f2601d1f     	tst	x8, #0xff00000000
+  20317c: 540007e0     	b.eq	0x203278 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x214>
+  203180: f2581d1f     	tst	x8, #0xff0000000000
+  203184: 54000700     	b.eq	0x203264 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x200>
+  203188: f9401260     	ldr	x0, [x19, #0x20]  ; this->m[0x20] : SW::SleepWaitable
+  20318c: 52800c81     	mov	w1, #0x64               // =100
+  203190: f9400008     	ldr	x8, [x0]  ; vptr of SW::SleepWaitable
+  203194: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::SleepWaitable::wait(unsigned long)
+  203198: d63f0100     	blr	x8  ;;; CALL SW::SleepWaitable::wait(unsigned long)  [x1=100(0x64)]
+  20319c: 3707f960     	tbnz	w0, #0x0, 0x2030c8 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x64>
+  2031a0: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  2031a4: 52800401     	mov	w1, #0x20               // =32
+  2031a8: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  2031ac: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::EEPROMConverser::readInt8(unsigned short)
+  2031b0: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt8(unsigned short)  [x1=32(0x20)]
+  2031b4: aa0003e8     	mov	x8, x0
+  2031b8: 35fff6e8     	cbnz	w8, 0x203094 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x30>
+  2031bc: f2601d1f     	tst	x8, #0xff00000000
+  2031c0: 540005c0     	b.eq	0x203278 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x214>
+  2031c4: f2581d1f     	tst	x8, #0xff0000000000
+  2031c8: 540004e0     	b.eq	0x203264 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x200>
+  2031cc: f9401260     	ldr	x0, [x19, #0x20]  ; this->m[0x20] : SW::SleepWaitable
+  2031d0: 52800c81     	mov	w1, #0x64               // =100
+  2031d4: f9400008     	ldr	x8, [x0]  ; vptr of SW::SleepWaitable
+  2031d8: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::SleepWaitable::wait(unsigned long)
+  2031dc: d63f0100     	blr	x8  ;;; CALL SW::SleepWaitable::wait(unsigned long)  [x1=100(0x64)]
+  2031e0: 3707f740     	tbnz	w0, #0x0, 0x2030c8 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x64>
+  2031e4: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  2031e8: 52800401     	mov	w1, #0x20               // =32
+  2031ec: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  2031f0: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::EEPROMConverser::readInt8(unsigned short)
+  2031f4: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt8(unsigned short)  [x1=32(0x20)]
+  2031f8: aa0003e8     	mov	x8, x0
+  2031fc: 35fff4c8     	cbnz	w8, 0x203094 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x30>
+  203200: f2601d1f     	tst	x8, #0xff00000000
+  203204: 540003a0     	b.eq	0x203278 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x214>
+  203208: f2581d1f     	tst	x8, #0xff0000000000
+  20320c: 540002c0     	b.eq	0x203264 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x200>
+  203210: f9401260     	ldr	x0, [x19, #0x20]  ; this->m[0x20] : SW::SleepWaitable
+  203214: 52800c81     	mov	w1, #0x64               // =100
+  203218: f9400008     	ldr	x8, [x0]  ; vptr of SW::SleepWaitable
+  20321c: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::SleepWaitable::wait(unsigned long)
+  203220: d63f0100     	blr	x8  ;;; CALL SW::SleepWaitable::wait(unsigned long)  [x1=100(0x64)]
+  203224: 3707f520     	tbnz	w0, #0x0, 0x2030c8 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x64>
+  203228: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  20322c: 52800401     	mov	w1, #0x20               // =32
+  203230: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  203234: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::EEPROMConverser::readInt8(unsigned short)
+  203238: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt8(unsigned short)  [x1=32(0x20)]
+  20323c: aa0003e8     	mov	x8, x0
+  203240: 35fff2a8     	cbnz	w8, 0x203094 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x30>
+  203244: f2601d1f     	tst	x8, #0xff00000000
+  203248: 54000180     	b.eq	0x203278 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x214>
+  20324c: f2581d1f     	tst	x8, #0xff0000000000
+  203250: 540000a0     	b.eq	0x203264 <SW::SAMSync::programAutoMode(SW::SAMParamSet const&)+0x200>
+  203254: 52800080     	mov	w0, #0x4                // =4
+  203258: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  20325c: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  203260: d65f03c0     	ret
+  203264: aa1303e0     	mov	x0, x19
+  203268: aa1403e1     	mov	x1, x20
+  20326c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  203270: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  203274: 140300bb     	b	0x2c3560 <_ZN2SW7SAMSync27programAutoMode_writeParamsERKNS_11SAMParamSetE@plt>
+  203278: 52800200     	mov	w0, #0x10               // =16
+  20327c: 9402f8cd     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  203280: aa0003f3     	mov	x19, x0
+  203284: b0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  203288: 9135a421     	add	x1, x1, #0xd69
+  20328c: 9402ff65     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  203290: d00006a1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  203294: d00006a2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  203298: aa1303e0     	mov	x0, x19
+  20329c: f9409c21     	ldr	x1, [x1, #0x138]
+  2032a0: f940a042     	ldr	x2, [x2, #0x140]
+  2032a4: 9402f8cb     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  2032a8: aa0003f4     	mov	x20, x0
+  2032ac: aa1303e0     	mov	x0, x19
+  2032b0: 9402fbb4     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  2032b4: aa1403e0     	mov	x0, x20
+  2032b8: 9402e873     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+00000000002032bc <SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&)>:
+  2032bc: d10403ff     	sub	sp, sp, #0x100
+  2032c0: fd0063e8     	str	d8, [sp, #0xc0]
+  2032c4: a90d7bfd     	stp	x29, x30, [sp, #0xd0]
+  2032c8: a90e57f6     	stp	x22, x21, [sp, #0xe0]
+  2032cc: a90f4ff4     	stp	x20, x19, [sp, #0xf0]
+  2032d0: 910343fd     	add	x29, sp, #0xd0
+  2032d4: d53bd056     	mrs	x22, TPIDR_EL0
+  2032d8: aa0003f3     	mov	x19, x0
+  2032dc: aa0103f4     	mov	x20, x1
+  2032e0: f94016c8     	ldr	x8, [x22, #0x28]
+  2032e4: f81e83a8     	stur	x8, [x29, #-0x18]
+  2032e8: f9402000     	ldr	x0, [x0, #0x40]  ; this->m[0x40] : SW::SAMSettings
+  2032ec: f9404275     	ldr	x21, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  2032f0: f9400008     	ldr	x8, [x0]  ; vptr of SW::SAMSettings
+  2032f4: f9403108     	ldr	x8, [x8, #0x60]  ; -> SW::SAMSettings::wifiOffOnTaskStart()
+  2032f8: d63f0100     	blr	x8  ;;; CALL SW::SAMSettings::wifiOffOnTaskStart()
+  2032fc: f94002a8     	ldr	x8, [x21]  ; vptr of SW::EEPROMConverser
+  203300: 12000002     	and	w2, w0, #0x1
+  203304: aa1503e0     	mov	x0, x21
+  203308: 52800901     	mov	w1, #0x48               // =72
+  20330c: f9401508     	ldr	x8, [x8, #0x28]  ; -> SW::EEPROMConverser::writeInt8(unsigned short, signed char)
+  203310: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeInt8(unsigned short, signed char)  [x1=72(0x48)]
+  203314: 350003e0     	cbnz	w0, 0x203390 <SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&)+0xd4>
+  203318: f9400268     	ldr	x8, [x19]  ; vptr of SW::SAMSync
+  20331c: fd400a88     	ldr	d8, [x20, #0x10]
+  203320: aa1303e0     	mov	x0, x19
+  203324: f940a108     	ldr	x8, [x8, #0x140]  ; -> SW::SAMSync::hasShutterIntervalInMs()
+  203328: d63f0100     	blr	x8  ;;; CALL SW::SAMSync::hasShutterIntervalInMs()
+  20332c: d2c80008     	mov	x8, #0x400000000000     // =70368744177664
+  203330: 1e6e1000     	fmov	d0, #1.00000000
+  203334: 7200001f     	tst	w0, #0x1
+  203338: f2e811e8     	movk	x8, #0x408f, lsl #48
+  20333c: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  203340: 52800601     	mov	w1, #0x30               // =48
+  203344: 9e670101     	fmov	d1, x8
+  203348: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  20334c: 1e601c20     	fcsel	d0, d1, d0, ne
+  203350: f9401908     	ldr	x8, [x8, #0x30]  ; -> SW::EEPROMConverser::writeInt32(unsigned short, int)
+  203354: 1e600900     	fmul	d0, d8, d0
+  203358: 1e640002     	fcvtas	w2, d0
+  20335c: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeInt32(unsigned short, int)  [x1=48(0x30)]
+  203360: 35000180     	cbnz	w0, 0x203390 <SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&)+0xd4>
+  203364: d2e80b28     	mov	x8, #0x4059000000000000 // =4636737291354636288
+  203368: fd401a80     	ldr	d0, [x20, #0x30]
+  20336c: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  203370: 9e670101     	fmov	d1, x8
+  203374: 52800801     	mov	w1, #0x40               // =64
+  203378: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  20337c: 1e610800     	fmul	d0, d0, d1
+  203380: f9401908     	ldr	x8, [x8, #0x30]  ; -> SW::EEPROMConverser::writeInt32(unsigned short, int)
+  203384: 1e640002     	fcvtas	w2, d0
+  203388: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeInt32(unsigned short, int)  [x1=64(0x40)]
+  20338c: 34000160     	cbz	w0, 0x2033b8 <SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&)+0xfc>
+  203390: f94016c8     	ldr	x8, [x22, #0x28]
+  203394: f85e83a9     	ldur	x9, [x29, #-0x18]
+  203398: eb09011f     	cmp	x8, x9
+  20339c: 54001721     	b.ne	0x203680 <SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&)+0x3c4>
+  2033a0: a94f4ff4     	ldp	x20, x19, [sp, #0xf0]
+  2033a4: fd4063e8     	ldr	d8, [sp, #0xc0]
+  2033a8: a94e57f6     	ldp	x22, x21, [sp, #0xe0]
+  2033ac: a94d7bfd     	ldp	x29, x30, [sp, #0xd0]
+  2033b0: 910403ff     	add	sp, sp, #0x100
+  2033b4: d65f03c0     	ret
+  2033b8: 39410288     	ldrb	w8, [x20, #0x40]
+  2033bc: 34000168     	cbz	w8, 0x2033e8 <SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&)+0x12c>
+  2033c0: fd402680     	ldr	d0, [x20, #0x48]
+  2033c4: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  2033c8: 52800781     	mov	w1, #0x3c               // =60
+  2033cc: 1e640002     	fcvtas	w2, d0
+  2033d0: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  2033d4: f9401908     	ldr	x8, [x8, #0x30]  ; -> SW::EEPROMConverser::writeInt32(unsigned short, int)
+  2033d8: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeInt32(unsigned short, int)  [x1=60(0x3c)]
+  2033dc: 35fffda0     	cbnz	w0, 0x203390 <SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&)+0xd4>
+  2033e0: 39410282     	ldrb	w2, [x20, #0x40]
+  2033e4: 14000002     	b	0x2033ec <SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&)+0x130>
+  2033e8: 2a1f03e2     	mov	w2, wzr
+  2033ec: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  2033f0: 52800701     	mov	w1, #0x38               // =56
+  2033f4: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  2033f8: f9401508     	ldr	x8, [x8, #0x28]  ; -> SW::EEPROMConverser::writeInt8(unsigned short, signed char)
+  2033fc: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeInt8(unsigned short, signed char)  [x1=56(0x38)]
+  203400: 35fffc80     	cbnz	w0, 0x203390 <SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&)+0xd4>
+  203404: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  203408: 39401289     	ldrb	w9, [x20, #0x4]
+  20340c: 52800501     	mov	w1, #0x28               // =40
+  203410: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  203414: 52000122     	eor	w2, w9, #0x1
+  203418: f9401508     	ldr	x8, [x8, #0x28]  ; -> SW::EEPROMConverser::writeInt8(unsigned short, signed char)
+  20341c: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeInt8(unsigned short, signed char)  [x1=40(0x28)]
+  203420: 35fffb80     	cbnz	w0, 0x203390 <SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&)+0xd4>
+  203424: d2d00008     	mov	x8, #0x800000000000     // =140737488355328
+  203428: fd401e80     	ldr	d0, [x20, #0x38]
+  20342c: f9403260     	ldr	x0, [x19, #0x60]  ; this->m[0x60] : SW::SwDevice
+  203430: f2e80cc8     	movk	x8, #0x4066, lsl #48
+  203434: 2a1f03e1     	mov	w1, wzr
+  203438: 9e670101     	fmov	d1, x8
+  20343c: f0fff628     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  203440: fd474108     	ldr	d8, [x8, #0xe80]
+  203444: f9400008     	ldr	x8, [x0]  ; vptr of SW::SwDevice
+  203448: 1e611800     	fdiv	d0, d0, d1
+  20344c: f9405108     	ldr	x8, [x8, #0xa0]  ; -> SW::SwDevice::rpsToStride(SW::AXISID, double)
+  203450: 1e680800     	fmul	d0, d0, d8
+  203454: d63f0100     	blr	x8  ;;; CALL SW::SwDevice::rpsToStride(SW::AXISID, double)
+  203458: f9404268     	ldr	x8, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  20345c: 2a0003e2     	mov	w2, w0
+  203460: 52800481     	mov	w1, #0x24               // =36
+  203464: f9400109     	ldr	x9, [x8]  ; vptr of SW::EEPROMConverser
+  203468: aa0803e0     	mov	x0, x8
+  20346c: f9401929     	ldr	x9, [x9, #0x30]  ; -> SW::EEPROMConverser::writeInt32(unsigned short, int)
+  203470: d63f0120     	blr	x9  ;;; CALL SW::EEPROMConverser::writeInt32(unsigned short, int)  [x1=36(0x24)]
+  203474: 35fff8e0     	cbnz	w0, 0x203390 <SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&)+0xd4>
+  203478: 1e649000     	fmov	d0, #10.00000000
+  20347c: fd401681     	ldr	d1, [x20, #0x28]
+  203480: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  203484: 52800581     	mov	w1, #0x2c               // =44
+  203488: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  20348c: 1e600820     	fmul	d0, d1, d0
+  203490: f9401908     	ldr	x8, [x8, #0x30]  ; -> SW::EEPROMConverser::writeInt32(unsigned short, int)
+  203494: 1e640002     	fcvtas	w2, d0
+  203498: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeInt32(unsigned short, int)  [x1=44(0x2c)]
+  20349c: 35fff7a0     	cbnz	w0, 0x203390 <SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&)+0xd4>
+  2034a0: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  2034a4: b9401a82     	ldr	w2, [x20, #0x18]
+  2034a8: 52800681     	mov	w1, #0x34               // =52
+  2034ac: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  2034b0: f9401908     	ldr	x8, [x8, #0x30]  ; -> SW::EEPROMConverser::writeInt32(unsigned short, int)
+  2034b4: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeInt32(unsigned short, int)  [x1=52(0x34)]
+  2034b8: 35fff6c0     	cbnz	w0, 0x203390 <SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&)+0xd4>
+  2034bc: d2d00008     	mov	x8, #0x800000000000     // =140737488355328
+  2034c0: fd401280     	ldr	d0, [x20, #0x20]
+  2034c4: f9403260     	ldr	x0, [x19, #0x60]  ; this->m[0x60] : SW::SwDevice
+  2034c8: f2e80cc8     	movk	x8, #0x4066, lsl #48
+  2034cc: 2a1f03e1     	mov	w1, wzr
+  2034d0: 9e670101     	fmov	d1, x8
+  2034d4: f9400008     	ldr	x8, [x0]  ; vptr of SW::SwDevice
+  2034d8: f9403d08     	ldr	x8, [x8, #0x78]  ; -> SW::SwDevice::radToStep(SW::AXISID, double)
+  2034dc: 1e611800     	fdiv	d0, d0, d1
+  2034e0: 1e680800     	fmul	d0, d0, d8
+  2034e4: d63f0100     	blr	x8  ;;; CALL SW::SwDevice::radToStep(SW::AXISID, double)
+  2034e8: f9404268     	ldr	x8, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  2034ec: 2a0003e2     	mov	w2, w0
+  2034f0: 52800881     	mov	w1, #0x44               // =68
+  2034f4: f9400109     	ldr	x9, [x8]  ; vptr of SW::EEPROMConverser
+  2034f8: aa0803e0     	mov	x0, x8
+  2034fc: f9401929     	ldr	x9, [x9, #0x30]  ; -> SW::EEPROMConverser::writeInt32(unsigned short, int)
+  203500: d63f0120     	blr	x9  ;;; CALL SW::EEPROMConverser::writeInt32(unsigned short, int)  [x1=68(0x44)]
+  203504: 35fff460     	cbnz	w0, 0x203390 <SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&)+0xd4>
+  203508: f9400268     	ldr	x8, [x19]  ; vptr of SW::SAMSync
+  20350c: aa1303e0     	mov	x0, x19
+  203510: f9409d08     	ldr	x8, [x8, #0x138]  ; -> SW::SAMSync::hasDithering()
+  203514: d63f0100     	blr	x8  ;;; CALL SW::SAMSync::hasDithering()
+  203518: 360003a0     	tbz	w0, #0x0, 0x20358c <SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&)+0x2d0>
+  20351c: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  203520: 39414282     	ldrb	w2, [x20, #0x50]
+  203524: 52803401     	mov	w1, #0x1a0              // =416
+  203528: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  20352c: f9401508     	ldr	x8, [x8, #0x28]  ; -> SW::EEPROMConverser::writeInt8(unsigned short, signed char)
+  203530: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeInt8(unsigned short, signed char)  [x1=416(0x1a0)]
+  203534: 35fff2e0     	cbnz	w0, 0x203390 <SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&)+0xd4>
+  203538: 39414288     	ldrb	w8, [x20, #0x50]
+  20353c: 34000288     	cbz	w8, 0x20358c <SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&)+0x2d0>
+  203540: d2d00008     	mov	x8, #0x800000000000     // =140737488355328
+  203544: fd402e80     	ldr	d0, [x20, #0x58]
+  203548: f9403260     	ldr	x0, [x19, #0x60]  ; this->m[0x60] : SW::SwDevice
+  20354c: f2e80cc8     	movk	x8, #0x4066, lsl #48
+  203550: 2a1f03e1     	mov	w1, wzr
+  203554: 9e670101     	fmov	d1, x8
+  203558: f9400008     	ldr	x8, [x0]  ; vptr of SW::SwDevice
+  20355c: f9403d08     	ldr	x8, [x8, #0x78]  ; -> SW::SwDevice::radToStep(SW::AXISID, double)
+  203560: 1e611800     	fdiv	d0, d0, d1
+  203564: 1e680800     	fmul	d0, d0, d8
+  203568: d63f0100     	blr	x8  ;;; CALL SW::SwDevice::radToStep(SW::AXISID, double)
+  20356c: f9404268     	ldr	x8, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  203570: 2a0003e2     	mov	w2, w0
+  203574: 52803701     	mov	w1, #0x1b8              // =440
+  203578: f9400109     	ldr	x9, [x8]  ; vptr of SW::EEPROMConverser
+  20357c: aa0803e0     	mov	x0, x8
+  203580: f9401929     	ldr	x9, [x9, #0x30]  ; -> SW::EEPROMConverser::writeInt32(unsigned short, int)
+  203584: d63f0120     	blr	x9  ;;; CALL SW::EEPROMConverser::writeInt32(unsigned short, int)  [x1=440(0x1b8)]
+  203588: 35fff040     	cbnz	w0, 0x203390 <SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&)+0xd4>
+  20358c: f9400a60     	ldr	x0, [x19, #0x10]  ; this->m[0x10] : SW::CRealClock
+  203590: f9400008     	ldr	x8, [x0]  ; vptr of SW::CRealClock
+  203594: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::CRealClock::unixMs()
+  203598: d63f0100     	blr	x8  ;;; CALL SW::CRealClock::unixMs()
+  20359c: ad400680     	ldp	q0, q1, [x20]
+  2035a0: aa0003e2     	mov	x2, x0
+  2035a4: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  2035a8: b9002be2     	str	w2, [sp, #0x28]
+  2035ac: 52800981     	mov	w1, #0x4c               // =76
+  2035b0: ad0187e0     	stp	q0, q1, [sp, #0x30]
+  2035b4: ad420281     	ldp	q1, q0, [x20, #0x40]
+  2035b8: ad0383e1     	stp	q1, q0, [sp, #0x70]
+  2035bc: ad410281     	ldp	q1, q0, [x20, #0x20]
+  2035c0: ad0283e1     	stp	q1, q0, [sp, #0x50]
+  2035c4: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  2035c8: f9401908     	ldr	x8, [x8, #0x30]  ; -> SW::EEPROMConverser::writeInt32(unsigned short, int)
+  2035cc: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeInt32(unsigned short, int)  [x1=76(0x4c)]
+  2035d0: 35ffee00     	cbnz	w0, 0x203390 <SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&)+0xd4>
+  2035d4: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  2035d8: b9400282     	ldr	w2, [x20]
+  2035dc: 52800401     	mov	w1, #0x20               // =32
+  2035e0: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  2035e4: f9401508     	ldr	x8, [x8, #0x28]  ; -> SW::EEPROMConverser::writeInt8(unsigned short, signed char)
+  2035e8: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeInt8(unsigned short, signed char)  [x1=32(0x20)]
+  2035ec: 35ffed20     	cbnz	w0, 0x203390 <SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&)+0xd4>
+  2035f0: f9401a60     	ldr	x0, [x19, #0x30]  ; this->m[0x30] : SW::SAMTaskState
+  2035f4: f9400008     	ldr	x8, [x0]  ; vptr of SW::SAMTaskState
+  2035f8: f9403109     	ldr	x9, [x8, #0x60]  ; -> SW::SAMTaskState::status()
+  2035fc: d10103a8     	sub	x8, x29, #0x40
+  203600: d63f0120     	blr	x9  ;;; CALL SW::SAMTaskState::status()
+  203604: 385e03a8     	ldurb	w8, [x29, #-0x20]
+  203608: 340002e8     	cbz	w8, 0x203664 <SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&)+0x3a8>
+  20360c: f9401a60     	ldr	x0, [x19, #0x30]  ; this->m[0x30] : SW::SAMTaskState
+  203610: f9400008     	ldr	x8, [x0]  ; vptr of SW::SAMTaskState
+  203614: f9403109     	ldr	x9, [x8, #0x60]  ; -> SW::SAMTaskState::status()
+  203618: d10103a8     	sub	x8, x29, #0x40
+  20361c: d63f0120     	blr	x9  ;;; CALL SW::SAMTaskState::status()
+  203620: d10103a0     	sub	x0, x29, #0x40
+  203624: 9402ffcb     	bl	0x2c3550 <_ZN2SW8NullableINS_9SAMStatusEEdeEv@plt>  ;;; CALL SW::Nullable<SW::SAMStatus>::operator*()
+  203628: ad400400     	ldp	q0, q1, [x0]
+  20362c: b9400288     	ldr	w8, [x20]
+  203630: f9400a60     	ldr	x0, [x19, #0x10]  ; this->m[0x10] : SW::CRealClock
+  203634: ad0007e0     	stp	q0, q1, [sp]
+  203638: 29017fe8     	stp	w8, wzr, [sp, #0x8]
+  20363c: f9400008     	ldr	x8, [x0]  ; vptr of SW::CRealClock
+  203640: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::CRealClock::unixMs()
+  203644: d63f0100     	blr	x8  ;;; CALL SW::CRealClock::unixMs()
+  203648: f9401a68     	ldr	x8, [x19, #0x30]  ; this->m[0x30] : SW::SAMTaskState
+  20364c: f90003e0     	str	x0, [sp]
+  203650: 910003e1     	mov	x1, sp
+  203654: f9400109     	ldr	x9, [x8]  ; vptr of SW::SAMTaskState
+  203658: aa0803e0     	mov	x0, x8
+  20365c: f9404529     	ldr	x9, [x9, #0x88]  ; -> SW::SAMTaskState::setStatus(SW::SAMStatus const&)
+  203660: d63f0120     	blr	x9  ;;; CALL SW::SAMTaskState::setStatus(SW::SAMStatus const&)
+  203664: f9401a60     	ldr	x0, [x19, #0x30]  ; this->m[0x30] : SW::SAMTaskState
+  203668: 9100a3e1     	add	x1, sp, #0x28
+  20366c: f9400008     	ldr	x8, [x0]  ; vptr of SW::SAMTaskState
+  203670: f9404908     	ldr	x8, [x8, #0x90]  ; -> SW::SAMTaskState::setReadParamSet(SW::ReadSAMParamSet const&)
+  203674: d63f0100     	blr	x8  ;;; CALL SW::SAMTaskState::setReadParamSet(SW::ReadSAMParamSet const&)
+  203678: 2a1f03e0     	mov	w0, wzr
+  20367c: 17ffff45     	b	0x203390 <SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&)+0xd4>
+  203680: 9402f6cc     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000203684 <SW::SAMSync::deviceName()>:
+  203684: aa0003e9     	mov	x9, x0
+  203688: 38490d2a     	ldrb	w10, [x9, #0x90]!
+  20368c: 370000ca     	tbnz	w10, #0x0, 0x2036a4 <SW::SAMSync::deviceName()+0x20>
+  203690: 3dc00120     	ldr	q0, [x9]
+  203694: f9400929     	ldr	x9, [x9, #0x10]  ; this->m[0x10] : SW::CRealClock
+  203698: 3d800100     	str	q0, [x8]
+  20369c: f9000909     	str	x9, [x8, #0x10]
+  2036a0: d65f03c0     	ret
+  2036a4: a9498402     	ldp	x2, x1, [x0, #0x98]
+  2036a8: aa0803e0     	mov	x0, x8
+  2036ac: 1402fabd     	b	0x2c21a0 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE25__init_copy_ctor_externalEPKcm@plt>
+
+00000000002036b0 <SW::SAMSync::readDeviceName()>:
+  2036b0: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  2036b4: f9000bf5     	str	x21, [sp, #0x10]
+  2036b8: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  2036bc: 910003fd     	mov	x29, sp
+  2036c0: aa0003f4     	mov	x20, x0
+  2036c4: f9404000     	ldr	x0, [x0, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  2036c8: 52801201     	mov	w1, #0x90               // =144
+  2036cc: 52800402     	mov	w2, #0x20               // =32
+  2036d0: aa0803f3     	mov	x19, x8
+  2036d4: f9400009     	ldr	x9, [x0]  ; vptr of SW::EEPROMConverser
+  2036d8: f9401d29     	ldr	x9, [x9, #0x38]  ; -> SW::EEPROMConverser::readString(unsigned short, unsigned int)
+  2036dc: d63f0120     	blr	x9  ;;; CALL SW::EEPROMConverser::readString(unsigned short, unsigned int)  [x1=144(0x90), x2=32(0x20)]
+  2036e0: b9400268     	ldr	w8, [x19]
+  2036e4: 35000108     	cbnz	w8, 0x203704 <SW::SAMSync::readDeviceName()+0x54>
+  2036e8: 39401268     	ldrb	w8, [x19, #0x4]
+  2036ec: 36000148     	tbz	w8, #0x0, 0x203714 <SW::SAMSync::readDeviceName()+0x64>
+  2036f0: 91024280     	add	x0, x20, #0x90
+  2036f4: 91002261     	add	x1, x19, #0x8
+  2036f8: 9402ff9e     	bl	0x2c3570 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEaSERKS5_@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::operator=(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  2036fc: aa1403e0     	mov	x0, x20
+  203700: 9402fc78     	bl	0x2c28e0 <_ZN2SW8ISAMSync15propertyChangedEv@plt>  ;;; CALL SW::ISAMSync::propertyChanged()
+  203704: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  203708: f9400bf5     	ldr	x21, [sp, #0x10]
+  20370c: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  203710: d65f03c0     	ret
+  203714: 52800200     	mov	w0, #0x10               // =16
+  203718: 9402f7a6     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  20371c: aa0003f5     	mov	x21, x0
+  203720: b0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  203724: 9135a421     	add	x1, x1, #0xd69
+  203728: 9402fe3e     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  20372c: d00006a1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  203730: d00006a2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  203734: aa1503e0     	mov	x0, x21
+  203738: f9409c21     	ldr	x1, [x1, #0x138]
+  20373c: f940a042     	ldr	x2, [x2, #0x140]
+  203740: 9402f7a4     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  203744: aa0003f4     	mov	x20, x0
+  203748: aa1503e0     	mov	x0, x21
+  20374c: 9402fa8d     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  203750: 14000002     	b	0x203758 <SW::SAMSync::readDeviceName()+0xa8>
+  203754: aa0003f4     	mov	x20, x0
+  203758: 39402268     	ldrb	w8, [x19, #0x8]
+  20375c: 36000068     	tbz	w8, #0x0, 0x203768 <SW::SAMSync::readDeviceName()+0xb8>
+  203760: f9400e60     	ldr	x0, [x19, #0x18]
+  203764: 9402f70b     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  203768: aa1403e0     	mov	x0, x20
+  20376c: 9402e746     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+00000000002037d8 <SW::SAMSync::readWifiSettings()>:
+  2037d8: d10443ff     	sub	sp, sp, #0x110
+  2037dc: a90d7bfd     	stp	x29, x30, [sp, #0xd0]
+  2037e0: a90e5ffc     	stp	x28, x23, [sp, #0xe0]
+  2037e4: a90f57f6     	stp	x22, x21, [sp, #0xf0]
+  2037e8: a9104ff4     	stp	x20, x19, [sp, #0x100]
+  2037ec: 910343fd     	add	x29, sp, #0xd0
+  2037f0: d53bd055     	mrs	x21, TPIDR_EL0
+  2037f4: 6f00e400     	movi	v0.2d, #0000000000000000
+  2037f8: aa0003f4     	mov	x20, x0
+  2037fc: f94016a9     	ldr	x9, [x21, #0x28]
+  203800: 5280004a     	mov	w10, #0x2               // =2
+  203804: 910103f7     	add	x23, sp, #0x40
+  203808: aa0803f3     	mov	x19, x8
+  20380c: f81f83a9     	stur	x9, [x29, #-0x8]
+  203810: 52800089     	mov	w9, #0x4                // =4
+  203814: f9404000     	ldr	x0, [x0, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  203818: b90043ea     	str	w10, [sp, #0x40]
+  20381c: 3c8483e0     	stur	q0, [sp, #0x48]
+  203820: 3c8583e0     	stur	q0, [sp, #0x58]
+  203824: 3c8683e0     	stur	q0, [sp, #0x68]
+  203828: 3c8783e0     	stur	q0, [sp, #0x78]
+  20382c: 3c8482e0     	stur	q0, [x23, #0x48]
+  203830: 3c8582e0     	stur	q0, [x23, #0x58]
+  203834: 3c8682e0     	stur	q0, [x23, #0x68]
+  203838: 3c8742e0     	stur	q0, [x23, #0x74]
+  20383c: b90023e9     	str	w9, [sp, #0x20]
+  203840: 390093ff     	strb	wzr, [sp, #0x24]
+  203844: a9037fff     	stp	xzr, xzr, [sp, #0x30]
+  203848: f90017ff     	str	xzr, [sp, #0x28]
+  20384c: f9400009     	ldr	x9, [x0]  ; vptr of SW::EEPROMConverser
+  203850: f9400929     	ldr	x9, [x9, #0x10]  ; -> SW::EEPROMConverser::readInt8(unsigned short)
+  203854: 52801101     	mov	w1, #0x88               // =136
+  203858: d63f0120     	blr	x9  ;;; CALL SW::EEPROMConverser::readInt8(unsigned short)  [x1=136(0x88)]
+  20385c: 35000180     	cbnz	w0, 0x20388c <SW::SAMSync::readWifiSettings()+0xb4>
+  203860: f2601c1f     	tst	x0, #0xff00000000
+  203864: 54001bc0     	b.eq	0x203bdc <SW::SAMSync::readWifiSettings()+0x404>
+  203868: d350fc08     	lsr	x8, x0, #16
+  20386c: f9404280     	ldr	x0, [x20, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  203870: 13187d08     	asr	w8, w8, #24
+  203874: b90043e8     	str	w8, [sp, #0x40]
+  203878: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  20387c: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::EEPROMConverser::readInt8(unsigned short)
+  203880: 52801181     	mov	w1, #0x8c               // =140
+  203884: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt8(unsigned short)  [x1=140(0x8c)]
+  203888: 34000780     	cbz	w0, 0x203978 <SW::SAMSync::readWifiSettings()+0x1a0>
+  20388c: 6f00e400     	movi	v0.2d, #0000000000000000
+  203890: b9000260     	str	w0, [x19]
+  203894: 52800048     	mov	w8, #0x2                // =2
+  203898: 3900127f     	strb	wzr, [x19, #0x4]
+  20389c: b9000a68     	str	w8, [x19, #0x8]
+  2038a0: ad008260     	stp	q0, q0, [x19, #0x10]
+  2038a4: ad018260     	stp	q0, q0, [x19, #0x30]
+  2038a8: ad028260     	stp	q0, q0, [x19, #0x50]
+  2038ac: 3d801e60     	str	q0, [x19, #0x70]
+  2038b0: 3c87c260     	stur	q0, [x19, #0x7c]
+  2038b4: 3940a3e8     	ldrb	w8, [sp, #0x28]
+  2038b8: 37000208     	tbnz	w8, #0x0, 0x2038f8 <SW::SAMSync::readWifiSettings()+0x120>
+  2038bc: 3942a3e8     	ldrb	w8, [sp, #0xa8]
+  2038c0: 37000248     	tbnz	w8, #0x0, 0x203908 <SW::SAMSync::readWifiSettings()+0x130>
+  2038c4: 394243e8     	ldrb	w8, [sp, #0x90]
+  2038c8: 37000288     	tbnz	w8, #0x0, 0x203918 <SW::SAMSync::readWifiSettings()+0x140>
+  2038cc: 3941e3e8     	ldrb	w8, [sp, #0x78]
+  2038d0: 370002c8     	tbnz	w8, #0x0, 0x203928 <SW::SAMSync::readWifiSettings()+0x150>
+  2038d4: 394183e8     	ldrb	w8, [sp, #0x60]
+  2038d8: 37000308     	tbnz	w8, #0x0, 0x203938 <SW::SAMSync::readWifiSettings()+0x160>
+  2038dc: 394123e8     	ldrb	w8, [sp, #0x48]
+  2038e0: 37000348     	tbnz	w8, #0x0, 0x203948 <SW::SAMSync::readWifiSettings()+0x170>
+  2038e4: f94016a8     	ldr	x8, [x21, #0x28]
+  2038e8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2038ec: eb09011f     	cmp	x8, x9
+  2038f0: 54000380     	b.eq	0x203960 <SW::SAMSync::readWifiSettings()+0x188>
+  2038f4: 14000102     	b	0x203cfc <SW::SAMSync::readWifiSettings()+0x524>
+  2038f8: f9401fe0     	ldr	x0, [sp, #0x38]
+  2038fc: 9402f6a5     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  203900: 3942a3e8     	ldrb	w8, [sp, #0xa8]
+  203904: 3607fe08     	tbz	w8, #0x0, 0x2038c4 <SW::SAMSync::readWifiSettings()+0xec>
+  203908: f9405fe0     	ldr	x0, [sp, #0xb8]
+  20390c: 9402f6a1     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  203910: 394243e8     	ldrb	w8, [sp, #0x90]
+  203914: 3607fdc8     	tbz	w8, #0x0, 0x2038cc <SW::SAMSync::readWifiSettings()+0xf4>
+  203918: f94053e0     	ldr	x0, [sp, #0xa0]
+  20391c: 9402f69d     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  203920: 3941e3e8     	ldrb	w8, [sp, #0x78]
+  203924: 3607fd88     	tbz	w8, #0x0, 0x2038d4 <SW::SAMSync::readWifiSettings()+0xfc>
+  203928: f94047e0     	ldr	x0, [sp, #0x88]
+  20392c: 9402f699     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  203930: 394183e8     	ldrb	w8, [sp, #0x60]
+  203934: 3607fd48     	tbz	w8, #0x0, 0x2038dc <SW::SAMSync::readWifiSettings()+0x104>
+  203938: f9403be0     	ldr	x0, [sp, #0x70]
+  20393c: 9402f695     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  203940: 394123e8     	ldrb	w8, [sp, #0x48]
+  203944: 3607fd08     	tbz	w8, #0x0, 0x2038e4 <SW::SAMSync::readWifiSettings()+0x10c>
+  203948: f9402fe0     	ldr	x0, [sp, #0x58]
+  20394c: 9402f691     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  203950: f94016a8     	ldr	x8, [x21, #0x28]
+  203954: f85f83a9     	ldur	x9, [x29, #-0x8]
+  203958: eb09011f     	cmp	x8, x9
+  20395c: 54001d01     	b.ne	0x203cfc <SW::SAMSync::readWifiSettings()+0x524>
+  203960: a9504ff4     	ldp	x20, x19, [sp, #0x100]
+  203964: a94f57f6     	ldp	x22, x21, [sp, #0xf0]
+  203968: a94e5ffc     	ldp	x28, x23, [sp, #0xe0]
+  20396c: a94d7bfd     	ldp	x29, x30, [sp, #0xd0]
+  203970: 910443ff     	add	sp, sp, #0x110
+  203974: d65f03c0     	ret
+  203978: f2601c1f     	tst	x0, #0xff00000000
+  20397c: 540013e0     	b.eq	0x203bf8 <SW::SAMSync::readWifiSettings()+0x420>
+  203980: d350fc08     	lsr	x8, x0, #16
+  203984: f9404280     	ldr	x0, [x20, #0x80]
+  203988: 13187d08     	asr	w8, w8, #24
+  20398c: b900c3e8     	str	w8, [sp, #0xc0]
+  203990: f9400008     	ldr	x8, [x0]
+  203994: f9401d09     	ldr	x9, [x8, #0x38]
+  203998: 910003e8     	mov	x8, sp
+  20399c: 52801201     	mov	w1, #0x90               // =144
+  2039a0: 52800402     	mov	w2, #0x20               // =32
+  2039a4: d63f0120     	blr	x9  ;;; CALL <indirect x9>  [x1=144(0x90), x2=32(0x20)]
+  2039a8: b94003e8     	ldr	w8, [sp]
+  2039ac: 394013e9     	ldrb	w9, [sp, #0x4]
+  2039b0: 910083f6     	add	x22, sp, #0x20
+  2039b4: 3940a3ea     	ldrb	w10, [sp, #0x28]
+  2039b8: b90023e8     	str	w8, [sp, #0x20]
+  2039bc: 390093e9     	strb	w9, [sp, #0x24]
+  2039c0: 3600006a     	tbz	w10, #0x0, 0x2039cc <SW::SAMSync::readWifiSettings()+0x1f4>
+  2039c4: f9401fe0     	ldr	x0, [sp, #0x38]
+  2039c8: 9402f672     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2039cc: 3cc083e0     	ldur	q0, [sp, #0x8]
+  2039d0: f9400fe9     	ldr	x9, [sp, #0x18]
+  2039d4: b94023e8     	ldr	w8, [sp, #0x20]
+  2039d8: 3c8082c0     	stur	q0, [x22, #0x8]
+  2039dc: f80182c9     	stur	x9, [x22, #0x18]
+  2039e0: 350006c8     	cbnz	w8, 0x203ab8 <SW::SAMSync::readWifiSettings()+0x2e0>
+  2039e4: 394093e8     	ldrb	w8, [sp, #0x24]
+  2039e8: 36001168     	tbz	w8, #0x0, 0x203c14 <SW::SAMSync::readWifiSettings()+0x43c>
+  2039ec: 910022e0     	add	x0, x23, #0x8
+  2039f0: 910022c1     	add	x1, x22, #0x8
+  2039f4: 9402fedf     	bl	0x2c3570 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEaSERKS5_@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::operator=(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  2039f8: f9404280     	ldr	x0, [x20, #0x80]
+  2039fc: f9400008     	ldr	x8, [x0]
+  203a00: f9401d09     	ldr	x9, [x8, #0x38]
+  203a04: 910003e8     	mov	x8, sp
+  203a08: 52801601     	mov	w1, #0xb0               // =176
+  203a0c: 528007e2     	mov	w2, #0x3f               // =63
+  203a10: d63f0120     	blr	x9  ;;; CALL <indirect x9>  [x1=176(0xb0), x2=63(0x3f)]
+  203a14: b94003e8     	ldr	w8, [sp]
+  203a18: 394013e9     	ldrb	w9, [sp, #0x4]
+  203a1c: 3940a3ea     	ldrb	w10, [sp, #0x28]
+  203a20: b90023e8     	str	w8, [sp, #0x20]
+  203a24: 390093e9     	strb	w9, [sp, #0x24]
+  203a28: 3600006a     	tbz	w10, #0x0, 0x203a34 <SW::SAMSync::readWifiSettings()+0x25c>
+  203a2c: f9401fe0     	ldr	x0, [sp, #0x38]
+  203a30: 9402f658     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  203a34: 3cc083e0     	ldur	q0, [sp, #0x8]
+  203a38: f9400fe9     	ldr	x9, [sp, #0x18]
+  203a3c: b94023e8     	ldr	w8, [sp, #0x20]
+  203a40: 3c8082c0     	stur	q0, [x22, #0x8]
+  203a44: f80182c9     	stur	x9, [x22, #0x18]
+  203a48: 35000388     	cbnz	w8, 0x203ab8 <SW::SAMSync::readWifiSettings()+0x2e0>
+  203a4c: 394093e8     	ldrb	w8, [sp, #0x24]
+  203a50: 36000f08     	tbz	w8, #0x0, 0x203c30 <SW::SAMSync::readWifiSettings()+0x458>
+  203a54: 910103e8     	add	x8, sp, #0x40
+  203a58: 91008100     	add	x0, x8, #0x20
+  203a5c: 910022c1     	add	x1, x22, #0x8
+  203a60: 9402fec4     	bl	0x2c3570 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEaSERKS5_@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::operator=(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  203a64: f9404280     	ldr	x0, [x20, #0x80]
+  203a68: f9400008     	ldr	x8, [x0]
+  203a6c: f9401d09     	ldr	x9, [x8, #0x38]
+  203a70: 910003e8     	mov	x8, sp
+  203a74: 52801e01     	mov	w1, #0xf0               // =240
+  203a78: 52800402     	mov	w2, #0x20               // =32
+  203a7c: d63f0120     	blr	x9  ;;; CALL <indirect x9>  [x1=240(0xf0), x2=32(0x20)]
+  203a80: b94003e8     	ldr	w8, [sp]
+  203a84: 394013e9     	ldrb	w9, [sp, #0x4]
+  203a88: 3940a3ea     	ldrb	w10, [sp, #0x28]
+  203a8c: b90023e8     	str	w8, [sp, #0x20]
+  203a90: 390093e9     	strb	w9, [sp, #0x24]
+  203a94: 3600006a     	tbz	w10, #0x0, 0x203aa0 <SW::SAMSync::readWifiSettings()+0x2c8>
+  203a98: f9401fe0     	ldr	x0, [sp, #0x38]
+  203a9c: 9402f63d     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  203aa0: 3cc083e0     	ldur	q0, [sp, #0x8]
+  203aa4: f9400fe9     	ldr	x9, [sp, #0x18]
+  203aa8: b94023e8     	ldr	w8, [sp, #0x20]
+  203aac: 3c8082c0     	stur	q0, [x22, #0x8]
+  203ab0: f80182c9     	stur	x9, [x22, #0x18]
+  203ab4: 34000088     	cbz	w8, 0x203ac4 <SW::SAMSync::readWifiSettings()+0x2ec>
+  203ab8: 6f00e400     	movi	v0.2d, #0000000000000000
+  203abc: b9000268     	str	w8, [x19]
+  203ac0: 17ffff75     	b	0x203894 <SW::SAMSync::readWifiSettings()+0xbc>
+  203ac4: 394093e8     	ldrb	w8, [sp, #0x24]
+  203ac8: 36000c28     	tbz	w8, #0x0, 0x203c4c <SW::SAMSync::readWifiSettings()+0x474>
+  203acc: 910103e8     	add	x8, sp, #0x40
+  203ad0: 9100e100     	add	x0, x8, #0x38
+  203ad4: 910022c1     	add	x1, x22, #0x8
+  203ad8: 9402fea6     	bl	0x2c3570 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEaSERKS5_@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::operator=(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  203adc: f9404280     	ldr	x0, [x20, #0x80]
+  203ae0: f9400008     	ldr	x8, [x0]
+  203ae4: f9401d09     	ldr	x9, [x8, #0x38]
+  203ae8: 910003e8     	mov	x8, sp
+  203aec: 52802201     	mov	w1, #0x110              // =272
+  203af0: 528007e2     	mov	w2, #0x3f               // =63
+  203af4: d63f0120     	blr	x9  ;;; CALL <indirect x9>  [x1=272(0x110), x2=63(0x3f)]
+  203af8: b94003e8     	ldr	w8, [sp]
+  203afc: 394013e9     	ldrb	w9, [sp, #0x4]
+  203b00: 3940a3ea     	ldrb	w10, [sp, #0x28]
+  203b04: b90023e8     	str	w8, [sp, #0x20]
+  203b08: 390093e9     	strb	w9, [sp, #0x24]
+  203b0c: 3600006a     	tbz	w10, #0x0, 0x203b18 <SW::SAMSync::readWifiSettings()+0x340>
+  203b10: f9401fe0     	ldr	x0, [sp, #0x38]
+  203b14: 9402f61f     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  203b18: 3cc083e0     	ldur	q0, [sp, #0x8]
+  203b1c: f9400fe8     	ldr	x8, [sp, #0x18]
+  203b20: b94023e1     	ldr	w1, [sp, #0x20]
+  203b24: 3c8082c0     	stur	q0, [x22, #0x8]
+  203b28: f80182c8     	stur	x8, [x22, #0x18]
+  203b2c: 35000381     	cbnz	w1, 0x203b9c <SW::SAMSync::readWifiSettings()+0x3c4>
+  203b30: 910083e0     	add	x0, sp, #0x20
+  203b34: 9402fe93     	bl	0x2c3580 <_ZN2SW7CmdRespINSt6__ndk112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEEEdeEv@plt>  ;;; CALL SW::CmdResp<std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>>::operator*()
+  203b38: aa0003e1     	mov	x1, x0
+  203b3c: 910103e8     	add	x8, sp, #0x40
+  203b40: 91014100     	add	x0, x8, #0x50
+  203b44: 9402fe8b     	bl	0x2c3570 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEaSERKS5_@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::operator=(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  203b48: f9404280     	ldr	x0, [x20, #0x80]
+  203b4c: f9400008     	ldr	x8, [x0]
+  203b50: f9401d09     	ldr	x9, [x8, #0x38]
+  203b54: 910003e8     	mov	x8, sp
+  203b58: 52802a01     	mov	w1, #0x150              // =336
+  203b5c: 528001e2     	mov	w2, #0xf                // =15
+  203b60: d63f0120     	blr	x9  ;;; CALL <indirect x9>  [x1=336(0x150), x2=15(0xf)]
+  203b64: b94003e8     	ldr	w8, [sp]
+  203b68: 394013e9     	ldrb	w9, [sp, #0x4]
+  203b6c: 3940a3ea     	ldrb	w10, [sp, #0x28]
+  203b70: b90023e8     	str	w8, [sp, #0x20]
+  203b74: 390093e9     	strb	w9, [sp, #0x24]
+  203b78: 3600006a     	tbz	w10, #0x0, 0x203b84 <SW::SAMSync::readWifiSettings()+0x3ac>
+  203b7c: f9401fe0     	ldr	x0, [sp, #0x38]
+  203b80: 9402f604     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  203b84: 3cc083e0     	ldur	q0, [sp, #0x8]
+  203b88: f9400fe8     	ldr	x8, [sp, #0x18]
+  203b8c: b94023e1     	ldr	w1, [sp, #0x20]
+  203b90: 3c8082c0     	stur	q0, [x22, #0x8]
+  203b94: f80182c8     	stur	x8, [x22, #0x18]
+  203b98: 34000081     	cbz	w1, 0x203ba8 <SW::SAMSync::readWifiSettings()+0x3d0>
+  203b9c: aa1303e0     	mov	x0, x19
+  203ba0: 9402fe7c     	bl	0x2c3590 <_ZN2SW7CmdRespINS_12WifiSettingsEEC2ENS_11CmdRetType_1EE@plt>  ;;; CALL SW::CmdResp<SW::WifiSettings>::CmdResp(SW::CmdRetType_::E)
+  203ba4: 17ffff44     	b	0x2038b4 <SW::SAMSync::readWifiSettings()+0xdc>
+  203ba8: 910083e0     	add	x0, sp, #0x20
+  203bac: 9402fe75     	bl	0x2c3580 <_ZN2SW7CmdRespINSt6__ndk112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEEEdeEv@plt>  ;;; CALL SW::CmdResp<std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>>::operator*()
+  203bb0: aa0003e1     	mov	x1, x0
+  203bb4: 910103e8     	add	x8, sp, #0x40
+  203bb8: 9101a100     	add	x0, x8, #0x68
+  203bbc: 9402fe6d     	bl	0x2c3570 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEaSERKS5_@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::operator=(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  203bc0: 52800028     	mov	w8, #0x1                // =1
+  203bc4: b900027f     	str	wzr, [x19]
+  203bc8: 39001268     	strb	w8, [x19, #0x4]
+  203bcc: 91002260     	add	x0, x19, #0x8
+  203bd0: 910103e1     	add	x1, sp, #0x40
+  203bd4: 9402fbcb     	bl	0x2c2b00 <_ZN2SW12WifiSettingsC2ERKS0_@plt>  ;;; CALL SW::WifiSettings::WifiSettings(SW::WifiSettings const&)
+  203bd8: 17ffff37     	b	0x2038b4 <SW::SAMSync::readWifiSettings()+0xdc>
+  203bdc: 52800200     	mov	w0, #0x10               // =16
+  203be0: 9402f674     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  203be4: aa0003f3     	mov	x19, x0
+  203be8: b0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  203bec: 9135a421     	add	x1, x1, #0xd69
+  203bf0: 9402fd0c     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  203bf4: 1400001c     	b	0x203c64 <SW::SAMSync::readWifiSettings()+0x48c>
+  203bf8: 52800200     	mov	w0, #0x10               // =16
+  203bfc: 9402f66d     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  203c00: aa0003f3     	mov	x19, x0
+  203c04: b0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  203c08: 9135a421     	add	x1, x1, #0xd69
+  203c0c: 9402fd05     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  203c10: 14000015     	b	0x203c64 <SW::SAMSync::readWifiSettings()+0x48c>
+  203c14: 52800200     	mov	w0, #0x10               // =16
+  203c18: 9402f666     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  203c1c: aa0003f3     	mov	x19, x0
+  203c20: b0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  203c24: 9135a421     	add	x1, x1, #0xd69
+  203c28: 9402fcfe     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  203c2c: 1400000e     	b	0x203c64 <SW::SAMSync::readWifiSettings()+0x48c>
+  203c30: 52800200     	mov	w0, #0x10               // =16
+  203c34: 9402f65f     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  203c38: aa0003f3     	mov	x19, x0
+  203c3c: b0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  203c40: 9135a421     	add	x1, x1, #0xd69
+  203c44: 9402fcf7     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  203c48: 14000007     	b	0x203c64 <SW::SAMSync::readWifiSettings()+0x48c>
+  203c4c: 52800200     	mov	w0, #0x10               // =16
+  203c50: 9402f658     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  203c54: aa0003f3     	mov	x19, x0
+  203c58: b0fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  203c5c: 9135a421     	add	x1, x1, #0xd69
+  203c60: 9402fcf0     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  203c64: f94016a8     	ldr	x8, [x21, #0x28]
+  203c68: f85f83a9     	ldur	x9, [x29, #-0x8]
+  203c6c: eb09011f     	cmp	x8, x9
+  203c70: 54000461     	b.ne	0x203cfc <SW::SAMSync::readWifiSettings()+0x524>
+  203c74: d00006a1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  203c78: d00006a2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  203c7c: aa1303e0     	mov	x0, x19
+  203c80: f9409c21     	ldr	x1, [x1, #0x138]
+  203c84: f940a042     	ldr	x2, [x2, #0x140]
+  203c88: 9402f652     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  203c8c: 1400000f     	b	0x203cc8 <SW::SAMSync::readWifiSettings()+0x4f0>
+  203c90: 14000008     	b	0x203cb0 <SW::SAMSync::readWifiSettings()+0x4d8>
+  203c94: 1400000d     	b	0x203cc8 <SW::SAMSync::readWifiSettings()+0x4f0>
+  203c98: 14000006     	b	0x203cb0 <SW::SAMSync::readWifiSettings()+0x4d8>
+  203c9c: 1400000b     	b	0x203cc8 <SW::SAMSync::readWifiSettings()+0x4f0>
+  203ca0: 14000004     	b	0x203cb0 <SW::SAMSync::readWifiSettings()+0x4d8>
+  203ca4: 14000009     	b	0x203cc8 <SW::SAMSync::readWifiSettings()+0x4f0>
+  203ca8: 14000002     	b	0x203cb0 <SW::SAMSync::readWifiSettings()+0x4d8>
+  203cac: 14000007     	b	0x203cc8 <SW::SAMSync::readWifiSettings()+0x4f0>
+  203cb0: aa0003f4     	mov	x20, x0
+  203cb4: aa1303e0     	mov	x0, x19
+  203cb8: 9402f932     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  203cbc: 14000004     	b	0x203ccc <SW::SAMSync::readWifiSettings()+0x4f4>
+  203cc0: 14000002     	b	0x203cc8 <SW::SAMSync::readWifiSettings()+0x4f0>
+  203cc4: 14000001     	b	0x203cc8 <SW::SAMSync::readWifiSettings()+0x4f0>
+  203cc8: aa0003f4     	mov	x20, x0
+  203ccc: 3940a3e8     	ldrb	w8, [sp, #0x28]
+  203cd0: 36000068     	tbz	w8, #0x0, 0x203cdc <SW::SAMSync::readWifiSettings()+0x504>
+  203cd4: f9401fe0     	ldr	x0, [sp, #0x38]
+  203cd8: 9402f5ae     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  203cdc: 910103e0     	add	x0, sp, #0x40
+  203ce0: 9402fe30     	bl	0x2c35a0 <_ZN2SW12WifiSettingsD2Ev@plt>  ;;; CALL SW::WifiSettings::~WifiSettings()
+  203ce4: f94016a8     	ldr	x8, [x21, #0x28]
+  203ce8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  203cec: eb09011f     	cmp	x8, x9
+  203cf0: 54000061     	b.ne	0x203cfc <SW::SAMSync::readWifiSettings()+0x524>
+  203cf4: aa1403e0     	mov	x0, x20
+  203cf8: 9402e5e3     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  203cfc: 9402f52d     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000203e6c <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)>:
+  203e6c: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  203e70: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  203e74: 910003fd     	mov	x29, sp
+  203e78: aa0003f3     	mov	x19, x0
+  203e7c: f9404000     	ldr	x0, [x0, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  203e80: aa0103f4     	mov	x20, x1
+  203e84: 52801001     	mov	w1, #0x80               // =128
+  203e88: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  203e8c: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::EEPROMConverser::readInt8(unsigned short)
+  203e90: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt8(unsigned short)  [x1=128(0x80)]
+  203e94: aa0003e8     	mov	x8, x0
+  203e98: 34000088     	cbz	w8, 0x203ea8 <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x3c>
+  203e9c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  203ea0: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  203ea4: d65f03c0     	ret
+  203ea8: f2601d1f     	tst	x8, #0xff00000000
+  203eac: 54000ea0     	b.eq	0x204080 <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x214>
+  203eb0: f2581d1f     	tst	x8, #0xff0000000000
+  203eb4: 54000dc0     	b.eq	0x20406c <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x200>
+  203eb8: f9401260     	ldr	x0, [x19, #0x20]  ; this->m[0x20] : SW::SleepWaitable
+  203ebc: 52800c81     	mov	w1, #0x64               // =100
+  203ec0: f9400008     	ldr	x8, [x0]  ; vptr of SW::SleepWaitable
+  203ec4: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::SleepWaitable::wait(unsigned long)
+  203ec8: d63f0100     	blr	x8  ;;; CALL SW::SleepWaitable::wait(unsigned long)  [x1=100(0x64)]
+  203ecc: 360000a0     	tbz	w0, #0x0, 0x203ee0 <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x74>
+  203ed0: 52800060     	mov	w0, #0x3                // =3
+  203ed4: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  203ed8: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  203edc: d65f03c0     	ret
+  203ee0: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  203ee4: 52801001     	mov	w1, #0x80               // =128
+  203ee8: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  203eec: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::EEPROMConverser::readInt8(unsigned short)
+  203ef0: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt8(unsigned short)  [x1=128(0x80)]
+  203ef4: 35fffd40     	cbnz	w0, 0x203e9c <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x30>
+  203ef8: f2601c1f     	tst	x0, #0xff00000000
+  203efc: 54000c20     	b.eq	0x204080 <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x214>
+  203f00: f2581c1f     	tst	x0, #0xff0000000000
+  203f04: 54000b40     	b.eq	0x20406c <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x200>
+  203f08: f9401260     	ldr	x0, [x19, #0x20]  ; this->m[0x20] : SW::SleepWaitable
+  203f0c: 52800c81     	mov	w1, #0x64               // =100
+  203f10: f9400008     	ldr	x8, [x0]  ; vptr of SW::SleepWaitable
+  203f14: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::SleepWaitable::wait(unsigned long)
+  203f18: d63f0100     	blr	x8  ;;; CALL SW::SleepWaitable::wait(unsigned long)  [x1=100(0x64)]
+  203f1c: 3707fda0     	tbnz	w0, #0x0, 0x203ed0 <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x64>
+  203f20: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  203f24: 52801001     	mov	w1, #0x80               // =128
+  203f28: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  203f2c: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::EEPROMConverser::readInt8(unsigned short)
+  203f30: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt8(unsigned short)  [x1=128(0x80)]
+  203f34: aa0003e8     	mov	x8, x0
+  203f38: 35fffb28     	cbnz	w8, 0x203e9c <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x30>
+  203f3c: f2601d1f     	tst	x8, #0xff00000000
+  203f40: 54000a00     	b.eq	0x204080 <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x214>
+  203f44: f2581d1f     	tst	x8, #0xff0000000000
+  203f48: 54000920     	b.eq	0x20406c <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x200>
+  203f4c: f9401260     	ldr	x0, [x19, #0x20]  ; this->m[0x20] : SW::SleepWaitable
+  203f50: 52800c81     	mov	w1, #0x64               // =100
+  203f54: f9400008     	ldr	x8, [x0]  ; vptr of SW::SleepWaitable
+  203f58: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::SleepWaitable::wait(unsigned long)
+  203f5c: d63f0100     	blr	x8  ;;; CALL SW::SleepWaitable::wait(unsigned long)  [x1=100(0x64)]
+  203f60: 3707fb80     	tbnz	w0, #0x0, 0x203ed0 <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x64>
+  203f64: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  203f68: 52801001     	mov	w1, #0x80               // =128
+  203f6c: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  203f70: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::EEPROMConverser::readInt8(unsigned short)
+  203f74: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt8(unsigned short)  [x1=128(0x80)]
+  203f78: aa0003e8     	mov	x8, x0
+  203f7c: 35fff908     	cbnz	w8, 0x203e9c <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x30>
+  203f80: f2601d1f     	tst	x8, #0xff00000000
+  203f84: 540007e0     	b.eq	0x204080 <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x214>
+  203f88: f2581d1f     	tst	x8, #0xff0000000000
+  203f8c: 54000700     	b.eq	0x20406c <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x200>
+  203f90: f9401260     	ldr	x0, [x19, #0x20]  ; this->m[0x20] : SW::SleepWaitable
+  203f94: 52800c81     	mov	w1, #0x64               // =100
+  203f98: f9400008     	ldr	x8, [x0]  ; vptr of SW::SleepWaitable
+  203f9c: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::SleepWaitable::wait(unsigned long)
+  203fa0: d63f0100     	blr	x8  ;;; CALL SW::SleepWaitable::wait(unsigned long)  [x1=100(0x64)]
+  203fa4: 3707f960     	tbnz	w0, #0x0, 0x203ed0 <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x64>
+  203fa8: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  203fac: 52801001     	mov	w1, #0x80               // =128
+  203fb0: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  203fb4: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::EEPROMConverser::readInt8(unsigned short)
+  203fb8: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt8(unsigned short)  [x1=128(0x80)]
+  203fbc: aa0003e8     	mov	x8, x0
+  203fc0: 35fff6e8     	cbnz	w8, 0x203e9c <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x30>
+  203fc4: f2601d1f     	tst	x8, #0xff00000000
+  203fc8: 540005c0     	b.eq	0x204080 <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x214>
+  203fcc: f2581d1f     	tst	x8, #0xff0000000000
+  203fd0: 540004e0     	b.eq	0x20406c <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x200>
+  203fd4: f9401260     	ldr	x0, [x19, #0x20]  ; this->m[0x20] : SW::SleepWaitable
+  203fd8: 52800c81     	mov	w1, #0x64               // =100
+  203fdc: f9400008     	ldr	x8, [x0]  ; vptr of SW::SleepWaitable
+  203fe0: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::SleepWaitable::wait(unsigned long)
+  203fe4: d63f0100     	blr	x8  ;;; CALL SW::SleepWaitable::wait(unsigned long)  [x1=100(0x64)]
+  203fe8: 3707f740     	tbnz	w0, #0x0, 0x203ed0 <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x64>
+  203fec: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  203ff0: 52801001     	mov	w1, #0x80               // =128
+  203ff4: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  203ff8: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::EEPROMConverser::readInt8(unsigned short)
+  203ffc: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt8(unsigned short)  [x1=128(0x80)]
+  204000: aa0003e8     	mov	x8, x0
+  204004: 35fff4c8     	cbnz	w8, 0x203e9c <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x30>
+  204008: f2601d1f     	tst	x8, #0xff00000000
+  20400c: 540003a0     	b.eq	0x204080 <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x214>
+  204010: f2581d1f     	tst	x8, #0xff0000000000
+  204014: 540002c0     	b.eq	0x20406c <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x200>
+  204018: f9401260     	ldr	x0, [x19, #0x20]  ; this->m[0x20] : SW::SleepWaitable
+  20401c: 52800c81     	mov	w1, #0x64               // =100
+  204020: f9400008     	ldr	x8, [x0]  ; vptr of SW::SleepWaitable
+  204024: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::SleepWaitable::wait(unsigned long)
+  204028: d63f0100     	blr	x8  ;;; CALL SW::SleepWaitable::wait(unsigned long)  [x1=100(0x64)]
+  20402c: 3707f520     	tbnz	w0, #0x0, 0x203ed0 <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x64>
+  204030: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  204034: 52801001     	mov	w1, #0x80               // =128
+  204038: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  20403c: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::EEPROMConverser::readInt8(unsigned short)
+  204040: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt8(unsigned short)  [x1=128(0x80)]
+  204044: aa0003e8     	mov	x8, x0
+  204048: 35fff2a8     	cbnz	w8, 0x203e9c <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x30>
+  20404c: f2601d1f     	tst	x8, #0xff00000000
+  204050: 54000180     	b.eq	0x204080 <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x214>
+  204054: f2581d1f     	tst	x8, #0xff0000000000
+  204058: 540000a0     	b.eq	0x20406c <SW::SAMSync::writeWifiSettings(SW::WifiSettings const&)+0x200>
+  20405c: 52800080     	mov	w0, #0x4                // =4
+  204060: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  204064: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  204068: d65f03c0     	ret
+  20406c: aa1303e0     	mov	x0, x19
+  204070: aa1403e1     	mov	x1, x20
+  204074: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  204078: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  20407c: 1402fd4d     	b	0x2c35b0 <_ZN2SW7SAMSync23writeWifiSettings_writeERKNS_12WifiSettingsE@plt>
+  204080: 52800200     	mov	w0, #0x10               // =16
+  204084: 9402f54b     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  204088: aa0003f3     	mov	x19, x0
+  20408c: 90fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  204090: 9135a421     	add	x1, x1, #0xd69
+  204094: 9402fbe3     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  204098: b00006a1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  20409c: b00006a2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  2040a0: aa1303e0     	mov	x0, x19
+  2040a4: f9409c21     	ldr	x1, [x1, #0x138]
+  2040a8: f940a042     	ldr	x2, [x2, #0x140]
+  2040ac: 9402f549     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  2040b0: aa0003f4     	mov	x20, x0
+  2040b4: aa1303e0     	mov	x0, x19
+  2040b8: 9402f832     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  2040bc: aa1403e0     	mov	x0, x20
+  2040c0: 9402e4f1     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+00000000002040c4 <SW::SAMSync::writeWifiSettings_write(SW::WifiSettings const&)>:
+  2040c4: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  2040c8: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  2040cc: 910003fd     	mov	x29, sp
+  2040d0: aa0003f3     	mov	x19, x0
+  2040d4: f9404000     	ldr	x0, [x0, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  2040d8: b9400022     	ldr	w2, [x1]
+  2040dc: aa0103f4     	mov	x20, x1
+  2040e0: 52801101     	mov	w1, #0x88               // =136
+  2040e4: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  2040e8: f9401908     	ldr	x8, [x8, #0x30]  ; -> SW::EEPROMConverser::writeInt32(unsigned short, int)
+  2040ec: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeInt32(unsigned short, int)  [x1=136(0x88)]
+  2040f0: 34000080     	cbz	w0, 0x204100 <SW::SAMSync::writeWifiSettings_write(SW::WifiSettings const&)+0x3c>
+  2040f4: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2040f8: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2040fc: d65f03c0     	ret
+  204100: b9400288     	ldr	w8, [x20]
+  204104: 121f7909     	and	w9, w8, #0xfffffffe
+  204108: 7100093f     	cmp	w9, #0x2
+  20410c: 54000361     	b.ne	0x204178 <SW::SAMSync::writeWifiSettings_write(SW::WifiSettings const&)+0xb4>
+  204110: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  204114: b9408282     	ldr	w2, [x20, #0x80]
+  204118: 52801181     	mov	w1, #0x8c               // =140
+  20411c: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  204120: f9401908     	ldr	x8, [x8, #0x30]  ; -> SW::EEPROMConverser::writeInt32(unsigned short, int)
+  204124: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeInt32(unsigned short, int)  [x1=140(0x8c)]
+  204128: 35fffe60     	cbnz	w0, 0x2040f4 <SW::SAMSync::writeWifiSettings_write(SW::WifiSettings const&)+0x30>
+  20412c: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  204130: 91002283     	add	x3, x20, #0x8
+  204134: 52801201     	mov	w1, #0x90               // =144
+  204138: 52800402     	mov	w2, #0x20               // =32
+  20413c: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  204140: f9402108     	ldr	x8, [x8, #0x40]  ; -> SW::EEPROMConverser::writeString(unsigned short, unsigned int, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  204144: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeString(unsigned short, unsigned int, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)  [x1=144(0x90), x2=32(0x20)]
+  204148: 35fffd60     	cbnz	w0, 0x2040f4 <SW::SAMSync::writeWifiSettings_write(SW::WifiSettings const&)+0x30>
+  20414c: b9408288     	ldr	w8, [x20, #0x80]
+  204150: 34000128     	cbz	w8, 0x204174 <SW::SAMSync::writeWifiSettings_write(SW::WifiSettings const&)+0xb0>
+  204154: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  204158: 91008283     	add	x3, x20, #0x20
+  20415c: 52801601     	mov	w1, #0xb0               // =176
+  204160: 528007e2     	mov	w2, #0x3f               // =63
+  204164: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  204168: f9402108     	ldr	x8, [x8, #0x40]  ; -> SW::EEPROMConverser::writeString(unsigned short, unsigned int, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  20416c: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeString(unsigned short, unsigned int, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)  [x1=176(0xb0), x2=63(0x3f)]
+  204170: 35fffc20     	cbnz	w0, 0x2040f4 <SW::SAMSync::writeWifiSettings_write(SW::WifiSettings const&)+0x30>
+  204174: b9400288     	ldr	w8, [x20]
+  204178: 321f0108     	orr	w8, w8, #0x2
+  20417c: 71000d1f     	cmp	w8, #0x3
+  204180: 54000321     	b.ne	0x2041e4 <SW::SAMSync::writeWifiSettings_write(SW::WifiSettings const&)+0x120>
+  204184: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  204188: 9100e283     	add	x3, x20, #0x38
+  20418c: 52801e01     	mov	w1, #0xf0               // =240
+  204190: 52800402     	mov	w2, #0x20               // =32
+  204194: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  204198: f9402108     	ldr	x8, [x8, #0x40]  ; -> SW::EEPROMConverser::writeString(unsigned short, unsigned int, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  20419c: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeString(unsigned short, unsigned int, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)  [x1=240(0xf0), x2=32(0x20)]
+  2041a0: 35fffaa0     	cbnz	w0, 0x2040f4 <SW::SAMSync::writeWifiSettings_write(SW::WifiSettings const&)+0x30>
+  2041a4: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  2041a8: 91014283     	add	x3, x20, #0x50
+  2041ac: 52802201     	mov	w1, #0x110              // =272
+  2041b0: 528007e2     	mov	w2, #0x3f               // =63
+  2041b4: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  2041b8: f9402108     	ldr	x8, [x8, #0x40]  ; -> SW::EEPROMConverser::writeString(unsigned short, unsigned int, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  2041bc: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeString(unsigned short, unsigned int, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)  [x1=272(0x110), x2=63(0x3f)]
+  2041c0: 35fff9a0     	cbnz	w0, 0x2040f4 <SW::SAMSync::writeWifiSettings_write(SW::WifiSettings const&)+0x30>
+  2041c4: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  2041c8: 9101a283     	add	x3, x20, #0x68
+  2041cc: 52802a01     	mov	w1, #0x150              // =336
+  2041d0: 528001e2     	mov	w2, #0xf                // =15
+  2041d4: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  2041d8: f9402108     	ldr	x8, [x8, #0x40]  ; -> SW::EEPROMConverser::writeString(unsigned short, unsigned int, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  2041dc: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeString(unsigned short, unsigned int, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)  [x1=336(0x150), x2=15(0xf)]
+  2041e0: 35fff8a0     	cbnz	w0, 0x2040f4 <SW::SAMSync::writeWifiSettings_write(SW::WifiSettings const&)+0x30>
+  2041e4: f9404260     	ldr	x0, [x19, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  2041e8: 52801001     	mov	w1, #0x80               // =128
+  2041ec: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  2041f0: f9401503     	ldr	x3, [x8, #0x28]  ; -> SW::EEPROMConverser::writeInt8(unsigned short, signed char)
+  2041f4: 52800022     	mov	w2, #0x1                // =1
+  2041f8: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2041fc: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  204200: d61f0060     	br	x3
+
+0000000000204204 <SW::SAMSync::readWifiTimeoutSec()>:
+  204204: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  204208: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  20420c: 910003fd     	mov	x29, sp
+  204210: f9404000     	ldr	x0, [x0, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  204214: 52801081     	mov	w1, #0x84               // =132
+  204218: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  20421c: f9401108     	ldr	x8, [x8, #0x20]  ; -> SW::EEPROMConverser::readInt32(unsigned short)
+  204220: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt32(unsigned short)  [x1=132(0x84)]
+  204224: f2601c1f     	tst	x0, #0xff00000000
+  204228: 540000c0     	b.eq	0x204240 <SW::SAMSync::readWifiTimeoutSec()+0x3c>
+  20422c: 92407c21     	and	x1, x1, #0xffffffff
+  204230: d2c00020     	mov	x0, #0x100000000        // =4294967296
+  204234: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  204238: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  20423c: d65f03c0     	ret
+  204240: 52800200     	mov	w0, #0x10               // =16
+  204244: 9402f4db     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  204248: aa0003f3     	mov	x19, x0
+  20424c: 90fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  204250: 9135a421     	add	x1, x1, #0xd69
+  204254: 9402fb73     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  204258: b00006a1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  20425c: b00006a2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  204260: aa1303e0     	mov	x0, x19
+  204264: f9409c21     	ldr	x1, [x1, #0x138]
+  204268: f940a042     	ldr	x2, [x2, #0x140]
+  20426c: 9402f4d9     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  204270: aa0003f4     	mov	x20, x0
+  204274: aa1303e0     	mov	x0, x19
+  204278: 9402f7c2     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  20427c: aa1403e0     	mov	x0, x20
+  204280: 9402e481     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+0000000000204284 <SW::SAMSync::writeWifiTimeoutSec(unsigned int)>:
+  204284: f9404000     	ldr	x0, [x0, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  204288: 2a0103e2     	mov	w2, w1
+  20428c: 52801081     	mov	w1, #0x84               // =132
+  204290: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  204294: f9401903     	ldr	x3, [x8, #0x30]  ; -> SW::EEPROMConverser::writeInt32(unsigned short, int)
+  204298: d61f0060     	br	x3
+
+000000000020429c <SW::SAMSync::writeWifiEnabled(bool)>:
+  20429c: d101c3ff     	sub	sp, sp, #0x70
+  2042a0: a9057bfd     	stp	x29, x30, [sp, #0x50]
+  2042a4: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  2042a8: 910143fd     	add	x29, sp, #0x50
+  2042ac: d53bd054     	mrs	x20, TPIDR_EL0
+  2042b0: f9401688     	ldr	x8, [x20, #0x28]
+  2042b4: 7200003f     	tst	w1, #0x1
+  2042b8: f81f83a8     	stur	x8, [x29, #-0x8]
+  2042bc: 52802168     	mov	w8, #0x10b              // =267
+  2042c0: f9402813     	ldr	x19, [x0, #0x50]  ; this->m[0x50] : SW::SwConverser
+  2042c4: 1a881501     	cinc	w1, w8, eq
+  2042c8: 910023e8     	add	x8, sp, #0x8
+  2042cc: 2a1f03e0     	mov	w0, wzr
+  2042d0: 9402fcbc     	bl	0x2c35c0 <_ZN2SW5SwCmd15extendedSettingENS_6AXISIDEi@plt>  ;;; CALL SW::SwCmd::extendedSetting(SW::AXISID, int)
+  2042d4: f9400268     	ldr	x8, [x19]  ; vptr of SW::SwConverser
+  2042d8: f9400909     	ldr	x9, [x8, #0x10]  ; -> SW::SwConverser::converse(SW::SwCmd const&)
+  2042dc: 9100a3e8     	add	x8, sp, #0x28
+  2042e0: 910023e1     	add	x1, sp, #0x8
+  2042e4: aa1303e0     	mov	x0, x19
+  2042e8: d63f0120     	blr	x9  ;;; CALL SW::SwConverser::converse(SW::SwCmd const&)
+  2042ec: f9401be0     	ldr	x0, [sp, #0x30]
+  2042f0: b9402bf3     	ldr	w19, [sp, #0x28]
+  2042f4: b4000060     	cbz	x0, 0x204300 <SW::SAMSync::writeWifiEnabled(bool)+0x64>
+  2042f8: f9001fe0     	str	x0, [sp, #0x38]
+  2042fc: 9402f425     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  204300: f9400be0     	ldr	x0, [sp, #0x10]
+  204304: b4000060     	cbz	x0, 0x204310 <SW::SAMSync::writeWifiEnabled(bool)+0x74>
+  204308: f9000fe0     	str	x0, [sp, #0x18]
+  20430c: 9402f421     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  204310: f9401688     	ldr	x8, [x20, #0x28]
+  204314: f85f83a9     	ldur	x9, [x29, #-0x8]
+  204318: eb09011f     	cmp	x8, x9
+  20431c: 54000241     	b.ne	0x204364 <SW::SAMSync::writeWifiEnabled(bool)+0xc8>
+  204320: 2a1303e0     	mov	w0, w19
+  204324: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  204328: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+  20432c: 9101c3ff     	add	sp, sp, #0x70
+  204330: d65f03c0     	ret
+  204334: f9400be8     	ldr	x8, [sp, #0x10]
+  204338: aa0003f3     	mov	x19, x0
+  20433c: b4000088     	cbz	x8, 0x20434c <SW::SAMSync::writeWifiEnabled(bool)+0xb0>
+  204340: aa0803e0     	mov	x0, x8
+  204344: f9000fe8     	str	x8, [sp, #0x18]
+  204348: 9402f412     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20434c: f9401688     	ldr	x8, [x20, #0x28]
+  204350: f85f83a9     	ldur	x9, [x29, #-0x8]
+  204354: eb09011f     	cmp	x8, x9
+  204358: 54000061     	b.ne	0x204364 <SW::SAMSync::writeWifiEnabled(bool)+0xc8>
+  20435c: aa1303e0     	mov	x0, x19
+  204360: 9402e449     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  204364: 9402f393     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000204368 <SW::SAMSync::writePolarSightLightOn(bool)>:
+  204368: f9404000     	ldr	x0, [x0, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  20436c: 52800c88     	mov	w8, #0x64               // =100
+  204370: 7200003f     	tst	w1, #0x1
+  204374: 52800c0a     	mov	w10, #0x60              // =96
+  204378: 52800022     	mov	w2, #0x1                // =1
+  20437c: f9400009     	ldr	x9, [x0]  ; vptr of SW::EEPROMConverser
+  204380: 1a881141     	csel	w1, w10, w8, ne
+  204384: f9401523     	ldr	x3, [x9, #0x28]  ; -> SW::EEPROMConverser::writeInt8(unsigned short, signed char)
+  204388: d61f0060     	br	x3
+
+000000000020438c <SW::SAMSync::readPolarSightLightTimeoutSec()>:
+  20438c: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  204390: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  204394: 910003fd     	mov	x29, sp
+  204398: f9404000     	ldr	x0, [x0, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  20439c: 52803101     	mov	w1, #0x188              // =392
+  2043a0: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  2043a4: f9401108     	ldr	x8, [x8, #0x20]  ; -> SW::EEPROMConverser::readInt32(unsigned short)
+  2043a8: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt32(unsigned short)  [x1=392(0x188)]
+  2043ac: f2407c08     	ands	x8, x0, #0xffffffff
+  2043b0: 540000c0     	b.eq	0x2043c8 <SW::SAMSync::readPolarSightLightTimeoutSec()+0x3c>
+  2043b4: aa0803e0     	mov	x0, x8
+  2043b8: 92407fe1     	and	x1, xzr, #0xffffffff
+  2043bc: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2043c0: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2043c4: d65f03c0     	ret
+  2043c8: f2601c1f     	tst	x0, #0xff00000000
+  2043cc: 540000e0     	b.eq	0x2043e8 <SW::SAMSync::readPolarSightLightTimeoutSec()+0x5c>
+  2043d0: d2c00029     	mov	x9, #0x100000000        // =4294967296
+  2043d4: aa080120     	orr	x0, x9, x8
+  2043d8: 92407c21     	and	x1, x1, #0xffffffff
+  2043dc: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2043e0: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2043e4: d65f03c0     	ret
+  2043e8: 52800200     	mov	w0, #0x10               // =16
+  2043ec: 9402f471     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  2043f0: aa0003f3     	mov	x19, x0
+  2043f4: 90fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  2043f8: 9135a421     	add	x1, x1, #0xd69
+  2043fc: 9402fb09     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  204400: b00006a1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  204404: b00006a2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  204408: aa1303e0     	mov	x0, x19
+  20440c: f9409c21     	ldr	x1, [x1, #0x138]
+  204410: f940a042     	ldr	x2, [x2, #0x140]
+  204414: 9402f46f     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  204418: aa0003f4     	mov	x20, x0
+  20441c: aa1303e0     	mov	x0, x19
+  204420: 9402f758     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  204424: aa1403e0     	mov	x0, x20
+  204428: 9402e417     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000020442c <SW::SAMSync::writePolarSightLightTimeoutSec(unsigned int)>:
+  20442c: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  204430: f9000bf3     	str	x19, [sp, #0x10]
+  204434: 910003fd     	mov	x29, sp
+  204438: aa0003f3     	mov	x19, x0
+  20443c: f9404000     	ldr	x0, [x0, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  204440: 2a0103e2     	mov	w2, w1
+  204444: 52803101     	mov	w1, #0x188              // =392
+  204448: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  20444c: f9401908     	ldr	x8, [x8, #0x30]  ; -> SW::EEPROMConverser::writeInt32(unsigned short, int)
+  204450: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeInt32(unsigned short, int)  [x1=392(0x188)]
+  204454: 34000080     	cbz	w0, 0x204464 <SW::SAMSync::writePolarSightLightTimeoutSec(unsigned int)+0x38>
+  204458: f9400bf3     	ldr	x19, [sp, #0x10]
+  20445c: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  204460: d65f03c0     	ret
+  204464: f9404260     	ldr	x0, [x19, #0x80]
+  204468: 52803001     	mov	w1, #0x180              // =384
+  20446c: f9400008     	ldr	x8, [x0]
+  204470: f9401503     	ldr	x3, [x8, #0x28]
+  204474: 52800022     	mov	w2, #0x1                // =1
+  204478: f9400bf3     	ldr	x19, [sp, #0x10]
+  20447c: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  204480: d61f0060     	br	x3
+
+0000000000204484 <SW::SAMSync::readPowerOnAutoPreviousTask()>:
+  204484: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  204488: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  20448c: 910003fd     	mov	x29, sp
+  204490: f9404000     	ldr	x0, [x0, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  204494: 52803381     	mov	w1, #0x19c              // =412
+  204498: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  20449c: f9400908     	ldr	x8, [x8, #0x10]  ; -> SW::EEPROMConverser::readInt8(unsigned short)
+  2044a0: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt8(unsigned short)  [x1=412(0x19c)]
+  2044a4: f2407c08     	ands	x8, x0, #0xffffffff
+  2044a8: 540000a0     	b.eq	0x2044bc <SW::SAMSync::readPowerOnAutoPreviousTask()+0x38>
+  2044ac: aa0803e0     	mov	x0, x8
+  2044b0: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2044b4: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2044b8: d65f03c0     	ret
+  2044bc: f2601c1f     	tst	x0, #0xff00000000
+  2044c0: 54000120     	b.eq	0x2044e4 <SW::SAMSync::readPowerOnAutoPreviousTask()+0x60>
+  2044c4: f2581c1f     	tst	x0, #0xff0000000000
+  2044c8: d2c02029     	mov	x9, #0x10100000000      // =1103806595072
+  2044cc: d2c0002a     	mov	x10, #0x100000000       // =4294967296
+  2044d0: 9a890149     	csel	x9, x10, x9, eq
+  2044d4: aa080120     	orr	x0, x9, x8
+  2044d8: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2044dc: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2044e0: d65f03c0     	ret
+  2044e4: 52800200     	mov	w0, #0x10               // =16
+  2044e8: 9402f432     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  2044ec: aa0003f3     	mov	x19, x0
+  2044f0: 90fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  2044f4: 9135a421     	add	x1, x1, #0xd69
+  2044f8: 9402faca     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  2044fc: b00006a1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  204500: b00006a2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  204504: aa1303e0     	mov	x0, x19
+  204508: f9409c21     	ldr	x1, [x1, #0x138]
+  20450c: f940a042     	ldr	x2, [x2, #0x140]
+  204510: 9402f430     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  204514: aa0003f4     	mov	x20, x0
+  204518: aa1303e0     	mov	x0, x19
+  20451c: 9402f719     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  204520: aa1403e0     	mov	x0, x20
+  204524: 9402e3d8     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+0000000000204528 <SW::SAMSync::writePowerOnAutoPreviousTask(bool)>:
+  204528: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  20452c: f9000bf3     	str	x19, [sp, #0x10]
+  204530: 910003fd     	mov	x29, sp
+  204534: aa0003f3     	mov	x19, x0
+  204538: f9404000     	ldr	x0, [x0, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  20453c: 12000022     	and	w2, w1, #0x1
+  204540: 52803381     	mov	w1, #0x19c              // =412
+  204544: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  204548: f9401508     	ldr	x8, [x8, #0x28]  ; -> SW::EEPROMConverser::writeInt8(unsigned short, signed char)
+  20454c: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeInt8(unsigned short, signed char)  [x1=412(0x19c)]
+  204550: 34000080     	cbz	w0, 0x204560 <SW::SAMSync::writePowerOnAutoPreviousTask(bool)+0x38>
+  204554: f9400bf3     	ldr	x19, [sp, #0x10]
+  204558: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  20455c: d65f03c0     	ret
+  204560: f9404260     	ldr	x0, [x19, #0x80]
+  204564: 52803001     	mov	w1, #0x180              // =384
+  204568: f9400008     	ldr	x8, [x0]
+  20456c: f9401503     	ldr	x3, [x8, #0x28]
+  204570: 52800022     	mov	w2, #0x1                // =1
+  204574: f9400bf3     	ldr	x19, [sp, #0x10]
+  204578: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  20457c: d61f0060     	br	x3
+
+0000000000204580 <SW::SAMSync::readAutoShutdownSec()>:
+  204580: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  204584: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  204588: 910003fd     	mov	x29, sp
+  20458c: f9404000     	ldr	x0, [x0, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  204590: 52803081     	mov	w1, #0x184              // =388
+  204594: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  204598: f9401108     	ldr	x8, [x8, #0x20]  ; -> SW::EEPROMConverser::readInt32(unsigned short)
+  20459c: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::readInt32(unsigned short)  [x1=388(0x184)]
+  2045a0: f2407c08     	ands	x8, x0, #0xffffffff
+  2045a4: 540000c0     	b.eq	0x2045bc <SW::SAMSync::readAutoShutdownSec()+0x3c>
+  2045a8: aa0803e0     	mov	x0, x8
+  2045ac: 92407fe1     	and	x1, xzr, #0xffffffff
+  2045b0: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2045b4: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2045b8: d65f03c0     	ret
+  2045bc: f2601c1f     	tst	x0, #0xff00000000
+  2045c0: 540000e0     	b.eq	0x2045dc <SW::SAMSync::readAutoShutdownSec()+0x5c>
+  2045c4: d2c00029     	mov	x9, #0x100000000        // =4294967296
+  2045c8: aa080120     	orr	x0, x9, x8
+  2045cc: 92407c21     	and	x1, x1, #0xffffffff
+  2045d0: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2045d4: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2045d8: d65f03c0     	ret
+  2045dc: 52800200     	mov	w0, #0x10               // =16
+  2045e0: 9402f3f4     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  2045e4: aa0003f3     	mov	x19, x0
+  2045e8: 90fff641     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  2045ec: 9135a421     	add	x1, x1, #0xd69
+  2045f0: 9402fa8c     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  2045f4: b00006a1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  2045f8: b00006a2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  2045fc: aa1303e0     	mov	x0, x19
+  204600: f9409c21     	ldr	x1, [x1, #0x138]
+  204604: f940a042     	ldr	x2, [x2, #0x140]
+  204608: 9402f3f2     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  20460c: aa0003f4     	mov	x20, x0
+  204610: aa1303e0     	mov	x0, x19
+  204614: 9402f6db     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  204618: aa1403e0     	mov	x0, x20
+  20461c: 9402e39a     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+0000000000204620 <SW::SAMSync::writeAutoShutdownSec(unsigned int)>:
+  204620: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  204624: f9000bf3     	str	x19, [sp, #0x10]
+  204628: 910003fd     	mov	x29, sp
+  20462c: aa0003f3     	mov	x19, x0
+  204630: f9404000     	ldr	x0, [x0, #0x80]  ; this->m[0x80] : SW::EEPROMConverser
+  204634: 2a0103e2     	mov	w2, w1
+  204638: 52803081     	mov	w1, #0x184              // =388
+  20463c: f9400008     	ldr	x8, [x0]  ; vptr of SW::EEPROMConverser
+  204640: f9401908     	ldr	x8, [x8, #0x30]  ; -> SW::EEPROMConverser::writeInt32(unsigned short, int)
+  204644: d63f0100     	blr	x8  ;;; CALL SW::EEPROMConverser::writeInt32(unsigned short, int)  [x1=388(0x184)]
+  204648: 34000080     	cbz	w0, 0x204658 <SW::SAMSync::writeAutoShutdownSec(unsigned int)+0x38>
+  20464c: f9400bf3     	ldr	x19, [sp, #0x10]
+  204650: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  204654: d65f03c0     	ret
+  204658: f9404260     	ldr	x0, [x19, #0x80]
+  20465c: 52803001     	mov	w1, #0x180              // =384
+  204660: f9400008     	ldr	x8, [x0]
+  204664: f9401503     	ldr	x3, [x8, #0x28]
+  204668: 52800022     	mov	w2, #0x1                // =1
+  20466c: f9400bf3     	ldr	x19, [sp, #0x10]
+  204670: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  204674: d61f0060     	br	x3
+
+0000000000204678 <SW::SAMSync::isSAWifi()>:
+  204678: a9bf7bfd     	stp	x29, x30, [sp, #-0x10]!
+  20467c: 910003fd     	mov	x29, sp
+  204680: f9403000     	ldr	x0, [x0, #0x60]  ; this->m[0x60] : SW::SwDevice
+  204684: f9400008     	ldr	x8, [x0]  ; vptr of SW::SwDevice
+  204688: f9401908     	ldr	x8, [x8, #0x30]  ; -> SW::SwDevice::mountModelCode()
+  20468c: d63f0100     	blr	x8  ;;; CALL SW::SwDevice::mountModelCode()
+  204690: 12001c08     	and	w8, w0, #0xff
+  204694: 7100291f     	cmp	w8, #0xa
+  204698: 1a9f17e0     	cset	w0, eq
+  20469c: a8c17bfd     	ldp	x29, x30, [sp], #0x10
+  2046a0: d65f03c0     	ret
+
+00000000002046a4 <SW::SAMSync::hasPolarSightLight()>:
+  2046a4: a9bf7bfd     	stp	x29, x30, [sp, #-0x10]!
+  2046a8: 910003fd     	mov	x29, sp
+  2046ac: f9400008     	ldr	x8, [x0]  ; vptr of SW::SAMSync
+  2046b0: f9409108     	ldr	x8, [x8, #0x120]  ; -> SW::SAMSync::isSAWifi()
+  2046b4: d63f0100     	blr	x8  ;;; CALL SW::SAMSync::isSAWifi()
+  2046b8: 52800028     	mov	w8, #0x1                // =1
+  2046bc: 0a200100     	bic	w0, w8, w0
+  2046c0: a8c17bfd     	ldp	x29, x30, [sp], #0x10
+  2046c4: d65f03c0     	ret
+
+00000000002046c8 <SW::SAMSync::hasAutoShutdown()>:
+  2046c8: a9bf7bfd     	stp	x29, x30, [sp, #-0x10]!
+  2046cc: 910003fd     	mov	x29, sp
+  2046d0: f9400008     	ldr	x8, [x0]  ; vptr of SW::SAMSync
+  2046d4: f9409108     	ldr	x8, [x8, #0x120]  ; -> SW::SAMSync::isSAWifi()
+  2046d8: d63f0100     	blr	x8  ;;; CALL SW::SAMSync::isSAWifi()
+  2046dc: 52800028     	mov	w8, #0x1                // =1
+  2046e0: 0a200100     	bic	w0, w8, w0
+  2046e4: a8c17bfd     	ldp	x29, x30, [sp], #0x10
+  2046e8: d65f03c0     	ret
+
+00000000002046ec <SW::SAMSync::hasDithering()>:
+  2046ec: a9bf7bfd     	stp	x29, x30, [sp, #-0x10]!
+  2046f0: 910003fd     	mov	x29, sp
+  2046f4: f9403000     	ldr	x0, [x0, #0x60]  ; this->m[0x60] : SW::SwDevice
+  2046f8: 2a1f03e1     	mov	w1, wzr
+  2046fc: f9400008     	ldr	x8, [x0]  ; vptr of SW::SwDevice
+  204700: f9401508     	ldr	x8, [x8, #0x28]  ; -> SW::SwDevice::mcVersion(SW::AXISID)
+  204704: d63f0100     	blr	x8  ;;; CALL SW::SwDevice::mcVersion(SW::AXISID)
+  204708: 12001c08     	and	w8, w0, #0xff
+  20470c: 12171809     	and	w9, w0, #0xfe00
+  204710: 71000d1f     	cmp	w8, #0x3
+  204714: 1a9f17ea     	cset	w10, eq
+  204718: 7124013f     	cmp	w9, #0x900
+  20471c: 1a8a93e9     	csel	w9, wzr, w10, ls
+  204720: 71000d1f     	cmp	w8, #0x3
+  204724: 1a9f9520     	csinc	w0, w9, wzr, ls
+  204728: a8c17bfd     	ldp	x29, x30, [sp], #0x10
+  20472c: d65f03c0     	ret
+
+0000000000204730 <SW::SAMSync::hasShutterIntervalInMs()>:
+  204730: a9bf7bfd     	stp	x29, x30, [sp, #-0x10]!
+  204734: 910003fd     	mov	x29, sp
+  204738: f9403000     	ldr	x0, [x0, #0x60]  ; this->m[0x60] : SW::SwDevice
+  20473c: 2a1f03e1     	mov	w1, wzr
+  204740: f9400008     	ldr	x8, [x0]  ; vptr of SW::SwDevice
+  204744: f9401508     	ldr	x8, [x8, #0x28]  ; -> SW::SwDevice::mcVersion(SW::AXISID)
+  204748: d63f0100     	blr	x8  ;;; CALL SW::SwDevice::mcVersion(SW::AXISID)
+  20474c: 12001c08     	and	w8, w0, #0xff
+  204750: 12171809     	and	w9, w0, #0xfe00
+  204754: 71000d1f     	cmp	w8, #0x3
+  204758: 1a9f17ea     	cset	w10, eq
+  20475c: 7124013f     	cmp	w9, #0x900
+  204760: 1a8a93e9     	csel	w9, wzr, w10, ls
+  204764: 71000d1f     	cmp	w8, #0x3
+  204768: 1a9f9520     	csinc	w0, w9, wzr, ls
+  20476c: a8c17bfd     	ldp	x29, x30, [sp], #0x10
+  204770: d65f03c0     	ret
+

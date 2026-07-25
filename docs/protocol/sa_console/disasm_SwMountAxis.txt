@@ -1,0 +1,2502 @@
+0000000000232f30 <SW::SwMountAxis::SwAxisMotionMode::fromSpeedRps(double)>:
+  232f30: 1e60c001     	fabs	d1, d0
+  232f34: 90fff4c8     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  232f38: 1e602008     	fcmp	d0, #0.0
+  232f3c: fd472d00     	ldr	d0, [x8, #0xe58]
+  232f40: 1a9fd7e8     	cset	w8, gt
+  232f44: 1e602020     	fcmp	d1, d0
+  232f48: 1a9fd7e9     	cset	w9, gt
+  232f4c: 2a092100     	orr	w0, w8, w9, lsl #8
+  232f50: d65f03c0     	ret
+
+0000000000232f54 <SW::SwMountAxis::SwAxisMotionMode::fromMovingRad(double)>:
+  232f54: 1e60c001     	fabs	d1, d0
+  232f58: 90fff4c8     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  232f5c: 1e602008     	fcmp	d0, #0.0
+  232f60: fd469900     	ldr	d0, [x8, #0xd30]
+  232f64: 1a9fd7e8     	cset	w8, gt
+  232f68: 1e602020     	fcmp	d1, d0
+  232f6c: 1a9fd7e9     	cset	w9, gt
+  232f70: 2a092100     	orr	w0, w8, w9, lsl #8
+  232f74: d65f03c0     	ret
+
+0000000000232f78 <SW::SwMountAxis::initRead(bool)>:
+  232f78: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  232f7c: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  232f80: 910003fd     	mov	x29, sp
+  232f84: aa0003f3     	mov	x19, x0
+  232f88: 91036000     	add	x0, x0, #0xd8
+  232f8c: 9402466d     	bl	0x2c4940 <_ZNSt6__ndk115recursive_mutex4lockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::lock()
+  232f90: 39440668     	ldrb	w8, [x19, #0x101]
+  232f94: 34000108     	cbz	w8, 0x232fb4 <SW::SwMountAxis::initRead(bool)+0x3c>
+  232f98: 2a1f03f4     	mov	w20, wzr
+  232f9c: 91036260     	add	x0, x19, #0xd8
+  232fa0: 9402466c     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  232fa4: 2a1403e0     	mov	w0, w20
+  232fa8: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  232fac: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  232fb0: d65f03c0     	ret
+  232fb4: f9403660     	ldr	x0, [x19, #0x68]
+  232fb8: f9400008     	ldr	x8, [x0]
+  232fbc: f9400d08     	ldr	x8, [x8, #0x18]
+  232fc0: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  232fc4: 36000200     	tbz	w0, #0x0, 0x233004 <SW::SwMountAxis::initRead(bool)+0x8c>
+  232fc8: f9403660     	ldr	x0, [x19, #0x68]
+  232fcc: f9400008     	ldr	x8, [x0]
+  232fd0: f9402d08     	ldr	x8, [x8, #0x58]
+  232fd4: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  232fd8: 2a1f03f4     	mov	w20, wzr
+  232fdc: 12000008     	and	w8, w0, #0x1
+  232fe0: 52800029     	mov	w9, #0x1                // =1
+  232fe4: 39040a68     	strb	w8, [x19, #0x102]
+  232fe8: 39040669     	strb	w9, [x19, #0x101]
+  232fec: 91036260     	add	x0, x19, #0xd8
+  232ff0: 94024658     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  232ff4: 2a1403e0     	mov	w0, w20
+  232ff8: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  232ffc: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  233000: d65f03c0     	ret
+  233004: 52800094     	mov	w20, #0x4               // =4
+  233008: 91036260     	add	x0, x19, #0xd8
+  23300c: 94024651     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  233010: 2a1403e0     	mov	w0, w20
+  233014: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  233018: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23301c: d65f03c0     	ret
+  233020: aa0003f4     	mov	x20, x0
+  233024: 91036260     	add	x0, x19, #0xd8
+  233028: 9402464a     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  23302c: aa1403e0     	mov	x0, x20
+  233030: 94022915     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+0000000000233034 <SW::SwMountAxis::lastTrackingSpeedRps(SW::AXISID)>:
+  233034: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  233038: f9000bf5     	str	x21, [sp, #0x10]
+  23303c: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  233040: 910003fd     	mov	x29, sp
+  233044: aa0003f4     	mov	x20, x0
+  233048: 91036000     	add	x0, x0, #0xd8
+  23304c: 2a0103f3     	mov	w19, w1
+  233050: 9402463c     	bl	0x2c4940 <_ZNSt6__ndk115recursive_mutex4lockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::lock()
+  233054: 8b335288     	add	x8, x20, w19, uxtw #4
+  233058: 91036280     	add	x0, x20, #0xd8
+  23305c: a951d513     	ldp	x19, x21, [x8, #0x118]
+  233060: 9402463c     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  233064: aa1303e0     	mov	x0, x19
+  233068: aa1503e1     	mov	x1, x21
+  23306c: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  233070: f9400bf5     	ldr	x21, [sp, #0x10]
+  233074: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  233078: d65f03c0     	ret
+
+000000000023307c <SW::SwMountAxis::setLastTrackingSpeedRps(SW::AXISID, double)>:
+  23307c: fc1d0fe8     	str	d8, [sp, #-0x30]!
+  233080: a9017bfd     	stp	x29, x30, [sp, #0x10]
+  233084: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  233088: 910043fd     	add	x29, sp, #0x10
+  23308c: aa0003f3     	mov	x19, x0
+  233090: 91036000     	add	x0, x0, #0xd8
+  233094: 1e604008     	fmov	d8, d0
+  233098: 2a0103f4     	mov	w20, w1
+  23309c: 94024629     	bl	0x2c4940 <_ZNSt6__ndk115recursive_mutex4lockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::lock()
+  2330a0: 1e602108     	fcmp	d8, #0.0
+  2330a4: 8b345269     	add	x9, x19, w20, uxtw #4
+  2330a8: 52800028     	mov	w8, #0x1                // =1
+  2330ac: fd008d28     	str	d8, [x9, #0x118]
+  2330b0: 39048128     	strb	w8, [x9, #0x120]
+  2330b4: fd009d28     	str	d8, [x9, #0x138]
+  2330b8: 39050128     	strb	w8, [x9, #0x140]
+  2330bc: 540000c0     	b.eq	0x2330d4 <SW::SwMountAxis::setLastTrackingSpeedRps(SW::AXISID, double)+0x58>
+  2330c0: 2a1403e9     	mov	w9, w20
+  2330c4: 1a9fd7ea     	cset	w10, gt
+  2330c8: 8b090669     	add	x9, x19, x9, lsl #1
+  2330cc: 3905612a     	strb	w10, [x9, #0x158]
+  2330d0: 39056528     	strb	w8, [x9, #0x159]
+  2330d4: 91036260     	add	x0, x19, #0xd8
+  2330d8: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  2330dc: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+  2330e0: fc4307e8     	ldr	d8, [sp], #0x30
+  2330e4: 1402461b     	b	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>
+
+00000000002330e8 <SW::SwMountAxis::lastDirectionPositive(SW::AXISID)>:
+  2330e8: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  2330ec: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  2330f0: 910003fd     	mov	x29, sp
+  2330f4: aa0003f4     	mov	x20, x0
+  2330f8: 91036000     	add	x0, x0, #0xd8
+  2330fc: 2a0103f3     	mov	w19, w1
+  233100: 94024610     	bl	0x2c4940 <_ZNSt6__ndk115recursive_mutex4lockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::lock()
+  233104: 8b334688     	add	x8, x20, w19, uxtw #1
+  233108: 91036280     	add	x0, x20, #0xd8
+  23310c: 7942b113     	ldrh	w19, [x8, #0x158]
+  233110: 94024610     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  233114: 2a1303e0     	mov	w0, w19
+  233118: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23311c: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  233120: d65f03c0     	ret
+
+0000000000233124 <SW::SwMountAxis::updateAxisPosition(SW::AXISID)>:
+  233124: d10143ff     	sub	sp, sp, #0x50
+  233128: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  23312c: a90357f6     	stp	x22, x21, [sp, #0x30]
+  233130: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  233134: 910083fd     	add	x29, sp, #0x20
+  233138: d53bd056     	mrs	x22, TPIDR_EL0
+  23313c: 2a0103f4     	mov	w20, w1
+  233140: aa0003f3     	mov	x19, x0
+  233144: f94016c8     	ldr	x8, [x22, #0x28]
+  233148: f81f83a8     	stur	x8, [x29, #-0x8]
+  23314c: 910003e8     	mov	x8, sp
+  233150: 940245c8     	bl	0x2c4870 <_ZN2SW11SwMountAxis31updateAxisPosition_noStoreEventENS_6AXISIDE@plt>  ;;; CALL SW::SwMountAxis::updateAxisPosition_noStoreEvent(SW::AXISID)
+  233154: b94003f5     	ldr	w21, [sp]
+  233158: 34000115     	cbz	w21, 0x233178 <SW::SwMountAxis::updateAxisPosition(SW::AXISID)+0x54>
+  23315c: aa1f03e8     	mov	x8, xzr
+  233160: aa1f03f4     	mov	x20, xzr
+  233164: f94016c9     	ldr	x9, [x22, #0x28]
+  233168: f85f83aa     	ldur	x10, [x29, #-0x8]
+  23316c: eb0a013f     	cmp	x9, x10
+  233170: 540002a0     	b.eq	0x2331c4 <SW::SwMountAxis::updateAxisPosition(SW::AXISID)+0xa0>
+  233174: 14000038     	b	0x233254 <SW::SwMountAxis::updateAxisPosition(SW::AXISID)+0x130>
+  233178: 91036260     	add	x0, x19, #0xd8
+  23317c: 940245f1     	bl	0x2c4940 <_ZNSt6__ndk115recursive_mutex4lockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::lock()
+  233180: 394013e8     	ldrb	w8, [sp, #0x4]
+  233184: 360002e8     	tbz	w8, #0x0, 0x2331e0 <SW::SwMountAxis::updateAxisPosition(SW::AXISID)+0xbc>
+  233188: f9405660     	ldr	x0, [x19, #0xa8]
+  23318c: 8b345009     	add	x9, x0, w20, uxtw #4
+  233190: a940a3f4     	ldp	x20, x8, [sp, #0x8]
+  233194: 91014129     	add	x9, x9, #0x50
+  233198: c87fa93f     	ldaxp	xzr, x10, [x9]
+  23319c: c82aa134     	stlxp	w10, x20, x8, [x9]
+  2331a0: 35ffffca     	cbnz	w10, 0x233198 <SW::SwMountAxis::updateAxisPosition(SW::AXISID)+0x74>
+  2331a4: 94023bdf     	bl	0x2c2120 <_ZNK7eventpp9internal_16CallbackListBaseIFvvENS_15DefaultPoliciesEEclEv@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (), eventpp::DefaultPolicies>::operator()() const
+  2331a8: 91036260     	add	x0, x19, #0xd8
+  2331ac: 940245e9     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  2331b0: d2c00028     	mov	x8, #0x100000000        // =4294967296
+  2331b4: f94016c9     	ldr	x9, [x22, #0x28]
+  2331b8: f85f83aa     	ldur	x10, [x29, #-0x8]
+  2331bc: eb0a013f     	cmp	x9, x10
+  2331c0: 540004a1     	b.ne	0x233254 <SW::SwMountAxis::updateAxisPosition(SW::AXISID)+0x130>
+  2331c4: aa150100     	orr	x0, x8, x21
+  2331c8: aa1403e1     	mov	x1, x20
+  2331cc: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  2331d0: a94357f6     	ldp	x22, x21, [sp, #0x30]
+  2331d4: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  2331d8: 910143ff     	add	sp, sp, #0x50
+  2331dc: d65f03c0     	ret
+  2331e0: 52800200     	mov	w0, #0x10               // =16
+  2331e4: 940238f3     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  2331e8: aa0003f4     	mov	x20, x0
+  2331ec: b0fff4c1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  2331f0: 9135a421     	add	x1, x1, #0xd69
+  2331f4: 94023f8b     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  2331f8: f94016c8     	ldr	x8, [x22, #0x28]
+  2331fc: f85f83a9     	ldur	x9, [x29, #-0x8]
+  233200: eb09011f     	cmp	x8, x9
+  233204: 54000281     	b.ne	0x233254 <SW::SwMountAxis::updateAxisPosition(SW::AXISID)+0x130>
+  233208: d0000521     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23320c: d0000522     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  233210: aa1403e0     	mov	x0, x20
+  233214: f9409c21     	ldr	x1, [x1, #0x138]
+  233218: f940a042     	ldr	x2, [x2, #0x140]
+  23321c: 940238ed     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  233220: aa0003f5     	mov	x21, x0
+  233224: aa1403e0     	mov	x0, x20
+  233228: 94023bd6     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23322c: 14000002     	b	0x233234 <SW::SwMountAxis::updateAxisPosition(SW::AXISID)+0x110>
+  233230: aa0003f5     	mov	x21, x0
+  233234: 91036260     	add	x0, x19, #0xd8
+  233238: 940245c6     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  23323c: f94016c8     	ldr	x8, [x22, #0x28]
+  233240: f85f83a9     	ldur	x9, [x29, #-0x8]
+  233244: eb09011f     	cmp	x8, x9
+  233248: 54000061     	b.ne	0x233254 <SW::SwMountAxis::updateAxisPosition(SW::AXISID)+0x130>
+  23324c: aa1503e0     	mov	x0, x21
+  233250: 9402288d     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  233254: 940237d7     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000233258 <SW::SwMountAxis::updateAxisPosition_noStoreEvent(SW::AXISID)>:
+  233258: d10203ff     	sub	sp, sp, #0x80
+  23325c: fd001be8     	str	d8, [sp, #0x30]
+  233260: a9047bfd     	stp	x29, x30, [sp, #0x40]
+  233264: a9055ff8     	stp	x24, x23, [sp, #0x50]
+  233268: a90657f6     	stp	x22, x21, [sp, #0x60]
+  23326c: a9074ff4     	stp	x20, x19, [sp, #0x70]
+  233270: 910103fd     	add	x29, sp, #0x40
+  233274: d53bd058     	mrs	x24, TPIDR_EL0
+  233278: 2a0103f5     	mov	w21, w1
+  23327c: aa0003f4     	mov	x20, x0
+  233280: f9401709     	ldr	x9, [x24, #0x28]
+  233284: aa0803f3     	mov	x19, x8
+  233288: f81e83a9     	stur	x9, [x29, #-0x18]
+  23328c: 39440809     	ldrb	w9, [x0, #0x102]
+  233290: f9402c16     	ldr	x22, [x0, #0x58]
+  233294: 34000169     	cbz	w9, 0x2332c0 <SW::SwMountAxis::updateAxisPosition_noStoreEvent(SW::AXISID)+0x68>
+  233298: 910023e8     	add	x8, sp, #0x8
+  23329c: 2a1503e0     	mov	w0, w21
+  2332a0: 52800061     	mov	w1, #0x3                // =3
+  2332a4: 94024533     	bl	0x2c4770 <_ZN2SW5SwCmd5xReadENS_6AXISIDEh@plt>  ;;; CALL SW::SwCmd::xRead(SW::AXISID, unsigned char)  [x1=3(0x3)]
+  2332a8: f94002c8     	ldr	x8, [x22]
+  2332ac: f9401508     	ldr	x8, [x8, #0x28]
+  2332b0: 910023e1     	add	x1, sp, #0x8
+  2332b4: aa1603e0     	mov	x0, x22
+  2332b8: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  2332bc: 1400000b     	b	0x2332e8 <SW::SwMountAxis::updateAxisPosition_noStoreEvent(SW::AXISID)+0x90>
+  2332c0: 52800d48     	mov	w8, #0x6a               // =106
+  2332c4: b9000bf5     	str	w21, [sp, #0x8]
+  2332c8: 390033e8     	strb	w8, [sp, #0xc]
+  2332cc: a901ffff     	stp	xzr, xzr, [sp, #0x18]
+  2332d0: f9000bff     	str	xzr, [sp, #0x10]
+  2332d4: f94002c8     	ldr	x8, [x22]
+  2332d8: f9401108     	ldr	x8, [x8, #0x20]
+  2332dc: 910023e1     	add	x1, sp, #0x8
+  2332e0: aa1603e0     	mov	x0, x22
+  2332e4: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  2332e8: aa0003f7     	mov	x23, x0
+  2332ec: f9400be0     	ldr	x0, [sp, #0x10]
+  2332f0: aa0103f6     	mov	x22, x1
+  2332f4: b4000060     	cbz	x0, 0x233300 <SW::SwMountAxis::updateAxisPosition_noStoreEvent(SW::AXISID)+0xa8>
+  2332f8: f9000fe0     	str	x0, [sp, #0x18]
+  2332fc: 94023825     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  233300: 34000137     	cbz	w23, 0x233324 <SW::SwMountAxis::updateAxisPosition_noStoreEvent(SW::AXISID)+0xcc>
+  233304: b9000277     	str	w23, [x19]
+  233308: 3900127f     	strb	wzr, [x19, #0x4]
+  23330c: a900fe7f     	stp	xzr, xzr, [x19, #0x8]
+  233310: f9401708     	ldr	x8, [x24, #0x28]
+  233314: f85e83a9     	ldur	x9, [x29, #-0x18]
+  233318: eb09011f     	cmp	x8, x9
+  23331c: 54000400     	b.eq	0x23339c <SW::SwMountAxis::updateAxisPosition_noStoreEvent(SW::AXISID)+0x144>
+  233320: 14000047     	b	0x23343c <SW::SwMountAxis::updateAxisPosition_noStoreEvent(SW::AXISID)+0x1e4>
+  233324: f2601eff     	tst	x23, #0xff00000000
+  233328: 54000480     	b.eq	0x2333b8 <SW::SwMountAxis::updateAxisPosition_noStoreEvent(SW::AXISID)+0x160>
+  23332c: f9403680     	ldr	x0, [x20, #0x68]
+  233330: 39440a88     	ldrb	w8, [x20, #0x102]
+  233334: 516002ca     	sub	w10, w22, #0x800, lsl #12 // =0x800000
+  233338: 2a1503e1     	mov	w1, w21
+  23333c: f9400009     	ldr	x9, [x0]
+  233340: 7100011f     	cmp	w8, #0x0
+  233344: 1a960142     	csel	w2, w10, w22, eq
+  233348: f9404528     	ldr	x8, [x9, #0x88]
+  23334c: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  233350: f9403680     	ldr	x0, [x20, #0x68]
+  233354: 2a1503e1     	mov	w1, w21
+  233358: f9400008     	ldr	x8, [x0]
+  23335c: f9404d08     	ldr	x8, [x8, #0x98]
+  233360: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  233364: f9404e80     	ldr	x0, [x20, #0x98]
+  233368: 1e604008     	fmov	d8, d0
+  23336c: f9400008     	ldr	x8, [x0]
+  233370: f9400908     	ldr	x8, [x8, #0x10]
+  233374: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  233378: 52800028     	mov	w8, #0x1                // =1
+  23337c: b900027f     	str	wzr, [x19]
+  233380: 39001268     	strb	w8, [x19, #0x4]
+  233384: fd000668     	str	d8, [x19, #0x8]
+  233388: f9000a60     	str	x0, [x19, #0x10]
+  23338c: f9401708     	ldr	x8, [x24, #0x28]
+  233390: f85e83a9     	ldur	x9, [x29, #-0x18]
+  233394: eb09011f     	cmp	x8, x9
+  233398: 54000521     	b.ne	0x23343c <SW::SwMountAxis::updateAxisPosition_noStoreEvent(SW::AXISID)+0x1e4>
+  23339c: a9474ff4     	ldp	x20, x19, [sp, #0x70]
+  2333a0: fd401be8     	ldr	d8, [sp, #0x30]
+  2333a4: a94657f6     	ldp	x22, x21, [sp, #0x60]
+  2333a8: a9455ff8     	ldp	x24, x23, [sp, #0x50]
+  2333ac: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+  2333b0: 910203ff     	add	sp, sp, #0x80
+  2333b4: d65f03c0     	ret
+  2333b8: 52800200     	mov	w0, #0x10               // =16
+  2333bc: 9402387d     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  2333c0: aa0003f4     	mov	x20, x0
+  2333c4: b0fff4c1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  2333c8: 9135a421     	add	x1, x1, #0xd69
+  2333cc: 94023f15     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  2333d0: f9401708     	ldr	x8, [x24, #0x28]
+  2333d4: f85e83a9     	ldur	x9, [x29, #-0x18]
+  2333d8: eb09011f     	cmp	x8, x9
+  2333dc: 54000301     	b.ne	0x23343c <SW::SwMountAxis::updateAxisPosition_noStoreEvent(SW::AXISID)+0x1e4>
+  2333e0: d0000521     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  2333e4: d0000522     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  2333e8: aa1403e0     	mov	x0, x20
+  2333ec: f9409c21     	ldr	x1, [x1, #0x138]
+  2333f0: f940a042     	ldr	x2, [x2, #0x140]
+  2333f4: 94023877     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  2333f8: aa0003f3     	mov	x19, x0
+  2333fc: aa1403e0     	mov	x0, x20
+  233400: 94023b60     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  233404: 14000008     	b	0x233424 <SW::SwMountAxis::updateAxisPosition_noStoreEvent(SW::AXISID)+0x1cc>
+  233408: 14000001     	b	0x23340c <SW::SwMountAxis::updateAxisPosition_noStoreEvent(SW::AXISID)+0x1b4>
+  23340c: f9400be8     	ldr	x8, [sp, #0x10]
+  233410: aa0003f3     	mov	x19, x0
+  233414: b4000088     	cbz	x8, 0x233424 <SW::SwMountAxis::updateAxisPosition_noStoreEvent(SW::AXISID)+0x1cc>
+  233418: aa0803e0     	mov	x0, x8
+  23341c: f9000fe8     	str	x8, [sp, #0x18]
+  233420: 940237dc     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  233424: f9401708     	ldr	x8, [x24, #0x28]
+  233428: f85e83a9     	ldur	x9, [x29, #-0x18]
+  23342c: eb09011f     	cmp	x8, x9
+  233430: 54000061     	b.ne	0x23343c <SW::SwMountAxis::updateAxisPosition_noStoreEvent(SW::AXISID)+0x1e4>
+  233434: aa1303e0     	mov	x0, x19
+  233438: 94022813     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23343c: 9402375d     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000233440 <SW::SwMountAxis::updateBothAxisPosition()>:
+  233440: d10243ff     	sub	sp, sp, #0x90
+  233444: a9037bfd     	stp	x29, x30, [sp, #0x30]
+  233448: a9046ffc     	stp	x28, x27, [sp, #0x40]
+  23344c: a90567fa     	stp	x26, x25, [sp, #0x50]
+  233450: a9065ff8     	stp	x24, x23, [sp, #0x60]
+  233454: a90757f6     	stp	x22, x21, [sp, #0x70]
+  233458: a9084ff4     	stp	x20, x19, [sp, #0x80]
+  23345c: 9100c3fd     	add	x29, sp, #0x30
+  233460: d53bd057     	mrs	x23, TPIDR_EL0
+  233464: aa0003f5     	mov	x21, x0
+  233468: aa0803f3     	mov	x19, x8
+  23346c: f94016e9     	ldr	x9, [x23, #0x28]
+  233470: f81f83a9     	stur	x9, [x29, #-0x8]
+  233474: 39440809     	ldrb	w9, [x0, #0x102]
+  233478: 34000209     	cbz	w9, 0x2334b8 <SW::SwMountAxis::updateBothAxisPosition()+0x78>
+  23347c: f9403ea0     	ldr	x0, [x21, #0x78]
+  233480: f9400008     	ldr	x8, [x0]
+  233484: f9401109     	ldr	x9, [x8, #0x20]
+  233488: 910023e8     	add	x8, sp, #0x8
+  23348c: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  233490: b9400be8     	ldr	w8, [sp, #0x8]
+  233494: 340003e8     	cbz	w8, 0x233510 <SW::SwMountAxis::updateBothAxisPosition()+0xd0>
+  233498: b9000268     	str	w8, [x19]
+  23349c: 3900127f     	strb	wzr, [x19, #0x4]
+  2334a0: a900fe7f     	stp	xzr, xzr, [x19, #0x8]
+  2334a4: f94016e8     	ldr	x8, [x23, #0x28]
+  2334a8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2334ac: eb09011f     	cmp	x8, x9
+  2334b0: 54000700     	b.eq	0x233590 <SW::SwMountAxis::updateBothAxisPosition()+0x150>
+  2334b4: 1400007f     	b	0x2336b0 <SW::SwMountAxis::updateBothAxisPosition()+0x270>
+  2334b8: 910023e8     	add	x8, sp, #0x8
+  2334bc: aa1503e0     	mov	x0, x21
+  2334c0: 2a1f03e1     	mov	w1, wzr
+  2334c4: 940244eb     	bl	0x2c4870 <_ZN2SW11SwMountAxis31updateAxisPosition_noStoreEventENS_6AXISIDE@plt>  ;;; CALL SW::SwMountAxis::updateAxisPosition_noStoreEvent(SW::AXISID)
+  2334c8: b9400be8     	ldr	w8, [sp, #0x8]
+  2334cc: 35000128     	cbnz	w8, 0x2334f0 <SW::SwMountAxis::updateBothAxisPosition()+0xb0>
+  2334d0: a9416bf8     	ldp	x24, x26, [sp, #0x10]
+  2334d4: 910023e8     	add	x8, sp, #0x8
+  2334d8: 394033fb     	ldrb	w27, [sp, #0xc]
+  2334dc: aa1503e0     	mov	x0, x21
+  2334e0: 52800021     	mov	w1, #0x1                // =1
+  2334e4: 940244e3     	bl	0x2c4870 <_ZN2SW11SwMountAxis31updateAxisPosition_noStoreEventENS_6AXISIDE@plt>  ;;; CALL SW::SwMountAxis::updateAxisPosition_noStoreEvent(SW::AXISID)  [x1=1(0x1)]
+  2334e8: b9400be8     	ldr	w8, [sp, #0x8]
+  2334ec: 34000628     	cbz	w8, 0x2335b0 <SW::SwMountAxis::updateBothAxisPosition()+0x170>
+  2334f0: b9000268     	str	w8, [x19]
+  2334f4: 3900127f     	strb	wzr, [x19, #0x4]
+  2334f8: f94016e8     	ldr	x8, [x23, #0x28]
+  2334fc: f85f83a9     	ldur	x9, [x29, #-0x8]
+  233500: eb09011f     	cmp	x8, x9
+  233504: 54000d61     	b.ne	0x2336b0 <SW::SwMountAxis::updateBothAxisPosition()+0x270>
+  233508: a900fe7f     	stp	xzr, xzr, [x19, #0x8]
+  23350c: 14000021     	b	0x233590 <SW::SwMountAxis::updateBothAxisPosition()+0x150>
+  233510: f9404ea0     	ldr	x0, [x21, #0x98]
+  233514: f9400008     	ldr	x8, [x0]
+  233518: f9400908     	ldr	x8, [x8, #0x10]
+  23351c: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  233520: 394033e8     	ldrb	w8, [sp, #0xc]
+  233524: 36000628     	tbz	w8, #0x0, 0x2335e8 <SW::SwMountAxis::updateBothAxisPosition()+0x1a8>
+  233528: a94167f8     	ldp	x24, x25, [sp, #0x10]
+  23352c: 910362b4     	add	x20, x21, #0xd8
+  233530: aa0003f6     	mov	x22, x0
+  233534: aa1403e0     	mov	x0, x20
+  233538: 94024502     	bl	0x2c4940 <_ZNSt6__ndk115recursive_mutex4lockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::lock()
+  23353c: aa1603fa     	mov	x26, x22
+  233540: f94056a0     	ldr	x0, [x21, #0xa8]
+  233544: 91014008     	add	x8, x0, #0x50
+  233548: c87fa51f     	ldaxp	xzr, x9, [x8]
+  23354c: c829e918     	stlxp	w9, x24, x26, [x8]
+  233550: 35ffffc9     	cbnz	w9, 0x233548 <SW::SwMountAxis::updateBothAxisPosition()+0x108>
+  233554: 91018008     	add	x8, x0, #0x60
+  233558: c87fa51f     	ldaxp	xzr, x9, [x8]
+  23355c: c829d919     	stlxp	w9, x25, x22, [x8]
+  233560: 35ffffc9     	cbnz	w9, 0x233558 <SW::SwMountAxis::updateBothAxisPosition()+0x118>
+  233564: 94023aef     	bl	0x2c2120 <_ZNK7eventpp9internal_16CallbackListBaseIFvvENS_15DefaultPoliciesEEclEv@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (), eventpp::DefaultPolicies>::operator()() const
+  233568: 52800028     	mov	w8, #0x1                // =1
+  23356c: aa1403e0     	mov	x0, x20
+  233570: b900027f     	str	wzr, [x19]
+  233574: 39001268     	strb	w8, [x19, #0x4]
+  233578: a900e678     	stp	x24, x25, [x19, #0x8]
+  23357c: 940244f5     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  233580: f94016e8     	ldr	x8, [x23, #0x28]
+  233584: f85f83a9     	ldur	x9, [x29, #-0x8]
+  233588: eb09011f     	cmp	x8, x9
+  23358c: 54000921     	b.ne	0x2336b0 <SW::SwMountAxis::updateBothAxisPosition()+0x270>
+  233590: a9484ff4     	ldp	x20, x19, [sp, #0x80]
+  233594: a94757f6     	ldp	x22, x21, [sp, #0x70]
+  233598: a9465ff8     	ldp	x24, x23, [sp, #0x60]
+  23359c: a94567fa     	ldp	x26, x25, [sp, #0x50]
+  2335a0: a9446ffc     	ldp	x28, x27, [sp, #0x40]
+  2335a4: a9437bfd     	ldp	x29, x30, [sp, #0x30]
+  2335a8: 910243ff     	add	sp, sp, #0x90
+  2335ac: d65f03c0     	ret
+  2335b0: a9415bf9     	ldp	x25, x22, [sp, #0x10]
+  2335b4: 910362b4     	add	x20, x21, #0xd8
+  2335b8: 394033fc     	ldrb	w28, [sp, #0xc]
+  2335bc: aa1403e0     	mov	x0, x20
+  2335c0: 940244e0     	bl	0x2c4940 <_ZNSt6__ndk115recursive_mutex4lockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::lock()
+  2335c4: 3400033b     	cbz	w27, 0x233628 <SW::SwMountAxis::updateBothAxisPosition()+0x1e8>
+  2335c8: 35fffbdc     	cbnz	w28, 0x233540 <SW::SwMountAxis::updateBothAxisPosition()+0x100>
+  2335cc: 52800200     	mov	w0, #0x10               // =16
+  2335d0: 940237f8     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  2335d4: aa0003f5     	mov	x21, x0
+  2335d8: b0fff4c1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  2335dc: 9135a421     	add	x1, x1, #0xd69
+  2335e0: 94023e90     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  2335e4: 14000017     	b	0x233640 <SW::SwMountAxis::updateBothAxisPosition()+0x200>
+  2335e8: 52800200     	mov	w0, #0x10               // =16
+  2335ec: 940237f1     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  2335f0: aa0003f4     	mov	x20, x0
+  2335f4: b0fff4c1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  2335f8: 9135a421     	add	x1, x1, #0xd69
+  2335fc: 94023e89     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  233600: f94016e8     	ldr	x8, [x23, #0x28]
+  233604: f85f83a9     	ldur	x9, [x29, #-0x8]
+  233608: eb09011f     	cmp	x8, x9
+  23360c: 54000521     	b.ne	0x2336b0 <SW::SwMountAxis::updateBothAxisPosition()+0x270>
+  233610: d0000521     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  233614: d0000522     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  233618: aa1403e0     	mov	x0, x20
+  23361c: f9409c21     	ldr	x1, [x1, #0x138]
+  233620: f940a042     	ldr	x2, [x2, #0x140]
+  233624: 940237eb     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  233628: 52800200     	mov	w0, #0x10               // =16
+  23362c: 940237e1     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  233630: aa0003f5     	mov	x21, x0
+  233634: b0fff4c1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  233638: 9135a421     	add	x1, x1, #0xd69
+  23363c: 94023e79     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  233640: f94016e8     	ldr	x8, [x23, #0x28]
+  233644: f85f83a9     	ldur	x9, [x29, #-0x8]
+  233648: eb09011f     	cmp	x8, x9
+  23364c: 54000321     	b.ne	0x2336b0 <SW::SwMountAxis::updateBothAxisPosition()+0x270>
+  233650: d0000521     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  233654: d0000522     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  233658: aa1503e0     	mov	x0, x21
+  23365c: f9409c21     	ldr	x1, [x1, #0x138]
+  233660: f940a042     	ldr	x2, [x2, #0x140]
+  233664: 940237db     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  233668: 14000001     	b	0x23366c <SW::SwMountAxis::updateBothAxisPosition()+0x22c>
+  23366c: aa0003f3     	mov	x19, x0
+  233670: aa1503e0     	mov	x0, x21
+  233674: 94023ac3     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  233678: 14000006     	b	0x233690 <SW::SwMountAxis::updateBothAxisPosition()+0x250>
+  23367c: aa0003f3     	mov	x19, x0
+  233680: aa1403e0     	mov	x0, x20
+  233684: 94023abf     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  233688: 14000004     	b	0x233698 <SW::SwMountAxis::updateBothAxisPosition()+0x258>
+  23368c: aa0003f3     	mov	x19, x0
+  233690: aa1403e0     	mov	x0, x20
+  233694: 940244af     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  233698: f94016e8     	ldr	x8, [x23, #0x28]
+  23369c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2336a0: eb09011f     	cmp	x8, x9
+  2336a4: 54000061     	b.ne	0x2336b0 <SW::SwMountAxis::updateBothAxisPosition()+0x270>
+  2336a8: aa1303e0     	mov	x0, x19
+  2336ac: 94022776     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  2336b0: 940236c0     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000002336b4 <SW::SwMountAxis::lastAxisPosition(SW::AXISID)>:
+  2336b4: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  2336b8: f9000bf5     	str	x21, [sp, #0x10]
+  2336bc: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  2336c0: 910003fd     	mov	x29, sp
+  2336c4: aa0003f3     	mov	x19, x0
+  2336c8: 91036000     	add	x0, x0, #0xd8
+  2336cc: 2a0103f4     	mov	w20, w1
+  2336d0: 9402449c     	bl	0x2c4940 <_ZNSt6__ndk115recursive_mutex4lockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::lock()
+  2336d4: f9405668     	ldr	x8, [x19, #0xa8]
+  2336d8: 8b345108     	add	x8, x8, w20, uxtw #4
+  2336dc: 91014108     	add	x8, x8, #0x50
+  2336e0: c87fd115     	ldaxp	x21, x20, [x8]
+  2336e4: c829d115     	stlxp	w9, x21, x20, [x8]
+  2336e8: 35ffffc9     	cbnz	w9, 0x2336e0 <SW::SwMountAxis::lastAxisPosition(SW::AXISID)+0x2c>
+  2336ec: 91036260     	add	x0, x19, #0xd8
+  2336f0: 94024498     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  2336f4: aa1503e0     	mov	x0, x21
+  2336f8: aa1403e1     	mov	x1, x20
+  2336fc: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  233700: f9400bf5     	ldr	x21, [sp, #0x10]
+  233704: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  233708: d65f03c0     	ret
+
+000000000023370c <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)>:
+  23370c: d102c3ff     	sub	sp, sp, #0xb0
+  233710: fd0033e8     	str	d8, [sp, #0x60]
+  233714: a906fbfd     	stp	x29, x30, [sp, #0x68]
+  233718: f9003ff9     	str	x25, [sp, #0x78]
+  23371c: a9085ff8     	stp	x24, x23, [sp, #0x80]
+  233720: a90957f6     	stp	x22, x21, [sp, #0x90]
+  233724: a90a4ff4     	stp	x20, x19, [sp, #0xa0]
+  233728: 9101a3fd     	add	x29, sp, #0x68
+  23372c: d53bd058     	mrs	x24, TPIDR_EL0
+  233730: aa0003f3     	mov	x19, x0
+  233734: 91002000     	add	x0, x0, #0x8
+  233738: f9401708     	ldr	x8, [x24, #0x28]
+  23373c: 1e604008     	fmov	d8, d0
+  233740: 2a0103f4     	mov	w20, w1
+  233744: f81f03a8     	stur	x8, [x29, #-0x10]
+  233748: 94023a76     	bl	0x2c2120 <_ZNK7eventpp9internal_16CallbackListBaseIFvvENS_15DefaultPoliciesEEclEv@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (), eventpp::DefaultPolicies>::operator()() const
+  23374c: f9403660     	ldr	x0, [x19, #0x68]
+  233750: 1e604100     	fmov	d0, d8
+  233754: 2a1403e1     	mov	w1, w20
+  233758: f9400008     	ldr	x8, [x0]
+  23375c: f9404908     	ldr	x8, [x8, #0x90]
+  233760: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  233764: f9403660     	ldr	x0, [x19, #0x68]
+  233768: 2a1403e1     	mov	w1, w20
+  23376c: f9400008     	ldr	x8, [x0]
+  233770: f9403d08     	ldr	x8, [x8, #0x78]
+  233774: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  233778: 39440a68     	ldrb	w8, [x19, #0x102]
+  23377c: 34000208     	cbz	w8, 0x2337bc <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)+0xb0>
+  233780: d100a3a8     	sub	x8, x29, #0x28
+  233784: 9402440f     	bl	0x2c47c0 <_ZN2SW10SwCmdCoder12encodeX32IntEi@plt>  ;;; CALL SW::SwCmdCoder::encodeX32Int(int)
+  233788: f9402e75     	ldr	x21, [x19, #0x58]
+  23378c: 910003e8     	mov	x8, sp
+  233790: d100a3a2     	sub	x2, x29, #0x28
+  233794: 2a1403e0     	mov	w0, w20
+  233798: 52800021     	mov	w1, #0x1                // =1
+  23379c: 940243ed     	bl	0x2c4750 <_ZN2SW5SwCmd1xENS_6AXISIDEhRKNS_6CBytesE@plt>  ;;; CALL SW::SwCmd::x(SW::AXISID, unsigned char, SW::CBytes const&)  [x1=1(0x1)]
+  2337a0: f94002a8     	ldr	x8, [x21]
+  2337a4: f9400909     	ldr	x9, [x8, #0x10]
+  2337a8: 910083e8     	add	x8, sp, #0x20
+  2337ac: 910003e1     	mov	x1, sp
+  2337b0: aa1503e0     	mov	x0, x21
+  2337b4: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  2337b8: 1400001d     	b	0x23382c <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)+0x120>
+  2337bc: d100a3a8     	sub	x8, x29, #0x28
+  2337c0: 11600000     	add	w0, w0, #0x800, lsl #12 // =0x800000
+  2337c4: 940243db     	bl	0x2c4730 <_ZN2SW10SwCmdCoder9encodeIntEi@plt>  ;;; CALL SW::SwCmdCoder::encodeInt(int)
+  2337c8: a97da7b6     	ldp	x22, x9, [x29, #-0x28]
+  2337cc: 528008a8     	mov	w8, #0x45               // =69
+  2337d0: f9402e75     	ldr	x21, [x19, #0x58]
+  2337d4: b90003f4     	str	w20, [sp]
+  2337d8: 390013e8     	strb	w8, [sp, #0x4]
+  2337dc: eb160137     	subs	x23, x9, x22
+  2337e0: a9017fff     	stp	xzr, xzr, [sp, #0x10]
+  2337e4: f90007ff     	str	xzr, [sp, #0x8]
+  2337e8: 54000160     	b.eq	0x233814 <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)+0x108>
+  2337ec: b7f80797     	tbnz	x23, #0x3f, 0x2338dc <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)+0x1d0>
+  2337f0: aa1703e0     	mov	x0, x23
+  2337f4: 94023643     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  2337f8: 8b170019     	add	x25, x0, x23
+  2337fc: aa1603e1     	mov	x1, x22
+  233800: aa1703e2     	mov	x2, x23
+  233804: f90007e0     	str	x0, [sp, #0x8]
+  233808: f9000ff9     	str	x25, [sp, #0x18]
+  23380c: 94023b9d     	bl	0x2c2680 <memcpy@plt>  ;;; CALL memcpy
+  233810: f9000bf9     	str	x25, [sp, #0x10]
+  233814: f94002a8     	ldr	x8, [x21]
+  233818: f9400909     	ldr	x9, [x8, #0x10]
+  23381c: 910083e8     	add	x8, sp, #0x20
+  233820: 910003e1     	mov	x1, sp
+  233824: aa1503e0     	mov	x0, x21
+  233828: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  23382c: f94017e0     	ldr	x0, [sp, #0x28]
+  233830: b94023f5     	ldr	w21, [sp, #0x20]
+  233834: b4000060     	cbz	x0, 0x233840 <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)+0x134>
+  233838: f9001be0     	str	x0, [sp, #0x30]
+  23383c: 940236d5     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  233840: f94007e0     	ldr	x0, [sp, #0x8]
+  233844: b4000060     	cbz	x0, 0x233850 <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)+0x144>
+  233848: f9000be0     	str	x0, [sp, #0x10]
+  23384c: 940236d1     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  233850: f85d83a0     	ldur	x0, [x29, #-0x28]
+  233854: b4000060     	cbz	x0, 0x233860 <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)+0x154>
+  233858: f81e03a0     	stur	x0, [x29, #-0x20]
+  23385c: 940236cd     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  233860: 91036260     	add	x0, x19, #0xd8
+  233864: 94024437     	bl	0x2c4940 <_ZNSt6__ndk115recursive_mutex4lockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::lock()
+  233868: 350001d5     	cbnz	w21, 0x2338a0 <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)+0x194>
+  23386c: f9404e60     	ldr	x0, [x19, #0x98]
+  233870: f9400008     	ldr	x8, [x0]
+  233874: f9400908     	ldr	x8, [x8, #0x10]
+  233878: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  23387c: f9405668     	ldr	x8, [x19, #0xa8]
+  233880: 9e66010a     	fmov	x10, d8
+  233884: 8b345109     	add	x9, x8, w20, uxtw #4
+  233888: 91014129     	add	x9, x9, #0x50
+  23388c: c87fad3f     	ldaxp	xzr, x11, [x9]
+  233890: c82b812a     	stlxp	w11, x10, x0, [x9]
+  233894: 35ffffcb     	cbnz	w11, 0x23388c <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)+0x180>
+  233898: aa0803e0     	mov	x0, x8
+  23389c: 94023a21     	bl	0x2c2120 <_ZNK7eventpp9internal_16CallbackListBaseIFvvENS_15DefaultPoliciesEEclEv@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (), eventpp::DefaultPolicies>::operator()() const
+  2338a0: 91036260     	add	x0, x19, #0xd8
+  2338a4: 9402442b     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  2338a8: f9401708     	ldr	x8, [x24, #0x28]
+  2338ac: f85f03a9     	ldur	x9, [x29, #-0x10]
+  2338b0: eb09011f     	cmp	x8, x9
+  2338b4: 540005a1     	b.ne	0x233968 <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)+0x25c>
+  2338b8: 2a1503e0     	mov	w0, w21
+  2338bc: a94a4ff4     	ldp	x20, x19, [sp, #0xa0]
+  2338c0: f9403ff9     	ldr	x25, [sp, #0x78]
+  2338c4: a94957f6     	ldp	x22, x21, [sp, #0x90]
+  2338c8: fd4033e8     	ldr	d8, [sp, #0x60]
+  2338cc: a9485ff8     	ldp	x24, x23, [sp, #0x80]
+  2338d0: a946fbfd     	ldp	x29, x30, [sp, #0x68]
+  2338d4: 9102c3ff     	add	sp, sp, #0xb0
+  2338d8: d65f03c0     	ret
+  2338dc: f9401708     	ldr	x8, [x24, #0x28]
+  2338e0: f85f03a9     	ldur	x9, [x29, #-0x10]
+  2338e4: eb09011f     	cmp	x8, x9
+  2338e8: 54000401     	b.ne	0x233968 <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)+0x25c>
+  2338ec: 910003e8     	mov	x8, sp
+  2338f0: 91002100     	add	x0, x8, #0x8
+  2338f4: 97ff378b     	bl	0x201720 <std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char
+  2338f8: 14000002     	b	0x233900 <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)+0x1f4>
+  2338fc: 14000001     	b	0x233900 <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)+0x1f4>
+  233900: f94007e8     	ldr	x8, [sp, #0x8]
+  233904: aa0003f4     	mov	x20, x0
+  233908: b5000128     	cbnz	x8, 0x23392c <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)+0x220>
+  23390c: f85d83a0     	ldur	x0, [x29, #-0x28]
+  233910: b5000200     	cbnz	x0, 0x233950 <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)+0x244>
+  233914: f9401708     	ldr	x8, [x24, #0x28]
+  233918: f85f03a9     	ldur	x9, [x29, #-0x10]
+  23391c: eb09011f     	cmp	x8, x9
+  233920: 54000241     	b.ne	0x233968 <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)+0x25c>
+  233924: aa1403e0     	mov	x0, x20
+  233928: 940226d7     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23392c: aa0803e0     	mov	x0, x8
+  233930: f9000be8     	str	x8, [sp, #0x10]
+  233934: 94023697     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  233938: f85d83a0     	ldur	x0, [x29, #-0x28]
+  23393c: b4fffec0     	cbz	x0, 0x233914 <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)+0x208>
+  233940: 14000004     	b	0x233950 <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)+0x244>
+  233944: aa0003f4     	mov	x20, x0
+  233948: f85d83a0     	ldur	x0, [x29, #-0x28]
+  23394c: b4fffe40     	cbz	x0, 0x233914 <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)+0x208>
+  233950: f81e03a0     	stur	x0, [x29, #-0x20]
+  233954: 9402368f     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  233958: f9401708     	ldr	x8, [x24, #0x28]
+  23395c: f85f03a9     	ldur	x9, [x29, #-0x10]
+  233960: eb09011f     	cmp	x8, x9
+  233964: 54fffe00     	b.eq	0x233924 <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)+0x218>
+  233968: 94023612     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+  23396c: aa0003f4     	mov	x20, x0
+  233970: 91036260     	add	x0, x19, #0xd8
+  233974: 940243f7     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  233978: f9401708     	ldr	x8, [x24, #0x28]
+  23397c: f85f03a9     	ldur	x9, [x29, #-0x10]
+  233980: eb09011f     	cmp	x8, x9
+  233984: 54fffd00     	b.eq	0x233924 <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)+0x218>
+  233988: 17fffff8     	b	0x233968 <SW::SwMountAxis::setAxisPosition(SW::AXISID, double)+0x25c>
+
+000000000023398c <SW::SwMountAxis::toB16Int(int)>:
+  23398c: 39440808     	ldrb	w8, [x0, #0x102]
+  233990: 11600029     	add	w9, w1, #0x800, lsl #12 // =0x800000
+  233994: 7100011f     	cmp	w8, #0x0
+  233998: 1a810120     	csel	w0, w9, w1, eq
+  23399c: d65f03c0     	ret
+
+00000000002339a0 <SW::SwMountAxis::axisPositionMinMax(SW::AXISID)>:
+  2339a0: 6dbc23e9     	stp	d9, d8, [sp, #-0x40]!
+  2339a4: a9017bfd     	stp	x29, x30, [sp, #0x10]
+  2339a8: f90013f5     	str	x21, [sp, #0x20]
+  2339ac: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  2339b0: 910043fd     	add	x29, sp, #0x10
+  2339b4: aa0003f3     	mov	x19, x0
+  2339b8: 91036000     	add	x0, x0, #0xd8
+  2339bc: 2a0103f4     	mov	w20, w1
+  2339c0: 940243e0     	bl	0x2c4940 <_ZNSt6__ndk115recursive_mutex4lockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::lock()
+  2339c4: f9403660     	ldr	x0, [x19, #0x68]
+  2339c8: 39440a68     	ldrb	w8, [x19, #0x102]
+  2339cc: 12bfe00a     	mov	w10, #0xffffff          // =16777215
+  2339d0: 52b0000b     	mov	w11, #-0x80000000       // =-2147483648
+  2339d4: 52bff00c     	mov	w12, #-0x800000         // =-8388608
+  2339d8: f9400009     	ldr	x9, [x0]
+  2339dc: 7100011f     	cmp	w8, #0x0
+  2339e0: 12b00008     	mov	w8, #0x7fffffff         // =2147483647
+  2339e4: 1a880155     	csel	w21, w10, w8, eq
+  2339e8: 1a8b0182     	csel	w2, w12, w11, eq
+  2339ec: f9404529     	ldr	x9, [x9, #0x88]
+  2339f0: 2a1403e1     	mov	w1, w20
+  2339f4: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  2339f8: f9403660     	ldr	x0, [x19, #0x68]
+  2339fc: f9400008     	ldr	x8, [x0]
+  233a00: f9404d08     	ldr	x8, [x8, #0x98]
+  233a04: 2a1403e1     	mov	w1, w20
+  233a08: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  233a0c: f9403660     	ldr	x0, [x19, #0x68]
+  233a10: 1e604008     	fmov	d8, d0
+  233a14: 39440a68     	ldrb	w8, [x19, #0x102]
+  233a18: 516002aa     	sub	w10, w21, #0x800, lsl #12 // =0x800000
+  233a1c: f9400009     	ldr	x9, [x0]
+  233a20: 7100011f     	cmp	w8, #0x0
+  233a24: 1a950142     	csel	w2, w10, w21, eq
+  233a28: f9404528     	ldr	x8, [x9, #0x88]
+  233a2c: 2a1403e1     	mov	w1, w20
+  233a30: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  233a34: f9403660     	ldr	x0, [x19, #0x68]
+  233a38: f9400008     	ldr	x8, [x0]
+  233a3c: f9404d08     	ldr	x8, [x8, #0x98]
+  233a40: 2a1403e1     	mov	w1, w20
+  233a44: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  233a48: 91036260     	add	x0, x19, #0xd8
+  233a4c: 1e604009     	fmov	d9, d0
+  233a50: 940243c0     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  233a54: 1e604100     	fmov	d0, d8
+  233a58: 1e604121     	fmov	d1, d9
+  233a5c: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  233a60: f94013f5     	ldr	x21, [sp, #0x20]
+  233a64: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+  233a68: 6cc423e9     	ldp	d9, d8, [sp], #0x40
+  233a6c: d65f03c0     	ret
+  233a70: aa0003f4     	mov	x20, x0
+  233a74: 91036260     	add	x0, x19, #0xd8
+  233a78: 940243b6     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  233a7c: aa1403e0     	mov	x0, x20
+  233a80: 94022681     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  233a84: aa0003f4     	mov	x20, x0
+  233a88: 91036260     	add	x0, x19, #0xd8
+  233a8c: 940243b1     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  233a90: aa1403e0     	mov	x0, x20
+  233a94: 9402267c     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+0000000000233a98 <SW::SwMountAxis::toRawStep(int)>:
+  233a98: 39440808     	ldrb	w8, [x0, #0x102]
+  233a9c: 51600029     	sub	w9, w1, #0x800, lsl #12 // =0x800000
+  233aa0: 7100011f     	cmp	w8, #0x0
+  233aa4: 1a810120     	csel	w0, w9, w1, eq
+  233aa8: d65f03c0     	ret
+
+0000000000233aac <SW::SwMountAxis::updateAxisStatus(SW::AXISID)>:
+  233aac: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  233ab0: f9000bf5     	str	x21, [sp, #0x10]
+  233ab4: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  233ab8: 910003fd     	mov	x29, sp
+  233abc: aa0003f3     	mov	x19, x0
+  233ac0: f9403400     	ldr	x0, [x0, #0x68]
+  233ac4: 2a0103f4     	mov	w20, w1
+  233ac8: f9400008     	ldr	x8, [x0]
+  233acc: f9403108     	ldr	x8, [x8, #0x60]
+  233ad0: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  233ad4: f2407c15     	ands	x21, x0, #0xffffffff
+  233ad8: 540000e0     	b.eq	0x233af4 <SW::SwMountAxis::updateAxisStatus(SW::AXISID)+0x48>
+  233adc: aa1f03e1     	mov	x1, xzr
+  233ae0: aa1503e0     	mov	x0, x21
+  233ae4: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  233ae8: f9400bf5     	ldr	x21, [sp, #0x10]
+  233aec: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  233af0: d65f03c0     	ret
+  233af4: f9400268     	ldr	x8, [x19]  ; vptr of SW::SwMountAxis
+  233af8: aa1303e0     	mov	x0, x19
+  233afc: 2a1403e1     	mov	w1, w20
+  233b00: f9403108     	ldr	x8, [x8, #0x60]  ; -> SW::SwMountAxis::lastAxisStatus(SW::AXISID)
+  233b04: d63f0100     	blr	x8  ;;; CALL SW::SwMountAxis::lastAxisStatus(SW::AXISID)
+  233b08: d2c00028     	mov	x8, #0x100000000        // =4294967296
+  233b0c: 2a0003e1     	mov	w1, w0
+  233b10: aa150100     	orr	x0, x8, x21
+  233b14: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  233b18: f9400bf5     	ldr	x21, [sp, #0x10]
+  233b1c: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  233b20: d65f03c0     	ret
+
+0000000000233b24 <SW::SwMountAxis::lastAxisStatus(SW::AXISID)>:
+  233b24: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  233b28: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  233b2c: 910003fd     	mov	x29, sp
+  233b30: aa0003f3     	mov	x19, x0
+  233b34: 91036000     	add	x0, x0, #0xd8
+  233b38: 2a0103f4     	mov	w20, w1
+  233b3c: 94024381     	bl	0x2c4940 <_ZNSt6__ndk115recursive_mutex4lockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::lock()
+  233b40: f9403660     	ldr	x0, [x19, #0x68]
+  233b44: f9400008     	ldr	x8, [x0]
+  233b48: f9403508     	ldr	x8, [x8, #0x68]
+  233b4c: 2a1403e1     	mov	w1, w20
+  233b50: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  233b54: aa0003f4     	mov	x20, x0
+  233b58: 91036260     	add	x0, x19, #0xd8
+  233b5c: 9402437d     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  233b60: 2a1403e0     	mov	w0, w20
+  233b64: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  233b68: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  233b6c: d65f03c0     	ret
+  233b70: aa0003f4     	mov	x20, x0
+  233b74: 91036260     	add	x0, x19, #0xd8
+  233b78: 94024376     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  233b7c: aa1403e0     	mov	x0, x20
+  233b80: 94022641     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+0000000000233b84 <SW::SwMountAxis::axisSlew(SW::AXISID, double)>:
+  233b84: fc1d0fe8     	str	d8, [sp, #-0x30]!
+  233b88: a900fbfd     	stp	x29, x30, [sp, #0x8]
+  233b8c: f9000ff5     	str	x21, [sp, #0x18]
+  233b90: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  233b94: 910023fd     	add	x29, sp, #0x8
+  233b98: aa0003f3     	mov	x19, x0
+  233b9c: 91002000     	add	x0, x0, #0x8
+  233ba0: 1e604008     	fmov	d8, d0
+  233ba4: 2a0103f5     	mov	w21, w1
+  233ba8: 9402395e     	bl	0x2c2120 <_ZNK7eventpp9internal_16CallbackListBaseIFvvENS_15DefaultPoliciesEEclEv@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (), eventpp::DefaultPolicies>::operator()() const
+  233bac: f9406660     	ldr	x0, [x19, #0xc8]
+  233bb0: f9400008     	ldr	x8, [x0]
+  233bb4: f9403108     	ldr	x8, [x8, #0x60]
+  233bb8: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  233bbc: 1e6c1001     	fmov	d1, #0.50000000
+  233bc0: 39440a68     	ldrb	w8, [x19, #0x102]
+  233bc4: 1e616800     	fmaxnm	d0, d0, d1
+  233bc8: 1e6f1001     	fmov	d1, #1.50000000
+  233bcc: 1e617800     	fminnm	d0, d0, d1
+  233bd0: 1e680800     	fmul	d0, d0, d8
+  233bd4: 340000a8     	cbz	w8, 0x233be8 <SW::SwMountAxis::axisSlew(SW::AXISID, double)+0x64>
+  233bd8: aa1303e0     	mov	x0, x19
+  233bdc: 2a1503e1     	mov	w1, w21
+  233be0: 94024328     	bl	0x2c4880 <_ZN2SW11SwMountAxis13axisSlew_cmdXENS_6AXISIDEd@plt>  ;;; CALL SW::SwMountAxis::axisSlew_cmdX(SW::AXISID, double)
+  233be4: 14000004     	b	0x233bf4 <SW::SwMountAxis::axisSlew(SW::AXISID, double)+0x70>
+  233be8: aa1303e0     	mov	x0, x19
+  233bec: 2a1503e1     	mov	w1, w21
+  233bf0: 94024328     	bl	0x2c4890 <_ZN2SW11SwMountAxis15axisSlew_legacyENS_6AXISIDEd@plt>  ;;; CALL SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)
+  233bf4: 2a0003f4     	mov	w20, w0
+  233bf8: 91036260     	add	x0, x19, #0xd8
+  233bfc: 94024351     	bl	0x2c4940 <_ZNSt6__ndk115recursive_mutex4lockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::lock()
+  233c00: 1e602108     	fcmp	d8, #0.0
+  233c04: 9104e26b     	add	x11, x19, #0x138
+  233c08: 2a1503e9     	mov	w9, w21
+  233c0c: 1a9fd7e8     	cset	w8, gt
+  233c10: 34000174     	cbz	w20, 0x233c3c <SW::SwMountAxis::axisSlew(SW::AXISID, double)+0xb8>
+  233c14: 8b09066a     	add	x10, x19, x9, lsl #1
+  233c18: 8b091169     	add	x9, x11, x9, lsl #4
+  233c1c: 3945654b     	ldrb	w11, [x10, #0x159]
+  233c20: 3900213f     	strb	wzr, [x9, #0x8]
+  233c24: 3400008b     	cbz	w11, 0x233c34 <SW::SwMountAxis::axisSlew(SW::AXISID, double)+0xb0>
+  233c28: 39456149     	ldrb	w9, [x10, #0x158]
+  233c2c: 6b08013f     	cmp	w9, w8
+  233c30: 54000180     	b.eq	0x233c60 <SW::SwMountAxis::axisSlew(SW::AXISID, double)+0xdc>
+  233c34: 3905655f     	strb	wzr, [x10, #0x159]
+  233c38: 1400000a     	b	0x233c60 <SW::SwMountAxis::axisSlew(SW::AXISID, double)+0xdc>
+  233c3c: 1e602108     	fcmp	d8, #0.0
+  233c40: 8b09116b     	add	x11, x11, x9, lsl #4
+  233c44: 5280002a     	mov	w10, #0x1               // =1
+  233c48: fd000168     	str	d8, [x11]
+  233c4c: 3900216a     	strb	w10, [x11, #0x8]
+  233c50: 54000080     	b.eq	0x233c60 <SW::SwMountAxis::axisSlew(SW::AXISID, double)+0xdc>
+  233c54: 8b090669     	add	x9, x19, x9, lsl #1
+  233c58: 39056128     	strb	w8, [x9, #0x158]
+  233c5c: 3905652a     	strb	w10, [x9, #0x159]
+  233c60: 91036260     	add	x0, x19, #0xd8
+  233c64: 9402433b     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  233c68: 2a1403e0     	mov	w0, w20
+  233c6c: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  233c70: f9400ff5     	ldr	x21, [sp, #0x18]
+  233c74: a940fbfd     	ldp	x29, x30, [sp, #0x8]
+  233c78: fc4307e8     	ldr	d8, [sp], #0x30
+  233c7c: d65f03c0     	ret
+
+0000000000233c80 <SW::SwMountAxis::axisSlew_cmdX(SW::AXISID, double)>:
+  233c80: d10243ff     	sub	sp, sp, #0x90
+  233c84: a9067bfd     	stp	x29, x30, [sp, #0x60]
+  233c88: f9003bf5     	str	x21, [sp, #0x70]
+  233c8c: a9084ff4     	stp	x20, x19, [sp, #0x80]
+  233c90: 910183fd     	add	x29, sp, #0x60
+  233c94: d53bd055     	mrs	x21, TPIDR_EL0
+  233c98: aa0003f3     	mov	x19, x0
+  233c9c: 2a0103f4     	mov	w20, w1
+  233ca0: f94016a8     	ldr	x8, [x21, #0x28]
+  233ca4: f81f83a8     	stur	x8, [x29, #-0x8]
+  233ca8: f9403c00     	ldr	x0, [x0, #0x78]
+  233cac: f9400008     	ldr	x8, [x0]
+  233cb0: f9402509     	ldr	x9, [x8, #0x48]
+  233cb4: d10083a8     	sub	x8, x29, #0x20
+  233cb8: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  233cbc: f9402e73     	ldr	x19, [x19, #0x58]
+  233cc0: 910003e8     	mov	x8, sp
+  233cc4: d10083a2     	sub	x2, x29, #0x20
+  233cc8: 2a1403e0     	mov	w0, w20
+  233ccc: 52800041     	mov	w1, #0x2                // =2
+  233cd0: 940242a0     	bl	0x2c4750 <_ZN2SW5SwCmd1xENS_6AXISIDEhRKNS_6CBytesE@plt>  ;;; CALL SW::SwCmd::x(SW::AXISID, unsigned char, SW::CBytes const&)  [x1=2(0x2)]
+  233cd4: f9400268     	ldr	x8, [x19]
+  233cd8: f9400909     	ldr	x9, [x8, #0x10]
+  233cdc: 910083e8     	add	x8, sp, #0x20
+  233ce0: 910003e1     	mov	x1, sp
+  233ce4: aa1303e0     	mov	x0, x19
+  233ce8: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  233cec: f94017e0     	ldr	x0, [sp, #0x28]
+  233cf0: b94023f3     	ldr	w19, [sp, #0x20]
+  233cf4: b4000060     	cbz	x0, 0x233d00 <SW::SwMountAxis::axisSlew_cmdX(SW::AXISID, double)+0x80>
+  233cf8: f9001be0     	str	x0, [sp, #0x30]
+  233cfc: 940235a5     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  233d00: f94007e0     	ldr	x0, [sp, #0x8]
+  233d04: b4000060     	cbz	x0, 0x233d10 <SW::SwMountAxis::axisSlew_cmdX(SW::AXISID, double)+0x90>
+  233d08: f9000be0     	str	x0, [sp, #0x10]
+  233d0c: 940235a1     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  233d10: f85e03a0     	ldur	x0, [x29, #-0x20]
+  233d14: b4000060     	cbz	x0, 0x233d20 <SW::SwMountAxis::axisSlew_cmdX(SW::AXISID, double)+0xa0>
+  233d18: f81e83a0     	stur	x0, [x29, #-0x18]
+  233d1c: 9402359d     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  233d20: f94016a8     	ldr	x8, [x21, #0x28]
+  233d24: f85f83a9     	ldur	x9, [x29, #-0x8]
+  233d28: eb09011f     	cmp	x8, x9
+  233d2c: 54000421     	b.ne	0x233db0 <SW::SwMountAxis::axisSlew_cmdX(SW::AXISID, double)+0x130>
+  233d30: 2a1303e0     	mov	w0, w19
+  233d34: a9484ff4     	ldp	x20, x19, [sp, #0x80]
+  233d38: f9403bf5     	ldr	x21, [sp, #0x70]
+  233d3c: a9467bfd     	ldp	x29, x30, [sp, #0x60]
+  233d40: 910243ff     	add	sp, sp, #0x90
+  233d44: d65f03c0     	ret
+  233d48: f94007e8     	ldr	x8, [sp, #0x8]
+  233d4c: aa0003f3     	mov	x19, x0
+  233d50: b5000128     	cbnz	x8, 0x233d74 <SW::SwMountAxis::axisSlew_cmdX(SW::AXISID, double)+0xf4>
+  233d54: f85e03a0     	ldur	x0, [x29, #-0x20]
+  233d58: b5000200     	cbnz	x0, 0x233d98 <SW::SwMountAxis::axisSlew_cmdX(SW::AXISID, double)+0x118>
+  233d5c: f94016a8     	ldr	x8, [x21, #0x28]
+  233d60: f85f83a9     	ldur	x9, [x29, #-0x8]
+  233d64: eb09011f     	cmp	x8, x9
+  233d68: 54000241     	b.ne	0x233db0 <SW::SwMountAxis::axisSlew_cmdX(SW::AXISID, double)+0x130>
+  233d6c: aa1303e0     	mov	x0, x19
+  233d70: 940225c5     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  233d74: aa0803e0     	mov	x0, x8
+  233d78: f9000be8     	str	x8, [sp, #0x10]
+  233d7c: 94023585     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  233d80: f85e03a0     	ldur	x0, [x29, #-0x20]
+  233d84: b4fffec0     	cbz	x0, 0x233d5c <SW::SwMountAxis::axisSlew_cmdX(SW::AXISID, double)+0xdc>
+  233d88: 14000004     	b	0x233d98 <SW::SwMountAxis::axisSlew_cmdX(SW::AXISID, double)+0x118>
+  233d8c: aa0003f3     	mov	x19, x0
+  233d90: f85e03a0     	ldur	x0, [x29, #-0x20]
+  233d94: b4fffe40     	cbz	x0, 0x233d5c <SW::SwMountAxis::axisSlew_cmdX(SW::AXISID, double)+0xdc>
+  233d98: f81e83a0     	stur	x0, [x29, #-0x18]
+  233d9c: 9402357d     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  233da0: f94016a8     	ldr	x8, [x21, #0x28]
+  233da4: f85f83a9     	ldur	x9, [x29, #-0x8]
+  233da8: eb09011f     	cmp	x8, x9
+  233dac: 54fffe00     	b.eq	0x233d6c <SW::SwMountAxis::axisSlew_cmdX(SW::AXISID, double)+0xec>
+  233db0: 94023500     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000233db4 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)>:
+  233db4: d10283ff     	sub	sp, sp, #0xa0
+  233db8: fd002be8     	str	d8, [sp, #0x50]
+  233dbc: a9067bfd     	stp	x29, x30, [sp, #0x60]
+  233dc0: a9075ff8     	stp	x24, x23, [sp, #0x70]
+  233dc4: a90857f6     	stp	x22, x21, [sp, #0x80]
+  233dc8: a9094ff4     	stp	x20, x19, [sp, #0x90]
+  233dcc: 910183fd     	add	x29, sp, #0x60
+  233dd0: f0fff4a8     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  233dd4: f0fff4a9     	adrp	x9, 0xca000 <GCC_except_table29+0x24>
+  233dd8: 2a0103f4     	mov	w20, w1
+  233ddc: fd473901     	ldr	d1, [x8, #0xe70]
+  233de0: f0fff4a8     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  233de4: aa0003f3     	mov	x19, x0
+  233de8: 1e612000     	fcmp	d0, d1
+  233dec: 1e60cc20     	fcsel	d0, d1, d0, gt
+  233df0: fd464101     	ldr	d1, [x8, #0xc80]
+  233df4: f0fff4a8     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  233df8: 1e612000     	fcmp	d0, d1
+  233dfc: 1e604c20     	fcsel	d0, d1, d0, mi
+  233e00: fd463521     	ldr	d1, [x9, #0xc68]
+  233e04: 1e60c008     	fabs	d8, d0
+  233e08: 1e602008     	fcmp	d0, #0.0
+  233e0c: fd472d00     	ldr	d0, [x8, #0xe58]
+  233e10: 1a9fd7e8     	cset	w8, gt
+  233e14: 1e602100     	fcmp	d8, d0
+  233e18: d53bd057     	mrs	x23, TPIDR_EL0
+  233e1c: 1a9fd7e9     	cset	w9, gt
+  233e20: 1e612100     	fcmp	d8, d1
+  233e24: f94016ea     	ldr	x10, [x23, #0x28]
+  233e28: f81e83aa     	stur	x10, [x29, #-0x18]
+  233e2c: 54000329     	b.ls	0x233e90 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0xdc>
+  233e30: 8b34526a     	add	x10, x19, w20, uxtw #4
+  233e34: 2a092116     	orr	w22, w8, w9, lsl #8
+  233e38: 3945014b     	ldrb	w11, [x10, #0x140]
+  233e3c: 340005ab     	cbz	w11, 0x233ef0 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x13c>
+  233e40: fd409d41     	ldr	d1, [x10, #0x138]
+  233e44: 1e602028     	fcmp	d1, #0.0
+  233e48: 54000540     	b.eq	0x233ef0 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x13c>
+  233e4c: 1a9fd7e8     	cset	w8, gt
+  233e50: f24002df     	tst	x22, #0x1
+  233e54: 1a9f17e9     	cset	w9, eq
+  233e58: 6b08013f     	cmp	w9, w8
+  233e5c: 540004a0     	b.eq	0x233ef0 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x13c>
+  233e60: 1e60c021     	fabs	d1, d1
+  233e64: 1e602020     	fcmp	d1, d0
+  233e68: 5400044c     	b.gt	0x233ef0 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x13c>
+  233e6c: 710402df     	cmp	w22, #0x100
+  233e70: 54000402     	b.hs	0x233ef0 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x13c>
+  233e74: 2a1f03f8     	mov	w24, wzr
+  233e78: aa1303e0     	mov	x0, x19
+  233e7c: 2a1403e1     	mov	w1, w20
+  233e80: 94024288     	bl	0x2c48a0 <_ZN2SW11SwMountAxis18readHighSpeedRatioENS_6AXISIDE@plt>  ;;; CALL SW::SwMountAxis::readHighSpeedRatio(SW::AXISID)
+  233e84: aa0003f5     	mov	x21, x0
+  233e88: 35000bf5     	cbnz	w21, 0x234004 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x250>
+  233e8c: 1400002b     	b	0x233f38 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x184>
+  233e90: 39440268     	ldrb	w8, [x19, #0x100]
+  233e94: 52800969     	mov	w9, #0x4b               // =75
+  233e98: f9402e60     	ldr	x0, [x19, #0x58]
+  233e9c: b9000bf4     	str	w20, [sp, #0x8]
+  233ea0: 7100011f     	cmp	w8, #0x0
+  233ea4: a901ffff     	stp	xzr, xzr, [sp, #0x18]
+  233ea8: 1a890528     	cinc	w8, w9, ne
+  233eac: f9000bff     	str	xzr, [sp, #0x10]
+  233eb0: 390033e8     	strb	w8, [sp, #0xc]
+  233eb4: f9400008     	ldr	x8, [x0]
+  233eb8: f9400909     	ldr	x9, [x8, #0x10]
+  233ebc: 9100a3e8     	add	x8, sp, #0x28
+  233ec0: 910023e1     	add	x1, sp, #0x8
+  233ec4: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  233ec8: f9401be0     	ldr	x0, [sp, #0x30]
+  233ecc: b9402bf5     	ldr	w21, [sp, #0x28]
+  233ed0: b4000060     	cbz	x0, 0x233edc <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x128>
+  233ed4: f9001fe0     	str	x0, [sp, #0x38]
+  233ed8: 9402352e     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  233edc: f9400be0     	ldr	x0, [sp, #0x10]
+  233ee0: b4000920     	cbz	x0, 0x234004 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x250>
+  233ee4: f9000fe0     	str	x0, [sp, #0x18]
+  233ee8: 9402352a     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  233eec: 14000046     	b	0x234004 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x250>
+  233ef0: aa1303e0     	mov	x0, x19
+  233ef4: 2a1403e1     	mov	w1, w20
+  233ef8: 9402426e     	bl	0x2c48b0 <_ZN2SW11SwMountAxis17axisCheckStopWaitENS_6AXISIDE@plt>  ;;; CALL SW::SwMountAxis::axisCheckStopWait(SW::AXISID)
+  233efc: 2a0003f5     	mov	w21, w0
+  233f00: 35000820     	cbnz	w0, 0x234004 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x250>
+  233f04: aa1303e0     	mov	x0, x19
+  233f08: 2a1403e1     	mov	w1, w20
+  233f0c: aa1603e2     	mov	x2, x22
+  233f10: 2a1f03e3     	mov	w3, wzr
+  233f14: 9402426b     	bl	0x2c48c0 <_ZN2SW11SwMountAxis13setMotionModeENS_6AXISIDENS0_16SwAxisMotionModeEb@plt>  ;;; CALL SW::SwMountAxis::setMotionMode(SW::AXISID, SW::SwMountAxis::SwAxisMotionMode, bool)
+  233f18: 2a0003f5     	mov	w21, w0
+  233f1c: 35000740     	cbnz	w0, 0x234004 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x250>
+  233f20: 52800038     	mov	w24, #0x1               // =1
+  233f24: aa1303e0     	mov	x0, x19
+  233f28: 2a1403e1     	mov	w1, w20
+  233f2c: 9402425d     	bl	0x2c48a0 <_ZN2SW11SwMountAxis18readHighSpeedRatioENS_6AXISIDE@plt>  ;;; CALL SW::SwMountAxis::readHighSpeedRatio(SW::AXISID)
+  233f30: aa0003f5     	mov	x21, x0
+  233f34: 35000695     	cbnz	w21, 0x234004 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x250>
+  233f38: 1e6e1000     	fmov	d0, #1.00000000
+  233f3c: 710402df     	cmp	w22, #0x100
+  233f40: 54000083     	b.lo	0x233f50 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x19c>
+  233f44: f2601ebf     	tst	x21, #0xff00000000
+  233f48: 54000760     	b.eq	0x234034 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x280>
+  233f4c: 1e630020     	ucvtf	d0, w1
+  233f50: 1e601900     	fdiv	d0, d8, d0
+  233f54: f9403660     	ldr	x0, [x19, #0x68]
+  233f58: 2a1403e1     	mov	w1, w20
+  233f5c: f9400008     	ldr	x8, [x0]
+  233f60: f9405108     	ldr	x8, [x8, #0xa0]
+  233f64: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  233f68: f9403668     	ldr	x8, [x19, #0x68]
+  233f6c: 2a0003f5     	mov	w21, w0
+  233f70: 2a1f03e1     	mov	w1, wzr
+  233f74: f9400109     	ldr	x9, [x8]
+  233f78: aa0803e0     	mov	x0, x8
+  233f7c: f9401529     	ldr	x9, [x9, #0x28]
+  233f80: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  233f84: 12181c09     	and	w9, w0, #0xff00
+  233f88: 120f180a     	and	w10, w0, #0xfe0000
+  233f8c: 51000ea8     	sub	w8, w21, #0x3
+  233f90: 2a004129     	orr	w9, w9, w0, lsl #16
+  233f94: aa1303e0     	mov	x0, x19
+  233f98: 2a1403e1     	mov	w1, w20
+  233f9c: 2a4a4129     	orr	w9, w9, w10, lsr #16
+  233fa0: 121f5929     	and	w9, w9, #0xfffffe
+  233fa4: 51404129     	sub	w9, w9, #0x10, lsl #12  // =0x10000
+  233fa8: 7118013f     	cmp	w9, #0x600
+  233fac: 528000c9     	mov	w9, #0x6                // =6
+  233fb0: 1a950108     	csel	w8, w8, w21, eq
+  233fb4: 7100191f     	cmp	w8, #0x6
+  233fb8: 1a898102     	csel	w2, w8, w9, hi
+  233fbc: 94024245     	bl	0x2c48d0 <_ZN2SW11SwMountAxis9setStrideENS_6AXISIDEj@plt>  ;;; CALL SW::SwMountAxis::setStride(SW::AXISID, unsigned int)
+  233fc0: 52000308     	eor	w8, w24, #0x1
+  233fc4: 7100001f     	cmp	w0, #0x0
+  233fc8: 2a0003f5     	mov	w21, w0
+  233fcc: 1a9f0508     	csinc	w8, w8, wzr, eq
+  233fd0: 370001a8     	tbnz	w8, #0x0, 0x234004 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x250>
+  233fd4: 52800948     	mov	w8, #0x4a               // =74
+  233fd8: f9402e60     	ldr	x0, [x19, #0x58]
+  233fdc: b9000bf4     	str	w20, [sp, #0x8]
+  233fe0: 390033e8     	strb	w8, [sp, #0xc]
+  233fe4: a901ffff     	stp	xzr, xzr, [sp, #0x18]
+  233fe8: f9000bff     	str	xzr, [sp, #0x10]
+  233fec: f9400008     	ldr	x8, [x0]
+  233ff0: f9400909     	ldr	x9, [x8, #0x10]
+  233ff4: 9100a3e8     	add	x8, sp, #0x28
+  233ff8: 910023e1     	add	x1, sp, #0x8
+  233ffc: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  234000: 17ffffb2     	b	0x233ec8 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x114>
+  234004: f94016e8     	ldr	x8, [x23, #0x28]
+  234008: f85e83a9     	ldur	x9, [x29, #-0x18]
+  23400c: eb09011f     	cmp	x8, x9
+  234010: 54000541     	b.ne	0x2340b8 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x304>
+  234014: 2a1503e0     	mov	w0, w21
+  234018: a9494ff4     	ldp	x20, x19, [sp, #0x90]
+  23401c: fd402be8     	ldr	d8, [sp, #0x50]
+  234020: a94857f6     	ldp	x22, x21, [sp, #0x80]
+  234024: a9475ff8     	ldp	x24, x23, [sp, #0x70]
+  234028: a9467bfd     	ldp	x29, x30, [sp, #0x60]
+  23402c: 910283ff     	add	sp, sp, #0xa0
+  234030: d65f03c0     	ret
+  234034: 52800200     	mov	w0, #0x10               // =16
+  234038: 9402355e     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23403c: aa0003f4     	mov	x20, x0
+  234040: 90fff4c1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  234044: 9135a421     	add	x1, x1, #0xd69
+  234048: 94023bf6     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23404c: f94016e8     	ldr	x8, [x23, #0x28]
+  234050: f85e83a9     	ldur	x9, [x29, #-0x18]
+  234054: eb09011f     	cmp	x8, x9
+  234058: 54000301     	b.ne	0x2340b8 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x304>
+  23405c: b0000521     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  234060: b0000522     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  234064: aa1403e0     	mov	x0, x20
+  234068: f9409c21     	ldr	x1, [x1, #0x138]
+  23406c: f940a042     	ldr	x2, [x2, #0x140]
+  234070: 94023558     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  234074: aa0003f3     	mov	x19, x0
+  234078: aa1403e0     	mov	x0, x20
+  23407c: 94023841     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  234080: 14000008     	b	0x2340a0 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x2ec>
+  234084: 14000001     	b	0x234088 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x2d4>
+  234088: f9400be8     	ldr	x8, [sp, #0x10]
+  23408c: aa0003f3     	mov	x19, x0
+  234090: b4000088     	cbz	x8, 0x2340a0 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x2ec>
+  234094: aa0803e0     	mov	x0, x8
+  234098: f9000fe8     	str	x8, [sp, #0x18]
+  23409c: 940234bd     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2340a0: f94016e8     	ldr	x8, [x23, #0x28]
+  2340a4: f85e83a9     	ldur	x9, [x29, #-0x18]
+  2340a8: eb09011f     	cmp	x8, x9
+  2340ac: 54000061     	b.ne	0x2340b8 <SW::SwMountAxis::axisSlew_legacy(SW::AXISID, double)+0x304>
+  2340b0: aa1303e0     	mov	x0, x19
+  2340b4: 940224f4     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  2340b8: 9402343e     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000002340bc <SW::SwMountAxis::axisSlewTo(SW::AXISID, double)>:
+  2340bc: fc1d0fe8     	str	d8, [sp, #-0x30]!
+  2340c0: a900fbfd     	stp	x29, x30, [sp, #0x8]
+  2340c4: f9000ff5     	str	x21, [sp, #0x18]
+  2340c8: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  2340cc: 910023fd     	add	x29, sp, #0x8
+  2340d0: aa0003f3     	mov	x19, x0
+  2340d4: 91002000     	add	x0, x0, #0x8
+  2340d8: 1e604008     	fmov	d8, d0
+  2340dc: 2a0103f4     	mov	w20, w1
+  2340e0: 94023810     	bl	0x2c2120 <_ZNK7eventpp9internal_16CallbackListBaseIFvvENS_15DefaultPoliciesEEclEv@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (), eventpp::DefaultPolicies>::operator()() const
+  2340e4: 39440a68     	ldrb	w8, [x19, #0x102]
+  2340e8: 340000e8     	cbz	w8, 0x234104 <SW::SwMountAxis::axisSlewTo(SW::AXISID, double)+0x48>
+  2340ec: 2f00e401     	movi	d1, #0000000000000000
+  2340f0: 1e604100     	fmov	d0, d8
+  2340f4: aa1303e0     	mov	x0, x19
+  2340f8: 2a1403e1     	mov	w1, w20
+  2340fc: 940241f9     	bl	0x2c48e0 <_ZN2SW11SwMountAxis19axisSlewToSlew_cmdXENS_6AXISIDEdd@plt>  ;;; CALL SW::SwMountAxis::axisSlewToSlew_cmdX(SW::AXISID, double, double)
+  234100: 14000005     	b	0x234114 <SW::SwMountAxis::axisSlewTo(SW::AXISID, double)+0x58>
+  234104: 1e604100     	fmov	d0, d8
+  234108: aa1303e0     	mov	x0, x19
+  23410c: 2a1403e1     	mov	w1, w20
+  234110: 940241f8     	bl	0x2c48f0 <_ZN2SW11SwMountAxis17axisSlewTo_legacyENS_6AXISIDEd@plt>  ;;; CALL SW::SwMountAxis::axisSlewTo_legacy(SW::AXISID, double)
+  234114: 2a0003f5     	mov	w21, w0
+  234118: 91036260     	add	x0, x19, #0xd8
+  23411c: 94024209     	bl	0x2c4940 <_ZNSt6__ndk115recursive_mutex4lockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::lock()
+  234120: f9400268     	ldr	x8, [x19]  ; vptr of SW::SwMountAxis
+  234124: f9402108     	ldr	x8, [x8, #0x40]  ; -> SW::SwMountAxis::lastAxisPosition(SW::AXISID)
+  234128: aa1303e0     	mov	x0, x19
+  23412c: 2a1403e1     	mov	w1, w20
+  234130: d63f0100     	blr	x8  ;;; CALL SW::SwMountAxis::lastAxisPosition(SW::AXISID)
+  234134: 8b345269     	add	x9, x19, w20, uxtw #4
+  234138: 2a1403e8     	mov	w8, w20
+  23413c: 3904813f     	strb	wzr, [x9, #0x120]
+  234140: 3905013f     	strb	wzr, [x9, #0x140]
+  234144: 34000095     	cbz	w21, 0x234154 <SW::SwMountAxis::axisSlewTo(SW::AXISID, double)+0x98>
+  234148: 8b080668     	add	x8, x19, x8, lsl #1
+  23414c: 3905651f     	strb	wzr, [x8, #0x159]
+  234150: 14000009     	b	0x234174 <SW::SwMountAxis::axisSlewTo(SW::AXISID, double)+0xb8>
+  234154: 9e670000     	fmov	d0, x0
+  234158: 8b080668     	add	x8, x19, x8, lsl #1
+  23415c: 5280002a     	mov	w10, #0x1               // =1
+  234160: 3905650a     	strb	w10, [x8, #0x159]
+  234164: 1e603900     	fsub	d0, d8, d0
+  234168: 1e602008     	fcmp	d0, #0.0
+  23416c: 1a9fd7e9     	cset	w9, gt
+  234170: 39056109     	strb	w9, [x8, #0x158]
+  234174: 91036260     	add	x0, x19, #0xd8
+  234178: 940241f6     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  23417c: 2a1503e0     	mov	w0, w21
+  234180: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  234184: f9400ff5     	ldr	x21, [sp, #0x18]
+  234188: a940fbfd     	ldp	x29, x30, [sp, #0x8]
+  23418c: fc4307e8     	ldr	d8, [sp], #0x30
+  234190: d65f03c0     	ret
+  234194: aa0003f4     	mov	x20, x0
+  234198: 91036260     	add	x0, x19, #0xd8
+  23419c: 940241ed     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  2341a0: aa1403e0     	mov	x0, x20
+  2341a4: 940224b8     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+00000000002341a8 <SW::SwMountAxis::axisSlewToSlew_cmdX(SW::AXISID, double, double)>:
+  2341a8: d10243ff     	sub	sp, sp, #0x90
+  2341ac: fd0033e8     	str	d8, [sp, #0x60]
+  2341b0: a906fbfd     	stp	x29, x30, [sp, #0x68]
+  2341b4: f9003ff5     	str	x21, [sp, #0x78]
+  2341b8: a9084ff4     	stp	x20, x19, [sp, #0x80]
+  2341bc: 9101a3fd     	add	x29, sp, #0x68
+  2341c0: d53bd055     	mrs	x21, TPIDR_EL0
+  2341c4: aa0003f3     	mov	x19, x0
+  2341c8: 1e604028     	fmov	d8, d1
+  2341cc: f94016a8     	ldr	x8, [x21, #0x28]
+  2341d0: 2a0103f4     	mov	w20, w1
+  2341d4: f81f03a8     	stur	x8, [x29, #-0x10]
+  2341d8: f9403c00     	ldr	x0, [x0, #0x78]
+  2341dc: a93dffbf     	stp	xzr, xzr, [x29, #-0x28]
+  2341e0: f81e83bf     	stur	xzr, [x29, #-0x18]
+  2341e4: f9400008     	ldr	x8, [x0]
+  2341e8: f9401d09     	ldr	x9, [x8, #0x38]
+  2341ec: 910083e8     	add	x8, sp, #0x20
+  2341f0: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  2341f4: d100a3a0     	sub	x0, x29, #0x28
+  2341f8: 910083e1     	add	x1, sp, #0x20
+  2341fc: 94024159     	bl	0x2c4760 <_ZN2SW6CBytes6AppendERKS0_@plt>  ;;; CALL SW::CBytes::Append(SW::CBytes const&)
+  234200: f94013e0     	ldr	x0, [sp, #0x20]
+  234204: b4000060     	cbz	x0, 0x234210 <SW::SwMountAxis::axisSlewToSlew_cmdX(SW::AXISID, double, double)+0x68>
+  234208: f90017e0     	str	x0, [sp, #0x28]
+  23420c: 94023461     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234210: f9403e60     	ldr	x0, [x19, #0x78]
+  234214: f9400008     	ldr	x8, [x0]
+  234218: f9402509     	ldr	x9, [x8, #0x48]
+  23421c: 1e604100     	fmov	d0, d8
+  234220: 910083e8     	add	x8, sp, #0x20
+  234224: 2a1403e1     	mov	w1, w20
+  234228: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  23422c: d100a3a0     	sub	x0, x29, #0x28
+  234230: 910083e1     	add	x1, sp, #0x20
+  234234: 9402414b     	bl	0x2c4760 <_ZN2SW6CBytes6AppendERKS0_@plt>  ;;; CALL SW::CBytes::Append(SW::CBytes const&)
+  234238: f94013e0     	ldr	x0, [sp, #0x20]
+  23423c: b4000060     	cbz	x0, 0x234248 <SW::SwMountAxis::axisSlewToSlew_cmdX(SW::AXISID, double, double)+0xa0>
+  234240: f90017e0     	str	x0, [sp, #0x28]
+  234244: 94023453     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234248: f9402e73     	ldr	x19, [x19, #0x58]
+  23424c: 910003e8     	mov	x8, sp
+  234250: d100a3a2     	sub	x2, x29, #0x28
+  234254: 2a1403e0     	mov	w0, w20
+  234258: 52800081     	mov	w1, #0x4                // =4
+  23425c: 9402413d     	bl	0x2c4750 <_ZN2SW5SwCmd1xENS_6AXISIDEhRKNS_6CBytesE@plt>  ;;; CALL SW::SwCmd::x(SW::AXISID, unsigned char, SW::CBytes const&)  [x1=4(0x4)]
+  234260: f9400268     	ldr	x8, [x19]
+  234264: f9400909     	ldr	x9, [x8, #0x10]
+  234268: 910083e8     	add	x8, sp, #0x20
+  23426c: 910003e1     	mov	x1, sp
+  234270: aa1303e0     	mov	x0, x19
+  234274: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  234278: f94017e0     	ldr	x0, [sp, #0x28]
+  23427c: b94023f3     	ldr	w19, [sp, #0x20]
+  234280: b4000060     	cbz	x0, 0x23428c <SW::SwMountAxis::axisSlewToSlew_cmdX(SW::AXISID, double, double)+0xe4>
+  234284: f9001be0     	str	x0, [sp, #0x30]
+  234288: 94023442     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23428c: f94007e0     	ldr	x0, [sp, #0x8]
+  234290: b4000060     	cbz	x0, 0x23429c <SW::SwMountAxis::axisSlewToSlew_cmdX(SW::AXISID, double, double)+0xf4>
+  234294: f9000be0     	str	x0, [sp, #0x10]
+  234298: 9402343e     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23429c: f85d83a0     	ldur	x0, [x29, #-0x28]
+  2342a0: b4000060     	cbz	x0, 0x2342ac <SW::SwMountAxis::axisSlewToSlew_cmdX(SW::AXISID, double, double)+0x104>
+  2342a4: f81e03a0     	stur	x0, [x29, #-0x20]
+  2342a8: 9402343a     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2342ac: f94016a8     	ldr	x8, [x21, #0x28]
+  2342b0: f85f03a9     	ldur	x9, [x29, #-0x10]
+  2342b4: eb09011f     	cmp	x8, x9
+  2342b8: 54000441     	b.ne	0x234340 <SW::SwMountAxis::axisSlewToSlew_cmdX(SW::AXISID, double, double)+0x198>
+  2342bc: 2a1303e0     	mov	w0, w19
+  2342c0: a9484ff4     	ldp	x20, x19, [sp, #0x80]
+  2342c4: f9403ff5     	ldr	x21, [sp, #0x78]
+  2342c8: a946fbfd     	ldp	x29, x30, [sp, #0x68]
+  2342cc: fd4033e8     	ldr	d8, [sp, #0x60]
+  2342d0: 910243ff     	add	sp, sp, #0x90
+  2342d4: d65f03c0     	ret
+  2342d8: f94007e8     	ldr	x8, [sp, #0x8]
+  2342dc: aa0003f3     	mov	x19, x0
+  2342e0: b40001c8     	cbz	x8, 0x234318 <SW::SwMountAxis::axisSlewToSlew_cmdX(SW::AXISID, double, double)+0x170>
+  2342e4: f9000be8     	str	x8, [sp, #0x10]
+  2342e8: 14000008     	b	0x234308 <SW::SwMountAxis::axisSlewToSlew_cmdX(SW::AXISID, double, double)+0x160>
+  2342ec: 1400000a     	b	0x234314 <SW::SwMountAxis::axisSlewToSlew_cmdX(SW::AXISID, double, double)+0x16c>
+  2342f0: 14000002     	b	0x2342f8 <SW::SwMountAxis::axisSlewToSlew_cmdX(SW::AXISID, double, double)+0x150>
+  2342f4: 14000008     	b	0x234314 <SW::SwMountAxis::axisSlewToSlew_cmdX(SW::AXISID, double, double)+0x16c>
+  2342f8: f94013e8     	ldr	x8, [sp, #0x20]
+  2342fc: aa0003f3     	mov	x19, x0
+  234300: b40000c8     	cbz	x8, 0x234318 <SW::SwMountAxis::axisSlewToSlew_cmdX(SW::AXISID, double, double)+0x170>
+  234304: f90017e8     	str	x8, [sp, #0x28]
+  234308: aa0803e0     	mov	x0, x8
+  23430c: 94023421     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234310: 14000002     	b	0x234318 <SW::SwMountAxis::axisSlewToSlew_cmdX(SW::AXISID, double, double)+0x170>
+  234314: aa0003f3     	mov	x19, x0
+  234318: f85d83a0     	ldur	x0, [x29, #-0x28]
+  23431c: b4000060     	cbz	x0, 0x234328 <SW::SwMountAxis::axisSlewToSlew_cmdX(SW::AXISID, double, double)+0x180>
+  234320: f81e03a0     	stur	x0, [x29, #-0x20]
+  234324: 9402341b     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234328: f94016a8     	ldr	x8, [x21, #0x28]
+  23432c: f85f03a9     	ldur	x9, [x29, #-0x10]
+  234330: eb09011f     	cmp	x8, x9
+  234334: 54000061     	b.ne	0x234340 <SW::SwMountAxis::axisSlewToSlew_cmdX(SW::AXISID, double, double)+0x198>
+  234338: aa1303e0     	mov	x0, x19
+  23433c: 94022452     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  234340: 9402339c     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000234344 <SW::SwMountAxis::axisSlewTo_legacy(SW::AXISID, double)>:
+  234344: fc1c0fea     	str	d10, [sp, #-0x40]!
+  234348: 6d00a3e9     	stp	d9, d8, [sp, #0x8]
+  23434c: a901fbfd     	stp	x29, x30, [sp, #0x18]
+  234350: f90017f5     	str	x21, [sp, #0x28]
+  234354: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  234358: 910063fd     	add	x29, sp, #0x18
+  23435c: 1e604008     	fmov	d8, d0
+  234360: 2a0103f3     	mov	w19, w1
+  234364: aa0003f4     	mov	x20, x0
+  234368: 94024152     	bl	0x2c48b0 <_ZN2SW11SwMountAxis17axisCheckStopWaitENS_6AXISIDE@plt>  ;;; CALL SW::SwMountAxis::axisCheckStopWait(SW::AXISID)
+  23436c: 350000e0     	cbnz	w0, 0x234388 <SW::SwMountAxis::axisSlewTo_legacy(SW::AXISID, double)+0x44>
+  234370: f9400288     	ldr	x8, [x20]  ; vptr of SW::SwMountAxis
+  234374: aa1403e0     	mov	x0, x20
+  234378: 2a1303e1     	mov	w1, w19
+  23437c: f9401908     	ldr	x8, [x8, #0x30]  ; -> SW::SwMountAxis::updateAxisPosition(SW::AXISID)
+  234380: d63f0100     	blr	x8  ;;; CALL SW::SwMountAxis::updateAxisPosition(SW::AXISID)
+  234384: 340000e0     	cbz	w0, 0x2343a0 <SW::SwMountAxis::axisSlewTo_legacy(SW::AXISID, double)+0x5c>
+  234388: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  23438c: f94017f5     	ldr	x21, [sp, #0x28]
+  234390: a941fbfd     	ldp	x29, x30, [sp, #0x18]
+  234394: 6d40a3e9     	ldp	d9, d8, [sp, #0x8]
+  234398: fc4407ea     	ldr	d10, [sp], #0x40
+  23439c: d65f03c0     	ret
+  2343a0: f2601c1f     	tst	x0, #0xff00000000
+  2343a4: 54000540     	b.eq	0x23444c <SW::SwMountAxis::axisSlewTo_legacy(SW::AXISID, double)+0x108>
+  2343a8: 9e67002a     	fmov	d10, x1
+  2343ac: f9403680     	ldr	x0, [x20, #0x68]
+  2343b0: 2a1303e1     	mov	w1, w19
+  2343b4: f9400008     	ldr	x8, [x0]
+  2343b8: 7eead509     	fabd	d9, d8, d10
+  2343bc: f9403d08     	ldr	x8, [x8, #0x78]
+  2343c0: 1e604120     	fmov	d0, d9
+  2343c4: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  2343c8: 34fffe00     	cbz	w0, 0x234388 <SW::SwMountAxis::axisSlewTo_legacy(SW::AXISID, double)+0x44>
+  2343cc: 1e6a3900     	fsub	d0, d8, d10
+  2343d0: d0fff4a8     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  2343d4: 2a0003f5     	mov	w21, w0
+  2343d8: aa1403e0     	mov	x0, x20
+  2343dc: 2a1303e1     	mov	w1, w19
+  2343e0: 52800023     	mov	w3, #0x1                // =1
+  2343e4: 1e602008     	fcmp	d0, #0.0
+  2343e8: fd469900     	ldr	d0, [x8, #0xd30]
+  2343ec: 1a9fd7e8     	cset	w8, gt
+  2343f0: 1e602120     	fcmp	d9, d0
+  2343f4: 1a9fd7e9     	cset	w9, gt
+  2343f8: aa092102     	orr	x2, x8, x9, lsl #8
+  2343fc: 94024131     	bl	0x2c48c0 <_ZN2SW11SwMountAxis13setMotionModeENS_6AXISIDENS0_16SwAxisMotionModeEb@plt>  ;;; CALL SW::SwMountAxis::setMotionMode(SW::AXISID, SW::SwMountAxis::SwAxisMotionMode, bool)  [x3=1(0x1)]
+  234400: 35fffc40     	cbnz	w0, 0x234388 <SW::SwMountAxis::axisSlewTo_legacy(SW::AXISID, double)+0x44>
+  234404: aa1403e0     	mov	x0, x20
+  234408: 2a1303e1     	mov	w1, w19
+  23440c: 2a1503e2     	mov	w2, w21
+  234410: 9402413c     	bl	0x2c4900 <_ZN2SW11SwMountAxis25setRelativeSlewToAbsStepsENS_6AXISIDEj@plt>  ;;; CALL SW::SwMountAxis::setRelativeSlewToAbsSteps(SW::AXISID, unsigned int)
+  234414: 35fffba0     	cbnz	w0, 0x234388 <SW::SwMountAxis::axisSlewTo_legacy(SW::AXISID, double)+0x44>
+  234418: aa1403e0     	mov	x0, x20
+  23441c: 2a1303e1     	mov	w1, w19
+  234420: 5281b582     	mov	w2, #0xdac              // =3500
+  234424: 9402413b     	bl	0x2c4910 <_ZN2SW11SwMountAxis27setRelativeSlewToBrakeStepsENS_6AXISIDEj@plt>  ;;; CALL SW::SwMountAxis::setRelativeSlewToBrakeSteps(SW::AXISID, unsigned int)  [x2=3500(0xdac)]
+  234428: 35fffb00     	cbnz	w0, 0x234388 <SW::SwMountAxis::axisSlewTo_legacy(SW::AXISID, double)+0x44>
+  23442c: aa1403e0     	mov	x0, x20
+  234430: 2a1303e1     	mov	w1, w19
+  234434: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  234438: f94017f5     	ldr	x21, [sp, #0x28]
+  23443c: a941fbfd     	ldp	x29, x30, [sp, #0x18]
+  234440: 6d40a3e9     	ldp	d9, d8, [sp, #0x8]
+  234444: fc4407ea     	ldr	d10, [sp], #0x40
+  234448: 14024136     	b	0x2c4920 <_ZN2SW11SwMountAxis11startMotionENS_6AXISIDE@plt>
+  23444c: 52800200     	mov	w0, #0x10               // =16
+  234450: 94023458     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  234454: aa0003f3     	mov	x19, x0
+  234458: 90fff4c1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23445c: 9135a421     	add	x1, x1, #0xd69
+  234460: 94023af0     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  234464: b0000521     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  234468: b0000522     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23446c: aa1303e0     	mov	x0, x19
+  234470: f9409c21     	ldr	x1, [x1, #0x138]
+  234474: f940a042     	ldr	x2, [x2, #0x140]
+  234478: 94023456     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23447c: aa0003f4     	mov	x20, x0
+  234480: aa1303e0     	mov	x0, x19
+  234484: 9402373f     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  234488: aa1403e0     	mov	x0, x20
+  23448c: 940223fe     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+0000000000234490 <SW::SwMountAxis::axisStop(SW::AXISID)>:
+  234490: d10203ff     	sub	sp, sp, #0x80
+  234494: a9057bfd     	stp	x29, x30, [sp, #0x50]
+  234498: a90657f6     	stp	x22, x21, [sp, #0x60]
+  23449c: a9074ff4     	stp	x20, x19, [sp, #0x70]
+  2344a0: 910143fd     	add	x29, sp, #0x50
+  2344a4: d53bd056     	mrs	x22, TPIDR_EL0
+  2344a8: aa0003f3     	mov	x19, x0
+  2344ac: 2a0103f4     	mov	w20, w1
+  2344b0: f94016c8     	ldr	x8, [x22, #0x28]
+  2344b4: f81f83a8     	stur	x8, [x29, #-0x8]
+  2344b8: 39440808     	ldrb	w8, [x0, #0x102]
+  2344bc: 340000e8     	cbz	w8, 0x2344d8 <SW::SwMountAxis::axisStop(SW::AXISID)+0x48>
+  2344c0: 2f00e400     	movi	d0, #0000000000000000
+  2344c4: aa1303e0     	mov	x0, x19
+  2344c8: 2a1403e1     	mov	w1, w20
+  2344cc: 940240ed     	bl	0x2c4880 <_ZN2SW11SwMountAxis13axisSlew_cmdXENS_6AXISIDEd@plt>  ;;; CALL SW::SwMountAxis::axisSlew_cmdX(SW::AXISID, double)
+  2344d0: 2a0003f5     	mov	w21, w0
+  2344d4: 14000018     	b	0x234534 <SW::SwMountAxis::axisStop(SW::AXISID)+0xa4>
+  2344d8: f9402e60     	ldr	x0, [x19, #0x58]
+  2344dc: a901ffff     	stp	xzr, xzr, [sp, #0x18]
+  2344e0: 39440268     	ldrb	w8, [x19, #0x100]
+  2344e4: f9000bff     	str	xzr, [sp, #0x10]
+  2344e8: f9400009     	ldr	x9, [x0]
+  2344ec: 7100011f     	cmp	w8, #0x0
+  2344f0: 52800968     	mov	w8, #0x4b               // =75
+  2344f4: 1a880508     	cinc	w8, w8, ne
+  2344f8: b9000bf4     	str	w20, [sp, #0x8]
+  2344fc: f9400929     	ldr	x9, [x9, #0x10]
+  234500: 390033e8     	strb	w8, [sp, #0xc]
+  234504: 9100a3e8     	add	x8, sp, #0x28
+  234508: 910023e1     	add	x1, sp, #0x8
+  23450c: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  234510: f9401be0     	ldr	x0, [sp, #0x30]
+  234514: b9402bf5     	ldr	w21, [sp, #0x28]
+  234518: b4000060     	cbz	x0, 0x234524 <SW::SwMountAxis::axisStop(SW::AXISID)+0x94>
+  23451c: f9001fe0     	str	x0, [sp, #0x38]
+  234520: 9402339c     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234524: f9400be0     	ldr	x0, [sp, #0x10]
+  234528: b4000060     	cbz	x0, 0x234534 <SW::SwMountAxis::axisStop(SW::AXISID)+0xa4>
+  23452c: f9000fe0     	str	x0, [sp, #0x18]
+  234530: 94023398     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234534: 91036260     	add	x0, x19, #0xd8
+  234538: 94024102     	bl	0x2c4940 <_ZNSt6__ndk115recursive_mutex4lockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::lock()
+  23453c: 9104e268     	add	x8, x19, #0x138
+  234540: 2a1403e9     	mov	w9, w20
+  234544: 8b091108     	add	x8, x8, x9, lsl #4
+  234548: 34000135     	cbz	w21, 0x23456c <SW::SwMountAxis::axisStop(SW::AXISID)+0xdc>
+  23454c: 3900211f     	strb	wzr, [x8, #0x8]
+  234550: 91036260     	add	x0, x19, #0xd8
+  234554: 940240ff     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  234558: f94016c8     	ldr	x8, [x22, #0x28]
+  23455c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  234560: eb09011f     	cmp	x8, x9
+  234564: 54000160     	b.eq	0x234590 <SW::SwMountAxis::axisStop(SW::AXISID)+0x100>
+  234568: 1400001c     	b	0x2345d8 <SW::SwMountAxis::axisStop(SW::AXISID)+0x148>
+  23456c: 52800029     	mov	w9, #0x1                // =1
+  234570: f900011f     	str	xzr, [x8]
+  234574: 39002109     	strb	w9, [x8, #0x8]
+  234578: 91036260     	add	x0, x19, #0xd8
+  23457c: 940240f5     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  234580: f94016c8     	ldr	x8, [x22, #0x28]
+  234584: f85f83a9     	ldur	x9, [x29, #-0x8]
+  234588: eb09011f     	cmp	x8, x9
+  23458c: 54000261     	b.ne	0x2345d8 <SW::SwMountAxis::axisStop(SW::AXISID)+0x148>
+  234590: 2a1503e0     	mov	w0, w21
+  234594: a9474ff4     	ldp	x20, x19, [sp, #0x70]
+  234598: a94657f6     	ldp	x22, x21, [sp, #0x60]
+  23459c: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+  2345a0: 910203ff     	add	sp, sp, #0x80
+  2345a4: d65f03c0     	ret
+  2345a8: f9400be8     	ldr	x8, [sp, #0x10]
+  2345ac: aa0003f3     	mov	x19, x0
+  2345b0: b4000088     	cbz	x8, 0x2345c0 <SW::SwMountAxis::axisStop(SW::AXISID)+0x130>
+  2345b4: aa0803e0     	mov	x0, x8
+  2345b8: f9000fe8     	str	x8, [sp, #0x18]
+  2345bc: 94023375     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2345c0: f94016c8     	ldr	x8, [x22, #0x28]
+  2345c4: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2345c8: eb09011f     	cmp	x8, x9
+  2345cc: 54000061     	b.ne	0x2345d8 <SW::SwMountAxis::axisStop(SW::AXISID)+0x148>
+  2345d0: aa1303e0     	mov	x0, x19
+  2345d4: 940223ac     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  2345d8: 940232f6     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000002345dc <SW::SwMountAxis::axisStop_legacy(SW::AXISID)>:
+  2345dc: d101c3ff     	sub	sp, sp, #0x70
+  2345e0: a9057bfd     	stp	x29, x30, [sp, #0x50]
+  2345e4: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  2345e8: 910143fd     	add	x29, sp, #0x50
+  2345ec: d53bd054     	mrs	x20, TPIDR_EL0
+  2345f0: f9401688     	ldr	x8, [x20, #0x28]
+  2345f4: f81f83a8     	stur	x8, [x29, #-0x8]
+  2345f8: f9402c09     	ldr	x9, [x0, #0x58]
+  2345fc: a901ffff     	stp	xzr, xzr, [sp, #0x18]
+  234600: 39440008     	ldrb	w8, [x0, #0x100]
+  234604: f9000bff     	str	xzr, [sp, #0x10]
+  234608: f940012a     	ldr	x10, [x9]
+  23460c: 7100011f     	cmp	w8, #0x0
+  234610: 52800968     	mov	w8, #0x4b               // =75
+  234614: 1a880508     	cinc	w8, w8, ne
+  234618: b9000be1     	str	w1, [sp, #0x8]
+  23461c: f940094a     	ldr	x10, [x10, #0x10]
+  234620: 390033e8     	strb	w8, [sp, #0xc]
+  234624: 9100a3e8     	add	x8, sp, #0x28
+  234628: 910023e1     	add	x1, sp, #0x8
+  23462c: aa0903e0     	mov	x0, x9
+  234630: d63f0140     	blr	x10  ;;; CALL <indirect x10>
+  234634: f9401be0     	ldr	x0, [sp, #0x30]
+  234638: b9402bf3     	ldr	w19, [sp, #0x28]
+  23463c: b4000060     	cbz	x0, 0x234648 <SW::SwMountAxis::axisStop_legacy(SW::AXISID)+0x6c>
+  234640: f9001fe0     	str	x0, [sp, #0x38]
+  234644: 94023353     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234648: f9400be0     	ldr	x0, [sp, #0x10]
+  23464c: b4000060     	cbz	x0, 0x234658 <SW::SwMountAxis::axisStop_legacy(SW::AXISID)+0x7c>
+  234650: f9000fe0     	str	x0, [sp, #0x18]
+  234654: 9402334f     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234658: f9401688     	ldr	x8, [x20, #0x28]
+  23465c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  234660: eb09011f     	cmp	x8, x9
+  234664: 54000241     	b.ne	0x2346ac <SW::SwMountAxis::axisStop_legacy(SW::AXISID)+0xd0>
+  234668: 2a1303e0     	mov	w0, w19
+  23466c: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  234670: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+  234674: 9101c3ff     	add	sp, sp, #0x70
+  234678: d65f03c0     	ret
+  23467c: f9400be8     	ldr	x8, [sp, #0x10]
+  234680: aa0003f3     	mov	x19, x0
+  234684: b4000088     	cbz	x8, 0x234694 <SW::SwMountAxis::axisStop_legacy(SW::AXISID)+0xb8>
+  234688: aa0803e0     	mov	x0, x8
+  23468c: f9000fe8     	str	x8, [sp, #0x18]
+  234690: 94023340     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234694: f9401688     	ldr	x8, [x20, #0x28]
+  234698: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23469c: eb09011f     	cmp	x8, x9
+  2346a0: 54000061     	b.ne	0x2346ac <SW::SwMountAxis::axisStop_legacy(SW::AXISID)+0xd0>
+  2346a4: aa1303e0     	mov	x0, x19
+  2346a8: 94022377     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  2346ac: 940232c1     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000002346b0 <SW::SwMountAxis::axisSlewToSlew(SW::AXISID, double, double)>:
+  2346b0: 6dbc23e9     	stp	d9, d8, [sp, #-0x40]!
+  2346b4: a9017bfd     	stp	x29, x30, [sp, #0x10]
+  2346b8: f90013f5     	str	x21, [sp, #0x20]
+  2346bc: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  2346c0: 910043fd     	add	x29, sp, #0x10
+  2346c4: aa0003f3     	mov	x19, x0
+  2346c8: 91002000     	add	x0, x0, #0x8
+  2346cc: 1e604028     	fmov	d8, d1
+  2346d0: 1e604009     	fmov	d9, d0
+  2346d4: 2a0103f4     	mov	w20, w1
+  2346d8: 94023692     	bl	0x2c2120 <_ZNK7eventpp9internal_16CallbackListBaseIFvvENS_15DefaultPoliciesEEclEv@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (), eventpp::DefaultPolicies>::operator()() const
+  2346dc: f9406660     	ldr	x0, [x19, #0xc8]
+  2346e0: f9400008     	ldr	x8, [x0]
+  2346e4: f9403108     	ldr	x8, [x8, #0x60]
+  2346e8: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  2346ec: 1e6c1001     	fmov	d1, #0.50000000
+  2346f0: aa1303e0     	mov	x0, x19
+  2346f4: 2a1403e1     	mov	w1, w20
+  2346f8: 1e616800     	fmaxnm	d0, d0, d1
+  2346fc: 1e6f1001     	fmov	d1, #1.50000000
+  234700: 1e617800     	fminnm	d0, d0, d1
+  234704: 1e680808     	fmul	d8, d0, d8
+  234708: 1e604120     	fmov	d0, d9
+  23470c: 1e604101     	fmov	d1, d8
+  234710: 94024074     	bl	0x2c48e0 <_ZN2SW11SwMountAxis19axisSlewToSlew_cmdXENS_6AXISIDEdd@plt>  ;;; CALL SW::SwMountAxis::axisSlewToSlew_cmdX(SW::AXISID, double, double)
+  234714: 2a0003f5     	mov	w21, w0
+  234718: 91036260     	add	x0, x19, #0xd8
+  23471c: 94024089     	bl	0x2c4940 <_ZNSt6__ndk115recursive_mutex4lockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::lock()
+  234720: 340000d5     	cbz	w21, 0x234738 <SW::SwMountAxis::axisSlewToSlew(SW::AXISID, double, double)+0x88>
+  234724: 8b345268     	add	x8, x19, w20, uxtw #4
+  234728: 8b344669     	add	x9, x19, w20, uxtw #1
+  23472c: 3905011f     	strb	wzr, [x8, #0x140]
+  234730: 3905653f     	strb	wzr, [x9, #0x159]
+  234734: 1400000a     	b	0x23475c <SW::SwMountAxis::axisSlewToSlew(SW::AXISID, double, double)+0xac>
+  234738: 1e602108     	fcmp	d8, #0.0
+  23473c: 8b345268     	add	x8, x19, w20, uxtw #4
+  234740: 52800029     	mov	w9, #0x1                // =1
+  234744: 8b34466a     	add	x10, x19, w20, uxtw #1
+  234748: fd009d08     	str	d8, [x8, #0x138]
+  23474c: 39050109     	strb	w9, [x8, #0x140]
+  234750: 1a9fd7e8     	cset	w8, gt
+  234754: 39056148     	strb	w8, [x10, #0x158]
+  234758: 39056549     	strb	w9, [x10, #0x159]
+  23475c: 91036260     	add	x0, x19, #0xd8
+  234760: 9402407c     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  234764: 2a1503e0     	mov	w0, w21
+  234768: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  23476c: f94013f5     	ldr	x21, [sp, #0x20]
+  234770: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+  234774: 6cc423e9     	ldp	d9, d8, [sp], #0x40
+  234778: d65f03c0     	ret
+
+000000000023477c <SW::SwMountAxis::hasAxisIndex()>:
+  23477c: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  234780: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  234784: 910003fd     	mov	x29, sp
+  234788: aa0003f3     	mov	x19, x0
+  23478c: 91036000     	add	x0, x0, #0xd8
+  234790: 9402406c     	bl	0x2c4940 <_ZNSt6__ndk115recursive_mutex4lockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::lock()
+  234794: f9403660     	ldr	x0, [x19, #0x68]
+  234798: f9400008     	ldr	x8, [x0]
+  23479c: f9402108     	ldr	x8, [x8, #0x40]
+  2347a0: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  2347a4: d3504014     	ubfx	x20, x0, #16, #1
+  2347a8: 91036260     	add	x0, x19, #0xd8
+  2347ac: 94024069     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  2347b0: 2a1403e0     	mov	w0, w20
+  2347b4: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2347b8: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2347bc: d65f03c0     	ret
+  2347c0: aa0003f4     	mov	x20, x0
+  2347c4: 91036260     	add	x0, x19, #0xd8
+  2347c8: 94024062     	bl	0x2c4950 <_ZNSt6__ndk115recursive_mutex6unlockEv@plt>  ;;; CALL std::__ndk1::recursive_mutex::unlock()
+  2347cc: aa1403e0     	mov	x0, x20
+  2347d0: 9402232d     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+00000000002347d4 <SW::SwMountAxis::readAxisIndex(SW::AXISID)>:
+  2347d4: d101c3ff     	sub	sp, sp, #0x70
+  2347d8: a9037bfd     	stp	x29, x30, [sp, #0x30]
+  2347dc: a9045ff8     	stp	x24, x23, [sp, #0x40]
+  2347e0: a90557f6     	stp	x22, x21, [sp, #0x50]
+  2347e4: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  2347e8: 9100c3fd     	add	x29, sp, #0x30
+  2347ec: d53bd058     	mrs	x24, TPIDR_EL0
+  2347f0: 2a0103f4     	mov	w20, w1
+  2347f4: aa0003f5     	mov	x21, x0
+  2347f8: f9401709     	ldr	x9, [x24, #0x28]
+  2347fc: aa0803f3     	mov	x19, x8
+  234800: f81f83a9     	stur	x9, [x29, #-0x8]
+  234804: 39440809     	ldrb	w9, [x0, #0x102]
+  234808: f9402c16     	ldr	x22, [x0, #0x58]
+  23480c: 34000169     	cbz	w9, 0x234838 <SW::SwMountAxis::readAxisIndex(SW::AXISID)+0x64>
+  234810: 910023e8     	add	x8, sp, #0x8
+  234814: 2a1403e0     	mov	w0, w20
+  234818: 52800161     	mov	w1, #0xb                // =11
+  23481c: 94023fd5     	bl	0x2c4770 <_ZN2SW5SwCmd5xReadENS_6AXISIDEh@plt>  ;;; CALL SW::SwCmd::xRead(SW::AXISID, unsigned char)  [x1=11(0xb)]
+  234820: f94002c8     	ldr	x8, [x22]
+  234824: f9401508     	ldr	x8, [x8, #0x28]
+  234828: 910023e1     	add	x1, sp, #0x8
+  23482c: aa1603e0     	mov	x0, x22
+  234830: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  234834: 1400000a     	b	0x23485c <SW::SwMountAxis::readAxisIndex(SW::AXISID)+0x88>
+  234838: 910023e8     	add	x8, sp, #0x8
+  23483c: 2a1403e0     	mov	w0, w20
+  234840: 2a1f03e1     	mov	w1, wzr
+  234844: 94023fbf     	bl	0x2c4740 <_ZN2SW5SwCmd15extendedInquireENS_6AXISIDEi@plt>  ;;; CALL SW::SwCmd::extendedInquire(SW::AXISID, int)
+  234848: f94002c8     	ldr	x8, [x22]
+  23484c: f9401108     	ldr	x8, [x8, #0x20]
+  234850: 910023e1     	add	x1, sp, #0x8
+  234854: aa1603e0     	mov	x0, x22
+  234858: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  23485c: aa0003f7     	mov	x23, x0
+  234860: f9400be0     	ldr	x0, [sp, #0x10]
+  234864: aa0103f6     	mov	x22, x1
+  234868: b4000060     	cbz	x0, 0x234874 <SW::SwMountAxis::readAxisIndex(SW::AXISID)+0xa0>
+  23486c: f9000fe0     	str	x0, [sp, #0x18]
+  234870: 940232c8     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234874: 34000157     	cbz	w23, 0x23489c <SW::SwMountAxis::readAxisIndex(SW::AXISID)+0xc8>
+  234878: b9000277     	str	w23, [x19]
+  23487c: 3900127f     	strb	wzr, [x19, #0x4]
+  234880: a900fe7f     	stp	xzr, xzr, [x19, #0x8]
+  234884: 7900327f     	strh	wzr, [x19, #0x18]
+  234888: f9401708     	ldr	x8, [x24, #0x28]
+  23488c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  234890: eb09011f     	cmp	x8, x9
+  234894: 54000680     	b.eq	0x234964 <SW::SwMountAxis::readAxisIndex(SW::AXISID)+0x190>
+  234898: 1400005c     	b	0x234a08 <SW::SwMountAxis::readAxisIndex(SW::AXISID)+0x234>
+  23489c: f2601eff     	tst	x23, #0xff00000000
+  2348a0: 540006e0     	b.eq	0x23497c <SW::SwMountAxis::readAxisIndex(SW::AXISID)+0x1a8>
+  2348a4: 39440aa8     	ldrb	w8, [x21, #0x102]
+  2348a8: 516002c9     	sub	w9, w22, #0x800, lsl #12 // =0x800000
+  2348ac: 12bff00a     	mov	w10, #0x7fffff          // =8388607
+  2348b0: 7100011f     	cmp	w8, #0x0
+  2348b4: 12b00008     	mov	w8, #0x7fffffff         // =2147483647
+  2348b8: 1a960122     	csel	w2, w9, w22, eq
+  2348bc: 1a880148     	csel	w8, w10, w8, eq
+  2348c0: 52b00009     	mov	w9, #-0x80000000        // =-2147483648
+  2348c4: 52a0100a     	mov	w10, #0x800000          // =8388608
+  2348c8: 1a890149     	csel	w9, w10, w9, eq
+  2348cc: 6b08005f     	cmp	w2, w8
+  2348d0: 54000300     	b.eq	0x234930 <SW::SwMountAxis::readAxisIndex(SW::AXISID)+0x15c>
+  2348d4: 6b09005f     	cmp	w2, w9
+  2348d8: 540002c0     	b.eq	0x234930 <SW::SwMountAxis::readAxisIndex(SW::AXISID)+0x15c>
+  2348dc: f94036a0     	ldr	x0, [x21, #0x68]
+  2348e0: 2a1403e1     	mov	w1, w20
+  2348e4: f9400008     	ldr	x8, [x0]
+  2348e8: f9404508     	ldr	x8, [x8, #0x88]
+  2348ec: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  2348f0: f94036a0     	ldr	x0, [x21, #0x68]
+  2348f4: 2a1403e1     	mov	w1, w20
+  2348f8: f9400008     	ldr	x8, [x0]
+  2348fc: f9404d08     	ldr	x8, [x8, #0x98]
+  234900: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  234904: 52800028     	mov	w8, #0x1                // =1
+  234908: b900027f     	str	wzr, [x19]
+  23490c: 39001268     	strb	w8, [x19, #0x4]
+  234910: fd000660     	str	d0, [x19, #0x8]
+  234914: 39004268     	strb	w8, [x19, #0x10]
+  234918: 7900327f     	strh	wzr, [x19, #0x18]
+  23491c: f9401708     	ldr	x8, [x24, #0x28]
+  234920: f85f83a9     	ldur	x9, [x29, #-0x8]
+  234924: eb09011f     	cmp	x8, x9
+  234928: 540001e0     	b.eq	0x234964 <SW::SwMountAxis::readAxisIndex(SW::AXISID)+0x190>
+  23492c: 14000037     	b	0x234a08 <SW::SwMountAxis::readAxisIndex(SW::AXISID)+0x234>
+  234930: 6b08005f     	cmp	w2, w8
+  234934: 52800029     	mov	w9, #0x1                // =1
+  234938: b900027f     	str	wzr, [x19]
+  23493c: 1a9f17e8     	cset	w8, eq
+  234940: 39001269     	strb	w9, [x19, #0x4]
+  234944: f900067f     	str	xzr, [x19, #0x8]
+  234948: 3900427f     	strb	wzr, [x19, #0x10]
+  23494c: 39006268     	strb	w8, [x19, #0x18]
+  234950: 39006669     	strb	w9, [x19, #0x19]
+  234954: f9401708     	ldr	x8, [x24, #0x28]
+  234958: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23495c: eb09011f     	cmp	x8, x9
+  234960: 54000541     	b.ne	0x234a08 <SW::SwMountAxis::readAxisIndex(SW::AXISID)+0x234>
+  234964: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  234968: a94557f6     	ldp	x22, x21, [sp, #0x50]
+  23496c: a9445ff8     	ldp	x24, x23, [sp, #0x40]
+  234970: a9437bfd     	ldp	x29, x30, [sp, #0x30]
+  234974: 9101c3ff     	add	sp, sp, #0x70
+  234978: d65f03c0     	ret
+  23497c: 52800200     	mov	w0, #0x10               // =16
+  234980: 9402330c     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  234984: aa0003f4     	mov	x20, x0
+  234988: 90fff4c1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23498c: 9135a421     	add	x1, x1, #0xd69
+  234990: 940239a4     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  234994: f9401708     	ldr	x8, [x24, #0x28]
+  234998: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23499c: eb09011f     	cmp	x8, x9
+  2349a0: 54000341     	b.ne	0x234a08 <SW::SwMountAxis::readAxisIndex(SW::AXISID)+0x234>
+  2349a4: b0000521     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  2349a8: b0000522     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  2349ac: aa1403e0     	mov	x0, x20
+  2349b0: f9409c21     	ldr	x1, [x1, #0x138]
+  2349b4: f940a042     	ldr	x2, [x2, #0x140]
+  2349b8: 94023306     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  2349bc: aa0003f3     	mov	x19, x0
+  2349c0: aa1403e0     	mov	x0, x20
+  2349c4: 940235ef     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  2349c8: 1400000a     	b	0x2349f0 <SW::SwMountAxis::readAxisIndex(SW::AXISID)+0x21c>
+  2349cc: 14000003     	b	0x2349d8 <SW::SwMountAxis::readAxisIndex(SW::AXISID)+0x204>
+  2349d0: aa0003f3     	mov	x19, x0
+  2349d4: 14000007     	b	0x2349f0 <SW::SwMountAxis::readAxisIndex(SW::AXISID)+0x21c>
+  2349d8: f9400be8     	ldr	x8, [sp, #0x10]
+  2349dc: aa0003f3     	mov	x19, x0
+  2349e0: b4000088     	cbz	x8, 0x2349f0 <SW::SwMountAxis::readAxisIndex(SW::AXISID)+0x21c>
+  2349e4: aa0803e0     	mov	x0, x8
+  2349e8: f9000fe8     	str	x8, [sp, #0x18]
+  2349ec: 94023269     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2349f0: f9401708     	ldr	x8, [x24, #0x28]
+  2349f4: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2349f8: eb09011f     	cmp	x8, x9
+  2349fc: 54000061     	b.ne	0x234a08 <SW::SwMountAxis::readAxisIndex(SW::AXISID)+0x234>
+  234a00: aa1303e0     	mov	x0, x19
+  234a04: 940222a0     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  234a08: 940231ea     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000234a0c <SW::SwMountAxis::resetAxisIndex(SW::AXISID)>:
+  234a0c: d101c3ff     	sub	sp, sp, #0x70
+  234a10: a9057bfd     	stp	x29, x30, [sp, #0x50]
+  234a14: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  234a18: 910143fd     	add	x29, sp, #0x50
+  234a1c: d53bd054     	mrs	x20, TPIDR_EL0
+  234a20: f9401688     	ldr	x8, [x20, #0x28]
+  234a24: f81f83a8     	stur	x8, [x29, #-0x8]
+  234a28: 910023e8     	add	x8, sp, #0x8
+  234a2c: f9402c13     	ldr	x19, [x0, #0x58]
+  234a30: 2a0103e0     	mov	w0, w1
+  234a34: 52800101     	mov	w1, #0x8                // =8
+  234a38: 94023ae2     	bl	0x2c35c0 <_ZN2SW5SwCmd15extendedSettingENS_6AXISIDEi@plt>  ;;; CALL SW::SwCmd::extendedSetting(SW::AXISID, int)  [x1=8(0x8)]
+  234a3c: f9400268     	ldr	x8, [x19]
+  234a40: f9400909     	ldr	x9, [x8, #0x10]
+  234a44: 9100a3e8     	add	x8, sp, #0x28
+  234a48: 910023e1     	add	x1, sp, #0x8
+  234a4c: aa1303e0     	mov	x0, x19
+  234a50: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  234a54: f9401be0     	ldr	x0, [sp, #0x30]
+  234a58: b9402bf3     	ldr	w19, [sp, #0x28]
+  234a5c: b4000060     	cbz	x0, 0x234a68 <SW::SwMountAxis::resetAxisIndex(SW::AXISID)+0x5c>
+  234a60: f9001fe0     	str	x0, [sp, #0x38]
+  234a64: 9402324b     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234a68: f9400be0     	ldr	x0, [sp, #0x10]
+  234a6c: b4000060     	cbz	x0, 0x234a78 <SW::SwMountAxis::resetAxisIndex(SW::AXISID)+0x6c>
+  234a70: f9000fe0     	str	x0, [sp, #0x18]
+  234a74: 94023247     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234a78: f9401688     	ldr	x8, [x20, #0x28]
+  234a7c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  234a80: eb09011f     	cmp	x8, x9
+  234a84: 54000241     	b.ne	0x234acc <SW::SwMountAxis::resetAxisIndex(SW::AXISID)+0xc0>
+  234a88: 2a1303e0     	mov	w0, w19
+  234a8c: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  234a90: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+  234a94: 9101c3ff     	add	sp, sp, #0x70
+  234a98: d65f03c0     	ret
+  234a9c: f9400be8     	ldr	x8, [sp, #0x10]
+  234aa0: aa0003f3     	mov	x19, x0
+  234aa4: b4000088     	cbz	x8, 0x234ab4 <SW::SwMountAxis::resetAxisIndex(SW::AXISID)+0xa8>
+  234aa8: aa0803e0     	mov	x0, x8
+  234aac: f9000fe8     	str	x8, [sp, #0x18]
+  234ab0: 94023238     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234ab4: f9401688     	ldr	x8, [x20, #0x28]
+  234ab8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  234abc: eb09011f     	cmp	x8, x9
+  234ac0: 54000061     	b.ne	0x234acc <SW::SwMountAxis::resetAxisIndex(SW::AXISID)+0xc0>
+  234ac4: aa1303e0     	mov	x0, x19
+  234ac8: 9402226f     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  234acc: 940231b9     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000234ad0 <SW::SwMountAxis::prepareForSlewing(SW::AXISID, SW::SwMountAxis::SwAxisMotionMode, bool*)>:
+  234ad0: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  234ad4: f9000bf5     	str	x21, [sp, #0x10]
+  234ad8: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  234adc: 910003fd     	mov	x29, sp
+  234ae0: 8b215008     	add	x8, x0, w1, uxtw #4
+  234ae4: 2a0103f3     	mov	w19, w1
+  234ae8: aa0003f4     	mov	x20, x0
+  234aec: aa0203f5     	mov	x21, x2
+  234af0: 39450109     	ldrb	w9, [x8, #0x140]
+  234af4: 34000329     	cbz	w9, 0x234b58 <SW::SwMountAxis::prepareForSlewing(SW::AXISID, SW::SwMountAxis::SwAxisMotionMode, bool*)+0x88>
+  234af8: fd409d00     	ldr	d0, [x8, #0x138]
+  234afc: 1e602008     	fcmp	d0, #0.0
+  234b00: 540002c0     	b.eq	0x234b58 <SW::SwMountAxis::prepareForSlewing(SW::AXISID, SW::SwMountAxis::SwAxisMotionMode, bool*)+0x88>
+  234b04: fd409d00     	ldr	d0, [x8, #0x138]
+  234b08: 1e602008     	fcmp	d0, #0.0
+  234b0c: 1a9fd7e8     	cset	w8, gt
+  234b10: f24002bf     	tst	x21, #0x1
+  234b14: 1a9f17e9     	cset	w9, eq
+  234b18: 6b08013f     	cmp	w9, w8
+  234b1c: 540001e0     	b.eq	0x234b58 <SW::SwMountAxis::prepareForSlewing(SW::AXISID, SW::SwMountAxis::SwAxisMotionMode, bool*)+0x88>
+  234b20: 1e60c000     	fabs	d0, d0
+  234b24: d0fff4a8     	adrp	x8, 0xca000 <GCC_except_table29+0x24>
+  234b28: fd472d01     	ldr	d1, [x8, #0xe58]
+  234b2c: 1e612000     	fcmp	d0, d1
+  234b30: 5400014c     	b.gt	0x234b58 <SW::SwMountAxis::prepareForSlewing(SW::AXISID, SW::SwMountAxis::SwAxisMotionMode, bool*)+0x88>
+  234b34: f27802bf     	tst	x21, #0x100
+  234b38: 1a9f17e8     	cset	w8, eq
+  234b3c: 39000068     	strb	w8, [x3]
+  234b40: 374000f5     	tbnz	w21, #0x8, 0x234b5c <SW::SwMountAxis::prepareForSlewing(SW::AXISID, SW::SwMountAxis::SwAxisMotionMode, bool*)+0x8c>
+  234b44: 2a1f03e0     	mov	w0, wzr
+  234b48: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  234b4c: f9400bf5     	ldr	x21, [sp, #0x10]
+  234b50: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  234b54: d65f03c0     	ret
+  234b58: 3900007f     	strb	wzr, [x3]
+  234b5c: aa1403e0     	mov	x0, x20
+  234b60: 2a1303e1     	mov	w1, w19
+  234b64: 94023f53     	bl	0x2c48b0 <_ZN2SW11SwMountAxis17axisCheckStopWaitENS_6AXISIDE@plt>  ;;; CALL SW::SwMountAxis::axisCheckStopWait(SW::AXISID)
+  234b68: 340000a0     	cbz	w0, 0x234b7c <SW::SwMountAxis::prepareForSlewing(SW::AXISID, SW::SwMountAxis::SwAxisMotionMode, bool*)+0xac>
+  234b6c: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  234b70: f9400bf5     	ldr	x21, [sp, #0x10]
+  234b74: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  234b78: d65f03c0     	ret
+  234b7c: 92403ea2     	and	x2, x21, #0xffff
+  234b80: aa1403e0     	mov	x0, x20
+  234b84: 2a1303e1     	mov	w1, w19
+  234b88: 2a1f03e3     	mov	w3, wzr
+  234b8c: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  234b90: f9400bf5     	ldr	x21, [sp, #0x10]
+  234b94: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  234b98: 14023f4a     	b	0x2c48c0 <_ZN2SW11SwMountAxis13setMotionModeENS_6AXISIDENS0_16SwAxisMotionModeEb@plt>
+
+0000000000234b9c <SW::SwMountAxis::readHighSpeedRatio(SW::AXISID)>:
+  234b9c: d10183ff     	sub	sp, sp, #0x60
+  234ba0: a9037bfd     	stp	x29, x30, [sp, #0x30]
+  234ba4: a90457f6     	stp	x22, x21, [sp, #0x40]
+  234ba8: a9054ff4     	stp	x20, x19, [sp, #0x50]
+  234bac: 9100c3fd     	add	x29, sp, #0x30
+  234bb0: d53bd055     	mrs	x21, TPIDR_EL0
+  234bb4: 8b214c09     	add	x9, x0, w1, uxtw #3
+  234bb8: f94016a8     	ldr	x8, [x21, #0x28]
+  234bbc: 91041136     	add	x22, x9, #0x104
+  234bc0: f81f83a8     	stur	x8, [x29, #-0x8]
+  234bc4: 39442128     	ldrb	w8, [x9, #0x108]
+  234bc8: 34000128     	cbz	w8, 0x234bec <SW::SwMountAxis::readHighSpeedRatio(SW::AXISID)+0x50>
+  234bcc: b94002d3     	ldr	w19, [x22]
+  234bd0: 2a1303e1     	mov	w1, w19
+  234bd4: d2c00020     	mov	x0, #0x100000000        // =4294967296
+  234bd8: f94016a8     	ldr	x8, [x21, #0x28]
+  234bdc: f85f83a9     	ldur	x9, [x29, #-0x8]
+  234be0: eb09011f     	cmp	x8, x9
+  234be4: 54000320     	b.eq	0x234c48 <SW::SwMountAxis::readHighSpeedRatio(SW::AXISID)+0xac>
+  234be8: 14000043     	b	0x234cf4 <SW::SwMountAxis::readHighSpeedRatio(SW::AXISID)+0x158>
+  234bec: f9402c00     	ldr	x0, [x0, #0x58]
+  234bf0: a901ffff     	stp	xzr, xzr, [sp, #0x18]
+  234bf4: 52800ce9     	mov	w9, #0x67               // =103
+  234bf8: f9000bff     	str	xzr, [sp, #0x10]
+  234bfc: f9400008     	ldr	x8, [x0]
+  234c00: b9000be1     	str	w1, [sp, #0x8]
+  234c04: 390033e9     	strb	w9, [sp, #0xc]
+  234c08: f9401108     	ldr	x8, [x8, #0x20]
+  234c0c: 910023e1     	add	x1, sp, #0x8
+  234c10: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  234c14: aa0003f4     	mov	x20, x0
+  234c18: f9400be0     	ldr	x0, [sp, #0x10]
+  234c1c: aa0103f3     	mov	x19, x1
+  234c20: b4000060     	cbz	x0, 0x234c2c <SW::SwMountAxis::readHighSpeedRatio(SW::AXISID)+0x90>
+  234c24: f9000fe0     	str	x0, [sp, #0x18]
+  234c28: 940231da     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234c2c: f2407e80     	ands	x0, x20, #0xffffffff
+  234c30: 54000160     	b.eq	0x234c5c <SW::SwMountAxis::readHighSpeedRatio(SW::AXISID)+0xc0>
+  234c34: aa1f03e1     	mov	x1, xzr
+  234c38: f94016a8     	ldr	x8, [x21, #0x28]
+  234c3c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  234c40: eb09011f     	cmp	x8, x9
+  234c44: 54000581     	b.ne	0x234cf4 <SW::SwMountAxis::readHighSpeedRatio(SW::AXISID)+0x158>
+  234c48: a9454ff4     	ldp	x20, x19, [sp, #0x50]
+  234c4c: a94457f6     	ldp	x22, x21, [sp, #0x40]
+  234c50: a9437bfd     	ldp	x29, x30, [sp, #0x30]
+  234c54: 910183ff     	add	sp, sp, #0x60
+  234c58: d65f03c0     	ret
+  234c5c: f2601e9f     	tst	x20, #0xff00000000
+  234c60: 540000a0     	b.eq	0x234c74 <SW::SwMountAxis::readHighSpeedRatio(SW::AXISID)+0xd8>
+  234c64: 52800028     	mov	w8, #0x1                // =1
+  234c68: b90002d3     	str	w19, [x22]
+  234c6c: 390012c8     	strb	w8, [x22, #0x4]
+  234c70: 17ffffd8     	b	0x234bd0 <SW::SwMountAxis::readHighSpeedRatio(SW::AXISID)+0x34>
+  234c74: 52800200     	mov	w0, #0x10               // =16
+  234c78: 9402324e     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  234c7c: aa0003f4     	mov	x20, x0
+  234c80: 90fff4c1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  234c84: 9135a421     	add	x1, x1, #0xd69
+  234c88: 940238e6     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  234c8c: f94016a8     	ldr	x8, [x21, #0x28]
+  234c90: f85f83a9     	ldur	x9, [x29, #-0x8]
+  234c94: eb09011f     	cmp	x8, x9
+  234c98: 540002e1     	b.ne	0x234cf4 <SW::SwMountAxis::readHighSpeedRatio(SW::AXISID)+0x158>
+  234c9c: b0000521     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  234ca0: b0000522     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  234ca4: aa1403e0     	mov	x0, x20
+  234ca8: f9409c21     	ldr	x1, [x1, #0x138]
+  234cac: f940a042     	ldr	x2, [x2, #0x140]
+  234cb0: 94023248     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  234cb4: aa0003f3     	mov	x19, x0
+  234cb8: aa1403e0     	mov	x0, x20
+  234cbc: 94023531     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  234cc0: 14000007     	b	0x234cdc <SW::SwMountAxis::readHighSpeedRatio(SW::AXISID)+0x140>
+  234cc4: f9400be8     	ldr	x8, [sp, #0x10]
+  234cc8: aa0003f3     	mov	x19, x0
+  234ccc: b4000088     	cbz	x8, 0x234cdc <SW::SwMountAxis::readHighSpeedRatio(SW::AXISID)+0x140>
+  234cd0: aa0803e0     	mov	x0, x8
+  234cd4: f9000fe8     	str	x8, [sp, #0x18]
+  234cd8: 940231ae     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234cdc: f94016a8     	ldr	x8, [x21, #0x28]
+  234ce0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  234ce4: eb09011f     	cmp	x8, x9
+  234ce8: 54000061     	b.ne	0x234cf4 <SW::SwMountAxis::readHighSpeedRatio(SW::AXISID)+0x158>
+  234cec: aa1303e0     	mov	x0, x19
+  234cf0: 940221e5     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  234cf4: 9402312f     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000234cf8 <SW::SwMountAxis::setStride(SW::AXISID, unsigned int)>:
+  234cf8: d10283ff     	sub	sp, sp, #0xa0
+  234cfc: a9067bfd     	stp	x29, x30, [sp, #0x60]
+  234d00: f9003bf7     	str	x23, [sp, #0x70]
+  234d04: a90857f6     	stp	x22, x21, [sp, #0x80]
+  234d08: a9094ff4     	stp	x20, x19, [sp, #0x90]
+  234d0c: 910183fd     	add	x29, sp, #0x60
+  234d10: d53bd056     	mrs	x22, TPIDR_EL0
+  234d14: aa0003f5     	mov	x21, x0
+  234d18: 2a0203e0     	mov	w0, w2
+  234d1c: f94016c8     	ldr	x8, [x22, #0x28]
+  234d20: 2a0103f3     	mov	w19, w1
+  234d24: f81f83a8     	stur	x8, [x29, #-0x8]
+  234d28: d10083a8     	sub	x8, x29, #0x20
+  234d2c: 94023e81     	bl	0x2c4730 <_ZN2SW10SwCmdCoder9encodeIntEi@plt>  ;;; CALL SW::SwCmdCoder::encodeInt(int)
+  234d30: a97e27b4     	ldp	x20, x9, [x29, #-0x20]
+  234d34: 52800928     	mov	w8, #0x49               // =73
+  234d38: b90003f3     	str	w19, [sp]
+  234d3c: f9402eb3     	ldr	x19, [x21, #0x58]
+  234d40: 390013e8     	strb	w8, [sp, #0x4]
+  234d44: eb140135     	subs	x21, x9, x20
+  234d48: a9017fff     	stp	xzr, xzr, [sp, #0x10]
+  234d4c: f90007ff     	str	xzr, [sp, #0x8]
+  234d50: 54000160     	b.eq	0x234d7c <SW::SwMountAxis::setStride(SW::AXISID, unsigned int)+0x84>
+  234d54: b7f80515     	tbnz	x21, #0x3f, 0x234df4 <SW::SwMountAxis::setStride(SW::AXISID, unsigned int)+0xfc>
+  234d58: aa1503e0     	mov	x0, x21
+  234d5c: 940230e9     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  234d60: 8b150017     	add	x23, x0, x21
+  234d64: aa1403e1     	mov	x1, x20
+  234d68: aa1503e2     	mov	x2, x21
+  234d6c: f90007e0     	str	x0, [sp, #0x8]
+  234d70: f9000ff7     	str	x23, [sp, #0x18]
+  234d74: 94023643     	bl	0x2c2680 <memcpy@plt>  ;;; CALL memcpy
+  234d78: f9000bf7     	str	x23, [sp, #0x10]
+  234d7c: f9400268     	ldr	x8, [x19]
+  234d80: f9400909     	ldr	x9, [x8, #0x10]
+  234d84: 910083e8     	add	x8, sp, #0x20
+  234d88: 910003e1     	mov	x1, sp
+  234d8c: aa1303e0     	mov	x0, x19
+  234d90: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  234d94: f94017e0     	ldr	x0, [sp, #0x28]
+  234d98: b94023f3     	ldr	w19, [sp, #0x20]
+  234d9c: b4000060     	cbz	x0, 0x234da8 <SW::SwMountAxis::setStride(SW::AXISID, unsigned int)+0xb0>
+  234da0: f9001be0     	str	x0, [sp, #0x30]
+  234da4: 9402317b     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234da8: f94007e0     	ldr	x0, [sp, #0x8]
+  234dac: b4000060     	cbz	x0, 0x234db8 <SW::SwMountAxis::setStride(SW::AXISID, unsigned int)+0xc0>
+  234db0: f9000be0     	str	x0, [sp, #0x10]
+  234db4: 94023177     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234db8: f85e03a0     	ldur	x0, [x29, #-0x20]
+  234dbc: b4000060     	cbz	x0, 0x234dc8 <SW::SwMountAxis::setStride(SW::AXISID, unsigned int)+0xd0>
+  234dc0: f81e83a0     	stur	x0, [x29, #-0x18]
+  234dc4: 94023173     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234dc8: f94016c8     	ldr	x8, [x22, #0x28]
+  234dcc: f85f83a9     	ldur	x9, [x29, #-0x8]
+  234dd0: eb09011f     	cmp	x8, x9
+  234dd4: 540004c1     	b.ne	0x234e6c <SW::SwMountAxis::setStride(SW::AXISID, unsigned int)+0x174>
+  234dd8: 2a1303e0     	mov	w0, w19
+  234ddc: a9494ff4     	ldp	x20, x19, [sp, #0x90]
+  234de0: f9403bf7     	ldr	x23, [sp, #0x70]
+  234de4: a94857f6     	ldp	x22, x21, [sp, #0x80]
+  234de8: a9467bfd     	ldp	x29, x30, [sp, #0x60]
+  234dec: 910283ff     	add	sp, sp, #0xa0
+  234df0: d65f03c0     	ret
+  234df4: f94016c8     	ldr	x8, [x22, #0x28]
+  234df8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  234dfc: eb09011f     	cmp	x8, x9
+  234e00: 54000361     	b.ne	0x234e6c <SW::SwMountAxis::setStride(SW::AXISID, unsigned int)+0x174>
+  234e04: 910003e8     	mov	x8, sp
+  234e08: 91002100     	add	x0, x8, #0x8
+  234e0c: 97ff3245     	bl	0x201720 <std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char
+  234e10: 14000001     	b	0x234e14 <SW::SwMountAxis::setStride(SW::AXISID, unsigned int)+0x11c>
+  234e14: f94007e8     	ldr	x8, [sp, #0x8]
+  234e18: aa0003f3     	mov	x19, x0
+  234e1c: b5000128     	cbnz	x8, 0x234e40 <SW::SwMountAxis::setStride(SW::AXISID, unsigned int)+0x148>
+  234e20: f85e03a0     	ldur	x0, [x29, #-0x20]
+  234e24: b5000180     	cbnz	x0, 0x234e54 <SW::SwMountAxis::setStride(SW::AXISID, unsigned int)+0x15c>
+  234e28: f94016c8     	ldr	x8, [x22, #0x28]
+  234e2c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  234e30: eb09011f     	cmp	x8, x9
+  234e34: 540001c1     	b.ne	0x234e6c <SW::SwMountAxis::setStride(SW::AXISID, unsigned int)+0x174>
+  234e38: aa1303e0     	mov	x0, x19
+  234e3c: 94022192     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  234e40: aa0803e0     	mov	x0, x8
+  234e44: f9000be8     	str	x8, [sp, #0x10]
+  234e48: 94023152     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234e4c: f85e03a0     	ldur	x0, [x29, #-0x20]
+  234e50: b4fffec0     	cbz	x0, 0x234e28 <SW::SwMountAxis::setStride(SW::AXISID, unsigned int)+0x130>
+  234e54: f81e83a0     	stur	x0, [x29, #-0x18]
+  234e58: 9402314e     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234e5c: f94016c8     	ldr	x8, [x22, #0x28]
+  234e60: f85f83a9     	ldur	x9, [x29, #-0x8]
+  234e64: eb09011f     	cmp	x8, x9
+  234e68: 54fffe80     	b.eq	0x234e38 <SW::SwMountAxis::setStride(SW::AXISID, unsigned int)+0x140>
+  234e6c: 940230d1     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000234e70 <SW::SwMountAxis::startMotion(SW::AXISID)>:
+  234e70: d101c3ff     	sub	sp, sp, #0x70
+  234e74: a9057bfd     	stp	x29, x30, [sp, #0x50]
+  234e78: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  234e7c: 910143fd     	add	x29, sp, #0x50
+  234e80: d53bd054     	mrs	x20, TPIDR_EL0
+  234e84: 52800949     	mov	w9, #0x4a               // =74
+  234e88: f9401688     	ldr	x8, [x20, #0x28]
+  234e8c: f81f83a8     	stur	x8, [x29, #-0x8]
+  234e90: f9402c00     	ldr	x0, [x0, #0x58]
+  234e94: a901ffff     	stp	xzr, xzr, [sp, #0x18]
+  234e98: f9000bff     	str	xzr, [sp, #0x10]
+  234e9c: f9400008     	ldr	x8, [x0]
+  234ea0: b9000be1     	str	w1, [sp, #0x8]
+  234ea4: 390033e9     	strb	w9, [sp, #0xc]
+  234ea8: f940090a     	ldr	x10, [x8, #0x10]
+  234eac: 9100a3e8     	add	x8, sp, #0x28
+  234eb0: 910023e1     	add	x1, sp, #0x8
+  234eb4: d63f0140     	blr	x10  ;;; CALL <indirect x10>
+  234eb8: f9401be0     	ldr	x0, [sp, #0x30]
+  234ebc: b9402bf3     	ldr	w19, [sp, #0x28]
+  234ec0: b4000060     	cbz	x0, 0x234ecc <SW::SwMountAxis::startMotion(SW::AXISID)+0x5c>
+  234ec4: f9001fe0     	str	x0, [sp, #0x38]
+  234ec8: 94023132     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234ecc: f9400be0     	ldr	x0, [sp, #0x10]
+  234ed0: b4000060     	cbz	x0, 0x234edc <SW::SwMountAxis::startMotion(SW::AXISID)+0x6c>
+  234ed4: f9000fe0     	str	x0, [sp, #0x18]
+  234ed8: 9402312e     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234edc: f9401688     	ldr	x8, [x20, #0x28]
+  234ee0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  234ee4: eb09011f     	cmp	x8, x9
+  234ee8: 54000241     	b.ne	0x234f30 <SW::SwMountAxis::startMotion(SW::AXISID)+0xc0>
+  234eec: 2a1303e0     	mov	w0, w19
+  234ef0: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  234ef4: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+  234ef8: 9101c3ff     	add	sp, sp, #0x70
+  234efc: d65f03c0     	ret
+  234f00: f9400be8     	ldr	x8, [sp, #0x10]
+  234f04: aa0003f3     	mov	x19, x0
+  234f08: b4000088     	cbz	x8, 0x234f18 <SW::SwMountAxis::startMotion(SW::AXISID)+0xa8>
+  234f0c: aa0803e0     	mov	x0, x8
+  234f10: f9000fe8     	str	x8, [sp, #0x18]
+  234f14: 9402311f     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  234f18: f9401688     	ldr	x8, [x20, #0x28]
+  234f1c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  234f20: eb09011f     	cmp	x8, x9
+  234f24: 54000061     	b.ne	0x234f30 <SW::SwMountAxis::startMotion(SW::AXISID)+0xc0>
+  234f28: aa1303e0     	mov	x0, x19
+  234f2c: 94022156     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  234f30: 940230a0     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000234f34 <SW::SwMountAxis::axisCheckStopWait(SW::AXISID)>:
+  234f34: d10203ff     	sub	sp, sp, #0x80
+  234f38: a9057bfd     	stp	x29, x30, [sp, #0x50]
+  234f3c: a90657f6     	stp	x22, x21, [sp, #0x60]
+  234f40: a9074ff4     	stp	x20, x19, [sp, #0x70]
+  234f44: 910143fd     	add	x29, sp, #0x50
+  234f48: d53bd055     	mrs	x21, TPIDR_EL0
+  234f4c: aa0003f3     	mov	x19, x0
+  234f50: 2a0103f4     	mov	w20, w1
+  234f54: f94016a8     	ldr	x8, [x21, #0x28]
+  234f58: f81f83a8     	stur	x8, [x29, #-0x8]
+  234f5c: f9400008     	ldr	x8, [x0]  ; vptr of SW::SwMountAxis
+  234f60: f9402d08     	ldr	x8, [x8, #0x58]  ; -> SW::SwMountAxis::updateAxisStatus(SW::AXISID)
+  234f64: d63f0100     	blr	x8  ;;; CALL SW::SwMountAxis::updateAxisStatus(SW::AXISID)
+  234f68: aa0003e8     	mov	x8, x0
+  234f6c: 34000148     	cbz	w8, 0x234f94 <SW::SwMountAxis::axisCheckStopWait(SW::AXISID)+0x60>
+  234f70: f94016a8     	ldr	x8, [x21, #0x28]
+  234f74: f85f83a9     	ldur	x9, [x29, #-0x8]
+  234f78: eb09011f     	cmp	x8, x9
+  234f7c: 54000981     	b.ne	0x2350ac <SW::SwMountAxis::axisCheckStopWait(SW::AXISID)+0x178>
+  234f80: a9474ff4     	ldp	x20, x19, [sp, #0x70]
+  234f84: a94657f6     	ldp	x22, x21, [sp, #0x60]
+  234f88: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+  234f8c: 910203ff     	add	sp, sp, #0x80
+  234f90: d65f03c0     	ret
+  234f94: f9400268     	ldr	x8, [x19]  ; vptr of SW::SwMountAxis
+  234f98: aa1303e0     	mov	x0, x19
+  234f9c: 2a1403e1     	mov	w1, w20
+  234fa0: f9403108     	ldr	x8, [x8, #0x60]  ; -> SW::SwMountAxis::lastAxisStatus(SW::AXISID)
+  234fa4: d63f0100     	blr	x8  ;;; CALL SW::SwMountAxis::lastAxisStatus(SW::AXISID)
+  234fa8: 34fffe40     	cbz	w0, 0x234f70 <SW::SwMountAxis::axisCheckStopWait(SW::AXISID)+0x3c>
+  234fac: f9402e60     	ldr	x0, [x19, #0x58]
+  234fb0: a901ffff     	stp	xzr, xzr, [sp, #0x18]
+  234fb4: 39440268     	ldrb	w8, [x19, #0x100]
+  234fb8: f9000bff     	str	xzr, [sp, #0x10]
+  234fbc: f9400009     	ldr	x9, [x0]
+  234fc0: 7100011f     	cmp	w8, #0x0
+  234fc4: 52800968     	mov	w8, #0x4b               // =75
+  234fc8: 1a880508     	cinc	w8, w8, ne
+  234fcc: b9000bf4     	str	w20, [sp, #0x8]
+  234fd0: f9400929     	ldr	x9, [x9, #0x10]
+  234fd4: 390033e8     	strb	w8, [sp, #0xc]
+  234fd8: 9100a3e8     	add	x8, sp, #0x28
+  234fdc: 910023e1     	add	x1, sp, #0x8
+  234fe0: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  234fe4: f9401be8     	ldr	x8, [sp, #0x30]
+  234fe8: b9402be0     	ldr	w0, [sp, #0x28]
+  234fec: b40000c8     	cbz	x8, 0x235004 <SW::SwMountAxis::axisCheckStopWait(SW::AXISID)+0xd0>
+  234ff0: aa0003f6     	mov	x22, x0
+  234ff4: aa0803e0     	mov	x0, x8
+  234ff8: f9001fe8     	str	x8, [sp, #0x38]
+  234ffc: 940230e5     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  235000: aa1603e0     	mov	x0, x22
+  235004: f9400be8     	ldr	x8, [sp, #0x10]
+  235008: b40000c8     	cbz	x8, 0x235020 <SW::SwMountAxis::axisCheckStopWait(SW::AXISID)+0xec>
+  23500c: aa0003f6     	mov	x22, x0
+  235010: aa0803e0     	mov	x0, x8
+  235014: f9000fe8     	str	x8, [sp, #0x18]
+  235018: 940230de     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23501c: aa1603e0     	mov	x0, x22
+  235020: 35fffa80     	cbnz	w0, 0x234f70 <SW::SwMountAxis::axisCheckStopWait(SW::AXISID)+0x3c>
+  235024: 1400000f     	b	0x235060 <SW::SwMountAxis::axisCheckStopWait(SW::AXISID)+0x12c>
+  235028: f9400268     	ldr	x8, [x19]  ; vptr of SW::SwMountAxis
+  23502c: aa1303e0     	mov	x0, x19
+  235030: 2a1403e1     	mov	w1, w20
+  235034: f9403108     	ldr	x8, [x8, #0x60]  ; -> SW::SwMountAxis::lastAxisStatus(SW::AXISID)
+  235038: d63f0100     	blr	x8  ;;; CALL SW::SwMountAxis::lastAxisStatus(SW::AXISID)
+  23503c: 34fff9a0     	cbz	w0, 0x234f70 <SW::SwMountAxis::axisCheckStopWait(SW::AXISID)+0x3c>
+  235040: f9404660     	ldr	x0, [x19, #0x88]
+  235044: 52800c81     	mov	w1, #0x64               // =100
+  235048: f9400008     	ldr	x8, [x0]
+  23504c: f9400d08     	ldr	x8, [x8, #0x18]
+  235050: d63f0100     	blr	x8  ;;; CALL <indirect x8>  [x1=100(0x64)]
+  235054: 2a0003e8     	mov	w8, w0
+  235058: 52800060     	mov	w0, #0x3                // =3
+  23505c: 3707f8a8     	tbnz	w8, #0x0, 0x234f70 <SW::SwMountAxis::axisCheckStopWait(SW::AXISID)+0x3c>
+  235060: f9400268     	ldr	x8, [x19]  ; vptr of SW::SwMountAxis
+  235064: aa1303e0     	mov	x0, x19
+  235068: 2a1403e1     	mov	w1, w20
+  23506c: f9402d08     	ldr	x8, [x8, #0x58]  ; -> SW::SwMountAxis::updateAxisStatus(SW::AXISID)
+  235070: d63f0100     	blr	x8  ;;; CALL SW::SwMountAxis::updateAxisStatus(SW::AXISID)
+  235074: 34fffda0     	cbz	w0, 0x235028 <SW::SwMountAxis::axisCheckStopWait(SW::AXISID)+0xf4>
+  235078: 17ffffbe     	b	0x234f70 <SW::SwMountAxis::axisCheckStopWait(SW::AXISID)+0x3c>
+  23507c: f9400be8     	ldr	x8, [sp, #0x10]
+  235080: aa0003f3     	mov	x19, x0
+  235084: b4000088     	cbz	x8, 0x235094 <SW::SwMountAxis::axisCheckStopWait(SW::AXISID)+0x160>
+  235088: aa0803e0     	mov	x0, x8
+  23508c: f9000fe8     	str	x8, [sp, #0x18]
+  235090: 940230c0     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  235094: f94016a8     	ldr	x8, [x21, #0x28]
+  235098: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23509c: eb09011f     	cmp	x8, x9
+  2350a0: 54000061     	b.ne	0x2350ac <SW::SwMountAxis::axisCheckStopWait(SW::AXISID)+0x178>
+  2350a4: aa1303e0     	mov	x0, x19
+  2350a8: 940220f7     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  2350ac: 94023041     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000002350b0 <SW::SwMountAxis::setMotionMode(SW::AXISID, SW::SwMountAxis::SwAxisMotionMode, bool)>:
+  2350b0: d10243ff     	sub	sp, sp, #0x90
+  2350b4: a9057bfd     	stp	x29, x30, [sp, #0x50]
+  2350b8: a9065ff8     	stp	x24, x23, [sp, #0x60]
+  2350bc: a90757f6     	stp	x22, x21, [sp, #0x70]
+  2350c0: a9084ff4     	stp	x20, x19, [sp, #0x80]
+  2350c4: 910143fd     	add	x29, sp, #0x50
+  2350c8: d53bd058     	mrs	x24, TPIDR_EL0
+  2350cc: aa0003f5     	mov	x21, x0
+  2350d0: 52800040     	mov	w0, #0x2                // =2
+  2350d4: f9401708     	ldr	x8, [x24, #0x28]
+  2350d8: 2a0303f6     	mov	w22, w3
+  2350dc: aa0203f7     	mov	x23, x2
+  2350e0: 2a0103f4     	mov	w20, w1
+  2350e4: f81f83a8     	stur	x8, [x29, #-0x8]
+  2350e8: 94023006     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  2350ec: aa0003f3     	mov	x19, x0
+  2350f0: f27802ff     	tst	x23, #0x100
+  2350f4: 52800668     	mov	w8, #0x33               // =51
+  2350f8: 52800629     	mov	w9, #0x31               // =49
+  2350fc: f9405ea0     	ldr	x0, [x21, #0xb8]
+  235100: 5280060a     	mov	w10, #0x30              // =48
+  235104: 1a880128     	csel	w8, w9, w8, eq
+  235108: 52800649     	mov	w9, #0x32               // =50
+  23510c: 7900027f     	strh	wzr, [x19]
+  235110: 1a8a0129     	csel	w9, w9, w10, eq
+  235114: 720002df     	tst	w22, #0x1
+  235118: f940000b     	ldr	x11, [x0]
+  23511c: 1a881128     	csel	w8, w9, w8, ne
+  235120: f24002ff     	tst	x23, #0x1
+  235124: 1a8a1556     	cinc	w22, w10, eq
+  235128: 39000268     	strb	w8, [x19]
+  23512c: f9403d68     	ldr	x8, [x11, #0x78]
+  235130: 39000676     	strb	w22, [x19, #0x1]
+  235134: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  235138: 1e602008     	fcmp	d0, #0.0
+  23513c: 54000065     	b.pl	0x235148 <SW::SwMountAxis::setMotionMode(SW::AXISID, SW::SwMountAxis::SwAxisMotionMode, bool)+0x98>
+  235140: 321f02c8     	orr	w8, w22, #0x2
+  235144: 39000668     	strb	w8, [x19, #0x1]
+  235148: f9402eb5     	ldr	x21, [x21, #0x58]
+  23514c: 528008e8     	mov	w8, #0x47               // =71
+  235150: b9000bf4     	str	w20, [sp, #0x8]
+  235154: 390033e8     	strb	w8, [sp, #0xc]
+  235158: 52800040     	mov	w0, #0x2                // =2
+  23515c: 94022fe9     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  235160: 79400268     	ldrh	w8, [x19]
+  235164: f9000be0     	str	x0, [sp, #0x10]
+  235168: 78002408     	strh	w8, [x0], #0x2
+  23516c: f94002a8     	ldr	x8, [x21]
+  235170: a90183e0     	stp	x0, x0, [sp, #0x18]
+  235174: f9400909     	ldr	x9, [x8, #0x10]
+  235178: 9100a3e8     	add	x8, sp, #0x28
+  23517c: 910023e1     	add	x1, sp, #0x8
+  235180: aa1503e0     	mov	x0, x21
+  235184: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  235188: f9401be0     	ldr	x0, [sp, #0x30]
+  23518c: b9402bf4     	ldr	w20, [sp, #0x28]
+  235190: b4000060     	cbz	x0, 0x23519c <SW::SwMountAxis::setMotionMode(SW::AXISID, SW::SwMountAxis::SwAxisMotionMode, bool)+0xec>
+  235194: f9001fe0     	str	x0, [sp, #0x38]
+  235198: 9402307e     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23519c: f9400be0     	ldr	x0, [sp, #0x10]
+  2351a0: b4000060     	cbz	x0, 0x2351ac <SW::SwMountAxis::setMotionMode(SW::AXISID, SW::SwMountAxis::SwAxisMotionMode, bool)+0xfc>
+  2351a4: f9000fe0     	str	x0, [sp, #0x18]
+  2351a8: 9402307a     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2351ac: aa1303e0     	mov	x0, x19
+  2351b0: 94023078     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2351b4: f9401708     	ldr	x8, [x24, #0x28]
+  2351b8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2351bc: eb09011f     	cmp	x8, x9
+  2351c0: 54000321     	b.ne	0x235224 <SW::SwMountAxis::setMotionMode(SW::AXISID, SW::SwMountAxis::SwAxisMotionMode, bool)+0x174>
+  2351c4: 2a1403e0     	mov	w0, w20
+  2351c8: a9484ff4     	ldp	x20, x19, [sp, #0x80]
+  2351cc: a94757f6     	ldp	x22, x21, [sp, #0x70]
+  2351d0: a9465ff8     	ldp	x24, x23, [sp, #0x60]
+  2351d4: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+  2351d8: 910243ff     	add	sp, sp, #0x90
+  2351dc: d65f03c0     	ret
+  2351e0: f9400be8     	ldr	x8, [sp, #0x10]
+  2351e4: aa0003f4     	mov	x20, x0
+  2351e8: b40000e8     	cbz	x8, 0x235204 <SW::SwMountAxis::setMotionMode(SW::AXISID, SW::SwMountAxis::SwAxisMotionMode, bool)+0x154>
+  2351ec: aa0803e0     	mov	x0, x8
+  2351f0: f9000fe8     	str	x8, [sp, #0x18]
+  2351f4: 94023067     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2351f8: 14000003     	b	0x235204 <SW::SwMountAxis::setMotionMode(SW::AXISID, SW::SwMountAxis::SwAxisMotionMode, bool)+0x154>
+  2351fc: 14000001     	b	0x235200 <SW::SwMountAxis::setMotionMode(SW::AXISID, SW::SwMountAxis::SwAxisMotionMode, bool)+0x150>
+  235200: aa0003f4     	mov	x20, x0
+  235204: aa1303e0     	mov	x0, x19
+  235208: 94023062     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23520c: f9401708     	ldr	x8, [x24, #0x28]
+  235210: f85f83a9     	ldur	x9, [x29, #-0x8]
+  235214: eb09011f     	cmp	x8, x9
+  235218: 54000061     	b.ne	0x235224 <SW::SwMountAxis::setMotionMode(SW::AXISID, SW::SwMountAxis::SwAxisMotionMode, bool)+0x174>
+  23521c: aa1403e0     	mov	x0, x20
+  235220: 94022099     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  235224: 94022fe3     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000235228 <SW::SwMountAxis::setRelativeSlewToAbsSteps(SW::AXISID, unsigned int)>:
+  235228: d10283ff     	sub	sp, sp, #0xa0
+  23522c: a9067bfd     	stp	x29, x30, [sp, #0x60]
+  235230: f9003bf7     	str	x23, [sp, #0x70]
+  235234: a90857f6     	stp	x22, x21, [sp, #0x80]
+  235238: a9094ff4     	stp	x20, x19, [sp, #0x90]
+  23523c: 910183fd     	add	x29, sp, #0x60
+  235240: d53bd056     	mrs	x22, TPIDR_EL0
+  235244: aa0003f5     	mov	x21, x0
+  235248: 2a0203e0     	mov	w0, w2
+  23524c: f94016c8     	ldr	x8, [x22, #0x28]
+  235250: 2a0103f3     	mov	w19, w1
+  235254: f81f83a8     	stur	x8, [x29, #-0x8]
+  235258: d10083a8     	sub	x8, x29, #0x20
+  23525c: 94023d35     	bl	0x2c4730 <_ZN2SW10SwCmdCoder9encodeIntEi@plt>  ;;; CALL SW::SwCmdCoder::encodeInt(int)
+  235260: a97e27b4     	ldp	x20, x9, [x29, #-0x20]
+  235264: 52800908     	mov	w8, #0x48               // =72
+  235268: b90003f3     	str	w19, [sp]
+  23526c: f9402eb3     	ldr	x19, [x21, #0x58]
+  235270: 390013e8     	strb	w8, [sp, #0x4]
+  235274: eb140135     	subs	x21, x9, x20
+  235278: a9017fff     	stp	xzr, xzr, [sp, #0x10]
+  23527c: f90007ff     	str	xzr, [sp, #0x8]
+  235280: 54000160     	b.eq	0x2352ac <SW::SwMountAxis::setRelativeSlewToAbsSteps(SW::AXISID, unsigned int)+0x84>
+  235284: b7f80515     	tbnz	x21, #0x3f, 0x235324 <SW::SwMountAxis::setRelativeSlewToAbsSteps(SW::AXISID, unsigned int)+0xfc>
+  235288: aa1503e0     	mov	x0, x21
+  23528c: 94022f9d     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  235290: 8b150017     	add	x23, x0, x21
+  235294: aa1403e1     	mov	x1, x20
+  235298: aa1503e2     	mov	x2, x21
+  23529c: f90007e0     	str	x0, [sp, #0x8]
+  2352a0: f9000ff7     	str	x23, [sp, #0x18]
+  2352a4: 940234f7     	bl	0x2c2680 <memcpy@plt>  ;;; CALL memcpy
+  2352a8: f9000bf7     	str	x23, [sp, #0x10]
+  2352ac: f9400268     	ldr	x8, [x19]
+  2352b0: f9400909     	ldr	x9, [x8, #0x10]
+  2352b4: 910083e8     	add	x8, sp, #0x20
+  2352b8: 910003e1     	mov	x1, sp
+  2352bc: aa1303e0     	mov	x0, x19
+  2352c0: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  2352c4: f94017e0     	ldr	x0, [sp, #0x28]
+  2352c8: b94023f3     	ldr	w19, [sp, #0x20]
+  2352cc: b4000060     	cbz	x0, 0x2352d8 <SW::SwMountAxis::setRelativeSlewToAbsSteps(SW::AXISID, unsigned int)+0xb0>
+  2352d0: f9001be0     	str	x0, [sp, #0x30]
+  2352d4: 9402302f     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2352d8: f94007e0     	ldr	x0, [sp, #0x8]
+  2352dc: b4000060     	cbz	x0, 0x2352e8 <SW::SwMountAxis::setRelativeSlewToAbsSteps(SW::AXISID, unsigned int)+0xc0>
+  2352e0: f9000be0     	str	x0, [sp, #0x10]
+  2352e4: 9402302b     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2352e8: f85e03a0     	ldur	x0, [x29, #-0x20]
+  2352ec: b4000060     	cbz	x0, 0x2352f8 <SW::SwMountAxis::setRelativeSlewToAbsSteps(SW::AXISID, unsigned int)+0xd0>
+  2352f0: f81e83a0     	stur	x0, [x29, #-0x18]
+  2352f4: 94023027     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2352f8: f94016c8     	ldr	x8, [x22, #0x28]
+  2352fc: f85f83a9     	ldur	x9, [x29, #-0x8]
+  235300: eb09011f     	cmp	x8, x9
+  235304: 540004c1     	b.ne	0x23539c <SW::SwMountAxis::setRelativeSlewToAbsSteps(SW::AXISID, unsigned int)+0x174>
+  235308: 2a1303e0     	mov	w0, w19
+  23530c: a9494ff4     	ldp	x20, x19, [sp, #0x90]
+  235310: f9403bf7     	ldr	x23, [sp, #0x70]
+  235314: a94857f6     	ldp	x22, x21, [sp, #0x80]
+  235318: a9467bfd     	ldp	x29, x30, [sp, #0x60]
+  23531c: 910283ff     	add	sp, sp, #0xa0
+  235320: d65f03c0     	ret
+  235324: f94016c8     	ldr	x8, [x22, #0x28]
+  235328: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23532c: eb09011f     	cmp	x8, x9
+  235330: 54000361     	b.ne	0x23539c <SW::SwMountAxis::setRelativeSlewToAbsSteps(SW::AXISID, unsigned int)+0x174>
+  235334: 910003e8     	mov	x8, sp
+  235338: 91002100     	add	x0, x8, #0x8
+  23533c: 97ff30f9     	bl	0x201720 <std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char
+  235340: 14000001     	b	0x235344 <SW::SwMountAxis::setRelativeSlewToAbsSteps(SW::AXISID, unsigned int)+0x11c>
+  235344: f94007e8     	ldr	x8, [sp, #0x8]
+  235348: aa0003f3     	mov	x19, x0
+  23534c: b5000128     	cbnz	x8, 0x235370 <SW::SwMountAxis::setRelativeSlewToAbsSteps(SW::AXISID, unsigned int)+0x148>
+  235350: f85e03a0     	ldur	x0, [x29, #-0x20]
+  235354: b5000180     	cbnz	x0, 0x235384 <SW::SwMountAxis::setRelativeSlewToAbsSteps(SW::AXISID, unsigned int)+0x15c>
+  235358: f94016c8     	ldr	x8, [x22, #0x28]
+  23535c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  235360: eb09011f     	cmp	x8, x9
+  235364: 540001c1     	b.ne	0x23539c <SW::SwMountAxis::setRelativeSlewToAbsSteps(SW::AXISID, unsigned int)+0x174>
+  235368: aa1303e0     	mov	x0, x19
+  23536c: 94022046     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  235370: aa0803e0     	mov	x0, x8
+  235374: f9000be8     	str	x8, [sp, #0x10]
+  235378: 94023006     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23537c: f85e03a0     	ldur	x0, [x29, #-0x20]
+  235380: b4fffec0     	cbz	x0, 0x235358 <SW::SwMountAxis::setRelativeSlewToAbsSteps(SW::AXISID, unsigned int)+0x130>
+  235384: f81e83a0     	stur	x0, [x29, #-0x18]
+  235388: 94023002     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23538c: f94016c8     	ldr	x8, [x22, #0x28]
+  235390: f85f83a9     	ldur	x9, [x29, #-0x8]
+  235394: eb09011f     	cmp	x8, x9
+  235398: 54fffe80     	b.eq	0x235368 <SW::SwMountAxis::setRelativeSlewToAbsSteps(SW::AXISID, unsigned int)+0x140>
+  23539c: 94022f85     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000002353a0 <SW::SwMountAxis::setRelativeSlewToBrakeSteps(SW::AXISID, unsigned int)>:
+  2353a0: d10283ff     	sub	sp, sp, #0xa0
+  2353a4: a9067bfd     	stp	x29, x30, [sp, #0x60]
+  2353a8: f9003bf7     	str	x23, [sp, #0x70]
+  2353ac: a90857f6     	stp	x22, x21, [sp, #0x80]
+  2353b0: a9094ff4     	stp	x20, x19, [sp, #0x90]
+  2353b4: 910183fd     	add	x29, sp, #0x60
+  2353b8: d53bd056     	mrs	x22, TPIDR_EL0
+  2353bc: aa0003f5     	mov	x21, x0
+  2353c0: 2a0203e0     	mov	w0, w2
+  2353c4: f94016c8     	ldr	x8, [x22, #0x28]
+  2353c8: 2a0103f3     	mov	w19, w1
+  2353cc: f81f83a8     	stur	x8, [x29, #-0x8]
+  2353d0: d10083a8     	sub	x8, x29, #0x20
+  2353d4: 94023cd7     	bl	0x2c4730 <_ZN2SW10SwCmdCoder9encodeIntEi@plt>  ;;; CALL SW::SwCmdCoder::encodeInt(int)
+  2353d8: a97e27b4     	ldp	x20, x9, [x29, #-0x20]
+  2353dc: 528009a8     	mov	w8, #0x4d               // =77
+  2353e0: b90003f3     	str	w19, [sp]
+  2353e4: f9402eb3     	ldr	x19, [x21, #0x58]
+  2353e8: 390013e8     	strb	w8, [sp, #0x4]
+  2353ec: eb140135     	subs	x21, x9, x20
+  2353f0: a9017fff     	stp	xzr, xzr, [sp, #0x10]
+  2353f4: f90007ff     	str	xzr, [sp, #0x8]
+  2353f8: 54000160     	b.eq	0x235424 <SW::SwMountAxis::setRelativeSlewToBrakeSteps(SW::AXISID, unsigned int)+0x84>
+  2353fc: b7f80515     	tbnz	x21, #0x3f, 0x23549c <SW::SwMountAxis::setRelativeSlewToBrakeSteps(SW::AXISID, unsigned int)+0xfc>
+  235400: aa1503e0     	mov	x0, x21
+  235404: 94022f3f     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  235408: 8b150017     	add	x23, x0, x21
+  23540c: aa1403e1     	mov	x1, x20
+  235410: aa1503e2     	mov	x2, x21
+  235414: f90007e0     	str	x0, [sp, #0x8]
+  235418: f9000ff7     	str	x23, [sp, #0x18]
+  23541c: 94023499     	bl	0x2c2680 <memcpy@plt>  ;;; CALL memcpy
+  235420: f9000bf7     	str	x23, [sp, #0x10]
+  235424: f9400268     	ldr	x8, [x19]
+  235428: f9400909     	ldr	x9, [x8, #0x10]
+  23542c: 910083e8     	add	x8, sp, #0x20
+  235430: 910003e1     	mov	x1, sp
+  235434: aa1303e0     	mov	x0, x19
+  235438: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  23543c: f94017e0     	ldr	x0, [sp, #0x28]
+  235440: b94023f3     	ldr	w19, [sp, #0x20]
+  235444: b4000060     	cbz	x0, 0x235450 <SW::SwMountAxis::setRelativeSlewToBrakeSteps(SW::AXISID, unsigned int)+0xb0>
+  235448: f9001be0     	str	x0, [sp, #0x30]
+  23544c: 94022fd1     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  235450: f94007e0     	ldr	x0, [sp, #0x8]
+  235454: b4000060     	cbz	x0, 0x235460 <SW::SwMountAxis::setRelativeSlewToBrakeSteps(SW::AXISID, unsigned int)+0xc0>
+  235458: f9000be0     	str	x0, [sp, #0x10]
+  23545c: 94022fcd     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  235460: f85e03a0     	ldur	x0, [x29, #-0x20]
+  235464: b4000060     	cbz	x0, 0x235470 <SW::SwMountAxis::setRelativeSlewToBrakeSteps(SW::AXISID, unsigned int)+0xd0>
+  235468: f81e83a0     	stur	x0, [x29, #-0x18]
+  23546c: 94022fc9     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  235470: f94016c8     	ldr	x8, [x22, #0x28]
+  235474: f85f83a9     	ldur	x9, [x29, #-0x8]
+  235478: eb09011f     	cmp	x8, x9
+  23547c: 540004c1     	b.ne	0x235514 <SW::SwMountAxis::setRelativeSlewToBrakeSteps(SW::AXISID, unsigned int)+0x174>
+  235480: 2a1303e0     	mov	w0, w19
+  235484: a9494ff4     	ldp	x20, x19, [sp, #0x90]
+  235488: f9403bf7     	ldr	x23, [sp, #0x70]
+  23548c: a94857f6     	ldp	x22, x21, [sp, #0x80]
+  235490: a9467bfd     	ldp	x29, x30, [sp, #0x60]
+  235494: 910283ff     	add	sp, sp, #0xa0
+  235498: d65f03c0     	ret
+  23549c: f94016c8     	ldr	x8, [x22, #0x28]
+  2354a0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2354a4: eb09011f     	cmp	x8, x9
+  2354a8: 54000361     	b.ne	0x235514 <SW::SwMountAxis::setRelativeSlewToBrakeSteps(SW::AXISID, unsigned int)+0x174>
+  2354ac: 910003e8     	mov	x8, sp
+  2354b0: 91002100     	add	x0, x8, #0x8
+  2354b4: 97ff309b     	bl	0x201720 <std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char
+  2354b8: 14000001     	b	0x2354bc <SW::SwMountAxis::setRelativeSlewToBrakeSteps(SW::AXISID, unsigned int)+0x11c>
+  2354bc: f94007e8     	ldr	x8, [sp, #0x8]
+  2354c0: aa0003f3     	mov	x19, x0
+  2354c4: b5000128     	cbnz	x8, 0x2354e8 <SW::SwMountAxis::setRelativeSlewToBrakeSteps(SW::AXISID, unsigned int)+0x148>
+  2354c8: f85e03a0     	ldur	x0, [x29, #-0x20]
+  2354cc: b5000180     	cbnz	x0, 0x2354fc <SW::SwMountAxis::setRelativeSlewToBrakeSteps(SW::AXISID, unsigned int)+0x15c>
+  2354d0: f94016c8     	ldr	x8, [x22, #0x28]
+  2354d4: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2354d8: eb09011f     	cmp	x8, x9
+  2354dc: 540001c1     	b.ne	0x235514 <SW::SwMountAxis::setRelativeSlewToBrakeSteps(SW::AXISID, unsigned int)+0x174>
+  2354e0: aa1303e0     	mov	x0, x19
+  2354e4: 94021fe8     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  2354e8: aa0803e0     	mov	x0, x8
+  2354ec: f9000be8     	str	x8, [sp, #0x10]
+  2354f0: 94022fa8     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2354f4: f85e03a0     	ldur	x0, [x29, #-0x20]
+  2354f8: b4fffec0     	cbz	x0, 0x2354d0 <SW::SwMountAxis::setRelativeSlewToBrakeSteps(SW::AXISID, unsigned int)+0x130>
+  2354fc: f81e83a0     	stur	x0, [x29, #-0x18]
+  235500: 94022fa4     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  235504: f94016c8     	ldr	x8, [x22, #0x28]
+  235508: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23550c: eb09011f     	cmp	x8, x9
+  235510: 54fffe80     	b.eq	0x2354e0 <SW::SwMountAxis::setRelativeSlewToBrakeSteps(SW::AXISID, unsigned int)+0x140>
+  235514: 94022f27     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000235780 <SW::SwMountAxis::supportsAxisSlewToSlew()>:
+  235780: 39440800     	ldrb	w0, [x0, #0x102]
+  235784: d65f03c0     	ret
+

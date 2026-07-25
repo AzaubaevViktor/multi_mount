@@ -1,0 +1,1908 @@
+000000000020ba84 <SW::CParamsSolver::Param::setFromVal(double)>:
+  20ba84: fc1c0fe8     	str	d8, [sp, #-0x40]!
+  20ba88: a900fbfd     	stp	x29, x30, [sp, #0x8]
+  20ba8c: f9000ffc     	str	x28, [sp, #0x18]
+  20ba90: a90257f6     	stp	x22, x21, [sp, #0x20]
+  20ba94: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  20ba98: 910023fd     	add	x29, sp, #0x8
+  20ba9c: d11803ff     	sub	sp, sp, #0x600
+  20baa0: d53bd056     	mrs	x22, TPIDR_EL0
+  20baa4: aa0003f3     	mov	x19, x0
+  20baa8: 910063e0     	add	x0, sp, #0x18
+  20baac: f94016c8     	ldr	x8, [x22, #0x28]
+  20bab0: 1e604008     	fmov	d8, d0
+  20bab4: f81f03a8     	stur	x8, [x29, #-0x10]
+  20bab8: 9402df2e     	bl	0x2c3770 <_ZN2SW13CParamsSolverC1Ev@plt>  ;;; CALL SW::CParamsSolver::CParamsSolver()
+  20babc: f9401661     	ldr	x1, [x19, #0x28]
+  20bac0: 910063e0     	add	x0, sp, #0x18
+  20bac4: 9402df23     	bl	0x2c3750 <_ZN2SW13CParamsSolver17ReplaceParamsFromERS0_@plt>  ;;; CALL SW::CParamsSolver::ReplaceParamsFrom(SW::CParamsSolver&)
+  20bac8: aa1303e8     	mov	x8, x19
+  20bacc: 38430d09     	ldrb	w9, [x8, #0x30]!
+  20bad0: 370000c9     	tbnz	w9, #0x0, 0x20bae8 <SW::CParamsSolver::Param::setFromVal(double)+0x64>
+  20bad4: 3dc00100     	ldr	q0, [x8]
+  20bad8: f9400908     	ldr	x8, [x8, #0x10]
+  20badc: 3d8003e0     	str	q0, [sp]
+  20bae0: f9000be8     	str	x8, [sp, #0x10]
+  20bae4: 14000004     	b	0x20baf4 <SW::CParamsSolver::Param::setFromVal(double)+0x70>
+  20bae8: a9438662     	ldp	x2, x1, [x19, #0x38]
+  20baec: 910003e0     	mov	x0, sp
+  20baf0: 9402d9ac     	bl	0x2c21a0 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE25__init_copy_ctor_externalEPKcm@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::__init_copy_ctor_external(char const*, unsigned long)
+  20baf4: 910063e0     	add	x0, sp, #0x18
+  20baf8: 910003e1     	mov	x1, sp
+  20bafc: 9402df19     	bl	0x2c3760 <_ZN2SW13CParamsSolver16GetParamFromNameENSt6__ndk112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEE@plt>  ;;; CALL SW::CParamsSolver::GetParamFromName(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>)
+  20bb00: 394003e8     	ldrb	w8, [sp]
+  20bb04: 360000c8     	tbz	w8, #0x0, 0x20bb1c <SW::CParamsSolver::Param::setFromVal(double)+0x98>
+  20bb08: f9400be8     	ldr	x8, [sp, #0x10]
+  20bb0c: aa0003f4     	mov	x20, x0
+  20bb10: aa0803e0     	mov	x0, x8
+  20bb14: 9402d61f     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20bb18: aa1403e0     	mov	x0, x20
+  20bb1c: 39412008     	ldrb	w8, [x0, #0x48]
+  20bb20: 350002e8     	cbnz	w8, 0x20bb7c <SW::CParamsSolver::Param::setFromVal(double)+0xf8>
+  20bb24: 52800028     	mov	w8, #0x1                // =1
+  20bb28: fd000408     	str	d8, [x0, #0x8]
+  20bb2c: 39012408     	strb	w8, [x0, #0x49]
+  20bb30: 9402dffc     	bl	0x2c3b20 <_ZN2SW13CParamsSolver5Param18setAndNotifyGroupsEv@plt>  ;;; CALL SW::CParamsSolver::Param::setAndNotifyGroups()
+  20bb34: f9401660     	ldr	x0, [x19, #0x28]
+  20bb38: 910063e1     	add	x1, sp, #0x18
+  20bb3c: 9402df05     	bl	0x2c3750 <_ZN2SW13CParamsSolver17ReplaceParamsFromERS0_@plt>  ;;; CALL SW::CParamsSolver::ReplaceParamsFrom(SW::CParamsSolver&)
+  20bb40: 52800033     	mov	w19, #0x1               // =1
+  20bb44: 910063e0     	add	x0, sp, #0x18
+  20bb48: 9402dfd2     	bl	0x2c3a90 <_ZN2SW13CParamsSolverD2Ev@plt>  ;;; CALL SW::CParamsSolver::~CParamsSolver()
+  20bb4c: f94016c8     	ldr	x8, [x22, #0x28]
+  20bb50: f85f03a9     	ldur	x9, [x29, #-0x10]
+  20bb54: eb09011f     	cmp	x8, x9
+  20bb58: 54000781     	b.ne	0x20bc48 <SW::CParamsSolver::Param::setFromVal(double)+0x1c4>
+  20bb5c: 2a1303e0     	mov	w0, w19
+  20bb60: 911803ff     	add	sp, sp, #0x600
+  20bb64: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  20bb68: f9400ffc     	ldr	x28, [sp, #0x18]
+  20bb6c: a94257f6     	ldp	x22, x21, [sp, #0x20]
+  20bb70: a940fbfd     	ldp	x29, x30, [sp, #0x8]
+  20bb74: fc4407e8     	ldr	d8, [sp], #0x40
+  20bb78: d65f03c0     	ret
+  20bb7c: 52800200     	mov	w0, #0x10               // =16
+  20bb80: 9402d68c     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  20bb84: aa0003f5     	mov	x21, x0
+  20bb88: b0fff601     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  20bb8c: 9107f421     	add	x1, x1, #0x1fd
+  20bb90: 9402dfe8     	bl	0x2c3b30 <_ZNSt13runtime_errorC1EPKc@plt>  ;;; CALL std::runtime_error::runtime_error(char const*)
+  20bb94: f94016c8     	ldr	x8, [x22, #0x28]
+  20bb98: f85f03a9     	ldur	x9, [x29, #-0x10]
+  20bb9c: eb09011f     	cmp	x8, x9
+  20bba0: 54000541     	b.ne	0x20bc48 <SW::CParamsSolver::Param::setFromVal(double)+0x1c4>
+  20bba4: b0000661     	adrp	x1, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  20bba8: d0000662     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  20bbac: aa1503e0     	mov	x0, x21
+  20bbb0: f9463021     	ldr	x1, [x1, #0xc60]
+  20bbb4: f941bc42     	ldr	x2, [x2, #0x378]
+  20bbb8: 9402d686     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  20bbbc: aa0003f3     	mov	x19, x0
+  20bbc0: aa1503e0     	mov	x0, x21
+  20bbc4: aa0103f4     	mov	x20, x1
+  20bbc8: 9402d96e     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  20bbcc: 14000013     	b	0x20bc18 <SW::CParamsSolver::Param::setFromVal(double)+0x194>
+  20bbd0: 394003e8     	ldrb	w8, [sp]
+  20bbd4: aa0103f4     	mov	x20, x1
+  20bbd8: aa0003f3     	mov	x19, x0
+  20bbdc: 360001e8     	tbz	w8, #0x0, 0x20bc18 <SW::CParamsSolver::Param::setFromVal(double)+0x194>
+  20bbe0: f9400be0     	ldr	x0, [sp, #0x10]
+  20bbe4: 9402d5eb     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20bbe8: 1400000c     	b	0x20bc18 <SW::CParamsSolver::Param::setFromVal(double)+0x194>
+  20bbec: aa0003f3     	mov	x19, x0
+  20bbf0: 910063e0     	add	x0, sp, #0x18
+  20bbf4: 9402dfa7     	bl	0x2c3a90 <_ZN2SW13CParamsSolverD2Ev@plt>  ;;; CALL SW::CParamsSolver::~CParamsSolver()
+  20bbf8: f94016c8     	ldr	x8, [x22, #0x28]
+  20bbfc: f85f03a9     	ldur	x9, [x29, #-0x10]
+  20bc00: eb09011f     	cmp	x8, x9
+  20bc04: 54000221     	b.ne	0x20bc48 <SW::CParamsSolver::Param::setFromVal(double)+0x1c4>
+  20bc08: aa1303e0     	mov	x0, x19
+  20bc0c: 9402c61e     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  20bc10: aa0103f4     	mov	x20, x1
+  20bc14: aa0003f3     	mov	x19, x0
+  20bc18: 7100069f     	cmp	w20, #0x1
+  20bc1c: 54fffea1     	b.ne	0x20bbf0 <SW::CParamsSolver::Param::setFromVal(double)+0x16c>
+  20bc20: aa1303e0     	mov	x0, x19
+  20bc24: 9402d5eb     	bl	0x2c13d0 <__cxa_begin_catch@plt>  ;;; CALL __cxa_begin_catch
+  20bc28: 9402d946     	bl	0x2c2140 <__cxa_end_catch@plt>  ;;; CALL __cxa_end_catch
+  20bc2c: 2a1f03f3     	mov	w19, wzr
+  20bc30: 910063e0     	add	x0, sp, #0x18
+  20bc34: 9402df97     	bl	0x2c3a90 <_ZN2SW13CParamsSolverD2Ev@plt>  ;;; CALL SW::CParamsSolver::~CParamsSolver()
+  20bc38: f94016c8     	ldr	x8, [x22, #0x28]
+  20bc3c: f85f03a9     	ldur	x9, [x29, #-0x10]
+  20bc40: eb09011f     	cmp	x8, x9
+  20bc44: 54fff8c0     	b.eq	0x20bb5c <SW::CParamsSolver::Param::setFromVal(double)+0xd8>
+  20bc48: 9402d55a     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+  20bc4c: 17ffffe8     	b	0x20bbec <SW::CParamsSolver::Param::setFromVal(double)+0x168>
+
+000000000020d35c <SW::CParamsSolver::Param::setAndNotifyGroups()>:
+  20d35c: a9412808     	ldp	x8, x10, [x0, #0x10]
+  20d360: 52800029     	mov	w9, #0x1                // =1
+  20d364: 39012009     	strb	w9, [x0, #0x48]
+  20d368: eb08015f     	cmp	x10, x8
+  20d36c: 540005e0     	b.eq	0x20d428 <SW::CParamsSolver::Param::setAndNotifyGroups()+0xcc>
+  20d370: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  20d374: f9000bf5     	str	x21, [sp, #0x10]
+  20d378: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  20d37c: 910003fd     	mov	x29, sp
+  20d380: aa0003f3     	mov	x19, x0
+  20d384: aa1f03e9     	mov	x9, xzr
+  20d388: 2a1f03f5     	mov	w21, wzr
+  20d38c: 14000007     	b	0x20d3a8 <SW::CParamsSolver::Param::setAndNotifyGroups()+0x4c>
+  20d390: a9412a68     	ldp	x8, x10, [x19, #0x10]
+  20d394: 110006a9     	add	w9, w21, #0x1
+  20d398: 2a0903f5     	mov	w21, w9
+  20d39c: cb08014a     	sub	x10, x10, x8
+  20d3a0: eb8a0d3f     	cmp	x9, x10, asr #3
+  20d3a4: 540003c2     	b.hs	0x20d41c <SW::CParamsSolver::Param::setAndNotifyGroups()+0xc0>
+  20d3a8: f8697901     	ldr	x1, [x8, x9, lsl #3]
+  20d3ac: a941a428     	ldp	x8, x9, [x1, #0x18]
+  20d3b0: eb080129     	subs	x9, x9, x8
+  20d3b4: 54fffee0     	b.eq	0x20d390 <SW::CParamsSolver::Param::setAndNotifyGroups()+0x34>
+  20d3b8: 9343fd29     	asr	x9, x9, #3
+  20d3bc: aa1f03eb     	mov	x11, xzr
+  20d3c0: aa1f03ec     	mov	x12, xzr
+  20d3c4: 5280002a     	mov	w10, #0x1               // =1
+  20d3c8: 14000007     	b	0x20d3e4 <SW::CParamsSolver::Param::setAndNotifyGroups()+0x88>
+  20d3cc: aa0c03f4     	mov	x20, x12
+  20d3d0: 2a0a03eb     	mov	w11, w10
+  20d3d4: 1100054a     	add	w10, w10, #0x1
+  20d3d8: aa1403ec     	mov	x12, x20
+  20d3dc: eb0b013f     	cmp	x9, x11
+  20d3e0: 540000c9     	b.ls	0x20d3f8 <SW::CParamsSolver::Param::setAndNotifyGroups()+0x9c>
+  20d3e4: f86b7914     	ldr	x20, [x8, x11, lsl #3]
+  20d3e8: 3941228b     	ldrb	w11, [x20, #0x48]
+  20d3ec: 3707ff0b     	tbnz	w11, #0x0, 0x20d3cc <SW::CParamsSolver::Param::setAndNotifyGroups()+0x70>
+  20d3f0: b4ffff0c     	cbz	x12, 0x20d3d0 <SW::CParamsSolver::Param::setAndNotifyGroups()+0x74>
+  20d3f4: 17ffffe7     	b	0x20d390 <SW::CParamsSolver::Param::setAndNotifyGroups()+0x34>
+  20d3f8: b4fffcd4     	cbz	x20, 0x20d390 <SW::CParamsSolver::Param::setAndNotifyGroups()+0x34>
+  20d3fc: f9400288     	ldr	x8, [x20]
+  20d400: aa1403e0     	mov	x0, x20
+  20d404: f9400908     	ldr	x8, [x8, #0x10]
+  20d408: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  20d40c: 3607fc20     	tbz	w0, #0x0, 0x20d390 <SW::CParamsSolver::Param::setAndNotifyGroups()+0x34>
+  20d410: aa1403e0     	mov	x0, x20
+  20d414: 9402d9c3     	bl	0x2c3b20 <_ZN2SW13CParamsSolver5Param18setAndNotifyGroupsEv@plt>  ;;; CALL SW::CParamsSolver::Param::setAndNotifyGroups()
+  20d418: 17ffffde     	b	0x20d390 <SW::CParamsSolver::Param::setAndNotifyGroups()+0x34>
+  20d41c: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  20d420: f9400bf5     	ldr	x21, [sp, #0x10]
+  20d424: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  20d428: d65f03c0     	ret
+
+000000000020e3f8 <SW::CParamsSolver::CParamsSolver()>:
+  20e3f8: a9ba7bfd     	stp	x29, x30, [sp, #-0x60]!
+  20e3fc: f9000bfc     	str	x28, [sp, #0x10]
+  20e400: a90267fa     	stp	x26, x25, [sp, #0x20]
+  20e404: a9035ff8     	stp	x24, x23, [sp, #0x30]
+  20e408: a90457f6     	stp	x22, x21, [sp, #0x40]
+  20e40c: a9054ff4     	stp	x20, x19, [sp, #0x50]
+  20e410: 910003fd     	mov	x29, sp
+  20e414: d10883ff     	sub	sp, sp, #0x220
+  20e418: d53bd05a     	mrs	x26, TPIDR_EL0
+  20e41c: 6f00e400     	movi	v0.2d, #0000000000000000
+  20e420: d10203b8     	sub	x24, x29, #0x80
+  20e424: f9401748     	ldr	x8, [x26, #0x28]
+  20e428: aa0003f3     	mov	x19, x0
+  20e42c: 52800149     	mov	w9, #0xa                // =10
+  20e430: f81f83a8     	stur	x8, [x29, #-0x8]
+  20e434: 528bece8     	mov	w8, #0x5f67             // =24423
+  20e438: 72aa8e88     	movk	w8, #0x5474, lsl #16
+  20e43c: 381e03a9     	sturb	w9, [x29, #-0x20]
+  20e440: b8061308     	stur	w8, [x24, #0x61]
+  20e444: 52800868     	mov	w8, #0x43               // =67
+  20e448: 78065308     	sturh	w8, [x24, #0x65]
+  20e44c: ad000000     	stp	q0, q0, [x0]
+  20e450: 3d800800     	str	q0, [x0, #0x20]
+  20e454: d10083a1     	sub	x1, x29, #0x20
+  20e458: 9402d446     	bl	0x2c3570 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEaSERKS5_@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::operator=(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  20e45c: 385e03a8     	ldurb	w8, [x29, #-0x20]
+  20e460: 36000068     	tbz	w8, #0x0, 0x20e46c <SW::CParamsSolver::CParamsSolver()+0x74>
+  20e464: f85f03a0     	ldur	x0, [x29, #-0x10]
+  20e468: 9402cbca     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20e46c: 6f00e400     	movi	v0.2d, #0000000000000000
+  20e470: 528bece9     	mov	w9, #0x5f67             // =24423
+  20e474: 52800108     	mov	w8, #0x8                // =8
+  20e478: 72a68e89     	movk	w9, #0x3474, lsl #16
+  20e47c: aa1303f4     	mov	x20, x19
+  20e480: 381cd3bf     	sturb	wzr, [x29, #-0x33]
+  20e484: 381c83a8     	sturb	w8, [x29, #-0x38]
+  20e488: b8049309     	stur	w9, [x24, #0x49]
+  20e48c: ad818280     	stp	q0, q0, [x20, #0x30]!
+  20e490: 3d800a80     	str	q0, [x20, #0x20]
+  20e494: d100e3a1     	sub	x1, x29, #0x38
+  20e498: aa1403e0     	mov	x0, x20
+  20e49c: 9402d435     	bl	0x2c3570 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEaSERKS5_@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::operator=(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  20e4a0: 385c83a8     	ldurb	w8, [x29, #-0x38]
+  20e4a4: 36000068     	tbz	w8, #0x0, 0x20e4b0 <SW::CParamsSolver::CParamsSolver()+0xb8>
+  20e4a8: f85d83a0     	ldur	x0, [x29, #-0x28]
+  20e4ac: 9402cbb9     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20e4b0: 6f00e400     	movi	v0.2d, #0000000000000000
+  20e4b4: 52800148     	mov	w8, #0xa                // =10
+  20e4b8: 528bece9     	mov	w9, #0x5f67             // =24423
+  20e4bc: 72aa8c29     	movk	w9, #0x5461, lsl #16
+  20e4c0: 381b03a8     	sturb	w8, [x29, #-0x50]
+  20e4c4: 52800868     	mov	w8, #0x43               // =67
+  20e4c8: aa1303f5     	mov	x21, x19
+  20e4cc: b8031309     	stur	w9, [x24, #0x31]
+  20e4d0: 78035308     	sturh	w8, [x24, #0x35]
+  20e4d4: ad8302a0     	stp	q0, q0, [x21, #0x60]!
+  20e4d8: 3d800aa0     	str	q0, [x21, #0x20]
+  20e4dc: d10143a1     	sub	x1, x29, #0x50
+  20e4e0: aa1503e0     	mov	x0, x21
+  20e4e4: 9402d423     	bl	0x2c3570 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEaSERKS5_@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::operator=(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  20e4e8: 385b03a8     	ldurb	w8, [x29, #-0x50]
+  20e4ec: 36000068     	tbz	w8, #0x0, 0x20e4f8 <SW::CParamsSolver::CParamsSolver()+0x100>
+  20e4f0: f85c03a0     	ldur	x0, [x29, #-0x40]
+  20e4f4: 9402cba7     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20e4f8: 6f00e400     	movi	v0.2d, #0000000000000000
+  20e4fc: 52800248     	mov	w8, #0x12               // =18
+  20e500: f0fff5e9     	adrp	x9, 0xcd000 <vsnprintf+0xcd000>
+  20e504: 91084d29     	add	x9, x9, #0x213
+  20e508: 381983a8     	sturb	w8, [x29, #-0x68]
+  20e50c: 52800caa     	mov	w10, #0x65              // =101
+  20e510: f9400128     	ldr	x8, [x9]
+  20e514: aa1303f6     	mov	x22, x19
+  20e518: 7802130a     	sturh	w10, [x24, #0x21]
+  20e51c: f8019308     	stur	x8, [x24, #0x19]
+  20e520: ad8482c0     	stp	q0, q0, [x22, #0x90]!
+  20e524: 3d800ac0     	str	q0, [x22, #0x20]
+  20e528: d101a3a1     	sub	x1, x29, #0x68
+  20e52c: aa1603e0     	mov	x0, x22
+  20e530: 9402d410     	bl	0x2c3570 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEaSERKS5_@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::operator=(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  20e534: 385983a8     	ldurb	w8, [x29, #-0x68]
+  20e538: 36000068     	tbz	w8, #0x0, 0x20e544 <SW::CParamsSolver::CParamsSolver()+0x14c>
+  20e53c: f85a83a0     	ldur	x0, [x29, #-0x58]
+  20e540: 9402cb94     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20e544: 6f00e400     	movi	v0.2d, #0000000000000000
+  20e548: d28bece9     	mov	x9, #0x5f67             // =24423
+  20e54c: 52800208     	mov	w8, #0x10               // =16
+  20e550: f2ad2ec9     	movk	x9, #0x6976, lsl #16
+  20e554: aa1303f7     	mov	x23, x19
+  20e558: 381893bf     	sturb	wzr, [x29, #-0x77]
+  20e55c: f2c8cc89     	movk	x9, #0x4664, lsl #32
+  20e560: 381803a8     	sturb	w8, [x29, #-0x80]
+  20e564: f2ee6e09     	movk	x9, #0x7370, lsl #48
+  20e568: f8001309     	stur	x9, [x24, #0x1]
+  20e56c: ad8602e0     	stp	q0, q0, [x23, #0xc0]!
+  20e570: 3d800ae0     	str	q0, [x23, #0x20]
+  20e574: d10203a1     	sub	x1, x29, #0x80
+  20e578: aa1703e0     	mov	x0, x23
+  20e57c: 9402d3fd     	bl	0x2c3570 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEaSERKS5_@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::operator=(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  20e580: 385803a8     	ldurb	w8, [x29, #-0x80]
+  20e584: 910263f9     	add	x25, sp, #0x98
+  20e588: 36000068     	tbz	w8, #0x0, 0x20e594 <SW::CParamsSolver::CParamsSolver()+0x19c>
+  20e58c: f85903a0     	ldur	x0, [x29, #-0x70]
+  20e590: 9402cb80     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20e594: 6f00e400     	movi	v0.2d, #0000000000000000
+  20e598: 52800248     	mov	w8, #0x12               // =18
+  20e59c: d0fff5e9     	adrp	x9, 0xcc000 <vsnprintf+0xcc000>
+  20e5a0: 912fbd29     	add	x9, x9, #0xbef
+  20e5a4: 381683a8     	sturb	w8, [x29, #-0x98]
+  20e5a8: 52800d8a     	mov	w10, #0x6c              // =108
+  20e5ac: f9400128     	ldr	x8, [x9]
+  20e5b0: aa1303f8     	mov	x24, x19
+  20e5b4: 780f932a     	sturh	w10, [x25, #0xf9]
+  20e5b8: f80f1328     	stur	x8, [x25, #0xf1]
+  20e5bc: ad878300     	stp	q0, q0, [x24, #0xf0]!
+  20e5c0: 3d800b00     	str	q0, [x24, #0x20]
+  20e5c4: d10263a1     	sub	x1, x29, #0x98
+  20e5c8: aa1803e0     	mov	x0, x24
+  20e5cc: 9402d3e9     	bl	0x2c3570 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEaSERKS5_@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::operator=(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  20e5d0: 385683a8     	ldurb	w8, [x29, #-0x98]
+  20e5d4: 36000068     	tbz	w8, #0x0, 0x20e5e0 <SW::CParamsSolver::CParamsSolver()+0x1e8>
+  20e5d8: f85783a0     	ldur	x0, [x29, #-0x88]
+  20e5dc: 9402cb6d     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20e5e0: 6f00e400     	movi	v0.2d, #0000000000000000
+  20e5e4: d28bece9     	mov	x9, #0x5f67             // =24423
+  20e5e8: 52800208     	mov	w8, #0x10               // =16
+  20e5ec: f2aecc29     	movk	x9, #0x7661, lsl #16
+  20e5f0: 381593bf     	sturb	wzr, [x29, #-0xa7]
+  20e5f4: f2c8ac69     	movk	x9, #0x4563, lsl #32
+  20e5f8: 381503a8     	sturb	w8, [x29, #-0xb0]
+  20e5fc: f2ecccc9     	movk	x9, #0x6666, lsl #48
+  20e600: f80d9329     	stur	x9, [x25, #0xd9]
+  20e604: ad090260     	stp	q0, q0, [x19, #0x120]
+  20e608: 3d805260     	str	q0, [x19, #0x140]
+  20e60c: 91048260     	add	x0, x19, #0x120
+  20e610: d102c3a1     	sub	x1, x29, #0xb0
+  20e614: 9402d3d7     	bl	0x2c3570 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEaSERKS5_@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::operator=(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  20e618: 385503a8     	ldurb	w8, [x29, #-0xb0]
+  20e61c: 36000068     	tbz	w8, #0x0, 0x20e628 <SW::CParamsSolver::CParamsSolver()+0x230>
+  20e620: f85603a0     	ldur	x0, [x29, #-0xa0]
+  20e624: 9402cb5b     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20e628: 6f00e400     	movi	v0.2d, #0000000000000000
+  20e62c: d28bece9     	mov	x9, #0x5f67             // =24423
+  20e630: 52800208     	mov	w8, #0x10               // =16
+  20e634: f2aeee69     	movk	x9, #0x7773, lsl #16
+  20e638: 381413bf     	sturb	wzr, [x29, #-0xbf]
+  20e63c: f2cdcd29     	movk	x9, #0x6e69, lsl #32
+  20e640: 381383a8     	sturb	w8, [x29, #-0xc8]
+  20e644: f2ee6ce9     	movk	x9, #0x7367, lsl #48
+  20e648: f80c1329     	stur	x9, [x25, #0xc1]
+  20e64c: ad0a8260     	stp	q0, q0, [x19, #0x150]
+  20e650: 3d805e60     	str	q0, [x19, #0x170]
+  20e654: 91054260     	add	x0, x19, #0x150
+  20e658: d10323a1     	sub	x1, x29, #0xc8
+  20e65c: 9402d3c5     	bl	0x2c3570 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEaSERKS5_@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::operator=(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  20e660: 385383a8     	ldurb	w8, [x29, #-0xc8]
+  20e664: 36000068     	tbz	w8, #0x0, 0x20e670 <SW::CParamsSolver::CParamsSolver()+0x278>
+  20e668: f85483a0     	ldur	x0, [x29, #-0xb8]
+  20e66c: 9402cb49     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20e670: 528001c8     	mov	w8, #0xe                // =14
+  20e674: 528bea89     	mov	w9, #0x5f54             // =24404
+  20e678: 381283bf     	sturb	wzr, [x29, #-0xd8]
+  20e67c: 381203a8     	sturb	w8, [x29, #-0xe0]
+  20e680: 528e8de8     	mov	w8, #0x746f             // =29807
+  20e684: 72adea89     	movk	w9, #0x6f54, lsl #16
+  20e688: 72ad8c28     	movk	w8, #0x6c61, lsl #16
+  20e68c: b80a9329     	stur	w9, [x25, #0xa9]
+  20e690: b81243a8     	stur	w8, [x29, #-0xdc]
+  20e694: 91060260     	add	x0, x19, #0x180
+  20e698: d10383a2     	sub	x2, x29, #0xe0
+  20e69c: aa1303e1     	mov	x1, x19
+  20e6a0: 9402d3e8     	bl	0x2c3640 <_ZN2SW13CParamsSolver8CT_TotalC2EPS0_NSt6__ndk112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEE@plt>  ;;; CALL SW::CParamsSolver::CT_Total::CT_Total(SW::CParamsSolver*, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>)
+  20e6a4: 385203a8     	ldurb	w8, [x29, #-0xe0]
+  20e6a8: 36000068     	tbz	w8, #0x0, 0x20e6b4 <SW::CParamsSolver::CParamsSolver()+0x2bc>
+  20e6ac: f85303a0     	ldur	x0, [x29, #-0xd0]
+  20e6b0: 9402cb38     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20e6b4: d28be9c9     	mov	x9, #0x5f4e             // =24398
+  20e6b8: 52800208     	mov	w8, #0x10               // =16
+  20e6bc: 381113bf     	sturb	wzr, [x29, #-0xef]
+  20e6c0: f2af2869     	movk	x9, #0x7943, lsl #16
+  20e6c4: 381083a8     	sturb	w8, [x29, #-0xf8]
+  20e6c8: f2cd8c69     	movk	x9, #0x6c63, lsl #32
+  20e6cc: f2ee6ca9     	movk	x9, #0x7365, lsl #48
+  20e6d0: f8091329     	stur	x9, [x25, #0x91]
+  20e6d4: 91074260     	add	x0, x19, #0x1d0
+  20e6d8: d103e3a2     	sub	x2, x29, #0xf8
+  20e6dc: aa1303e1     	mov	x1, x19
+  20e6e0: 9402d3dc     	bl	0x2c3650 <_ZN2SW13CParamsSolver9CN_CyclesC2EPS0_NSt6__ndk112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEE@plt>  ;;; CALL SW::CParamsSolver::CN_Cycles::CN_Cycles(SW::CParamsSolver*, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>)
+  20e6e4: 385083a8     	ldurb	w8, [x29, #-0xf8]
+  20e6e8: 36000068     	tbz	w8, #0x0, 0x20e6f4 <SW::CParamsSolver::CParamsSolver()+0x2fc>
+  20e6ec: f85183a0     	ldur	x0, [x29, #-0xe8]
+  20e6f0: 9402cb28     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20e6f4: 528001c8     	mov	w8, #0xe                // =14
+  20e6f8: 528bea89     	mov	w9, #0x5f54             // =24404
+  20e6fc: 390463ff     	strb	wzr, [sp, #0x118]
+  20e700: 390443e8     	strb	w8, [sp, #0x110]
+  20e704: 528c8d28     	mov	w8, #0x6469             // =25705
+  20e708: 72ad2ac9     	movk	w9, #0x6956, lsl #16
+  20e70c: 72adeca8     	movk	w8, #0x6f65, lsl #16
+  20e710: b8079329     	stur	w9, [x25, #0x79]
+  20e714: b90117e8     	str	w8, [sp, #0x114]
+  20e718: 91088260     	add	x0, x19, #0x220
+  20e71c: 910443e2     	add	x2, sp, #0x110
+  20e720: aa1303e1     	mov	x1, x19
+  20e724: 9402d3cf     	bl	0x2c3660 <_ZN2SW13CParamsSolver8CT_VideoC2EPS0_NSt6__ndk112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEE@plt>  ;;; CALL SW::CParamsSolver::CT_Video::CT_Video(SW::CParamsSolver*, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>)
+  20e728: 394443e8     	ldrb	w8, [sp, #0x110]
+  20e72c: 36000068     	tbz	w8, #0x0, 0x20e738 <SW::CParamsSolver::CParamsSolver()+0x340>
+  20e730: f94093e0     	ldr	x0, [sp, #0x120]
+  20e734: 9402cb17     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20e738: 528001c8     	mov	w8, #0xe                // =14
+  20e73c: 528be829     	mov	w9, #0x5f41             // =24385
+  20e740: 390403ff     	strb	wzr, [sp, #0x100]
+  20e744: 3903e3e8     	strb	w8, [sp, #0xf8]
+  20e748: 528e8de8     	mov	w8, #0x746f             // =29807
+  20e74c: 72adea89     	movk	w9, #0x6f54, lsl #16
+  20e750: 72ad8c28     	movk	w8, #0x6c61, lsl #16
+  20e754: b8061329     	stur	w9, [x25, #0x61]
+  20e758: b900ffe8     	str	w8, [sp, #0xfc]
+  20e75c: 9109c260     	add	x0, x19, #0x270
+  20e760: 9103e3e2     	add	x2, sp, #0xf8
+  20e764: aa1303e1     	mov	x1, x19
+  20e768: 9402d3c2     	bl	0x2c3670 <_ZN2SW13CParamsSolver8CA_TotalC2EPS0_NSt6__ndk112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEE@plt>  ;;; CALL SW::CParamsSolver::CA_Total::CA_Total(SW::CParamsSolver*, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>)
+  20e76c: 3943e3e8     	ldrb	w8, [sp, #0xf8]
+  20e770: 36000068     	tbz	w8, #0x0, 0x20e77c <SW::CParamsSolver::CParamsSolver()+0x384>
+  20e774: f94087e0     	ldr	x0, [sp, #0x108]
+  20e778: 9402cb06     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20e77c: 528001c8     	mov	w8, #0xe                // =14
+  20e780: 528be829     	mov	w9, #0x5f41             // =24385
+  20e784: 3903a3ff     	strb	wzr, [sp, #0xe8]
+  20e788: 390383e8     	strb	w8, [sp, #0xe0]
+  20e78c: 528c6f28     	mov	w8, #0x6379             // =25465
+  20e790: 72af2869     	movk	w9, #0x7943, lsl #16
+  20e794: 72acad88     	movk	w8, #0x656c, lsl #16
+  20e798: b8049329     	stur	w9, [x25, #0x49]
+  20e79c: b900e7e8     	str	w8, [sp, #0xe4]
+  20e7a0: 910b0260     	add	x0, x19, #0x2c0
+  20e7a4: 910383e2     	add	x2, sp, #0xe0
+  20e7a8: aa1303e1     	mov	x1, x19
+  20e7ac: 9402d3b5     	bl	0x2c3680 <_ZN2SW13CParamsSolver8CA_CycleC2EPS0_NSt6__ndk112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEE@plt>  ;;; CALL SW::CParamsSolver::CA_Cycle::CA_Cycle(SW::CParamsSolver*, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>)
+  20e7b0: 394383e8     	ldrb	w8, [sp, #0xe0]
+  20e7b4: 36000068     	tbz	w8, #0x0, 0x20e7c0 <SW::CParamsSolver::CParamsSolver()+0x3c8>
+  20e7b8: f9407be0     	ldr	x0, [sp, #0xf0]
+  20e7bc: 9402caf5     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20e7c0: 528001c8     	mov	w8, #0xe                // =14
+  20e7c4: 528beac9     	mov	w9, #0x5f56             // =24406
+  20e7c8: 390343ff     	strb	wzr, [sp, #0xd0]
+  20e7cc: 390323e8     	strb	w8, [sp, #0xc8]
+  20e7d0: 528e8de8     	mov	w8, #0x746f             // =29807
+  20e7d4: 72adea89     	movk	w9, #0x6f54, lsl #16
+  20e7d8: 72ad8c28     	movk	w8, #0x6c61, lsl #16
+  20e7dc: b8031329     	stur	w9, [x25, #0x31]
+  20e7e0: b900cfe8     	str	w8, [sp, #0xcc]
+  20e7e4: 910c4260     	add	x0, x19, #0x310
+  20e7e8: 910323e2     	add	x2, sp, #0xc8
+  20e7ec: aa1303e1     	mov	x1, x19
+  20e7f0: 9402d3a8     	bl	0x2c3690 <_ZN2SW13CParamsSolver8CV_TotalC2EPS0_NSt6__ndk112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEE@plt>  ;;; CALL SW::CParamsSolver::CV_Total::CV_Total(SW::CParamsSolver*, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>)
+  20e7f4: 394323e8     	ldrb	w8, [sp, #0xc8]
+  20e7f8: 36000068     	tbz	w8, #0x0, 0x20e804 <SW::CParamsSolver::CParamsSolver()+0x40c>
+  20e7fc: f9406fe0     	ldr	x0, [sp, #0xd8]
+  20e800: 9402cae4     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20e804: 528001c8     	mov	w8, #0xe                // =14
+  20e808: 528beac9     	mov	w9, #0x5f56             // =24406
+  20e80c: 3902e3ff     	strb	wzr, [sp, #0xb8]
+  20e810: 3902c3e8     	strb	w8, [sp, #0xb0]
+  20e814: 528c6f28     	mov	w8, #0x6379             // =25465
+  20e818: 72af2869     	movk	w9, #0x7943, lsl #16
+  20e81c: 72acad88     	movk	w8, #0x656c, lsl #16
+  20e820: b8019329     	stur	w9, [x25, #0x19]
+  20e824: b900b7e8     	str	w8, [sp, #0xb4]
+  20e828: 910d8260     	add	x0, x19, #0x360
+  20e82c: 9102c3e2     	add	x2, sp, #0xb0
+  20e830: aa1303e1     	mov	x1, x19
+  20e834: 9402d39b     	bl	0x2c36a0 <_ZN2SW13CParamsSolver8CV_CycleC2EPS0_NSt6__ndk112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEE@plt>  ;;; CALL SW::CParamsSolver::CV_Cycle::CV_Cycle(SW::CParamsSolver*, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>)
+  20e838: 3942c3e8     	ldrb	w8, [sp, #0xb0]
+  20e83c: 36000068     	tbz	w8, #0x0, 0x20e848 <SW::CParamsSolver::CParamsSolver()+0x450>
+  20e840: f94063e0     	ldr	x0, [sp, #0xc0]
+  20e844: 9402cad3     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20e848: 528001c8     	mov	w8, #0xe                // =14
+  20e84c: 528be829     	mov	w9, #0x5f41             // =24385
+  20e850: 390283ff     	strb	wzr, [sp, #0xa0]
+  20e854: 390263e8     	strb	w8, [sp, #0x98]
+  20e858: 528dcc28     	mov	w8, #0x6e61             // =28257
+  20e85c: 72ac2a49     	movk	w9, #0x6152, lsl #16
+  20e860: 72acace8     	movk	w8, #0x6567, lsl #16
+  20e864: b8001329     	stur	w9, [x25, #0x1]
+  20e868: b9009fe8     	str	w8, [sp, #0x9c]
+  20e86c: 910ec260     	add	x0, x19, #0x3b0
+  20e870: 910263e2     	add	x2, sp, #0x98
+  20e874: aa1303e1     	mov	x1, x19
+  20e878: 9402d38e     	bl	0x2c36b0 <_ZN2SW13CParamsSolver8CA_RangeC2EPS0_NSt6__ndk112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEE@plt>  ;;; CALL SW::CParamsSolver::CA_Range::CA_Range(SW::CParamsSolver*, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>)
+  20e87c: 394263e8     	ldrb	w8, [sp, #0x98]
+  20e880: 36000068     	tbz	w8, #0x0, 0x20e88c <SW::CParamsSolver::CParamsSolver()+0x494>
+  20e884: f94057e0     	ldr	x0, [sp, #0xa8]
+  20e888: 9402cac2     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20e88c: d28be9c9     	mov	x9, #0x5f4e             // =24398
+  20e890: 52800208     	mov	w8, #0x10               // =16
+  20e894: 390227ff     	strb	wzr, [sp, #0x89]
+  20e898: f2aeea69     	movk	x9, #0x7753, lsl #16
+  20e89c: 390203e8     	strb	w8, [sp, #0x80]
+  20e8a0: f2cdcd29     	movk	x9, #0x6e69, lsl #32
+  20e8a4: f2ee6ce9     	movk	x9, #0x7367, lsl #48
+  20e8a8: f80813e9     	stur	x9, [sp, #0x81]
+  20e8ac: 91100260     	add	x0, x19, #0x400
+  20e8b0: 910203e2     	add	x2, sp, #0x80
+  20e8b4: aa1303e1     	mov	x1, x19
+  20e8b8: 9402d382     	bl	0x2c36c0 <_ZN2SW13CParamsSolver9CN_SwingsC2EPS0_NSt6__ndk112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEE@plt>  ;;; CALL SW::CParamsSolver::CN_Swings::CN_Swings(SW::CParamsSolver*, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>)
+  20e8bc: 394203e8     	ldrb	w8, [sp, #0x80]
+  20e8c0: 36000068     	tbz	w8, #0x0, 0x20e8cc <SW::CParamsSolver::CParamsSolver()+0x4d4>
+  20e8c4: f9404be0     	ldr	x0, [sp, #0x90]
+  20e8c8: 9402cab2     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20e8cc: 528001c8     	mov	w8, #0xe                // =14
+  20e8d0: 528bea89     	mov	w9, #0x5f54             // =24404
+  20e8d4: 3901c3ff     	strb	wzr, [sp, #0x70]
+  20e8d8: 3901a3e8     	strb	w8, [sp, #0x68]
+  20e8dc: 528c6f28     	mov	w8, #0x6379             // =25465
+  20e8e0: 72af2869     	movk	w9, #0x7943, lsl #16
+  20e8e4: 72acad88     	movk	w8, #0x656c, lsl #16
+  20e8e8: b80693e9     	stur	w9, [sp, #0x69]
+  20e8ec: b9006fe8     	str	w8, [sp, #0x6c]
+  20e8f0: 91114260     	add	x0, x19, #0x450
+  20e8f4: 9101a3e2     	add	x2, sp, #0x68
+  20e8f8: aa1303e1     	mov	x1, x19
+  20e8fc: 9402d375     	bl	0x2c36d0 <_ZN2SW13CParamsSolver8CT_CycleC2EPS0_NSt6__ndk112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEE@plt>  ;;; CALL SW::CParamsSolver::CT_Cycle::CT_Cycle(SW::CParamsSolver*, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>)
+  20e900: 3941a3e8     	ldrb	w8, [sp, #0x68]
+  20e904: 36000068     	tbz	w8, #0x0, 0x20e910 <SW::CParamsSolver::CParamsSolver()+0x518>
+  20e908: f9403fe0     	ldr	x0, [sp, #0x78]
+  20e90c: 9402caa1     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20e910: d0fff5e9     	adrp	x9, 0xcc000 <vsnprintf+0xcc000>
+  20e914: 912fe529     	add	x9, x9, #0xbf9
+  20e918: 52800288     	mov	w8, #0x14               // =20
+  20e91c: f9400129     	ldr	x9, [x9]
+  20e920: 528cae4a     	mov	w10, #0x6572            // =25970
+  20e924: 390143e8     	strb	w8, [sp, #0x50]
+  20e928: 780593ea     	sturh	w10, [sp, #0x59]
+  20e92c: f80513e9     	stur	x9, [sp, #0x51]
+  20e930: 39016fff     	strb	wzr, [sp, #0x5b]
+  20e934: 91128260     	add	x0, x19, #0x4a0
+  20e938: 910143e2     	add	x2, sp, #0x50
+  20e93c: aa1303e1     	mov	x1, x19
+  20e940: 9402d368     	bl	0x2c36e0 <_ZN2SW13CParamsSolver11CT_ExposureC2EPS0_NSt6__ndk112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEE@plt>  ;;; CALL SW::CParamsSolver::CT_Exposure::CT_Exposure(SW::CParamsSolver*, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>)
+  20e944: 394143e8     	ldrb	w8, [sp, #0x50]
+  20e948: 36000068     	tbz	w8, #0x0, 0x20e954 <SW::CParamsSolver::CParamsSolver()+0x55c>
+  20e94c: f94033e0     	ldr	x0, [sp, #0x60]
+  20e950: 9402ca90     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20e954: d28bea89     	mov	x9, #0x5f54             // =24404
+  20e958: 52800208     	mov	w8, #0x10               // =16
+  20e95c: 390107ff     	strb	wzr, [sp, #0x41]
+  20e960: f2acaa69     	movk	x9, #0x6553, lsl #16
+  20e964: 3900e3e8     	strb	w8, [sp, #0x38]
+  20e968: f2ce8e89     	movk	x9, #0x7474, lsl #32
+  20e96c: f2ecad89     	movk	x9, #0x656c, lsl #48
+  20e970: f80393e9     	stur	x9, [sp, #0x39]
+  20e974: 9113c260     	add	x0, x19, #0x4f0
+  20e978: 9100e3e2     	add	x2, sp, #0x38
+  20e97c: aa1303e1     	mov	x1, x19
+  20e980: 9402d35c     	bl	0x2c36f0 <_ZN2SW13CParamsSolver9CT_SettleC2EPS0_NSt6__ndk112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEE@plt>  ;;; CALL SW::CParamsSolver::CT_Settle::CT_Settle(SW::CParamsSolver*, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>)
+  20e984: 3940e3e8     	ldrb	w8, [sp, #0x38]
+  20e988: 36000068     	tbz	w8, #0x0, 0x20e994 <SW::CParamsSolver::CParamsSolver()+0x59c>
+  20e98c: f94027e0     	ldr	x0, [sp, #0x48]
+  20e990: 9402ca80     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20e994: 52800188     	mov	w8, #0xc                // =12
+  20e998: 528bea89     	mov	w9, #0x5f54             // =24404
+  20e99c: 39009fff     	strb	wzr, [sp, #0x27]
+  20e9a0: 72ade9a9     	movk	w9, #0x6f4d, lsl #16
+  20e9a4: 390083e8     	strb	w8, [sp, #0x20]
+  20e9a8: 528caec8     	mov	w8, #0x6576             // =25974
+  20e9ac: b80213e9     	stur	w9, [sp, #0x21]
+  20e9b0: 780253e8     	sturh	w8, [sp, #0x25]
+  20e9b4: 91150260     	add	x0, x19, #0x540
+  20e9b8: 910083e2     	add	x2, sp, #0x20
+  20e9bc: aa1303e1     	mov	x1, x19
+  20e9c0: 9402d350     	bl	0x2c3700 <_ZN2SW13CParamsSolver7CT_MoveC2EPS0_NSt6__ndk112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEE@plt>  ;;; CALL SW::CParamsSolver::CT_Move::CT_Move(SW::CParamsSolver*, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>)
+  20e9c4: 394083e8     	ldrb	w8, [sp, #0x20]
+  20e9c8: 36000068     	tbz	w8, #0x0, 0x20e9d4 <SW::CParamsSolver::CParamsSolver()+0x5dc>
+  20e9cc: f9401be0     	ldr	x0, [sp, #0x30]
+  20e9d0: 9402ca70     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20e9d4: 528e08c9     	mov	w9, #0x7046             // =28742
+  20e9d8: 528000c8     	mov	w8, #0x6                // =6
+  20e9dc: 72a00e69     	movk	w9, #0x73, lsl #16
+  20e9e0: 390023e8     	strb	w8, [sp, #0x8]
+  20e9e4: b80093e9     	stur	w9, [sp, #0x9]
+  20e9e8: 91164260     	add	x0, x19, #0x590
+  20e9ec: 910023e2     	add	x2, sp, #0x8
+  20e9f0: aa1303e1     	mov	x1, x19
+  20e9f4: 9402d347     	bl	0x2c3710 <_ZN2SW13CParamsSolver4CFpsC2EPS0_NSt6__ndk112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEE@plt>  ;;; CALL SW::CParamsSolver::CFps::CFps(SW::CParamsSolver*, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>)
+  20e9f8: 394023e8     	ldrb	w8, [sp, #0x8]
+  20e9fc: 36000068     	tbz	w8, #0x0, 0x20ea08 <SW::CParamsSolver::CParamsSolver()+0x610>
+  20ea00: f9400fe0     	ldr	x0, [sp, #0x18]
+  20ea04: 9402ca63     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ea08: 91060262     	add	x2, x19, #0x180
+  20ea0c: 91074263     	add	x3, x19, #0x1d0
+  20ea10: 91114264     	add	x4, x19, #0x450
+  20ea14: aa1303e0     	mov	x0, x19
+  20ea18: 52800061     	mov	w1, #0x3                // =3
+  20ea1c: 9402d341     	bl	0x2c3720 <_ZN2SW13CParamsSolver6PGroup7addMembEiz@plt>  ;;; CALL SW::CParamsSolver::PGroup::addMemb(int, ...)  [x1=3(0x3)]
+  20ea20: 91114262     	add	x2, x19, #0x450
+  20ea24: 91128263     	add	x3, x19, #0x4a0
+  20ea28: 9113c264     	add	x4, x19, #0x4f0
+  20ea2c: 91150265     	add	x5, x19, #0x540
+  20ea30: aa1403e0     	mov	x0, x20
+  20ea34: 52800081     	mov	w1, #0x4                // =4
+  20ea38: 9402d33a     	bl	0x2c3720 <_ZN2SW13CParamsSolver6PGroup7addMembEiz@plt>  ;;; CALL SW::CParamsSolver::PGroup::addMemb(int, ...)  [x1=4(0x4)]
+  20ea3c: 9109c262     	add	x2, x19, #0x270
+  20ea40: 91074263     	add	x3, x19, #0x1d0
+  20ea44: 910b0264     	add	x4, x19, #0x2c0
+  20ea48: aa1503e0     	mov	x0, x21
+  20ea4c: 52800061     	mov	w1, #0x3                // =3
+  20ea50: 9402d334     	bl	0x2c3720 <_ZN2SW13CParamsSolver6PGroup7addMembEiz@plt>  ;;; CALL SW::CParamsSolver::PGroup::addMemb(int, ...)  [x1=3(0x3)]
+  20ea54: 910b0262     	add	x2, x19, #0x2c0
+  20ea58: 91150263     	add	x3, x19, #0x540
+  20ea5c: 910d8264     	add	x4, x19, #0x360
+  20ea60: aa1603e0     	mov	x0, x22
+  20ea64: 52800061     	mov	w1, #0x3                // =3
+  20ea68: 9402d32e     	bl	0x2c3720 <_ZN2SW13CParamsSolver6PGroup7addMembEiz@plt>  ;;; CALL SW::CParamsSolver::PGroup::addMemb(int, ...)  [x1=3(0x3)]
+  20ea6c: 91074262     	add	x2, x19, #0x1d0
+  20ea70: 91088263     	add	x3, x19, #0x220
+  20ea74: 91164264     	add	x4, x19, #0x590
+  20ea78: aa1703e0     	mov	x0, x23
+  20ea7c: 52800061     	mov	w1, #0x3                // =3
+  20ea80: 9402d328     	bl	0x2c3720 <_ZN2SW13CParamsSolver6PGroup7addMembEiz@plt>  ;;; CALL SW::CParamsSolver::PGroup::addMemb(int, ...)  [x1=3(0x3)]
+  20ea84: 9109c262     	add	x2, x19, #0x270
+  20ea88: 91060263     	add	x3, x19, #0x180
+  20ea8c: 910c4264     	add	x4, x19, #0x310
+  20ea90: aa1803e0     	mov	x0, x24
+  20ea94: 52800061     	mov	w1, #0x3                // =3
+  20ea98: 9402d322     	bl	0x2c3720 <_ZN2SW13CParamsSolver6PGroup7addMembEiz@plt>  ;;; CALL SW::CParamsSolver::PGroup::addMemb(int, ...)  [x1=3(0x3)]
+  20ea9c: 91048260     	add	x0, x19, #0x120
+  20eaa0: 910b0262     	add	x2, x19, #0x2c0
+  20eaa4: 91114263     	add	x3, x19, #0x450
+  20eaa8: 910c4264     	add	x4, x19, #0x310
+  20eaac: 52800061     	mov	w1, #0x3                // =3
+  20eab0: 9402d31c     	bl	0x2c3720 <_ZN2SW13CParamsSolver6PGroup7addMembEiz@plt>  ;;; CALL SW::CParamsSolver::PGroup::addMemb(int, ...)  [x1=3(0x3)]
+  20eab4: 91054260     	add	x0, x19, #0x150
+  20eab8: 9109c262     	add	x2, x19, #0x270
+  20eabc: 910ec263     	add	x3, x19, #0x3b0
+  20eac0: 91100264     	add	x4, x19, #0x400
+  20eac4: 52800061     	mov	w1, #0x3                // =3
+  20eac8: 9402d316     	bl	0x2c3720 <_ZN2SW13CParamsSolver6PGroup7addMembEiz@plt>  ;;; CALL SW::CParamsSolver::PGroup::addMemb(int, ...)  [x1=3(0x3)]
+  20eacc: f9401748     	ldr	x8, [x26, #0x28]
+  20ead0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  20ead4: eb09011f     	cmp	x8, x9
+  20ead8: 540026e1     	b.ne	0x20efb4 <SW::CParamsSolver::CParamsSolver()+0xbbc>
+  20eadc: 910883ff     	add	sp, sp, #0x220
+  20eae0: a9454ff4     	ldp	x20, x19, [sp, #0x50]
+  20eae4: f9400bfc     	ldr	x28, [sp, #0x10]
+  20eae8: a94457f6     	ldp	x22, x21, [sp, #0x40]
+  20eaec: a9435ff8     	ldp	x24, x23, [sp, #0x30]
+  20eaf0: a94267fa     	ldp	x26, x25, [sp, #0x20]
+  20eaf4: a8c67bfd     	ldp	x29, x30, [sp], #0x60
+  20eaf8: d65f03c0     	ret
+  20eafc: 394023e8     	ldrb	w8, [sp, #0x8]
+  20eb00: aa0003f9     	mov	x25, x0
+  20eb04: 36001fc8     	tbz	w8, #0x0, 0x20eefc <SW::CParamsSolver::CParamsSolver()+0xb04>
+  20eb08: f9400fe0     	ldr	x0, [sp, #0x18]
+  20eb0c: 9402ca21     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20eb10: 140000fb     	b	0x20eefc <SW::CParamsSolver::CParamsSolver()+0xb04>
+  20eb14: 394083e8     	ldrb	w8, [sp, #0x20]
+  20eb18: aa0003f9     	mov	x25, x0
+  20eb1c: 36001f48     	tbz	w8, #0x0, 0x20ef04 <SW::CParamsSolver::CParamsSolver()+0xb0c>
+  20eb20: f9401be0     	ldr	x0, [sp, #0x30]
+  20eb24: 9402ca1b     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20eb28: 140000f7     	b	0x20ef04 <SW::CParamsSolver::CParamsSolver()+0xb0c>
+  20eb2c: 3940e3e8     	ldrb	w8, [sp, #0x38]
+  20eb30: aa0003f9     	mov	x25, x0
+  20eb34: 36001ec8     	tbz	w8, #0x0, 0x20ef0c <SW::CParamsSolver::CParamsSolver()+0xb14>
+  20eb38: f94027e0     	ldr	x0, [sp, #0x48]
+  20eb3c: 9402ca15     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20eb40: 140000f3     	b	0x20ef0c <SW::CParamsSolver::CParamsSolver()+0xb14>
+  20eb44: 394143e8     	ldrb	w8, [sp, #0x50]
+  20eb48: aa0003f9     	mov	x25, x0
+  20eb4c: 36001e48     	tbz	w8, #0x0, 0x20ef14 <SW::CParamsSolver::CParamsSolver()+0xb1c>
+  20eb50: f94033e0     	ldr	x0, [sp, #0x60]
+  20eb54: 9402ca0f     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20eb58: 140000ef     	b	0x20ef14 <SW::CParamsSolver::CParamsSolver()+0xb1c>
+  20eb5c: 3941a3e8     	ldrb	w8, [sp, #0x68]
+  20eb60: aa0003f9     	mov	x25, x0
+  20eb64: 36001dc8     	tbz	w8, #0x0, 0x20ef1c <SW::CParamsSolver::CParamsSolver()+0xb24>
+  20eb68: f9403fe0     	ldr	x0, [sp, #0x78]
+  20eb6c: 9402ca09     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20eb70: 140000eb     	b	0x20ef1c <SW::CParamsSolver::CParamsSolver()+0xb24>
+  20eb74: 394203e8     	ldrb	w8, [sp, #0x80]
+  20eb78: aa0003f9     	mov	x25, x0
+  20eb7c: 36001d48     	tbz	w8, #0x0, 0x20ef24 <SW::CParamsSolver::CParamsSolver()+0xb2c>
+  20eb80: f9404be0     	ldr	x0, [sp, #0x90]
+  20eb84: 9402ca03     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20eb88: 140000e7     	b	0x20ef24 <SW::CParamsSolver::CParamsSolver()+0xb2c>
+  20eb8c: 394263e8     	ldrb	w8, [sp, #0x98]
+  20eb90: aa0003f9     	mov	x25, x0
+  20eb94: 36001cc8     	tbz	w8, #0x0, 0x20ef2c <SW::CParamsSolver::CParamsSolver()+0xb34>
+  20eb98: f94057e0     	ldr	x0, [sp, #0xa8]
+  20eb9c: 9402c9fd     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20eba0: 140000e3     	b	0x20ef2c <SW::CParamsSolver::CParamsSolver()+0xb34>
+  20eba4: 3942c3e8     	ldrb	w8, [sp, #0xb0]
+  20eba8: aa0003f9     	mov	x25, x0
+  20ebac: 36001c48     	tbz	w8, #0x0, 0x20ef34 <SW::CParamsSolver::CParamsSolver()+0xb3c>
+  20ebb0: f94063e0     	ldr	x0, [sp, #0xc0]
+  20ebb4: 9402c9f7     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ebb8: 140000df     	b	0x20ef34 <SW::CParamsSolver::CParamsSolver()+0xb3c>
+  20ebbc: 394323e8     	ldrb	w8, [sp, #0xc8]
+  20ebc0: aa0003f9     	mov	x25, x0
+  20ebc4: 36001bc8     	tbz	w8, #0x0, 0x20ef3c <SW::CParamsSolver::CParamsSolver()+0xb44>
+  20ebc8: f9406fe0     	ldr	x0, [sp, #0xd8]
+  20ebcc: 9402c9f1     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ebd0: 140000db     	b	0x20ef3c <SW::CParamsSolver::CParamsSolver()+0xb44>
+  20ebd4: 394383e8     	ldrb	w8, [sp, #0xe0]
+  20ebd8: aa0003f9     	mov	x25, x0
+  20ebdc: 36001b48     	tbz	w8, #0x0, 0x20ef44 <SW::CParamsSolver::CParamsSolver()+0xb4c>
+  20ebe0: f9407be0     	ldr	x0, [sp, #0xf0]
+  20ebe4: 9402c9eb     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ebe8: 140000d7     	b	0x20ef44 <SW::CParamsSolver::CParamsSolver()+0xb4c>
+  20ebec: 3943e3e8     	ldrb	w8, [sp, #0xf8]
+  20ebf0: aa0003f9     	mov	x25, x0
+  20ebf4: 36001ac8     	tbz	w8, #0x0, 0x20ef4c <SW::CParamsSolver::CParamsSolver()+0xb54>
+  20ebf8: f94087e0     	ldr	x0, [sp, #0x108]
+  20ebfc: 9402c9e5     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ec00: 140000d3     	b	0x20ef4c <SW::CParamsSolver::CParamsSolver()+0xb54>
+  20ec04: 394443e8     	ldrb	w8, [sp, #0x110]
+  20ec08: aa0003f9     	mov	x25, x0
+  20ec0c: 36001a48     	tbz	w8, #0x0, 0x20ef54 <SW::CParamsSolver::CParamsSolver()+0xb5c>
+  20ec10: f94093e0     	ldr	x0, [sp, #0x120]
+  20ec14: 9402c9df     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ec18: 140000cf     	b	0x20ef54 <SW::CParamsSolver::CParamsSolver()+0xb5c>
+  20ec1c: 385083a8     	ldurb	w8, [x29, #-0xf8]
+  20ec20: aa0003f9     	mov	x25, x0
+  20ec24: 360019c8     	tbz	w8, #0x0, 0x20ef5c <SW::CParamsSolver::CParamsSolver()+0xb64>
+  20ec28: f85183a0     	ldur	x0, [x29, #-0xe8]
+  20ec2c: 9402c9d9     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ec30: 140000cb     	b	0x20ef5c <SW::CParamsSolver::CParamsSolver()+0xb64>
+  20ec34: 385203a8     	ldurb	w8, [x29, #-0xe0]
+  20ec38: aa0003f9     	mov	x25, x0
+  20ec3c: 36001948     	tbz	w8, #0x0, 0x20ef64 <SW::CParamsSolver::CParamsSolver()+0xb6c>
+  20ec40: f85303a0     	ldur	x0, [x29, #-0xd0]
+  20ec44: 9402c9d3     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ec48: 140000c7     	b	0x20ef64 <SW::CParamsSolver::CParamsSolver()+0xb6c>
+  20ec4c: f940b668     	ldr	x8, [x19, #0x168]
+  20ec50: aa0003f9     	mov	x25, x0
+  20ec54: b50000c8     	cbnz	x8, 0x20ec6c <SW::CParamsSolver::CParamsSolver()+0x874>
+  20ec58: 39454268     	ldrb	w8, [x19, #0x150]
+  20ec5c: 37000128     	tbnz	w8, #0x0, 0x20ec80 <SW::CParamsSolver::CParamsSolver()+0x888>
+  20ec60: 385383a8     	ldurb	w8, [x29, #-0xc8]
+  20ec64: 37000168     	tbnz	w8, #0x0, 0x20ec90 <SW::CParamsSolver::CParamsSolver()+0x898>
+  20ec68: 140000c1     	b	0x20ef6c <SW::CParamsSolver::CParamsSolver()+0xb74>
+  20ec6c: aa0803e0     	mov	x0, x8
+  20ec70: f900ba68     	str	x8, [x19, #0x170]
+  20ec74: 9402c9c7     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ec78: 39454268     	ldrb	w8, [x19, #0x150]
+  20ec7c: 3607ff28     	tbz	w8, #0x0, 0x20ec60 <SW::CParamsSolver::CParamsSolver()+0x868>
+  20ec80: f940b260     	ldr	x0, [x19, #0x160]
+  20ec84: 9402c9c3     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ec88: 385383a8     	ldurb	w8, [x29, #-0xc8]
+  20ec8c: 36001708     	tbz	w8, #0x0, 0x20ef6c <SW::CParamsSolver::CParamsSolver()+0xb74>
+  20ec90: f85483a0     	ldur	x0, [x29, #-0xb8]
+  20ec94: 9402c9bf     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ec98: 140000b5     	b	0x20ef6c <SW::CParamsSolver::CParamsSolver()+0xb74>
+  20ec9c: f9409e68     	ldr	x8, [x19, #0x138]
+  20eca0: aa0003f9     	mov	x25, x0
+  20eca4: b50000c8     	cbnz	x8, 0x20ecbc <SW::CParamsSolver::CParamsSolver()+0x8c4>
+  20eca8: 39448268     	ldrb	w8, [x19, #0x120]
+  20ecac: 37000128     	tbnz	w8, #0x0, 0x20ecd0 <SW::CParamsSolver::CParamsSolver()+0x8d8>
+  20ecb0: 385503a8     	ldurb	w8, [x29, #-0xb0]
+  20ecb4: 37000168     	tbnz	w8, #0x0, 0x20ece0 <SW::CParamsSolver::CParamsSolver()+0x8e8>
+  20ecb8: 140000af     	b	0x20ef74 <SW::CParamsSolver::CParamsSolver()+0xb7c>
+  20ecbc: aa0803e0     	mov	x0, x8
+  20ecc0: f900a268     	str	x8, [x19, #0x140]
+  20ecc4: 9402c9b3     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ecc8: 39448268     	ldrb	w8, [x19, #0x120]
+  20eccc: 3607ff28     	tbz	w8, #0x0, 0x20ecb0 <SW::CParamsSolver::CParamsSolver()+0x8b8>
+  20ecd0: f9409a60     	ldr	x0, [x19, #0x130]
+  20ecd4: 9402c9af     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ecd8: 385503a8     	ldurb	w8, [x29, #-0xb0]
+  20ecdc: 360014c8     	tbz	w8, #0x0, 0x20ef74 <SW::CParamsSolver::CParamsSolver()+0xb7c>
+  20ece0: f85603a0     	ldur	x0, [x29, #-0xa0]
+  20ece4: 9402c9ab     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ece8: 140000a3     	b	0x20ef74 <SW::CParamsSolver::CParamsSolver()+0xb7c>
+  20ecec: f9408668     	ldr	x8, [x19, #0x108]
+  20ecf0: aa0003f9     	mov	x25, x0
+  20ecf4: b50000c8     	cbnz	x8, 0x20ed0c <SW::CParamsSolver::CParamsSolver()+0x914>
+  20ecf8: 39400308     	ldrb	w8, [x24]
+  20ecfc: 37000128     	tbnz	w8, #0x0, 0x20ed20 <SW::CParamsSolver::CParamsSolver()+0x928>
+  20ed00: 385683a8     	ldurb	w8, [x29, #-0x98]
+  20ed04: 37000168     	tbnz	w8, #0x0, 0x20ed30 <SW::CParamsSolver::CParamsSolver()+0x938>
+  20ed08: 1400009d     	b	0x20ef7c <SW::CParamsSolver::CParamsSolver()+0xb84>
+  20ed0c: aa0803e0     	mov	x0, x8
+  20ed10: f9008a68     	str	x8, [x19, #0x110]
+  20ed14: 9402c99f     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ed18: 39400308     	ldrb	w8, [x24]
+  20ed1c: 3607ff28     	tbz	w8, #0x0, 0x20ed00 <SW::CParamsSolver::CParamsSolver()+0x908>
+  20ed20: f9408260     	ldr	x0, [x19, #0x100]
+  20ed24: 9402c99b     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ed28: 385683a8     	ldurb	w8, [x29, #-0x98]
+  20ed2c: 36001288     	tbz	w8, #0x0, 0x20ef7c <SW::CParamsSolver::CParamsSolver()+0xb84>
+  20ed30: f85783a0     	ldur	x0, [x29, #-0x88]
+  20ed34: 9402c997     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ed38: 14000091     	b	0x20ef7c <SW::CParamsSolver::CParamsSolver()+0xb84>
+  20ed3c: f9406e68     	ldr	x8, [x19, #0xd8]
+  20ed40: aa0003f9     	mov	x25, x0
+  20ed44: b50000c8     	cbnz	x8, 0x20ed5c <SW::CParamsSolver::CParamsSolver()+0x964>
+  20ed48: 394002e8     	ldrb	w8, [x23]
+  20ed4c: 37000128     	tbnz	w8, #0x0, 0x20ed70 <SW::CParamsSolver::CParamsSolver()+0x978>
+  20ed50: 385803a8     	ldurb	w8, [x29, #-0x80]
+  20ed54: 37000168     	tbnz	w8, #0x0, 0x20ed80 <SW::CParamsSolver::CParamsSolver()+0x988>
+  20ed58: 1400008b     	b	0x20ef84 <SW::CParamsSolver::CParamsSolver()+0xb8c>
+  20ed5c: aa0803e0     	mov	x0, x8
+  20ed60: f9007268     	str	x8, [x19, #0xe0]
+  20ed64: 9402c98b     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ed68: 394002e8     	ldrb	w8, [x23]
+  20ed6c: 3607ff28     	tbz	w8, #0x0, 0x20ed50 <SW::CParamsSolver::CParamsSolver()+0x958>
+  20ed70: f9406a60     	ldr	x0, [x19, #0xd0]
+  20ed74: 9402c987     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ed78: 385803a8     	ldurb	w8, [x29, #-0x80]
+  20ed7c: 36001048     	tbz	w8, #0x0, 0x20ef84 <SW::CParamsSolver::CParamsSolver()+0xb8c>
+  20ed80: f85903a0     	ldur	x0, [x29, #-0x70]
+  20ed84: 9402c983     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ed88: 1400007f     	b	0x20ef84 <SW::CParamsSolver::CParamsSolver()+0xb8c>
+  20ed8c: f9405668     	ldr	x8, [x19, #0xa8]
+  20ed90: aa0003f9     	mov	x25, x0
+  20ed94: b50000c8     	cbnz	x8, 0x20edac <SW::CParamsSolver::CParamsSolver()+0x9b4>
+  20ed98: 394002c8     	ldrb	w8, [x22]
+  20ed9c: 37000128     	tbnz	w8, #0x0, 0x20edc0 <SW::CParamsSolver::CParamsSolver()+0x9c8>
+  20eda0: 385983a8     	ldurb	w8, [x29, #-0x68]
+  20eda4: 37000168     	tbnz	w8, #0x0, 0x20edd0 <SW::CParamsSolver::CParamsSolver()+0x9d8>
+  20eda8: 14000079     	b	0x20ef8c <SW::CParamsSolver::CParamsSolver()+0xb94>
+  20edac: aa0803e0     	mov	x0, x8
+  20edb0: f9005a68     	str	x8, [x19, #0xb0]
+  20edb4: 9402c977     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20edb8: 394002c8     	ldrb	w8, [x22]
+  20edbc: 3607ff28     	tbz	w8, #0x0, 0x20eda0 <SW::CParamsSolver::CParamsSolver()+0x9a8>
+  20edc0: f9405260     	ldr	x0, [x19, #0xa0]
+  20edc4: 9402c973     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20edc8: 385983a8     	ldurb	w8, [x29, #-0x68]
+  20edcc: 36000e08     	tbz	w8, #0x0, 0x20ef8c <SW::CParamsSolver::CParamsSolver()+0xb94>
+  20edd0: f85a83a0     	ldur	x0, [x29, #-0x58]
+  20edd4: 9402c96f     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20edd8: 1400006d     	b	0x20ef8c <SW::CParamsSolver::CParamsSolver()+0xb94>
+  20eddc: f9403e68     	ldr	x8, [x19, #0x78]
+  20ede0: aa0003f9     	mov	x25, x0
+  20ede4: b50000c8     	cbnz	x8, 0x20edfc <SW::CParamsSolver::CParamsSolver()+0xa04>
+  20ede8: 394002a8     	ldrb	w8, [x21]
+  20edec: 37000128     	tbnz	w8, #0x0, 0x20ee10 <SW::CParamsSolver::CParamsSolver()+0xa18>
+  20edf0: 385b03a8     	ldurb	w8, [x29, #-0x50]
+  20edf4: 37000168     	tbnz	w8, #0x0, 0x20ee20 <SW::CParamsSolver::CParamsSolver()+0xa28>
+  20edf8: 14000067     	b	0x20ef94 <SW::CParamsSolver::CParamsSolver()+0xb9c>
+  20edfc: aa0803e0     	mov	x0, x8
+  20ee00: f9004268     	str	x8, [x19, #0x80]
+  20ee04: 9402c963     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ee08: 394002a8     	ldrb	w8, [x21]
+  20ee0c: 3607ff28     	tbz	w8, #0x0, 0x20edf0 <SW::CParamsSolver::CParamsSolver()+0x9f8>
+  20ee10: f9403a60     	ldr	x0, [x19, #0x70]
+  20ee14: 9402c95f     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ee18: 385b03a8     	ldurb	w8, [x29, #-0x50]
+  20ee1c: 36000bc8     	tbz	w8, #0x0, 0x20ef94 <SW::CParamsSolver::CParamsSolver()+0xb9c>
+  20ee20: f85c03a0     	ldur	x0, [x29, #-0x40]
+  20ee24: 9402c95b     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ee28: 1400005b     	b	0x20ef94 <SW::CParamsSolver::CParamsSolver()+0xb9c>
+  20ee2c: f9402668     	ldr	x8, [x19, #0x48]
+  20ee30: aa0003f9     	mov	x25, x0
+  20ee34: b50000c8     	cbnz	x8, 0x20ee4c <SW::CParamsSolver::CParamsSolver()+0xa54>
+  20ee38: 39400288     	ldrb	w8, [x20]
+  20ee3c: 37000128     	tbnz	w8, #0x0, 0x20ee60 <SW::CParamsSolver::CParamsSolver()+0xa68>
+  20ee40: 385c83a8     	ldurb	w8, [x29, #-0x38]
+  20ee44: 37000168     	tbnz	w8, #0x0, 0x20ee70 <SW::CParamsSolver::CParamsSolver()+0xa78>
+  20ee48: 14000055     	b	0x20ef9c <SW::CParamsSolver::CParamsSolver()+0xba4>
+  20ee4c: aa0803e0     	mov	x0, x8
+  20ee50: f9002a68     	str	x8, [x19, #0x50]
+  20ee54: 9402c94f     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ee58: 39400288     	ldrb	w8, [x20]
+  20ee5c: 3607ff28     	tbz	w8, #0x0, 0x20ee40 <SW::CParamsSolver::CParamsSolver()+0xa48>
+  20ee60: f9402260     	ldr	x0, [x19, #0x40]
+  20ee64: 9402c94b     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ee68: 385c83a8     	ldurb	w8, [x29, #-0x38]
+  20ee6c: 36000988     	tbz	w8, #0x0, 0x20ef9c <SW::CParamsSolver::CParamsSolver()+0xba4>
+  20ee70: f85d83a0     	ldur	x0, [x29, #-0x28]
+  20ee74: 9402c947     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20ee78: 14000049     	b	0x20ef9c <SW::CParamsSolver::CParamsSolver()+0xba4>
+  20ee7c: f9400e68     	ldr	x8, [x19, #0x18]
+  20ee80: aa0003f9     	mov	x25, x0
+  20ee84: b5000168     	cbnz	x8, 0x20eeb0 <SW::CParamsSolver::CParamsSolver()+0xab8>
+  20ee88: 39400268     	ldrb	w8, [x19]
+  20ee8c: 370001c8     	tbnz	w8, #0x0, 0x20eec4 <SW::CParamsSolver::CParamsSolver()+0xacc>
+  20ee90: 385e03a8     	ldurb	w8, [x29, #-0x20]
+  20ee94: 37000208     	tbnz	w8, #0x0, 0x20eed4 <SW::CParamsSolver::CParamsSolver()+0xadc>
+  20ee98: f9401748     	ldr	x8, [x26, #0x28]
+  20ee9c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  20eea0: eb09011f     	cmp	x8, x9
+  20eea4: 54000881     	b.ne	0x20efb4 <SW::CParamsSolver::CParamsSolver()+0xbbc>
+  20eea8: aa1903e0     	mov	x0, x25
+  20eeac: 9402b976     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  20eeb0: aa0803e0     	mov	x0, x8
+  20eeb4: f9001268     	str	x8, [x19, #0x20]
+  20eeb8: 9402c936     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20eebc: 39400268     	ldrb	w8, [x19]
+  20eec0: 3607fe88     	tbz	w8, #0x0, 0x20ee90 <SW::CParamsSolver::CParamsSolver()+0xa98>
+  20eec4: f9400a60     	ldr	x0, [x19, #0x10]
+  20eec8: 9402c932     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20eecc: 385e03a8     	ldurb	w8, [x29, #-0x20]
+  20eed0: 3607fe48     	tbz	w8, #0x0, 0x20ee98 <SW::CParamsSolver::CParamsSolver()+0xaa0>
+  20eed4: f85f03a0     	ldur	x0, [x29, #-0x10]
+  20eed8: 9402c92e     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  20eedc: f9401748     	ldr	x8, [x26, #0x28]
+  20eee0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  20eee4: eb09011f     	cmp	x8, x9
+  20eee8: 54fffe00     	b.eq	0x20eea8 <SW::CParamsSolver::CParamsSolver()+0xab0>
+  20eeec: 14000032     	b	0x20efb4 <SW::CParamsSolver::CParamsSolver()+0xbbc>
+  20eef0: aa0003f9     	mov	x25, x0
+  20eef4: 91164260     	add	x0, x19, #0x590
+  20eef8: 9402d20e     	bl	0x2c3730 <_ZN2SW13CParamsSolver5ParamD2Ev@plt>  ;;; CALL SW::CParamsSolver::Param::~Param()
+  20eefc: 91150260     	add	x0, x19, #0x540
+  20ef00: 9402d20c     	bl	0x2c3730 <_ZN2SW13CParamsSolver5ParamD2Ev@plt>  ;;; CALL SW::CParamsSolver::Param::~Param()
+  20ef04: 9113c260     	add	x0, x19, #0x4f0
+  20ef08: 9402d20a     	bl	0x2c3730 <_ZN2SW13CParamsSolver5ParamD2Ev@plt>  ;;; CALL SW::CParamsSolver::Param::~Param()
+  20ef0c: 91128260     	add	x0, x19, #0x4a0
+  20ef10: 9402d208     	bl	0x2c3730 <_ZN2SW13CParamsSolver5ParamD2Ev@plt>  ;;; CALL SW::CParamsSolver::Param::~Param()
+  20ef14: 91114260     	add	x0, x19, #0x450
+  20ef18: 9402d206     	bl	0x2c3730 <_ZN2SW13CParamsSolver5ParamD2Ev@plt>  ;;; CALL SW::CParamsSolver::Param::~Param()
+  20ef1c: 91100260     	add	x0, x19, #0x400
+  20ef20: 9402d204     	bl	0x2c3730 <_ZN2SW13CParamsSolver5ParamD2Ev@plt>  ;;; CALL SW::CParamsSolver::Param::~Param()
+  20ef24: 910ec260     	add	x0, x19, #0x3b0
+  20ef28: 9402d202     	bl	0x2c3730 <_ZN2SW13CParamsSolver5ParamD2Ev@plt>  ;;; CALL SW::CParamsSolver::Param::~Param()
+  20ef2c: 910d8260     	add	x0, x19, #0x360
+  20ef30: 9402d200     	bl	0x2c3730 <_ZN2SW13CParamsSolver5ParamD2Ev@plt>  ;;; CALL SW::CParamsSolver::Param::~Param()
+  20ef34: 910c4260     	add	x0, x19, #0x310
+  20ef38: 9402d1fe     	bl	0x2c3730 <_ZN2SW13CParamsSolver5ParamD2Ev@plt>  ;;; CALL SW::CParamsSolver::Param::~Param()
+  20ef3c: 910b0260     	add	x0, x19, #0x2c0
+  20ef40: 9402d1fc     	bl	0x2c3730 <_ZN2SW13CParamsSolver5ParamD2Ev@plt>  ;;; CALL SW::CParamsSolver::Param::~Param()
+  20ef44: 9109c260     	add	x0, x19, #0x270
+  20ef48: 9402d1fa     	bl	0x2c3730 <_ZN2SW13CParamsSolver5ParamD2Ev@plt>  ;;; CALL SW::CParamsSolver::Param::~Param()
+  20ef4c: 91088260     	add	x0, x19, #0x220
+  20ef50: 9402d1f8     	bl	0x2c3730 <_ZN2SW13CParamsSolver5ParamD2Ev@plt>  ;;; CALL SW::CParamsSolver::Param::~Param()
+  20ef54: 91074260     	add	x0, x19, #0x1d0
+  20ef58: 9402d1f6     	bl	0x2c3730 <_ZN2SW13CParamsSolver5ParamD2Ev@plt>  ;;; CALL SW::CParamsSolver::Param::~Param()
+  20ef5c: 91060260     	add	x0, x19, #0x180
+  20ef60: 9402d1f4     	bl	0x2c3730 <_ZN2SW13CParamsSolver5ParamD2Ev@plt>  ;;; CALL SW::CParamsSolver::Param::~Param()
+  20ef64: 91054260     	add	x0, x19, #0x150
+  20ef68: 9402d1f6     	bl	0x2c3740 <_ZN2SW13CParamsSolver6PGroupD2Ev@plt>  ;;; CALL SW::CParamsSolver::PGroup::~PGroup()
+  20ef6c: 91048260     	add	x0, x19, #0x120
+  20ef70: 9402d1f4     	bl	0x2c3740 <_ZN2SW13CParamsSolver6PGroupD2Ev@plt>  ;;; CALL SW::CParamsSolver::PGroup::~PGroup()
+  20ef74: aa1803e0     	mov	x0, x24
+  20ef78: 9402d1f2     	bl	0x2c3740 <_ZN2SW13CParamsSolver6PGroupD2Ev@plt>  ;;; CALL SW::CParamsSolver::PGroup::~PGroup()
+  20ef7c: aa1703e0     	mov	x0, x23
+  20ef80: 9402d1f0     	bl	0x2c3740 <_ZN2SW13CParamsSolver6PGroupD2Ev@plt>  ;;; CALL SW::CParamsSolver::PGroup::~PGroup()
+  20ef84: aa1603e0     	mov	x0, x22
+  20ef88: 9402d1ee     	bl	0x2c3740 <_ZN2SW13CParamsSolver6PGroupD2Ev@plt>  ;;; CALL SW::CParamsSolver::PGroup::~PGroup()
+  20ef8c: aa1503e0     	mov	x0, x21
+  20ef90: 9402d1ec     	bl	0x2c3740 <_ZN2SW13CParamsSolver6PGroupD2Ev@plt>  ;;; CALL SW::CParamsSolver::PGroup::~PGroup()
+  20ef94: aa1403e0     	mov	x0, x20
+  20ef98: 9402d1ea     	bl	0x2c3740 <_ZN2SW13CParamsSolver6PGroupD2Ev@plt>  ;;; CALL SW::CParamsSolver::PGroup::~PGroup()
+  20ef9c: aa1303e0     	mov	x0, x19
+  20efa0: 9402d1e8     	bl	0x2c3740 <_ZN2SW13CParamsSolver6PGroupD2Ev@plt>  ;;; CALL SW::CParamsSolver::PGroup::~PGroup()
+  20efa4: f9401748     	ldr	x8, [x26, #0x28]
+  20efa8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  20efac: eb09011f     	cmp	x8, x9
+  20efb0: 54fff7c0     	b.eq	0x20eea8 <SW::CParamsSolver::CParamsSolver()+0xab0>
+  20efb4: 9402c87f     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000210138 <SW::CParamsSolver::PGroup::addMemb(int, ...)>:
+  210138: d10543ff     	sub	sp, sp, #0x150
+  21013c: a90f7bfd     	stp	x29, x30, [sp, #0xf0]
+  210140: a9106ffc     	stp	x28, x27, [sp, #0x100]
+  210144: a91167fa     	stp	x26, x25, [sp, #0x110]
+  210148: a9125ff8     	stp	x24, x23, [sp, #0x120]
+  21014c: a91357f6     	stp	x22, x21, [sp, #0x130]
+  210150: a9144ff4     	stp	x20, x19, [sp, #0x140]
+  210154: 9103c3fd     	add	x29, sp, #0xf0
+  210158: a93a0fa2     	stp	x2, x3, [x29, #-0x60]
+  21015c: 910043e9     	add	x9, sp, #0x10
+  210160: d10183aa     	sub	x10, x29, #0x60
+  210164: a93b17a4     	stp	x4, x5, [x29, #-0x50]
+  210168: 91020129     	add	x9, x9, #0x80
+  21016c: a93c1fa6     	stp	x6, x7, [x29, #-0x40]
+  210170: ad0087e0     	stp	q0, q1, [sp, #0x10]
+  210174: ad018fe2     	stp	q2, q3, [sp, #0x30]
+  210178: ad0297e4     	stp	q4, q5, [sp, #0x50]
+  21017c: ad039fe6     	stp	q6, q7, [sp, #0x70]
+  210180: d53bd048     	mrs	x8, TPIDR_EL0
+  210184: f90007e8     	str	x8, [sp, #0x8]
+  210188: 7100043f     	cmp	w1, #0x1
+  21018c: f9401508     	ldr	x8, [x8, #0x28]
+  210190: f81f03a8     	stur	x8, [x29, #-0x10]
+  210194: 928005e8     	mov	x8, #-0x30              // =-48
+  210198: f2dff008     	movk	x8, #0xff80, lsl #32
+  21019c: a93e23a9     	stp	x9, x8, [x29, #-0x20]
+  2101a0: 9100c148     	add	x8, x10, #0x30
+  2101a4: 910183a9     	add	x9, x29, #0x60
+  2101a8: a93d23a9     	stp	x9, x8, [x29, #-0x30]
+  2101ac: 54000cab     	b.lt	0x210340 <SW::CParamsSolver::PGroup::addMemb(int, ...)+0x208>
+  2101b0: aa0003f3     	mov	x19, x0
+  2101b4: 11000438     	add	w24, w1, #0x1
+  2101b8: b27deff9     	mov	x25, #0x7ffffffffffffff8 // =9223372036854775800
+  2101bc: 92fc001a     	mov	x26, #0x1fffffffffffffff // =2305843009213693951
+  2101c0: 14000006     	b	0x2101d8 <SW::CParamsSolver::PGroup::addMemb(int, ...)+0xa0>
+  2101c4: f800879b     	str	x27, [x28], #0x8
+  2101c8: 51000718     	sub	w24, w24, #0x1
+  2101cc: f900127c     	str	x28, [x19, #0x20]
+  2101d0: 7100071f     	cmp	w24, #0x1
+  2101d4: 54000b6d     	b.le	0x210340 <SW::CParamsSolver::PGroup::addMemb(int, ...)+0x208>
+  2101d8: b89e83a8     	ldursw	x8, [x29, #-0x18]
+  2101dc: 36f803c8     	tbz	w8, #0x1f, 0x210254 <SW::CParamsSolver::PGroup::addMemb(int, ...)+0x11c>
+  2101e0: 11002109     	add	w9, w8, #0x8
+  2101e4: 3100211f     	cmn	w8, #0x8
+  2101e8: b81e83a9     	stur	w9, [x29, #-0x18]
+  2101ec: 54000348     	b.hi	0x210254 <SW::CParamsSolver::PGroup::addMemb(int, ...)+0x11c>
+  2101f0: f85d83a9     	ldur	x9, [x29, #-0x28]
+  2101f4: 8b080128     	add	x8, x9, x8
+  2101f8: f940011b     	ldr	x27, [x8]
+  2101fc: a941a37c     	ldp	x28, x8, [x27, #0x18]
+  210200: eb08039f     	cmp	x28, x8
+  210204: 54000363     	b.lo	0x210270 <SW::CParamsSolver::PGroup::addMemb(int, ...)+0x138>
+  210208: f8410374     	ldur	x20, [x27, #0x10]
+  21020c: cb140395     	sub	x21, x28, x20
+  210210: 9343febc     	asr	x28, x21, #3
+  210214: 91000789     	add	x9, x28, #0x1
+  210218: d37dfd2a     	lsr	x10, x9, #61
+  21021c: b5000c6a     	cbnz	x10, 0x2103a8 <SW::CParamsSolver::PGroup::addMemb(int, ...)+0x270>
+  210220: cb140108     	sub	x8, x8, x20
+  210224: 9342fd0a     	asr	x10, x8, #2
+  210228: eb09015f     	cmp	x10, x9
+  21022c: 9a898149     	csel	x9, x10, x9, hi
+  210230: eb19011f     	cmp	x8, x25
+  210234: 9a9a3137     	csel	x23, x9, x26, lo
+  210238: b4000217     	cbz	x23, 0x210278 <SW::CParamsSolver::PGroup::addMemb(int, ...)+0x140>
+  21023c: d37dfee8     	lsr	x8, x23, #61
+  210240: b50009a8     	cbnz	x8, 0x210374 <SW::CParamsSolver::PGroup::addMemb(int, ...)+0x23c>
+  210244: d37df2e0     	lsl	x0, x23, #3
+  210248: 9402c3ae     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  21024c: aa0003f6     	mov	x22, x0
+  210250: 1400000b     	b	0x21027c <SW::CParamsSolver::PGroup::addMemb(int, ...)+0x144>
+  210254: f85d03a8     	ldur	x8, [x29, #-0x30]
+  210258: 91002109     	add	x9, x8, #0x8
+  21025c: f81d03a9     	stur	x9, [x29, #-0x30]
+  210260: f940011b     	ldr	x27, [x8]
+  210264: a941a37c     	ldp	x28, x8, [x27, #0x18]
+  210268: eb08039f     	cmp	x28, x8
+  21026c: 54fffce2     	b.hs	0x210208 <SW::CParamsSolver::PGroup::addMemb(int, ...)+0xd0>
+  210270: f8008793     	str	x19, [x28], #0x8
+  210274: 1400000e     	b	0x2102ac <SW::CParamsSolver::PGroup::addMemb(int, ...)+0x174>
+  210278: aa1f03f6     	mov	x22, xzr
+  21027c: 8b1c0edc     	add	x28, x22, x28, lsl #3
+  210280: aa1603e0     	mov	x0, x22
+  210284: aa1403e1     	mov	x1, x20
+  210288: aa1503e2     	mov	x2, x21
+  21028c: 8b170ed7     	add	x23, x22, x23, lsl #3
+  210290: f8008793     	str	x19, [x28], #0x8
+  210294: 9402c8fb     	bl	0x2c2680 <memcpy@plt>  ;;; CALL memcpy
+  210298: a9017376     	stp	x22, x28, [x27, #0x10]
+  21029c: f9001377     	str	x23, [x27, #0x20]
+  2102a0: b4000074     	cbz	x20, 0x2102ac <SW::CParamsSolver::PGroup::addMemb(int, ...)+0x174>
+  2102a4: aa1403e0     	mov	x0, x20
+  2102a8: 9402c43a     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2102ac: f9000f7c     	str	x28, [x27, #0x18]
+  2102b0: a942227c     	ldp	x28, x8, [x19, #0x20]
+  2102b4: eb08039f     	cmp	x28, x8
+  2102b8: 54fff863     	b.lo	0x2101c4 <SW::CParamsSolver::PGroup::addMemb(int, ...)+0x8c>
+  2102bc: f8418274     	ldur	x20, [x19, #0x18]
+  2102c0: cb140395     	sub	x21, x28, x20
+  2102c4: 9343febc     	asr	x28, x21, #3
+  2102c8: 91000789     	add	x9, x28, #0x1
+  2102cc: d37dfd2a     	lsr	x10, x9, #61
+  2102d0: b50005ea     	cbnz	x10, 0x21038c <SW::CParamsSolver::PGroup::addMemb(int, ...)+0x254>
+  2102d4: cb140108     	sub	x8, x8, x20
+  2102d8: 9342fd0a     	asr	x10, x8, #2
+  2102dc: eb09015f     	cmp	x10, x9
+  2102e0: 9a898149     	csel	x9, x10, x9, hi
+  2102e4: eb19011f     	cmp	x8, x25
+  2102e8: 9a9a3137     	csel	x23, x9, x26, lo
+  2102ec: b40000f7     	cbz	x23, 0x210308 <SW::CParamsSolver::PGroup::addMemb(int, ...)+0x1d0>
+  2102f0: d37dfee8     	lsr	x8, x23, #61
+  2102f4: b5000408     	cbnz	x8, 0x210374 <SW::CParamsSolver::PGroup::addMemb(int, ...)+0x23c>
+  2102f8: d37df2e0     	lsl	x0, x23, #3
+  2102fc: 9402c381     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  210300: aa0003f6     	mov	x22, x0
+  210304: 14000002     	b	0x21030c <SW::CParamsSolver::PGroup::addMemb(int, ...)+0x1d4>
+  210308: aa1f03f6     	mov	x22, xzr
+  21030c: 8b1c0edc     	add	x28, x22, x28, lsl #3
+  210310: aa1603e0     	mov	x0, x22
+  210314: aa1403e1     	mov	x1, x20
+  210318: aa1503e2     	mov	x2, x21
+  21031c: 8b170ed7     	add	x23, x22, x23, lsl #3
+  210320: f800879b     	str	x27, [x28], #0x8
+  210324: 9402c8d7     	bl	0x2c2680 <memcpy@plt>  ;;; CALL memcpy
+  210328: a901f276     	stp	x22, x28, [x19, #0x18]
+  21032c: f9001677     	str	x23, [x19, #0x28]
+  210330: b4fff4d4     	cbz	x20, 0x2101c8 <SW::CParamsSolver::PGroup::addMemb(int, ...)+0x90>
+  210334: aa1403e0     	mov	x0, x20
+  210338: 9402c416     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  21033c: 17ffffa3     	b	0x2101c8 <SW::CParamsSolver::PGroup::addMemb(int, ...)+0x90>
+  210340: f94007e8     	ldr	x8, [sp, #0x8]
+  210344: f9401508     	ldr	x8, [x8, #0x28]
+  210348: f85f03a9     	ldur	x9, [x29, #-0x10]
+  21034c: eb09011f     	cmp	x8, x9
+  210350: 540003a1     	b.ne	0x2103c4 <SW::CParamsSolver::PGroup::addMemb(int, ...)+0x28c>
+  210354: a9544ff4     	ldp	x20, x19, [sp, #0x140]
+  210358: a95357f6     	ldp	x22, x21, [sp, #0x130]
+  21035c: a9525ff8     	ldp	x24, x23, [sp, #0x120]
+  210360: a95167fa     	ldp	x26, x25, [sp, #0x110]
+  210364: a9506ffc     	ldp	x28, x27, [sp, #0x100]
+  210368: a94f7bfd     	ldp	x29, x30, [sp, #0xf0]
+  21036c: 910543ff     	add	sp, sp, #0x150
+  210370: d65f03c0     	ret
+  210374: f94007e8     	ldr	x8, [sp, #0x8]
+  210378: f9401508     	ldr	x8, [x8, #0x28]
+  21037c: f85f03a9     	ldur	x9, [x29, #-0x10]
+  210380: eb09011f     	cmp	x8, x9
+  210384: 54000201     	b.ne	0x2103c4 <SW::CParamsSolver::PGroup::addMemb(int, ...)+0x28c>
+  210388: 97fea79e     	bl	0x1ba200 <std::__throw_bad_array_new_length[abi:ne190000]()>  ;;; CALL std::__throw_bad_array_new_length[abi:ne190000]()
+  21038c: f94007e8     	ldr	x8, [sp, #0x8]
+  210390: f9401508     	ldr	x8, [x8, #0x28]
+  210394: f85f03a9     	ldur	x9, [x29, #-0x10]
+  210398: eb09011f     	cmp	x8, x9
+  21039c: 54000141     	b.ne	0x2103c4 <SW::CParamsSolver::PGroup::addMemb(int, ...)+0x28c>
+  2103a0: 91006260     	add	x0, x19, #0x18
+  2103a4: 9400050f     	bl	0x2117e0 <std::__ndk1::vector<SW::CParamsSolver::Param*, std::__ndk1::allocator<SW::CParamsSolver::Param*>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::vector<SW::CParamsSolver::Param*, std::__ndk1::allocator<SW::CParamsSolver::Param*
+  2103a8: f94007e8     	ldr	x8, [sp, #0x8]
+  2103ac: f9401508     	ldr	x8, [x8, #0x28]
+  2103b0: f85f03a9     	ldur	x9, [x29, #-0x10]
+  2103b4: eb09011f     	cmp	x8, x9
+  2103b8: 54000061     	b.ne	0x2103c4 <SW::CParamsSolver::PGroup::addMemb(int, ...)+0x28c>
+  2103bc: 91004360     	add	x0, x27, #0x10
+  2103c0: 94000503     	bl	0x2117cc <std::__ndk1::vector<SW::CParamsSolver::PGroup*, std::__ndk1::allocator<SW::CParamsSolver::PGroup*>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::vector<SW::CParamsSolver::PGroup*, std::__ndk1::allocator<SW::CParamsSolver::PGroup*
+  2103c4: 9402c37b     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+000000000021040c <SW::CParamsSolver::ReplaceParamsFrom(SW::CParamsSolver&)>:
+  21040c: fd40c420     	ldr	d0, [x1, #0x188]
+  210410: fd00c400     	str	d0, [x0, #0x188]
+  210414: 79439028     	ldrh	w8, [x1, #0x1c8]
+  210418: 79039008     	strh	w8, [x0, #0x1c8]
+  21041c: fd40ec20     	ldr	d0, [x1, #0x1d8]
+  210420: fd00ec00     	str	d0, [x0, #0x1d8]
+  210424: 79443028     	ldrh	w8, [x1, #0x218]
+  210428: 79043008     	strh	w8, [x0, #0x218]
+  21042c: fd411420     	ldr	d0, [x1, #0x228]
+  210430: fd011400     	str	d0, [x0, #0x228]
+  210434: 7944d028     	ldrh	w8, [x1, #0x268]
+  210438: 7904d008     	strh	w8, [x0, #0x268]
+  21043c: fd413c20     	ldr	d0, [x1, #0x278]
+  210440: 394ae028     	ldrb	w8, [x1, #0x2b8]
+  210444: 394ae429     	ldrb	w9, [x1, #0x2b9]
+  210448: fd013c00     	str	d0, [x0, #0x278]
+  21044c: 390ae008     	strb	w8, [x0, #0x2b8]
+  210450: fd416420     	ldr	d0, [x1, #0x2c8]
+  210454: 390ae409     	strb	w9, [x0, #0x2b9]
+  210458: 394c2028     	ldrb	w8, [x1, #0x308]
+  21045c: 394c2429     	ldrb	w9, [x1, #0x309]
+  210460: fd016400     	str	d0, [x0, #0x2c8]
+  210464: 390c2008     	strb	w8, [x0, #0x308]
+  210468: fd418c20     	ldr	d0, [x1, #0x318]
+  21046c: 390c2409     	strb	w9, [x0, #0x309]
+  210470: 394d6028     	ldrb	w8, [x1, #0x358]
+  210474: 394d6429     	ldrb	w9, [x1, #0x359]
+  210478: fd018c00     	str	d0, [x0, #0x318]
+  21047c: 390d6008     	strb	w8, [x0, #0x358]
+  210480: fd41b420     	ldr	d0, [x1, #0x368]
+  210484: 390d6409     	strb	w9, [x0, #0x359]
+  210488: 394ea028     	ldrb	w8, [x1, #0x3a8]
+  21048c: 394ea429     	ldrb	w9, [x1, #0x3a9]
+  210490: fd01b400     	str	d0, [x0, #0x368]
+  210494: 390ea008     	strb	w8, [x0, #0x3a8]
+  210498: fd41dc20     	ldr	d0, [x1, #0x3b8]
+  21049c: 390ea409     	strb	w9, [x0, #0x3a9]
+  2104a0: 394fe028     	ldrb	w8, [x1, #0x3f8]
+  2104a4: 394fe429     	ldrb	w9, [x1, #0x3f9]
+  2104a8: fd01dc00     	str	d0, [x0, #0x3b8]
+  2104ac: 390fe008     	strb	w8, [x0, #0x3f8]
+  2104b0: fd420420     	ldr	d0, [x1, #0x408]
+  2104b4: 390fe409     	strb	w9, [x0, #0x3f9]
+  2104b8: 39512028     	ldrb	w8, [x1, #0x448]
+  2104bc: 39512429     	ldrb	w9, [x1, #0x449]
+  2104c0: fd020400     	str	d0, [x0, #0x408]
+  2104c4: 39112008     	strb	w8, [x0, #0x448]
+  2104c8: fd422c20     	ldr	d0, [x1, #0x458]
+  2104cc: 39112409     	strb	w9, [x0, #0x449]
+  2104d0: 39526028     	ldrb	w8, [x1, #0x498]
+  2104d4: 39526429     	ldrb	w9, [x1, #0x499]
+  2104d8: fd022c00     	str	d0, [x0, #0x458]
+  2104dc: 39126008     	strb	w8, [x0, #0x498]
+  2104e0: fd425420     	ldr	d0, [x1, #0x4a8]
+  2104e4: 39126409     	strb	w9, [x0, #0x499]
+  2104e8: 3953a028     	ldrb	w8, [x1, #0x4e8]
+  2104ec: 3953a429     	ldrb	w9, [x1, #0x4e9]
+  2104f0: fd025400     	str	d0, [x0, #0x4a8]
+  2104f4: 3913a008     	strb	w8, [x0, #0x4e8]
+  2104f8: fd427c20     	ldr	d0, [x1, #0x4f8]
+  2104fc: 3913a409     	strb	w9, [x0, #0x4e9]
+  210500: 3954e028     	ldrb	w8, [x1, #0x538]
+  210504: 3954e429     	ldrb	w9, [x1, #0x539]
+  210508: fd027c00     	str	d0, [x0, #0x4f8]
+  21050c: 3914e008     	strb	w8, [x0, #0x538]
+  210510: fd42a420     	ldr	d0, [x1, #0x548]
+  210514: 3914e409     	strb	w9, [x0, #0x539]
+  210518: 39562028     	ldrb	w8, [x1, #0x588]
+  21051c: 39562429     	ldrb	w9, [x1, #0x589]
+  210520: fd02a400     	str	d0, [x0, #0x548]
+  210524: 39162008     	strb	w8, [x0, #0x588]
+  210528: fd42cc20     	ldr	d0, [x1, #0x598]
+  21052c: 39162409     	strb	w9, [x0, #0x589]
+  210530: 39576028     	ldrb	w8, [x1, #0x5d8]
+  210534: 39576429     	ldrb	w9, [x1, #0x5d9]
+  210538: fd02cc00     	str	d0, [x0, #0x598]
+  21053c: 39176008     	strb	w8, [x0, #0x5d8]
+  210540: 39176409     	strb	w9, [x0, #0x5d9]
+  210544: d65f03c0     	ret
+
+00000000002108ac <SW::CParamsSolver::CT_Total::calcFromGroup(SW::CParamsSolver::PGroup*)>:
+  2108ac: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  2108b0: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  2108b4: 910003fd     	mov	x29, sp
+  2108b8: b40000e1     	cbz	x1, 0x2108d4 <SW::CParamsSolver::CT_Total::calcFromGroup(SW::CParamsSolver::PGroup*)+0x28>
+  2108bc: f9401408     	ldr	x8, [x0, #0x28]
+  2108c0: eb01011f     	cmp	x8, x1
+  2108c4: 54000100     	b.eq	0x2108e4 <SW::CParamsSolver::CT_Total::calcFromGroup(SW::CParamsSolver::PGroup*)+0x38>
+  2108c8: 9103c109     	add	x9, x8, #0xf0
+  2108cc: eb01013f     	cmp	x9, x1
+  2108d0: 540001a0     	b.eq	0x210904 <SW::CParamsSolver::CT_Total::calcFromGroup(SW::CParamsSolver::PGroup*)+0x58>
+  2108d4: 52800020     	mov	w0, #0x1                // =1
+  2108d8: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2108dc: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2108e0: d65f03c0     	ret
+  2108e4: fd40ec20     	ldr	d0, [x1, #0x1d8]
+  2108e8: fd422c21     	ldr	d1, [x1, #0x458]
+  2108ec: 1e610800     	fmul	d0, d0, d1
+  2108f0: fd000400     	str	d0, [x0, #0x8]
+  2108f4: 52800020     	mov	w0, #0x1                // =1
+  2108f8: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2108fc: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  210900: d65f03c0     	ret
+  210904: fd413d00     	ldr	d0, [x8, #0x278]
+  210908: 1e602008     	fcmp	d0, #0.0
+  21090c: 540000c1     	b.ne	0x210924 <SW::CParamsSolver::CT_Total::calcFromGroup(SW::CParamsSolver::PGroup*)+0x78>
+  210910: f900041f     	str	xzr, [x0, #0x8]
+  210914: 52800020     	mov	w0, #0x1                // =1
+  210918: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  21091c: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  210920: d65f03c0     	ret
+  210924: fd418d01     	ldr	d1, [x8, #0x318]
+  210928: 1e602028     	fcmp	d1, #0.0
+  21092c: 540000e0     	b.eq	0x210948 <SW::CParamsSolver::CT_Total::calcFromGroup(SW::CParamsSolver::PGroup*)+0x9c>
+  210930: 1e611800     	fdiv	d0, d0, d1
+  210934: fd000400     	str	d0, [x0, #0x8]
+  210938: 52800020     	mov	w0, #0x1                // =1
+  21093c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  210940: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  210944: d65f03c0     	ret
+  210948: d2e7fe09     	mov	x9, #0x3ff0000000000000 // =4607182418800017408
+  21094c: f9018d09     	str	x9, [x8, #0x318]
+  210950: fd000400     	str	d0, [x0, #0x8]
+  210954: 52800200     	mov	w0, #0x10               // =16
+  210958: 9402c316     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  21095c: aa0003f3     	mov	x19, x0
+  210960: b0fff5e1     	adrp	x1, 0xcd000 <vsnprintf+0xcd000>
+  210964: 91043821     	add	x1, x1, #0x10e
+  210968: 9402cc72     	bl	0x2c3b30 <_ZNSt13runtime_errorC1EPKc@plt>  ;;; CALL std::runtime_error::runtime_error(char const*)
+  21096c: 90000641     	adrp	x1, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  210970: b0000642     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  210974: aa1303e0     	mov	x0, x19
+  210978: f9463021     	ldr	x1, [x1, #0xc60]
+  21097c: f941bc42     	ldr	x2, [x2, #0x378]
+  210980: 9402c314     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  210984: aa0003f4     	mov	x20, x0
+  210988: aa1303e0     	mov	x0, x19
+  21098c: 9402c5fd     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  210990: aa1403e0     	mov	x0, x20
+  210994: 9402b2bc     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+00000000002109e8 <SW::CParamsSolver::CN_Cycles::calcFromGroup(SW::CParamsSolver::PGroup*)>:
+  2109e8: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  2109ec: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  2109f0: 910003fd     	mov	x29, sp
+  2109f4: b4000241     	cbz	x1, 0x210a3c <SW::CParamsSolver::CN_Cycles::calcFromGroup(SW::CParamsSolver::PGroup*)+0x54>
+  2109f8: f9401409     	ldr	x9, [x0, #0x28]
+  2109fc: eb01013f     	cmp	x9, x1
+  210a00: 54000260     	b.eq	0x210a4c <SW::CParamsSolver::CN_Cycles::calcFromGroup(SW::CParamsSolver::PGroup*)+0x64>
+  210a04: 91018128     	add	x8, x9, #0x60
+  210a08: eb01011f     	cmp	x8, x1
+  210a0c: 54000320     	b.eq	0x210a70 <SW::CParamsSolver::CN_Cycles::calcFromGroup(SW::CParamsSolver::PGroup*)+0x88>
+  210a10: 91030128     	add	x8, x9, #0xc0
+  210a14: eb01011f     	cmp	x8, x1
+  210a18: 54000121     	b.ne	0x210a3c <SW::CParamsSolver::CN_Cycles::calcFromGroup(SW::CParamsSolver::PGroup*)+0x54>
+  210a1c: fd411520     	ldr	d0, [x9, #0x228]
+  210a20: fd42cd21     	ldr	d1, [x9, #0x598]
+  210a24: 1e610800     	fmul	d0, d0, d1
+  210a28: 1e6e1001     	fmov	d1, #1.00000000
+  210a2c: 1e612000     	fcmp	d0, d1
+  210a30: 1e609c20     	fcsel	d0, d1, d0, ls
+  210a34: 1e664000     	frinta	d0, d0
+  210a38: fd000400     	str	d0, [x0, #0x8]
+  210a3c: 52800020     	mov	w0, #0x1                // =1
+  210a40: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  210a44: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  210a48: d65f03c0     	ret
+  210a4c: fd40c420     	ldr	d0, [x1, #0x188]
+  210a50: 1e602008     	fcmp	d0, #0.0
+  210a54: 54000221     	b.ne	0x210a98 <SW::CParamsSolver::CN_Cycles::calcFromGroup(SW::CParamsSolver::PGroup*)+0xb0>
+  210a58: d2e7fe08     	mov	x8, #0x3ff0000000000000 // =4607182418800017408
+  210a5c: f9000408     	str	x8, [x0, #0x8]
+  210a60: 52800020     	mov	w0, #0x1                // =1
+  210a64: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  210a68: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  210a6c: d65f03c0     	ret
+  210a70: fd413d20     	ldr	d0, [x9, #0x278]
+  210a74: fd416521     	ldr	d1, [x9, #0x2c8]
+  210a78: 1e602008     	fcmp	d0, #0.0
+  210a7c: 540001c1     	b.ne	0x210ab4 <SW::CParamsSolver::CN_Cycles::calcFromGroup(SW::CParamsSolver::PGroup*)+0xcc>
+  210a80: 1e602028     	fcmp	d1, #0.0
+  210a84: 54fffea1     	b.ne	0x210a58 <SW::CParamsSolver::CN_Cycles::calcFromGroup(SW::CParamsSolver::PGroup*)+0x70>
+  210a88: 2a1f03e0     	mov	w0, wzr
+  210a8c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  210a90: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  210a94: d65f03c0     	ret
+  210a98: fd422c21     	ldr	d1, [x1, #0x458]
+  210a9c: 91002008     	add	x8, x0, #0x8
+  210aa0: 1e602028     	fcmp	d1, #0.0
+  210aa4: 54000240     	b.eq	0x210aec <SW::CParamsSolver::CN_Cycles::calcFromGroup(SW::CParamsSolver::PGroup*)+0x104>
+  210aa8: 1e611800     	fdiv	d0, d0, d1
+  210aac: 1e6e1001     	fmov	d1, #1.00000000
+  210ab0: 14000007     	b	0x210acc <SW::CParamsSolver::CN_Cycles::calcFromGroup(SW::CParamsSolver::PGroup*)+0xe4>
+  210ab4: 1e602028     	fcmp	d1, #0.0
+  210ab8: 91002008     	add	x8, x0, #0x8
+  210abc: 540001e0     	b.eq	0x210af8 <SW::CParamsSolver::CN_Cycles::calcFromGroup(SW::CParamsSolver::PGroup*)+0x110>
+  210ac0: 1e611800     	fdiv	d0, d0, d1
+  210ac4: 1e6e1001     	fmov	d1, #1.00000000
+  210ac8: 1e612800     	fadd	d0, d0, d1
+  210acc: 1e612000     	fcmp	d0, d1
+  210ad0: 52800020     	mov	w0, #0x1                // =1
+  210ad4: 1e609c20     	fcsel	d0, d1, d0, ls
+  210ad8: 1e664000     	frinta	d0, d0
+  210adc: fd000100     	str	d0, [x8]
+  210ae0: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  210ae4: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  210ae8: d65f03c0     	ret
+  210aec: d2e7fe09     	mov	x9, #0x3ff0000000000000 // =4607182418800017408
+  210af0: f9022c29     	str	x9, [x1, #0x458]
+  210af4: 14000005     	b	0x210b08 <SW::CParamsSolver::CN_Cycles::calcFromGroup(SW::CParamsSolver::PGroup*)+0x120>
+  210af8: 1e6e1001     	fmov	d1, #1.00000000
+  210afc: d2e7fe0a     	mov	x10, #0x3ff0000000000000 // =4607182418800017408
+  210b00: f901652a     	str	x10, [x9, #0x2c8]
+  210b04: 1e612800     	fadd	d0, d0, d1
+  210b08: 1e6e1001     	fmov	d1, #1.00000000
+  210b0c: 52800200     	mov	w0, #0x10               // =16
+  210b10: 1e612000     	fcmp	d0, d1
+  210b14: 1e609c20     	fcsel	d0, d1, d0, ls
+  210b18: 1e664000     	frinta	d0, d0
+  210b1c: fd000100     	str	d0, [x8]
+  210b20: 9402c2a4     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  210b24: aa0003f3     	mov	x19, x0
+  210b28: b0fff5e1     	adrp	x1, 0xcd000 <vsnprintf+0xcd000>
+  210b2c: 91043821     	add	x1, x1, #0x10e
+  210b30: 9402cc00     	bl	0x2c3b30 <_ZNSt13runtime_errorC1EPKc@plt>  ;;; CALL std::runtime_error::runtime_error(char const*)
+  210b34: 90000641     	adrp	x1, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  210b38: b0000642     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  210b3c: aa1303e0     	mov	x0, x19
+  210b40: f9463021     	ldr	x1, [x1, #0xc60]
+  210b44: f941bc42     	ldr	x2, [x2, #0x378]
+  210b48: 9402c2a2     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  210b4c: aa0003f4     	mov	x20, x0
+  210b50: aa1303e0     	mov	x0, x19
+  210b54: 9402c58b     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  210b58: aa1403e0     	mov	x0, x20
+  210b5c: 9402b24a     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+0000000000210bb0 <SW::CParamsSolver::CT_Video::calcFromGroup(SW::CParamsSolver::PGroup*)>:
+  210bb0: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  210bb4: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  210bb8: 910003fd     	mov	x29, sp
+  210bbc: b40000a1     	cbz	x1, 0x210bd0 <SW::CParamsSolver::CT_Video::calcFromGroup(SW::CParamsSolver::PGroup*)+0x20>
+  210bc0: f9401408     	ldr	x8, [x0, #0x28]
+  210bc4: 91030109     	add	x9, x8, #0xc0
+  210bc8: eb01013f     	cmp	x9, x1
+  210bcc: 540000a0     	b.eq	0x210be0 <SW::CParamsSolver::CT_Video::calcFromGroup(SW::CParamsSolver::PGroup*)+0x30>
+  210bd0: 52800020     	mov	w0, #0x1                // =1
+  210bd4: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  210bd8: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  210bdc: d65f03c0     	ret
+  210be0: fd40ed00     	ldr	d0, [x8, #0x1d8]
+  210be4: 1e602008     	fcmp	d0, #0.0
+  210be8: 540000c1     	b.ne	0x210c00 <SW::CParamsSolver::CT_Video::calcFromGroup(SW::CParamsSolver::PGroup*)+0x50>
+  210bec: f900041f     	str	xzr, [x0, #0x8]
+  210bf0: 52800020     	mov	w0, #0x1                // =1
+  210bf4: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  210bf8: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  210bfc: d65f03c0     	ret
+  210c00: fd42cd01     	ldr	d1, [x8, #0x598]
+  210c04: 1e602028     	fcmp	d1, #0.0
+  210c08: 540000e0     	b.eq	0x210c24 <SW::CParamsSolver::CT_Video::calcFromGroup(SW::CParamsSolver::PGroup*)+0x74>
+  210c0c: 1e611800     	fdiv	d0, d0, d1
+  210c10: fd000400     	str	d0, [x0, #0x8]
+  210c14: 52800020     	mov	w0, #0x1                // =1
+  210c18: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  210c1c: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  210c20: d65f03c0     	ret
+  210c24: d2e7fe09     	mov	x9, #0x3ff0000000000000 // =4607182418800017408
+  210c28: f902cd09     	str	x9, [x8, #0x598]
+  210c2c: fd000400     	str	d0, [x0, #0x8]
+  210c30: 52800200     	mov	w0, #0x10               // =16
+  210c34: 9402c25f     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  210c38: aa0003f3     	mov	x19, x0
+  210c3c: b0fff5e1     	adrp	x1, 0xcd000 <vsnprintf+0xcd000>
+  210c40: 91043821     	add	x1, x1, #0x10e
+  210c44: 9402cbbb     	bl	0x2c3b30 <_ZNSt13runtime_errorC1EPKc@plt>  ;;; CALL std::runtime_error::runtime_error(char const*)
+  210c48: 90000641     	adrp	x1, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  210c4c: b0000642     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  210c50: aa1303e0     	mov	x0, x19
+  210c54: f9463021     	ldr	x1, [x1, #0xc60]
+  210c58: f941bc42     	ldr	x2, [x2, #0x378]
+  210c5c: 9402c25d     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  210c60: aa0003f4     	mov	x20, x0
+  210c64: aa1303e0     	mov	x0, x19
+  210c68: 9402c546     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  210c6c: aa1403e0     	mov	x0, x20
+  210c70: 9402b205     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+0000000000210cc4 <SW::CParamsSolver::CA_Total::calcFromGroup(SW::CParamsSolver::PGroup*)>:
+  210cc4: b4000161     	cbz	x1, 0x210cf0 <SW::CParamsSolver::CA_Total::calcFromGroup(SW::CParamsSolver::PGroup*)+0x2c>
+  210cc8: f9401408     	ldr	x8, [x0, #0x28]
+  210ccc: 91018109     	add	x9, x8, #0x60
+  210cd0: eb01013f     	cmp	x9, x1
+  210cd4: 54000120     	b.eq	0x210cf8 <SW::CParamsSolver::CA_Total::calcFromGroup(SW::CParamsSolver::PGroup*)+0x34>
+  210cd8: 9103c109     	add	x9, x8, #0xf0
+  210cdc: eb01013f     	cmp	x9, x1
+  210ce0: 540001e0     	b.eq	0x210d1c <SW::CParamsSolver::CA_Total::calcFromGroup(SW::CParamsSolver::PGroup*)+0x58>
+  210ce4: 91054109     	add	x9, x8, #0x150
+  210ce8: eb01013f     	cmp	x9, x1
+  210cec: 54000260     	b.eq	0x210d38 <SW::CParamsSolver::CA_Total::calcFromGroup(SW::CParamsSolver::PGroup*)+0x74>
+  210cf0: 52800020     	mov	w0, #0x1                // =1
+  210cf4: d65f03c0     	ret
+  210cf8: 1e7e1000     	fmov	d0, #-1.00000000
+  210cfc: fd40ed01     	ldr	d1, [x8, #0x1d8]
+  210d00: 52805909     	mov	w9, #0x2c8              // =712
+  210d04: 1e602820     	fadd	d0, d1, d0
+  210d08: fc696901     	ldr	d1, [x8, x9]
+  210d0c: 1e610800     	fmul	d0, d0, d1
+  210d10: fd000400     	str	d0, [x0, #0x8]
+  210d14: 52800020     	mov	w0, #0x1                // =1
+  210d18: d65f03c0     	ret
+  210d1c: fd40c500     	ldr	d0, [x8, #0x188]
+  210d20: 52806309     	mov	w9, #0x318              // =792
+  210d24: fc696901     	ldr	d1, [x8, x9]
+  210d28: 1e610800     	fmul	d0, d0, d1
+  210d2c: fd000400     	str	d0, [x0, #0x8]
+  210d30: 52800020     	mov	w0, #0x1                // =1
+  210d34: d65f03c0     	ret
+  210d38: fd41dd00     	ldr	d0, [x8, #0x3b8]
+  210d3c: 52808109     	mov	w9, #0x408              // =1032
+  210d40: fc696901     	ldr	d1, [x8, x9]
+  210d44: 1e610800     	fmul	d0, d0, d1
+  210d48: fd000400     	str	d0, [x0, #0x8]
+  210d4c: 52800020     	mov	w0, #0x1                // =1
+  210d50: d65f03c0     	ret
+
+0000000000210da4 <SW::CParamsSolver::CA_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)>:
+  210da4: b4000161     	cbz	x1, 0x210dd0 <SW::CParamsSolver::CA_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)+0x2c>
+  210da8: f9401408     	ldr	x8, [x0, #0x28]
+  210dac: 91018109     	add	x9, x8, #0x60
+  210db0: eb01013f     	cmp	x9, x1
+  210db4: 54000120     	b.eq	0x210dd8 <SW::CParamsSolver::CA_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)+0x34>
+  210db8: 91024109     	add	x9, x8, #0x90
+  210dbc: eb01013f     	cmp	x9, x1
+  210dc0: 540001c0     	b.eq	0x210df8 <SW::CParamsSolver::CA_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)+0x54>
+  210dc4: 91048109     	add	x9, x8, #0x120
+  210dc8: eb01013f     	cmp	x9, x1
+  210dcc: 54000220     	b.eq	0x210e10 <SW::CParamsSolver::CA_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)+0x6c>
+  210dd0: 52800020     	mov	w0, #0x1                // =1
+  210dd4: d65f03c0     	ret
+  210dd8: 1e7e1000     	fmov	d0, #-1.00000000
+  210ddc: fd40ed01     	ldr	d1, [x8, #0x1d8]
+  210de0: 1e602820     	fadd	d0, d1, d0
+  210de4: fd413d01     	ldr	d1, [x8, #0x278]
+  210de8: 1e601820     	fdiv	d0, d1, d0
+  210dec: fd000400     	str	d0, [x0, #0x8]
+  210df0: 52800020     	mov	w0, #0x1                // =1
+  210df4: d65f03c0     	ret
+  210df8: fd42a500     	ldr	d0, [x8, #0x548]
+  210dfc: fd41b501     	ldr	d1, [x8, #0x368]
+  210e00: 1e610800     	fmul	d0, d0, d1
+  210e04: fd000400     	str	d0, [x0, #0x8]
+  210e08: 52800020     	mov	w0, #0x1                // =1
+  210e0c: d65f03c0     	ret
+  210e10: fd422d00     	ldr	d0, [x8, #0x458]
+  210e14: fd418d01     	ldr	d1, [x8, #0x318]
+  210e18: 1e610800     	fmul	d0, d0, d1
+  210e1c: fd000400     	str	d0, [x0, #0x8]
+  210e20: 52800020     	mov	w0, #0x1                // =1
+  210e24: d65f03c0     	ret
+
+0000000000210e78 <SW::CParamsSolver::CV_Total::calcFromGroup(SW::CParamsSolver::PGroup*)>:
+  210e78: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  210e7c: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  210e80: 910003fd     	mov	x29, sp
+  210e84: b4000101     	cbz	x1, 0x210ea4 <SW::CParamsSolver::CV_Total::calcFromGroup(SW::CParamsSolver::PGroup*)+0x2c>
+  210e88: f9401408     	ldr	x8, [x0, #0x28]
+  210e8c: 9103c109     	add	x9, x8, #0xf0
+  210e90: eb01013f     	cmp	x9, x1
+  210e94: 54000100     	b.eq	0x210eb4 <SW::CParamsSolver::CV_Total::calcFromGroup(SW::CParamsSolver::PGroup*)+0x3c>
+  210e98: 91048109     	add	x9, x8, #0x120
+  210e9c: eb01013f     	cmp	x9, x1
+  210ea0: 540001a0     	b.eq	0x210ed4 <SW::CParamsSolver::CV_Total::calcFromGroup(SW::CParamsSolver::PGroup*)+0x5c>
+  210ea4: 52800020     	mov	w0, #0x1                // =1
+  210ea8: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  210eac: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  210eb0: d65f03c0     	ret
+  210eb4: fd413d00     	ldr	d0, [x8, #0x278]
+  210eb8: 1e602008     	fcmp	d0, #0.0
+  210ebc: 540001c1     	b.ne	0x210ef4 <SW::CParamsSolver::CV_Total::calcFromGroup(SW::CParamsSolver::PGroup*)+0x7c>
+  210ec0: f900041f     	str	xzr, [x0, #0x8]
+  210ec4: 52800020     	mov	w0, #0x1                // =1
+  210ec8: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  210ecc: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  210ed0: d65f03c0     	ret
+  210ed4: fd416500     	ldr	d0, [x8, #0x2c8]
+  210ed8: 1e602008     	fcmp	d0, #0.0
+  210edc: 54000181     	b.ne	0x210f0c <SW::CParamsSolver::CV_Total::calcFromGroup(SW::CParamsSolver::PGroup*)+0x94>
+  210ee0: f900041f     	str	xzr, [x0, #0x8]
+  210ee4: 52800020     	mov	w0, #0x1                // =1
+  210ee8: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  210eec: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  210ef0: d65f03c0     	ret
+  210ef4: fd40c501     	ldr	d1, [x8, #0x188]
+  210ef8: 1e602028     	fcmp	d1, #0.0
+  210efc: 540000e1     	b.ne	0x210f18 <SW::CParamsSolver::CV_Total::calcFromGroup(SW::CParamsSolver::PGroup*)+0xa0>
+  210f00: d2e7fe09     	mov	x9, #0x3ff0000000000000 // =4607182418800017408
+  210f04: f900c509     	str	x9, [x8, #0x188]
+  210f08: 1400000c     	b	0x210f38 <SW::CParamsSolver::CV_Total::calcFromGroup(SW::CParamsSolver::PGroup*)+0xc0>
+  210f0c: fd422d01     	ldr	d1, [x8, #0x458]
+  210f10: 1e602028     	fcmp	d1, #0.0
+  210f14: 540000e0     	b.eq	0x210f30 <SW::CParamsSolver::CV_Total::calcFromGroup(SW::CParamsSolver::PGroup*)+0xb8>
+  210f18: 1e611800     	fdiv	d0, d0, d1
+  210f1c: fd000400     	str	d0, [x0, #0x8]
+  210f20: 52800020     	mov	w0, #0x1                // =1
+  210f24: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  210f28: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  210f2c: d65f03c0     	ret
+  210f30: d2e7fe09     	mov	x9, #0x3ff0000000000000 // =4607182418800017408
+  210f34: f9022d09     	str	x9, [x8, #0x458]
+  210f38: fd000400     	str	d0, [x0, #0x8]
+  210f3c: 52800200     	mov	w0, #0x10               // =16
+  210f40: 9402c19c     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  210f44: aa0003f3     	mov	x19, x0
+  210f48: b0fff5e1     	adrp	x1, 0xcd000 <vsnprintf+0xcd000>
+  210f4c: 91043821     	add	x1, x1, #0x10e
+  210f50: 9402caf8     	bl	0x2c3b30 <_ZNSt13runtime_errorC1EPKc@plt>  ;;; CALL std::runtime_error::runtime_error(char const*)
+  210f54: 90000641     	adrp	x1, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  210f58: b0000642     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  210f5c: aa1303e0     	mov	x0, x19
+  210f60: f9463021     	ldr	x1, [x1, #0xc60]
+  210f64: f941bc42     	ldr	x2, [x2, #0x378]
+  210f68: 9402c19a     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  210f6c: aa0003f4     	mov	x20, x0
+  210f70: aa1303e0     	mov	x0, x19
+  210f74: 9402c483     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  210f78: aa1403e0     	mov	x0, x20
+  210f7c: 9402b142     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+0000000000210fd0 <SW::CParamsSolver::CV_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)>:
+  210fd0: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  210fd4: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  210fd8: 910003fd     	mov	x29, sp
+  210fdc: b40000a1     	cbz	x1, 0x210ff0 <SW::CParamsSolver::CV_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)+0x20>
+  210fe0: f9401408     	ldr	x8, [x0, #0x28]
+  210fe4: 91024109     	add	x9, x8, #0x90
+  210fe8: eb01013f     	cmp	x9, x1
+  210fec: 540000a0     	b.eq	0x211000 <SW::CParamsSolver::CV_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)+0x30>
+  210ff0: 52800020     	mov	w0, #0x1                // =1
+  210ff4: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  210ff8: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  210ffc: d65f03c0     	ret
+  211000: fd416500     	ldr	d0, [x8, #0x2c8]
+  211004: 1e602008     	fcmp	d0, #0.0
+  211008: 540000c1     	b.ne	0x211020 <SW::CParamsSolver::CV_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)+0x50>
+  21100c: f900041f     	str	xzr, [x0, #0x8]
+  211010: 52800020     	mov	w0, #0x1                // =1
+  211014: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  211018: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  21101c: d65f03c0     	ret
+  211020: fd42a501     	ldr	d1, [x8, #0x548]
+  211024: 1e602028     	fcmp	d1, #0.0
+  211028: 540000e0     	b.eq	0x211044 <SW::CParamsSolver::CV_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)+0x74>
+  21102c: 1e611800     	fdiv	d0, d0, d1
+  211030: fd000400     	str	d0, [x0, #0x8]
+  211034: 52800020     	mov	w0, #0x1                // =1
+  211038: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  21103c: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  211040: d65f03c0     	ret
+  211044: d2e7fe09     	mov	x9, #0x3ff0000000000000 // =4607182418800017408
+  211048: f902a509     	str	x9, [x8, #0x548]
+  21104c: fd000400     	str	d0, [x0, #0x8]
+  211050: 52800200     	mov	w0, #0x10               // =16
+  211054: 9402c157     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  211058: aa0003f3     	mov	x19, x0
+  21105c: 90fff5e1     	adrp	x1, 0xcd000 <vsnprintf+0xcd000>
+  211060: 91043821     	add	x1, x1, #0x10e
+  211064: 9402cab3     	bl	0x2c3b30 <_ZNSt13runtime_errorC1EPKc@plt>  ;;; CALL std::runtime_error::runtime_error(char const*)
+  211068: f0000621     	adrp	x1, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  21106c: 90000642     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  211070: aa1303e0     	mov	x0, x19
+  211074: f9463021     	ldr	x1, [x1, #0xc60]
+  211078: f941bc42     	ldr	x2, [x2, #0x378]
+  21107c: 9402c155     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  211080: aa0003f4     	mov	x20, x0
+  211084: aa1303e0     	mov	x0, x19
+  211088: 9402c43e     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  21108c: aa1403e0     	mov	x0, x20
+  211090: 9402b0fd     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+00000000002110e4 <SW::CParamsSolver::CA_Range::calcFromGroup(SW::CParamsSolver::PGroup*)>:
+  2110e4: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  2110e8: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  2110ec: 910003fd     	mov	x29, sp
+  2110f0: b40000a1     	cbz	x1, 0x211104 <SW::CParamsSolver::CA_Range::calcFromGroup(SW::CParamsSolver::PGroup*)+0x20>
+  2110f4: f9401408     	ldr	x8, [x0, #0x28]
+  2110f8: 91054109     	add	x9, x8, #0x150
+  2110fc: eb01013f     	cmp	x9, x1
+  211100: 540000a0     	b.eq	0x211114 <SW::CParamsSolver::CA_Range::calcFromGroup(SW::CParamsSolver::PGroup*)+0x30>
+  211104: 52800020     	mov	w0, #0x1                // =1
+  211108: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  21110c: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  211110: d65f03c0     	ret
+  211114: fd413d00     	ldr	d0, [x8, #0x278]
+  211118: 1e602008     	fcmp	d0, #0.0
+  21111c: 540000c1     	b.ne	0x211134 <SW::CParamsSolver::CA_Range::calcFromGroup(SW::CParamsSolver::PGroup*)+0x50>
+  211120: f900041f     	str	xzr, [x0, #0x8]
+  211124: 52800020     	mov	w0, #0x1                // =1
+  211128: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  21112c: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  211130: d65f03c0     	ret
+  211134: fd420501     	ldr	d1, [x8, #0x408]
+  211138: 1e602028     	fcmp	d1, #0.0
+  21113c: 540000e0     	b.eq	0x211158 <SW::CParamsSolver::CA_Range::calcFromGroup(SW::CParamsSolver::PGroup*)+0x74>
+  211140: 1e611800     	fdiv	d0, d0, d1
+  211144: fd000400     	str	d0, [x0, #0x8]
+  211148: 52800020     	mov	w0, #0x1                // =1
+  21114c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  211150: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  211154: d65f03c0     	ret
+  211158: d2e7fe09     	mov	x9, #0x3ff0000000000000 // =4607182418800017408
+  21115c: f9020509     	str	x9, [x8, #0x408]
+  211160: fd000400     	str	d0, [x0, #0x8]
+  211164: 52800200     	mov	w0, #0x10               // =16
+  211168: 9402c112     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  21116c: aa0003f3     	mov	x19, x0
+  211170: 90fff5e1     	adrp	x1, 0xcd000 <vsnprintf+0xcd000>
+  211174: 91043821     	add	x1, x1, #0x10e
+  211178: 9402ca6e     	bl	0x2c3b30 <_ZNSt13runtime_errorC1EPKc@plt>  ;;; CALL std::runtime_error::runtime_error(char const*)
+  21117c: f0000621     	adrp	x1, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  211180: 90000642     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  211184: aa1303e0     	mov	x0, x19
+  211188: f9463021     	ldr	x1, [x1, #0xc60]
+  21118c: f941bc42     	ldr	x2, [x2, #0x378]
+  211190: 9402c110     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  211194: aa0003f4     	mov	x20, x0
+  211198: aa1303e0     	mov	x0, x19
+  21119c: 9402c3f9     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  2111a0: aa1403e0     	mov	x0, x20
+  2111a4: 9402b0b8     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+00000000002111f8 <SW::CParamsSolver::CN_Swings::calcFromGroup(SW::CParamsSolver::PGroup*)>:
+  2111f8: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  2111fc: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  211200: 910003fd     	mov	x29, sp
+  211204: b40000a1     	cbz	x1, 0x211218 <SW::CParamsSolver::CN_Swings::calcFromGroup(SW::CParamsSolver::PGroup*)+0x20>
+  211208: f9401408     	ldr	x8, [x0, #0x28]
+  21120c: 91054109     	add	x9, x8, #0x150
+  211210: eb01013f     	cmp	x9, x1
+  211214: 540000a0     	b.eq	0x211228 <SW::CParamsSolver::CN_Swings::calcFromGroup(SW::CParamsSolver::PGroup*)+0x30>
+  211218: 52800020     	mov	w0, #0x1                // =1
+  21121c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  211220: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  211224: d65f03c0     	ret
+  211228: fd413d00     	ldr	d0, [x8, #0x278]
+  21122c: 1e602008     	fcmp	d0, #0.0
+  211230: 540000c1     	b.ne	0x211248 <SW::CParamsSolver::CN_Swings::calcFromGroup(SW::CParamsSolver::PGroup*)+0x50>
+  211234: f900041f     	str	xzr, [x0, #0x8]
+  211238: 52800020     	mov	w0, #0x1                // =1
+  21123c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  211240: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  211244: d65f03c0     	ret
+  211248: fd41dd01     	ldr	d1, [x8, #0x3b8]
+  21124c: 1e602028     	fcmp	d1, #0.0
+  211250: 540000e0     	b.eq	0x21126c <SW::CParamsSolver::CN_Swings::calcFromGroup(SW::CParamsSolver::PGroup*)+0x74>
+  211254: 1e611800     	fdiv	d0, d0, d1
+  211258: fd000400     	str	d0, [x0, #0x8]
+  21125c: 52800020     	mov	w0, #0x1                // =1
+  211260: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  211264: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  211268: d65f03c0     	ret
+  21126c: d2e7fe09     	mov	x9, #0x3ff0000000000000 // =4607182418800017408
+  211270: f901dd09     	str	x9, [x8, #0x3b8]
+  211274: fd000400     	str	d0, [x0, #0x8]
+  211278: 52800200     	mov	w0, #0x10               // =16
+  21127c: 9402c0cd     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  211280: aa0003f3     	mov	x19, x0
+  211284: 90fff5e1     	adrp	x1, 0xcd000 <vsnprintf+0xcd000>
+  211288: 91043821     	add	x1, x1, #0x10e
+  21128c: 9402ca29     	bl	0x2c3b30 <_ZNSt13runtime_errorC1EPKc@plt>  ;;; CALL std::runtime_error::runtime_error(char const*)
+  211290: f0000621     	adrp	x1, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  211294: 90000642     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  211298: aa1303e0     	mov	x0, x19
+  21129c: f9463021     	ldr	x1, [x1, #0xc60]
+  2112a0: f941bc42     	ldr	x2, [x2, #0x378]
+  2112a4: 9402c0cb     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  2112a8: aa0003f4     	mov	x20, x0
+  2112ac: aa1303e0     	mov	x0, x19
+  2112b0: 9402c3b4     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  2112b4: aa1403e0     	mov	x0, x20
+  2112b8: 9402b073     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000021130c <SW::CParamsSolver::CT_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)>:
+  21130c: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  211310: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  211314: 910003fd     	mov	x29, sp
+  211318: b4000141     	cbz	x1, 0x211340 <SW::CParamsSolver::CT_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)+0x34>
+  21131c: f9401408     	ldr	x8, [x0, #0x28]
+  211320: eb01011f     	cmp	x8, x1
+  211324: 54000160     	b.eq	0x211350 <SW::CParamsSolver::CT_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)+0x44>
+  211328: 9100c109     	add	x9, x8, #0x30
+  21132c: eb01013f     	cmp	x9, x1
+  211330: 54000300     	b.eq	0x211390 <SW::CParamsSolver::CT_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)+0x84>
+  211334: 91048109     	add	x9, x8, #0x120
+  211338: eb01013f     	cmp	x9, x1
+  21133c: 54000440     	b.eq	0x2113c4 <SW::CParamsSolver::CT_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)+0xb8>
+  211340: 52800020     	mov	w0, #0x1                // =1
+  211344: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  211348: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  21134c: d65f03c0     	ret
+  211350: fd40c420     	ldr	d0, [x1, #0x188]
+  211354: 1e602008     	fcmp	d0, #0.0
+  211358: 540003c0     	b.eq	0x2113d0 <SW::CParamsSolver::CT_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)+0xc4>
+  21135c: 1e7e1001     	fmov	d1, #-1.00000000
+  211360: fd40ec22     	ldr	d2, [x1, #0x1d8]
+  211364: 1e612841     	fadd	d1, d2, d1
+  211368: 1e6e1002     	fmov	d2, #1.00000000
+  21136c: 1e602028     	fcmp	d1, #0.0
+  211370: 1e610c43     	fcsel	d3, d2, d1, eq
+  211374: 1e631800     	fdiv	d0, d0, d3
+  211378: 1e622000     	fcmp	d0, d2
+  21137c: 1e609c40     	fcsel	d0, d2, d0, ls
+  211380: 1e602028     	fcmp	d1, #0.0
+  211384: fd000400     	str	d0, [x0, #0x8]
+  211388: 54fffdc1     	b.ne	0x211340 <SW::CParamsSolver::CT_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)+0x34>
+  21138c: 14000022     	b	0x211414 <SW::CParamsSolver::CT_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)+0x108>
+  211390: fd425500     	ldr	d0, [x8, #0x4a8]
+  211394: fd427d01     	ldr	d1, [x8, #0x4f8]
+  211398: 1e612800     	fadd	d0, d0, d1
+  21139c: fd42a501     	ldr	d1, [x8, #0x548]
+  2113a0: 1e612800     	fadd	d0, d0, d1
+  2113a4: 1e6e1001     	fmov	d1, #1.00000000
+  2113a8: 1e612000     	fcmp	d0, d1
+  2113ac: 1e609c20     	fcsel	d0, d1, d0, ls
+  2113b0: fd000400     	str	d0, [x0, #0x8]
+  2113b4: 52800020     	mov	w0, #0x1                // =1
+  2113b8: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2113bc: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2113c0: d65f03c0     	ret
+  2113c4: fd416500     	ldr	d0, [x8, #0x2c8]
+  2113c8: 1e602008     	fcmp	d0, #0.0
+  2113cc: 540000e1     	b.ne	0x2113e8 <SW::CParamsSolver::CT_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)+0xdc>
+  2113d0: d2e7fe08     	mov	x8, #0x3ff0000000000000 // =4607182418800017408
+  2113d4: f9000408     	str	x8, [x0, #0x8]
+  2113d8: 52800020     	mov	w0, #0x1                // =1
+  2113dc: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2113e0: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2113e4: d65f03c0     	ret
+  2113e8: fd418d01     	ldr	d1, [x8, #0x318]
+  2113ec: 1e602028     	fcmp	d1, #0.0
+  2113f0: 54000060     	b.eq	0x2113fc <SW::CParamsSolver::CT_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)+0xf0>
+  2113f4: 1e611800     	fdiv	d0, d0, d1
+  2113f8: 17ffffeb     	b	0x2113a4 <SW::CParamsSolver::CT_Cycle::calcFromGroup(SW::CParamsSolver::PGroup*)+0x98>
+  2113fc: 1e6e1001     	fmov	d1, #1.00000000
+  211400: d2e7fe09     	mov	x9, #0x3ff0000000000000 // =4607182418800017408
+  211404: f9018d09     	str	x9, [x8, #0x318]
+  211408: 1e612000     	fcmp	d0, d1
+  21140c: 1e609c20     	fcsel	d0, d1, d0, ls
+  211410: fd000400     	str	d0, [x0, #0x8]
+  211414: 52800200     	mov	w0, #0x10               // =16
+  211418: 9402c066     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  21141c: aa0003f3     	mov	x19, x0
+  211420: 90fff5e1     	adrp	x1, 0xcd000 <vsnprintf+0xcd000>
+  211424: 91043821     	add	x1, x1, #0x10e
+  211428: 9402c9c2     	bl	0x2c3b30 <_ZNSt13runtime_errorC1EPKc@plt>  ;;; CALL std::runtime_error::runtime_error(char const*)
+  21142c: f0000621     	adrp	x1, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  211430: 90000642     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  211434: aa1303e0     	mov	x0, x19
+  211438: f9463021     	ldr	x1, [x1, #0xc60]
+  21143c: f941bc42     	ldr	x2, [x2, #0x378]
+  211440: 9402c064     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  211444: aa0003f4     	mov	x20, x0
+  211448: aa1303e0     	mov	x0, x19
+  21144c: 9402c34d     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  211450: aa1403e0     	mov	x0, x20
+  211454: 9402b00c     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+00000000002114a8 <SW::CParamsSolver::CT_Exposure::calcFromGroup(SW::CParamsSolver::PGroup*)>:
+  2114a8: b40000a1     	cbz	x1, 0x2114bc <SW::CParamsSolver::CT_Exposure::calcFromGroup(SW::CParamsSolver::PGroup*)+0x14>
+  2114ac: f9401408     	ldr	x8, [x0, #0x28]
+  2114b0: 9100c109     	add	x9, x8, #0x30
+  2114b4: eb01013f     	cmp	x9, x1
+  2114b8: 54000060     	b.eq	0x2114c4 <SW::CParamsSolver::CT_Exposure::calcFromGroup(SW::CParamsSolver::PGroup*)+0x1c>
+  2114bc: 52800020     	mov	w0, #0x1                // =1
+  2114c0: d65f03c0     	ret
+  2114c4: fd422d00     	ldr	d0, [x8, #0x458]
+  2114c8: fd427d01     	ldr	d1, [x8, #0x4f8]
+  2114cc: 1e613800     	fsub	d0, d0, d1
+  2114d0: fd42a501     	ldr	d1, [x8, #0x548]
+  2114d4: 1e613800     	fsub	d0, d0, d1
+  2114d8: fd000400     	str	d0, [x0, #0x8]
+  2114dc: 52800020     	mov	w0, #0x1                // =1
+  2114e0: d65f03c0     	ret
+
+0000000000211534 <SW::CParamsSolver::CT_Settle::calcFromGroup(SW::CParamsSolver::PGroup*)>:
+  211534: b40000a1     	cbz	x1, 0x211548 <SW::CParamsSolver::CT_Settle::calcFromGroup(SW::CParamsSolver::PGroup*)+0x14>
+  211538: f9401408     	ldr	x8, [x0, #0x28]
+  21153c: 9100c109     	add	x9, x8, #0x30
+  211540: eb01013f     	cmp	x9, x1
+  211544: 54000060     	b.eq	0x211550 <SW::CParamsSolver::CT_Settle::calcFromGroup(SW::CParamsSolver::PGroup*)+0x1c>
+  211548: 52800020     	mov	w0, #0x1                // =1
+  21154c: d65f03c0     	ret
+  211550: fd422d00     	ldr	d0, [x8, #0x458]
+  211554: fd425501     	ldr	d1, [x8, #0x4a8]
+  211558: 1e613800     	fsub	d0, d0, d1
+  21155c: fd42a501     	ldr	d1, [x8, #0x548]
+  211560: 1e613800     	fsub	d0, d0, d1
+  211564: fd000400     	str	d0, [x0, #0x8]
+  211568: 52800020     	mov	w0, #0x1                // =1
+  21156c: d65f03c0     	ret
+
+00000000002115c0 <SW::CParamsSolver::CT_Move::calcFromGroup(SW::CParamsSolver::PGroup*)>:
+  2115c0: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  2115c4: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  2115c8: 910003fd     	mov	x29, sp
+  2115cc: b4000101     	cbz	x1, 0x2115ec <SW::CParamsSolver::CT_Move::calcFromGroup(SW::CParamsSolver::PGroup*)+0x2c>
+  2115d0: f9401408     	ldr	x8, [x0, #0x28]
+  2115d4: 9100c109     	add	x9, x8, #0x30
+  2115d8: eb01013f     	cmp	x9, x1
+  2115dc: 54000100     	b.eq	0x2115fc <SW::CParamsSolver::CT_Move::calcFromGroup(SW::CParamsSolver::PGroup*)+0x3c>
+  2115e0: 91024109     	add	x9, x8, #0x90
+  2115e4: eb01013f     	cmp	x9, x1
+  2115e8: 540001e0     	b.eq	0x211624 <SW::CParamsSolver::CT_Move::calcFromGroup(SW::CParamsSolver::PGroup*)+0x64>
+  2115ec: 52800020     	mov	w0, #0x1                // =1
+  2115f0: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2115f4: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2115f8: d65f03c0     	ret
+  2115fc: fd422d00     	ldr	d0, [x8, #0x458]
+  211600: fd425501     	ldr	d1, [x8, #0x4a8]
+  211604: 1e613800     	fsub	d0, d0, d1
+  211608: fd427d01     	ldr	d1, [x8, #0x4f8]
+  21160c: 1e613800     	fsub	d0, d0, d1
+  211610: fd000400     	str	d0, [x0, #0x8]
+  211614: 52800020     	mov	w0, #0x1                // =1
+  211618: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  21161c: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  211620: d65f03c0     	ret
+  211624: fd416500     	ldr	d0, [x8, #0x2c8]
+  211628: 1e602008     	fcmp	d0, #0.0
+  21162c: 540000c1     	b.ne	0x211644 <SW::CParamsSolver::CT_Move::calcFromGroup(SW::CParamsSolver::PGroup*)+0x84>
+  211630: f900041f     	str	xzr, [x0, #0x8]
+  211634: 52800020     	mov	w0, #0x1                // =1
+  211638: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  21163c: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  211640: d65f03c0     	ret
+  211644: fd41b501     	ldr	d1, [x8, #0x368]
+  211648: 1e602028     	fcmp	d1, #0.0
+  21164c: 540000e0     	b.eq	0x211668 <SW::CParamsSolver::CT_Move::calcFromGroup(SW::CParamsSolver::PGroup*)+0xa8>
+  211650: 1e611800     	fdiv	d0, d0, d1
+  211654: fd000400     	str	d0, [x0, #0x8]
+  211658: 52800020     	mov	w0, #0x1                // =1
+  21165c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  211660: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  211664: d65f03c0     	ret
+  211668: d2e7fe09     	mov	x9, #0x3ff0000000000000 // =4607182418800017408
+  21166c: f901b509     	str	x9, [x8, #0x368]
+  211670: fd000400     	str	d0, [x0, #0x8]
+  211674: 52800200     	mov	w0, #0x10               // =16
+  211678: 9402bfce     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  21167c: aa0003f3     	mov	x19, x0
+  211680: 90fff5e1     	adrp	x1, 0xcd000 <vsnprintf+0xcd000>
+  211684: 91043821     	add	x1, x1, #0x10e
+  211688: 9402c92a     	bl	0x2c3b30 <_ZNSt13runtime_errorC1EPKc@plt>  ;;; CALL std::runtime_error::runtime_error(char const*)
+  21168c: f0000621     	adrp	x1, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  211690: 90000642     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  211694: aa1303e0     	mov	x0, x19
+  211698: f9463021     	ldr	x1, [x1, #0xc60]
+  21169c: f941bc42     	ldr	x2, [x2, #0x378]
+  2116a0: 9402bfcc     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  2116a4: aa0003f4     	mov	x20, x0
+  2116a8: aa1303e0     	mov	x0, x19
+  2116ac: 9402c2b5     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  2116b0: aa1403e0     	mov	x0, x20
+  2116b4: 9402af74     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+0000000000211708 <SW::CParamsSolver::CFps::calcFromGroup(SW::CParamsSolver::PGroup*)>:
+  211708: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  21170c: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  211710: 910003fd     	mov	x29, sp
+  211714: b40000a1     	cbz	x1, 0x211728 <SW::CParamsSolver::CFps::calcFromGroup(SW::CParamsSolver::PGroup*)+0x20>
+  211718: f9401408     	ldr	x8, [x0, #0x28]
+  21171c: 91030109     	add	x9, x8, #0xc0
+  211720: eb01013f     	cmp	x9, x1
+  211724: 540000a0     	b.eq	0x211738 <SW::CParamsSolver::CFps::calcFromGroup(SW::CParamsSolver::PGroup*)+0x30>
+  211728: 52800020     	mov	w0, #0x1                // =1
+  21172c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  211730: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  211734: d65f03c0     	ret
+  211738: fd40ed00     	ldr	d0, [x8, #0x1d8]
+  21173c: 1e602008     	fcmp	d0, #0.0
+  211740: 540000c1     	b.ne	0x211758 <SW::CParamsSolver::CFps::calcFromGroup(SW::CParamsSolver::PGroup*)+0x50>
+  211744: f900041f     	str	xzr, [x0, #0x8]
+  211748: 52800020     	mov	w0, #0x1                // =1
+  21174c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  211750: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  211754: d65f03c0     	ret
+  211758: fd411501     	ldr	d1, [x8, #0x228]
+  21175c: 1e602028     	fcmp	d1, #0.0
+  211760: 540000e0     	b.eq	0x21177c <SW::CParamsSolver::CFps::calcFromGroup(SW::CParamsSolver::PGroup*)+0x74>
+  211764: 1e611800     	fdiv	d0, d0, d1
+  211768: fd000400     	str	d0, [x0, #0x8]
+  21176c: 52800020     	mov	w0, #0x1                // =1
+  211770: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  211774: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  211778: d65f03c0     	ret
+  21177c: d2e7fe09     	mov	x9, #0x3ff0000000000000 // =4607182418800017408
+  211780: f9011509     	str	x9, [x8, #0x228]
+  211784: fd000400     	str	d0, [x0, #0x8]
+  211788: 52800200     	mov	w0, #0x10               // =16
+  21178c: 9402bf89     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  211790: aa0003f3     	mov	x19, x0
+  211794: 90fff5e1     	adrp	x1, 0xcd000 <vsnprintf+0xcd000>
+  211798: 91043821     	add	x1, x1, #0x10e
+  21179c: 9402c8e5     	bl	0x2c3b30 <_ZNSt13runtime_errorC1EPKc@plt>  ;;; CALL std::runtime_error::runtime_error(char const*)
+  2117a0: f0000621     	adrp	x1, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  2117a4: 90000642     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  2117a8: aa1303e0     	mov	x0, x19
+  2117ac: f9463021     	ldr	x1, [x1, #0xc60]
+  2117b0: f941bc42     	ldr	x2, [x2, #0x378]
+  2117b4: 9402bf87     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  2117b8: aa0003f4     	mov	x20, x0
+  2117bc: aa1303e0     	mov	x0, x19
+  2117c0: 9402c270     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  2117c4: aa1403e0     	mov	x0, x20
+  2117c8: 9402af2f     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+

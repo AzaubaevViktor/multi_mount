@@ -1,0 +1,722 @@
+======================================================================
+CLASS QuickFuture::Future   (staticMetaObject @ 0x2d5e18, rev 11)
+  classinfo: QML.Element = auto
+  classinfo: QML.Singleton = true
+  -- methods (signalCount=0) --
+    SLOT    metatype#1 isFinished(metatype#41 future)
+    SLOT    metatype#1 isRunning(metatype#41 future)
+    SLOT    metatype#1 isCanceled(metatype#41 future)
+    SLOT    metatype#2 progressValue(metatype#41 future)
+    SLOT    metatype#2 progressMinimum(metatype#41 future)
+    SLOT    metatype#2 progressMaximum(metatype#41 future)
+    SLOT    metatype#43 onFinished(metatype#41 future, QJSValue func, QJSValue owner)
+    SLOT    metatype#43 onFinished(metatype#41 future, QJSValue func)
+    SLOT    metatype#43 onCanceled(metatype#41 future, QJSValue func, QJSValue owner)
+    SLOT    metatype#43 onCanceled(metatype#41 future, QJSValue func)
+    SLOT    metatype#43 onProgressValueChanged(metatype#41 future, QJSValue func)
+    SLOT    metatype#41 result(metatype#41 future)
+    SLOT    metatype#41 results(metatype#41 future)
+    SLOT    QJSValue promise(QJSValue future)
+    SLOT    metatype#43 sync(metatype#41 future, metatype#10 propertyInFuture, metatype#39 target, metatype#10 propertyInTarget)
+    SLOT    metatype#43 sync(metatype#41 future, metatype#10 propertyInFuture, metatype#39 target)
+
+======================================================================
+CLASS QuickFuturePlugin   (staticMetaObject @ 0x2d5b10, rev 11)
+
+======================================================================
+CLASS QuickPromisePlugin   (staticMetaObject @ 0x2d5a18, rev 11)
+
+======================================================================
+CLASS SW::AndroidExtension   (staticMetaObject @ 0x2d2db8, rev 11)
+
+======================================================================
+CLASS SW::AppVersion   (staticMetaObject @ 0x2cde90, rev 11)
+  -- properties --
+    string                             metatype#10                  Readable,Stored,Required
+    appName                            metatype#10                  Readable,Stored,Required
+
+======================================================================
+CLASS SW::CLocation   (staticMetaObject @ 0x2d2908, rev 11)
+  -- properties --
+    longitudeRad                       metatype#6                   Readable,Writable,Required
+    latitudeRad                        metatype#6                   Readable,Writable,Required
+    mockLatitude                       metatype#1                   Readable,Writable,Required
+    altitudeMeter                      metatype#6                   Readable,Writable,Required
+    temperatureCelsius                 metatype#6                   Readable,Writable,Required
+
+======================================================================
+CLASS SW::CmdRet   (staticMetaObject @ 0x2d2810, rev 11)
+  -- properties --
+    type                               SW::CmdRetType_::E           Readable,EnumOrFlag,Required
+
+======================================================================
+CLASS SW::CmdRetType_   (staticMetaObject @ 0x2d2850, rev 11)
+  classinfo: QML.Element = CmdRetType
+  -- enums --
+    enum E flags=0x2
+        Ok                             = 0 (0x0)
+        Nak                            = 1 (0x1)
+        Timeout                        = 2 (0x2)
+        Cancel                         = 3 (0x3)
+        Other                          = 4 (0x4)
+
+======================================================================
+CLASS SW::ConnectableState_   (staticMetaObject @ 0x2d2bc0, rev 11)
+  classinfo: QML.Element = ConnectableState
+  -- enums --
+    enum E flags=0x2
+        NotShown                       = 0 (0x0)
+        Searching                      = 1 (0x1)
+        SearchListPopulated            = 2 (0x2)
+        Connecting                     = 3 (0x3)
+        Failed                         = 4 (0x4)
+        Connected                      = 5 (0x5)
+        Disconnecting                  = 6 (0x6)
+
+======================================================================
+CLASS SW::ConnectionType_   (staticMetaObject @ 0x2d2d28, rev 11)
+  classinfo: QML.Element = ConnectionType
+  -- enums --
+    enum E flags=0x2
+        UDP                            = 0 (0x0)
+        Emulator                       = 1 (0x1)
+        Serial                         = 2 (0x2)
+        BLE                            = 3 (0x3)
+
+======================================================================
+CLASS SW::ConverserTimeoutForwarder   (staticMetaObject @ 0x2d2d78, rev 11)
+  -- properties --
+    timedout                           metatype#1                   Readable,Required
+  -- methods (signalCount=1) --
+    SIGNAL  metatype#43 timedoutChanged_q()
+
+======================================================================
+CLASS SW::DualModeChoice_   (staticMetaObject @ 0x2d2ce8, rev 11)
+  classinfo: QML.Element = DualModeChoice
+  -- enums --
+    enum E flags=0x2
+        PromptMode                     = 0 (0x0)
+        UseEQ                          = 1 (0x1)
+        UseAZ                          = 2 (0x2)
+
+======================================================================
+CLASS SW::EmulatorSettings   (staticMetaObject @ 0x2d28a0, rev 11)
+  -- properties --
+    slewToSpeedDps                     metatype#6                   Readable,Writable,Designable,Required
+  -- methods (signalCount=1) --
+    SIGNAL  metatype#43 valueChanged()
+
+======================================================================
+CLASS SW::HandleController   (staticMetaObject @ 0x2d2ee0, rev 11)
+  classinfo: QML.Element = auto
+  -- properties --
+    downKeys                           QList<HandleControllerKey>   Readable,EnumOrFlag,Required
+  -- enums --
+    enum HandleControllerKey flags=0x2
+        DPAD_LEFT                      = 0 (0x0)
+        DPAD_RIGHT                     = 1 (0x1)
+        DPAD_UP                        = 2 (0x2)
+        DPAD_DOWN                      = 3 (0x3)
+        GAMEPAD_X                      = 4 (0x4)
+        GAMEPAD_Y                      = 5 (0x5)
+        GAMEPAD_A                      = 6 (0x6)
+        GAMEPAD_B                      = 7 (0x7)
+        GAMEPAD_L1                     = 8 (0x8)
+        GAMEPAD_R1                     = 9 (0x9)
+        GAMEPAD_L2                     = 10 (0xa)
+        GAMEPAD_R2                     = 11 (0xb)
+        GAMEPAD_L3                     = 12 (0xc)
+        GAMEPAD_R3                     = 13 (0xd)
+        GAMEPAD_START                  = 14 (0xe)
+        GAMEPAD_SELECT                 = 15 (0xf)
+        GAMEPAD_CENTER                 = 16 (0x10)
+        GAMEPAD_GUIDE                  = 17 (0x11)
+        JOYSTICK_LEFT_X                = 18 (0x12)
+        JOYSTICK_LEFT_Y                = 19 (0x13)
+        JOYSTICK_RIGHT_X               = 20 (0x14)
+        JOYSTICK_RIGHT_Y               = 21 (0x15)
+        JOYSTICK_THUMB_L               = 22 (0x16)
+        JOYSTICK_THUMB_R               = 23 (0x17)
+    enum HandleControllerAction flags=0x2
+        UP                             = 0 (0x0)
+        DOWN                           = 1 (0x1)
+  -- methods (signalCount=2) --
+    SIGNAL  metatype#43 downKeysChanged()
+    SIGNAL  metatype#43 handleControllerChanged(HandleController::HandleControllerKey key, HandleController::HandleControllerAction action, metatype#38 value)
+    METHOD  metatype#43 handleDPadEvent(metatype#2 deviceId, metatype#2 key, metatype#6 value)
+    METHOD  metatype#43 handleGamePadEvent(metatype#2 deviceId, metatype#2 key, metatype#2 value)
+    METHOD  metatype#43 handleJoystickEvent(metatype#2 deviceId, metatype#2 key, metatype#38 value)
+
+======================================================================
+CLASS SW::HandleControllerNative   (staticMetaObject @ 0x2d2f58, rev 11)
+
+======================================================================
+CLASS SW::IAstroFormat   (staticMetaObject @ 0x2d7130, rev 11)
+  -- methods (signalCount=0) --
+    SLOT    metatype#10 sec_hms_q(metatype#6 sec)
+    SLOT    metatype#10 rad_deg00_q(metatype#6 rad)
+    SLOT    metatype#10 longitude_00_q(metatype#6 rad)
+    SLOT    metatype#10 longitude_000_q(metatype#6 rad)
+    SLOT    metatype#10 latitude_00_q(metatype#6 rad)
+    SLOT    metatype#10 latitude_000_q(metatype#6 rad)
+
+======================================================================
+CLASS SW::IConnectable   (staticMetaObject @ 0x2d2b80, rev 11)
+  -- properties --
+    state                              SW::ConnectableState_::E     Readable,EnumOrFlag,Required
+    busy                               metatype#1                   Readable,Required
+    statusText                         metatype#10                  Readable,Required
+    statusDetailText                   metatype#10                  Readable,Required
+    devicesList                        metatype#41                  Readable,Required
+    nextActionText                     metatype#10                  Readable,Required
+  -- methods (signalCount=4) --
+    SIGNAL  metatype#43 statusChanged()
+    SIGNAL  metatype#43 devicesListChanged()
+    SIGNAL  metatype#43 sessionStarted()
+    SIGNAL  metatype#43 sessionDone()
+    SLOT    metatype#43 startSession()
+    SLOT    metatype#43 startNextAction()
+    SLOT    metatype#43 selectDevice(metatype#2 deviceIndex)
+    SLOT    metatype#43 cancelSession()
+
+======================================================================
+CLASS SW::IConnectableSearchResult   (staticMetaObject @ 0x2d2ab8, rev 11)
+  -- properties --
+    title                              metatype#10                  Readable,Required
+    subtitle                           metatype#10                  Readable,Required
+
+======================================================================
+CLASS SW::IConnectionSettings   (staticMetaObject @ 0x2d2ca8, rev 11)
+  -- properties --
+    dualModeChoice                     SW::DualModeChoice_::E       Readable,Writable,EnumOrFlag,Designable,Required
+    connectAtLaunch                    metatype#1                   Readable,Writable,Designable,Required
+    type                               SW::ConnectionType_::E       Readable,Writable,EnumOrFlag,Designable,Required
+    readTimeoutMs_other                metatype#2                   Readable,Writable,Designable,Required
+    maxRetryCount                      metatype#2                   Readable,Writable,Designable,Required
+    searchIP                           metatype#1                   Readable,Writable,Designable,Required
+    fixedIP                            metatype#10                  Readable,Writable,Required
+    serialPortSupported                metatype#1                   Readable,Stored,Required
+    serialPortNeedsPortName            metatype#1                   Readable,Stored,Required
+    foundSerialPorts                   metatype#11                  Readable,Required
+    foundSerialPortsIndex              metatype#2                   Readable,Writable,Designable,Required
+    serialPortName                     metatype#10                  Readable,Writable,Required
+    maxUpgradeBaud                     metatype#3                   Readable,Writable,Designable,Required
+    bleSupported                       metatype#1                   Readable,Stored,Required
+    discoveryTimeoutMs_BLE             metatype#2                   Readable,Writable,Designable,Required
+    readTimeoutMs_BLE                  metatype#2                   Readable,Writable,Designable,Required
+  -- methods (signalCount=1) --
+    SIGNAL  metatype#43 valueChanged()
+    SLOT    metatype#43 detectSerialPorts()
+
+======================================================================
+CLASS SW::IHandleControllerNative   (staticMetaObject @ 0x2d2f18, rev 11)
+  -- methods (signalCount=3) --
+    SIGNAL  metatype#43 triggerHandleDPadEvent(metatype#2 id, metatype#2 key, metatype#2 value)
+    SIGNAL  metatype#43 triggerHandleGamePadEvent(metatype#2 id, metatype#2 key, metatype#2 value)
+    SIGNAL  metatype#43 triggerHandleJoystickEvent(metatype#2 id, metatype#2 key, metatype#38 value)
+
+======================================================================
+CLASS SW::IHelpFile   (staticMetaObject @ 0x2d2008, rev 11)
+  -- properties --
+    helpUrl                            metatype#17                  Readable,Required
+  -- methods (signalCount=1) --
+    SIGNAL  metatype#43 helpUrlChanged()
+    SLOT    metatype#43 openInExternalApp()
+
+======================================================================
+CLASS SW::ILanguageManager   (staticMetaObject @ 0x2d7178, rev 11)
+  -- methods (signalCount=1) --
+    SIGNAL  metatype#43 languageChanged_q()
+
+======================================================================
+CLASS SW::ILocation   (staticMetaObject @ 0x2d2998, rev 11)
+  -- properties --
+    longitudeRad                       metatype#6                   Readable,Required
+    latitudeRad                        metatype#6                   Readable,Required
+    mockLatitude                       metatype#1                   Readable,Required
+    altitudeMeter                      metatype#6                   Readable,Required
+    temperatureCelsius                 metatype#6                   Readable,Required
+    isNorthernHemisphere               metatype#1                   Readable,Required
+  -- methods (signalCount=1) --
+    SIGNAL  metatype#43 locationChanged_q()
+    SLOT    SW::CLocation location()
+    SLOT    metatype#43 setLocation(SW::CLocation location)
+
+======================================================================
+CLASS SW::ILocationSensor   (staticMetaObject @ 0x2d3088, rev 11)
+  -- properties --
+    active                             metatype#1                   Readable,Writable,Designable,Required
+    state                              SW::LocationSensorState_::E  Readable,EnumOrFlag,Required
+    reading                            metatype#41                  Readable,Required
+  -- methods (signalCount=1) --
+    SIGNAL  metatype#43 changed()
+
+======================================================================
+CLASS SW::IPerMountDataBasic   (staticMetaObject @ 0x2d29e8, rev 11)
+  -- properties --
+    speedFineAdjustmentFactor          metatype#6                   Readable,Writable,Required
+  -- methods (signalCount=1) --
+    SIGNAL  metatype#43 speedChanged()
+
+======================================================================
+CLASS SW::IPlatformUrl   (staticMetaObject @ 0x2d2048, rev 11)
+
+======================================================================
+CLASS SW::ISAM   (staticMetaObject @ 0x2ce130, rev 11)
+  -- properties --
+    lastPowerStatus                    metatype#41                  Readable,Required
+    deviceName                         metatype#10                  Readable,Required
+    isSAWifi                           metatype#1                   Readable,Required
+    hasPolarSightLight                 metatype#1                   Readable,Required
+    hasAutoShutdown                    metatype#1                   Readable,Required
+    hasDithering                       metatype#1                   Readable,Required
+    lastAxis1                          metatype#6                   Readable,Required
+    periodicPositionRead               metatype#1                   Readable,Required
+  -- methods (signalCount=2) --
+    SIGNAL  metatype#43 propertyChanged()
+    SIGNAL  metatype#43 positionChanged()
+    SLOT    QFuture<SW::CmdRet> readStatus()
+    SLOT    QFuture<SW::CmdRet> readPowerStatus()
+    SLOT    QFuture<SW::CmdRet> programManualMode()
+    SLOT    QFuture<SW::CmdRet> programAutoMode(SW::SAMParamSet params)
+    SLOT    QFuture<QVariantMap> readWifiSettings()
+    SLOT    QFuture<SW::CmdRet> writeWifiSettings(SW::WifiSettings settings)
+    SLOT    QFuture<QVariantMap> readWifiTimeoutSec()
+    SLOT    QFuture<SW::CmdRet> writeWifiTimeoutSec(metatype#3 powerOffSec)
+    SLOT    QFuture<SW::CmdRet> writePolarSightLightOn(metatype#1 isOn)
+    SLOT    QFuture<QVariantMap> readPolarSightLightTimeoutSec()
+    SLOT    QFuture<SW::CmdRet> writePolarSightLightTimeoutSec(metatype#3 powerOffSec)
+    SLOT    QFuture<QVariantMap> readPowerOnAutoPreviousTask()
+    SLOT    QFuture<SW::CmdRet> writePowerOnAutoPreviousTask(metatype#1 enabled)
+    SLOT    QFuture<QVariantMap> readAutoShutdownSec()
+    SLOT    QFuture<SW::CmdRet> writeAutoShutdownSec(metatype#3 powerOffSec)
+    SLOT    metatype#43 slewAxisAsync(metatype#6 speedRps)
+    SLOT    metatype#43 setPeriodicPositionRead(metatype#1 value)
+    SLOT    metatype#43 tareLastAxis1()
+
+======================================================================
+CLASS SW::ISAMConnector   (staticMetaObject @ 0x2cdf00, rev 11)
+  -- properties --
+    connected                          metatype#1                   Readable,Required
+    sam                                ISAM*                        Readable,EnumOrFlag,Required
+    isRunningTask                      metatype#41                  Readable,Required
+  -- methods (signalCount=2) --
+    SIGNAL  metatype#1 samChanged()
+    SIGNAL  metatype#43 samStatusChanged()
+    SLOT    metatype#43 interruptionDisconnect()
+
+======================================================================
+CLASS SW::ISAMSettings   (staticMetaObject @ 0x2ce188, rev 11)
+  -- properties --
+    wifiOffOnTaskStart                 metatype#1                   Readable,Writable,Designable,Required
+    wifiOffOnDisconnect                metatype#1                   Readable,Writable,Designable,Required
+  -- methods (signalCount=1) --
+    SIGNAL  metatype#43 valueChanged()
+
+======================================================================
+CLASS SW::ISAMSync   (staticMetaObject @ 0x2ce1d0, rev 11)
+  -- methods (signalCount=1) --
+    SIGNAL  metatype#43 propertyChanged()
+
+======================================================================
+CLASS SW::ISAMTaskState   (staticMetaObject @ 0x2ce238, rev 11)
+  -- properties --
+    status                             metatype#41                  Readable,Required
+    paramSet                           metatype#41                  Readable,Required
+    readParamSet                       metatype#41                  Readable,Required
+    isRunningTask                      metatype#41                  Readable,Required
+  -- methods (signalCount=1) --
+    SIGNAL  metatype#43 valueChanged()
+
+======================================================================
+CLASS SW::ITaskEstimator   (staticMetaObject @ 0x2ce348, rev 11)
+  -- methods (signalCount=0) --
+    SLOT    metatype#41 estimate_q()
+
+======================================================================
+CLASS SW::ITaskProfile   (staticMetaObject @ 0x2ce828, rev 11)
+  -- properties --
+    valid                              metatype#1                   Readable,Required
+    errorMessage                       metatype#11                  Readable,Required
+    paramSet                           metatype#41                  Readable,Required
+    name                               metatype#10                  Readable,Writable,Required
+  -- methods (signalCount=3) --
+    SIGNAL  metatype#1 validChanged()
+    SIGNAL  metatype#1 errorMessageChanged()
+    SIGNAL  metatype#1 nameChanged()
+    SLOT    metatype#43 updateWithParamSet(SW::SAMParamSet param)
+
+======================================================================
+CLASS SW::ITaskProfileList   (staticMetaObject @ 0x2ce8b0, rev 11)
+  -- properties --
+    list                               QList<QObject*>              Readable,Writable,EnumOrFlag,Designable,Required
+  -- methods (signalCount=1) --
+    SIGNAL  metatype#43 listChanged()
+    SLOT    ITaskProfile* load(metatype#2 index)
+    SLOT    metatype#43 save(ITaskProfile* profile)
+    SLOT    ITaskProfile* unnamedProfile_load()
+    SLOT    metatype#43 unnamedProfile_save(ITaskProfile* profile)
+
+======================================================================
+CLASS SW::ITaskProfile_AP   (staticMetaObject @ 0x2ce938, rev 11)
+  -- properties --
+    exposureSec                        metatype#6                   Readable,Writable,Required
+    photoIntervalSec                   metatype#6                   Readable,Writable,Required
+    photos                             metatype#2                   Readable,Writable,Required
+    trackingRateDegPerSec              metatype#6                   Readable,Writable,Required
+    ditheringRangeArcMin               metatype#6                   Readable,Writable,Required
+    input_photos                       metatype#1                   Readable,Writable,Required
+    input_ditheringRangeArcMin         metatype#1                   Readable,Writable,Required
+    totalTimeSec                       metatype#6                   Readable,Required
+  -- methods (signalCount=1) --
+    SIGNAL  metatype#43 valueChanged()
+
+======================================================================
+CLASS SW::ITaskProfile_ATL   (staticMetaObject @ 0x2ce9e0, rev 11)
+  -- properties --
+    exposureSec                        metatype#6                   Readable,Writable,Required
+    videoTimeSpanHour                  metatype#6                   Readable,Writable,Required
+    videoLengthSec                     metatype#6                   Readable,Writable,Required
+    frameRateFps                       metatype#2                   Readable,Writable,Required
+    photos                             metatype#2                   Readable,Writable,Required
+    trackingRateDegPerSec              metatype#6                   Readable,Writable,Required
+    input_videoTimeSpanHour            metatype#1                   Readable,Writable,Required
+    input_videoLengthSec               metatype#1                   Readable,Writable,Required
+    input_photos                       metatype#1                   Readable,Writable,Required
+    calc_videoTimeSpanHour             metatype#1                   Readable,Required
+    calc_videoLengthSec                metatype#1                   Readable,Required
+    calc_photos                        metatype#1                   Readable,Required
+  -- methods (signalCount=1) --
+    SIGNAL  metatype#43 valueChanged()
+
+======================================================================
+CLASS SW::ITaskProfile_RegLong   (staticMetaObject @ 0x2ceb00, rev 11)
+  -- properties --
+    exposureSec                        metatype#6                   Readable,Writable,Required
+    videoTimeSpanHour                  metatype#6                   Readable,Writable,Required
+    videoLengthSec                     metatype#6                   Readable,Writable,Required
+    frameRateFps                       metatype#2                   Readable,Writable,Required
+    photos                             metatype#2                   Readable,Writable,Required
+    framePeriodSec                     metatype#6                   Readable,Writable,Required
+    swingRangeDeg                      metatype#6                   Readable,Writable,Required
+    swingCount                         metatype#2                   Readable,Writable,Required
+    speedDph                           metatype#6                   Readable,Writable,Required
+    clockwise                          metatype#1                   Readable,Writable,Required
+    input_videoTimeSpanHour            metatype#1                   Readable,Writable,Required
+    input_videoLengthSec               metatype#1                   Readable,Writable,Required
+    input_photos                       metatype#1                   Readable,Writable,Required
+    input_framePeriodSec               metatype#1                   Readable,Writable,Required
+    input_swingRangeDeg                metatype#1                   Readable,Writable,Required
+    input_speedDph                     metatype#1                   Readable,Writable,Required
+    calc_exposureSec                   metatype#1                   Readable,Required
+    calc_videoTimeSpanHour             metatype#1                   Readable,Required
+    calc_videoLengthSec                metatype#1                   Readable,Required
+    calc_photos                        metatype#1                   Readable,Required
+    calc_framePeriodSec                metatype#1                   Readable,Required
+    calc_swingRangeDeg                 metatype#1                   Readable,Required
+    calc_speedDph                      metatype#1                   Readable,Required
+    block_input_swingRangeDeg          metatype#1                   Readable,Required
+    enable_swingCount                  metatype#1                   Readable,Required
+    invalidExposure                    metatype#1                   Readable,Required
+    invalidSpeed                       metatype#1                   Readable,Required
+  -- methods (signalCount=1) --
+    SIGNAL  metatype#43 valueChanged()
+
+======================================================================
+CLASS SW::LanguageManager   (staticMetaObject @ 0x2d7230, rev 11)
+  -- properties --
+    language                           metatype#10                  Readable,Writable,Designable,Required
+    availableLanguages                 QList<SW::LanguageManagerEntry> Readable,EnumOrFlag,Stored,Required
+    doubleLength                       metatype#1                   Readable,Writable,Designable,Required
+  -- methods (signalCount=1) --
+    SIGNAL  metatype#43 doubleLengthChanged()
+    SLOT    metatype#10 systemLanguage()
+
+======================================================================
+CLASS SW::LanguageManagerEntry   (staticMetaObject @ 0x2d71c8, rev 11)
+  -- properties --
+    languageCode                       metatype#10                  Readable,Stored,Required
+    nativeName                         metatype#10                  Readable,Stored,Required
+
+======================================================================
+CLASS SW::LocationSensorReading   (staticMetaObject @ 0x2d3018, rev 11)
+  -- properties --
+    longitudeRad                       metatype#6                   Readable,Writable,Required
+    latitudeRad                        metatype#6                   Readable,Writable,Required
+    altitudeMeter                      metatype#6                   Readable,Writable,Required
+
+======================================================================
+CLASS SW::LocationSensorState_   (staticMetaObject @ 0x2d30c8, rev 11)
+  classinfo: QML.Element = LocationSensorState
+  -- enums --
+    enum E flags=0x2
+        NoSensor                       = 0 (0x0)
+        NoPermission                   = 1 (0x1)
+        Waiting                        = 2 (0x2)
+        HasSignal                      = 3 (0x3)
+        NoSignalAlways                 = 4 (0x4)
+        NoSignalForNow                 = 5 (0x5)
+
+======================================================================
+CLASS SW::OpenLocationSetting   (staticMetaObject @ 0x2d2e10, rev 11)
+  -- properties --
+    isPermission                       metatype#1                   Readable,Stored,Required
+    enable                             metatype#1                   Readable,Stored,Required
+  -- methods (signalCount=0) --
+    SLOT    metatype#43 open()
+
+======================================================================
+CLASS SW::PlatformUrl   (staticMetaObject @ 0x2d2098, rev 11)
+  -- methods (signalCount=0) --
+    METHOD  metatype#43 dispatchUrl(metatype#17 url)
+
+======================================================================
+CLASS SW::PolarScopeInfo   (staticMetaObject @ 0x2d2100, rev 11)
+  -- properties --
+    north                              metatype#1                   Readable,Writable,Designable,Required
+    infoList                           QList<QVariantMap>           Readable,EnumOrFlag,Required
+  -- methods (signalCount=2) --
+    SIGNAL  metatype#43 northChanged()
+    SIGNAL  metatype#43 infoListChanged()
+    SLOT    metatype#43 update()
+
+======================================================================
+CLASS SW::PolarScopePaintedItem   (staticMetaObject @ 0x2d2150, rev 11)
+  -- properties --
+    north                              metatype#1                   Readable,Writable,Designable,Required
+  -- methods (signalCount=1) --
+    SIGNAL  metatype#43 northChanged()
+
+======================================================================
+CLASS SW::QAstroFormatSettings   (staticMetaObject @ 0x2d7290, rev 11)
+  -- properties --
+    morePrecision                      metatype#1                   Readable,Required
+  -- methods (signalCount=1) --
+    SIGNAL  metatype#43 valueChanged()
+    SLOT    metatype#43 setMorePrecision(metatype#1 value)
+
+======================================================================
+CLASS SW::QAstroRate   (staticMetaObject @ 0x2d27b8, rev 11)
+  -- methods (signalCount=0) --
+    SLOT    metatype#6 astroRateXToRps(metatype#8 arx_map)
+    SLOT    metatype#41 rpsToAstroRateX(metatype#6 rps)
+
+======================================================================
+CLASS SW::QSAMHelper   (staticMetaObject @ 0x2ce6e0, rev 11)
+  -- methods (signalCount=0) --
+    SLOT    SW::WifiSettings newWifiSettings()
+    SLOT    metatype#6 getSpeedLimitRps()
+
+======================================================================
+CLASS SW::QmlKVStore   (staticMetaObject @ 0x2d7390, rev 11)
+  -- methods (signalCount=0) --
+    SLOT    metatype#10 loadString(metatype#10 key, metatype#10 defaultVal)
+    SLOT    metatype#1 loadBool(metatype#10 key, metatype#1 defaultVal)
+    SLOT    metatype#2 loadInt(metatype#10 key, metatype#2 defaultVal)
+    SLOT    metatype#6 loadDouble(metatype#10 key, metatype#6 defaultVal)
+    SLOT    metatype#43 saveString(metatype#10 key, metatype#10 val)
+    SLOT    metatype#43 saveBool(metatype#10 key, metatype#1 val)
+    SLOT    metatype#43 saveInt(metatype#10 key, metatype#2 val)
+    SLOT    metatype#43 saveDouble(metatype#10 key, metatype#6 val)
+
+======================================================================
+CLASS SW::QtAndroidHome   (staticMetaObject @ 0x2d73d8, rev 11)
+  -- methods (signalCount=0) --
+    SLOT    metatype#43 showHome()
+
+======================================================================
+CLASS SW::QtLocationSensor::D   (staticMetaObject @ 0x2d50c0, rev 11)
+  -- methods (signalCount=0) --
+    SLOT    metatype#43 error(QGeoPositionInfoSource::Error positioningError)
+    SLOT    metatype#43 positionUpdated(QGeoPositionInfo update)
+
+======================================================================
+CLASS SW::QtLocationSensor   (staticMetaObject @ 0x2d3108, rev 11)
+
+======================================================================
+CLASS SW::SAM   (staticMetaObject @ 0x2ce450, rev 11)
+  -- methods (signalCount=0) --
+    SLOT    QFuture<SW::CmdRet> readStatus()
+    SLOT    QFuture<SW::CmdRet> readPowerStatus()
+    SLOT    QFuture<SW::CmdRet> programManualMode()
+    SLOT    QFuture<SW::CmdRet> programAutoMode(SW::SAMParamSet params)
+    SLOT    QFuture<QVariantMap> readWifiSettings()
+    SLOT    QFuture<SW::CmdRet> writeWifiSettings(SW::WifiSettings settings)
+    SLOT    QFuture<QVariantMap> readWifiTimeoutSec()
+    SLOT    QFuture<SW::CmdRet> writeWifiTimeoutSec(metatype#3 powerOffSec)
+    SLOT    QFuture<SW::CmdRet> writePolarSightLightOn(metatype#1 isOn)
+    SLOT    QFuture<QVariantMap> readPolarSightLightTimeoutSec()
+    SLOT    QFuture<SW::CmdRet> writePolarSightLightTimeoutSec(metatype#3 powerOffSec)
+    SLOT    QFuture<QVariantMap> readPowerOnAutoPreviousTask()
+    SLOT    QFuture<SW::CmdRet> writePowerOnAutoPreviousTask(metatype#1 enabled)
+    SLOT    QFuture<QVariantMap> readAutoShutdownSec()
+    SLOT    QFuture<SW::CmdRet> writeAutoShutdownSec(metatype#3 powerOffSec)
+    SLOT    metatype#43 slewAxisAsync(metatype#6 speedRps)
+    SLOT    metatype#43 tareLastAxis1()
+
+======================================================================
+CLASS SW::SAMConnectable   (staticMetaObject @ 0x2cdf80, rev 11)
+  -- methods (signalCount=0) --
+    METHOD  metatype#43 helperDeviceSetupFinished(SwConverserEtal etal)
+    METHOD  metatype#43 samDisconnectFinished()
+    SLOT    metatype#43 startSession()
+    SLOT    metatype#43 startNextAction()
+    SLOT    metatype#43 selectDevice(metatype#2 deviceIndex)
+    SLOT    metatype#43 cancelSession()
+
+======================================================================
+CLASS SW::SAMConnector   (staticMetaObject @ 0x2cdfc8, rev 11)
+  -- methods (signalCount=0) --
+    SLOT    metatype#43 interruptionDisconnect()
+
+======================================================================
+CLASS SW::SAMMode_   (staticMetaObject @ 0x2ce720, rev 11)
+  classinfo: QML.Element = SAMMode
+  -- enums --
+    enum E flags=0x2
+        Manual                         = 0 (0x0)
+        AP                             = 1 (0x1)
+        Reg                            = 2 (0x2)
+        Long                           = 3 (0x3)
+        ATL                            = 4 (0x4)
+
+======================================================================
+CLASS SW::SAMParamSet   (staticMetaObject @ 0x2ce5f8, rev 11)
+  -- properties --
+    N_Cycles                           metatype#2                   Readable,Writable,Required
+
+======================================================================
+CLASS SW::SAMPowerStatus   (staticMetaObject @ 0x2ce5b0, rev 11)
+  -- properties --
+    batteryVolt                        metatype#6                   Readable,Writable,Required
+    usbVolt                            metatype#6                   Readable,Writable,Required
+
+======================================================================
+CLASS SW::SAMStatus   (staticMetaObject @ 0x2ce560, rev 11)
+  -- properties --
+    updateTimeUnixMs                   int64_t                      Readable,Writable,EnumOrFlag,Required
+    updateTime                         metatype#16                  Readable,Required
+    mode                               SW::SAMMode_::E              Readable,Writable,EnumOrFlag,Required
+    numberOfPictureTaken               metatype#2                   Readable,Writable,Required
+    maxPosErrReached                   metatype#1                   Readable,Writable,Required
+    trackingOutOfAccuracy              metatype#1                   Readable,Writable,Required
+    longExposureTimelapseStatus        metatype#2                   Readable,Writable,Required
+    longExposureTimelapseErr10ms       metatype#2                   Readable,Writable,Required
+
+======================================================================
+CLASS SW::SAMSync   (staticMetaObject @ 0x2ce490, rev 11)
+
+======================================================================
+CLASS SW::SAMTaskState   (staticMetaObject @ 0x2ce4d0, rev 11)
+
+======================================================================
+CLASS SW::SSLogQSignalLogSink   (staticMetaObject @ 0x2d3158, rev 11)
+  -- methods (signalCount=1) --
+    SIGNAL  metatype#43 writeSignal(metatype#10 messageLoc)
+
+======================================================================
+CLASS SW::TaskEstimator   (staticMetaObject @ 0x2ce7a0, rev 11)
+
+======================================================================
+CLASS SW::TaskProfileList   (staticMetaObject @ 0x2ceb78, rev 11)
+  -- methods (signalCount=0) --
+    SLOT    ITaskProfile* load(metatype#2 index)
+    SLOT    metatype#43 save(ITaskProfile* profile)
+    SLOT    ITaskProfile* unnamedProfile_load()
+    SLOT    metatype#43 unnamedProfile_save(ITaskProfile* profile)
+
+======================================================================
+CLASS SW::TaskProfile_AP   (staticMetaObject @ 0x2cebb8, rev 11)
+
+======================================================================
+CLASS SW::TaskProfile_ATL   (staticMetaObject @ 0x2cebf8, rev 11)
+
+======================================================================
+CLASS SW::TaskProfile_RegLong   (staticMetaObject @ 0x2cec38, rev 11)
+
+======================================================================
+CLASS SW::TaskProgressInfo   (staticMetaObject @ 0x2ce300, rev 11)
+  -- properties --
+    in_EstimateTimeUnixMs              int64_t                      Readable,Writable,EnumOrFlag,Required
+    in_StartTimeUnixMs                 int64_t                      Readable,Writable,EnumOrFlag,Required
+    in_AdjustedStartTime               metatype#1                   Readable,Writable,Required
+    in_N_Cycles                        metatype#2                   Readable,Writable,Required
+    in_T_Cycle                         metatype#6                   Readable,Writable,Required
+    in_TakenPhotos                     metatype#2                   Readable,Writable,Required
+    noEnd                              metatype#1                   Readable,Writable,Required
+    finished                           metatype#1                   Readable,Writable,Required
+    confirmedFinish                    metatype#1                   Readable,Writable,Required
+    elapsedClippedSec                  metatype#6                   Readable,Writable,Required
+    takenPhotos                        metatype#2                   Readable,Writable,Required
+    percentTotal                       metatype#6                   Readable,Writable,Required
+    percentCycle                       metatype#6                   Readable,Writable,Required
+    t_Total                            metatype#6                   Readable,Required
+    t_Remain                           metatype#6                   Readable,Required
+    progress                           metatype#6                   Readable,Required
+    endTimeUnixMs                      int64_t                      Readable,EnumOrFlag,Required
+
+======================================================================
+CLASS SW::ToastManagerUIStub   (staticMetaObject @ 0x2d7428, rev 11)
+  -- methods (signalCount=1) --
+    SIGNAL  metatype#43 shouldToast(metatype#10 textLoc)
+
+======================================================================
+CLASS SW::WifiMode_   (staticMetaObject @ 0x2d2a28, rev 11)
+  classinfo: QML.Element = WifiMode
+  -- enums --
+    enum E flags=0x2
+        STA                            = 1 (0x1)
+        AP                             = 2 (0x2)
+        Both                           = 3 (0x3)
+
+======================================================================
+CLASS SW::WifiSec_   (staticMetaObject @ 0x2d2a68, rev 11)
+  classinfo: QML.Element = WifiSec
+  -- enums --
+    enum E flags=0x2
+        Open                           = 0 (0x0)
+        WPA_PSK                        = 2 (0x2)
+        WPA2_PSK                       = 3 (0x3)
+        WPA_WPA2_PSK                   = 4 (0x4)
+
+======================================================================
+CLASS SW::WifiSettings   (staticMetaObject @ 0x2ce690, rev 11)
+  -- properties --
+    mode                               SW::WifiMode_::E             Readable,Writable,EnumOrFlag,Required
+    AP_SSID                            metatype#10                  Readable,Writable,Required
+    AP_pass                            metatype#10                  Readable,Writable,Required
+    STA_SSID                           metatype#10                  Readable,Writable,Required
+    STA_pass                           metatype#10                  Readable,Writable,Required
+    STA_fixedIP                        metatype#10                  Readable,Writable,Required
+    AP_SEC                             SW::WifiSec_::E              Readable,Writable,EnumOrFlag,Required
+    STA_useDHCP                        metatype#1                   Readable,Stored,Required
+
+======================================================================
+CLASS SW::WifiSettingsLimit_   (staticMetaObject @ 0x2ce760, rev 11)
+  classinfo: QML.Element = WifiSettingsLimit
+  -- enums --
+    enum E flags=0x2
+        AP_SSID_MaxLen                 = 32 (0x20)
+        AP_pass_MaxLen                 = 63 (0x3f)
+        STA_SSID_MaxLen                = 32 (0x20)
+        STA_pass_MaxLen                = 63 (0x3f)
+        STA_fixedIP_MaxLen             = 15 (0xf)
+
+======================================================================
+CLASS SW::WindowRect   (staticMetaObject @ 0x2d7488, rev 11)
+  -- methods (signalCount=0) --
+    SLOT    metatype#20 loadRect(metatype#20 defVal)
+    SLOT    metatype#43 saveRect(metatype#20 val)
+
+======================================================================
+CLASS SamPlugin   (staticMetaObject @ 0x2d1ef8, rev 11)
+
+======================================================================
+CLASS SwAstroBasePlugin   (staticMetaObject @ 0x2d5898, rev 11)
+
+======================================================================
+CLASS SwQtCommonBasePlugin   (staticMetaObject @ 0x2d6fd8, rev 11)
+
+======================================================================
+CLASS SwQtCommonPlugin   (staticMetaObject @ 0x2d6ee0, rev 11)
+

@@ -1,0 +1,166 @@
+0000000000226284 <SW::CmdRet::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)>:
+  226284: 7100043f     	cmp	w1, #0x1
+  226288: 540000a1     	b.ne	0x22629c <SW::CmdRet::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x18>
+  22628c: 35000082     	cbnz	w2, 0x22629c <SW::CmdRet::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x18>
+  226290: f9400068     	ldr	x8, [x3]
+  226294: b9400009     	ldr	w9, [x0]
+  226298: b9000109     	str	w9, [x8]
+  22629c: d65f03c0     	ret
+
+0000000000231de8 <SW::CmdRetTypeString(SW::CmdRetType_::E)>:
+  231de8: d10183ff     	sub	sp, sp, #0x60
+  231dec: a9047bfd     	stp	x29, x30, [sp, #0x40]
+  231df0: a9054ff4     	stp	x20, x19, [sp, #0x50]
+  231df4: 910103fd     	add	x29, sp, #0x40
+  231df8: d53bd054     	mrs	x20, TPIDR_EL0
+  231dfc: aa0803f3     	mov	x19, x8
+  231e00: f9401688     	ldr	x8, [x20, #0x28]
+  231e04: 7100041f     	cmp	w0, #0x1
+  231e08: f81f83a8     	stur	x8, [x29, #-0x8]
+  231e0c: 5400028d     	b.le	0x231e5c <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x74>
+  231e10: 7100081f     	cmp	w0, #0x2
+  231e14: 54000440     	b.eq	0x231e9c <SW::CmdRetTypeString(SW::CmdRetType_::E)+0xb4>
+  231e18: 71000c1f     	cmp	w0, #0x3
+  231e1c: 540005e1     	b.ne	0x231ed8 <SW::CmdRetTypeString(SW::CmdRetType_::E)+0xf0>
+  231e20: f0fff4c0     	adrp	x0, 0xcc000 <vsnprintf+0xcc000>
+  231e24: 91354000     	add	x0, x0, #0xd50
+  231e28: d0fff4c1     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  231e2c: 91315c21     	add	x1, x1, #0xc57
+  231e30: 910023e8     	add	x8, sp, #0x8
+  231e34: aa1f03e2     	mov	x2, xzr
+  231e38: 12800003     	mov	w3, #-0x1               // =-1
+  231e3c: 940243f1     	bl	0x2c2e00 <_ZN16QCoreApplication9translateEPKcS1_S1_i@plt>  ;;; CALL QCoreApplication::translate(char const*, char const*, char const*, int)  [x3=-1(0xffffffff)]
+  231e40: 910083e8     	add	x8, sp, #0x20
+  231e44: 910023e0     	add	x0, sp, #0x8
+  231e48: 94023fbe     	bl	0x2c1d40 <_ZN7QString13toUtf8_helperERKS_@plt>  ;;; CALL QString::toUtf8_helper(QString const&)
+  231e4c: 910083e0     	add	x0, sp, #0x20
+  231e50: aa1303e8     	mov	x8, x19
+  231e54: 940240a3     	bl	0x2c20e0 <_ZNK10QByteArray11toStdStringEv@plt>  ;;; CALL QByteArray::toStdString() const
+  231e58: 1400003d     	b	0x231f4c <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x164>
+  231e5c: 350005c0     	cbnz	w0, 0x231f14 <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x12c>
+  231e60: f0fff4c0     	adrp	x0, 0xcc000 <vsnprintf+0xcc000>
+  231e64: 91354000     	add	x0, x0, #0xd50
+  231e68: f0fff4c1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  231e6c: 91304021     	add	x1, x1, #0xc10
+  231e70: 910023e8     	add	x8, sp, #0x8
+  231e74: aa1f03e2     	mov	x2, xzr
+  231e78: 12800003     	mov	w3, #-0x1               // =-1
+  231e7c: 940243e1     	bl	0x2c2e00 <_ZN16QCoreApplication9translateEPKcS1_S1_i@plt>  ;;; CALL QCoreApplication::translate(char const*, char const*, char const*, int)  [x3=-1(0xffffffff)]
+  231e80: 910083e8     	add	x8, sp, #0x20
+  231e84: 910023e0     	add	x0, sp, #0x8
+  231e88: 94023fae     	bl	0x2c1d40 <_ZN7QString13toUtf8_helperERKS_@plt>  ;;; CALL QString::toUtf8_helper(QString const&)
+  231e8c: 910083e0     	add	x0, sp, #0x20
+  231e90: aa1303e8     	mov	x8, x19
+  231e94: 94024093     	bl	0x2c20e0 <_ZNK10QByteArray11toStdStringEv@plt>  ;;; CALL QByteArray::toStdString() const
+  231e98: 1400002d     	b	0x231f4c <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x164>
+  231e9c: f0fff4c0     	adrp	x0, 0xcc000 <vsnprintf+0xcc000>
+  231ea0: 91354000     	add	x0, x0, #0xd50
+  231ea4: f0fff4c1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  231ea8: 9138f821     	add	x1, x1, #0xe3e
+  231eac: 910023e8     	add	x8, sp, #0x8
+  231eb0: aa1f03e2     	mov	x2, xzr
+  231eb4: 12800003     	mov	w3, #-0x1               // =-1
+  231eb8: 940243d2     	bl	0x2c2e00 <_ZN16QCoreApplication9translateEPKcS1_S1_i@plt>  ;;; CALL QCoreApplication::translate(char const*, char const*, char const*, int)  [x3=-1(0xffffffff)]
+  231ebc: 910083e8     	add	x8, sp, #0x20
+  231ec0: 910023e0     	add	x0, sp, #0x8
+  231ec4: 94023f9f     	bl	0x2c1d40 <_ZN7QString13toUtf8_helperERKS_@plt>  ;;; CALL QString::toUtf8_helper(QString const&)
+  231ec8: 910083e0     	add	x0, sp, #0x20
+  231ecc: aa1303e8     	mov	x8, x19
+  231ed0: 94024084     	bl	0x2c20e0 <_ZNK10QByteArray11toStdStringEv@plt>  ;;; CALL QByteArray::toStdString() const
+  231ed4: 1400001e     	b	0x231f4c <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x164>
+  231ed8: f0fff4c0     	adrp	x0, 0xcc000 <vsnprintf+0xcc000>
+  231edc: 91354000     	add	x0, x0, #0xd50
+  231ee0: d0fff4c1     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  231ee4: 91203c21     	add	x1, x1, #0x80f
+  231ee8: 910023e8     	add	x8, sp, #0x8
+  231eec: aa1f03e2     	mov	x2, xzr
+  231ef0: 12800003     	mov	w3, #-0x1               // =-1
+  231ef4: 940243c3     	bl	0x2c2e00 <_ZN16QCoreApplication9translateEPKcS1_S1_i@plt>  ;;; CALL QCoreApplication::translate(char const*, char const*, char const*, int)  [x3=-1(0xffffffff)]
+  231ef8: 910083e8     	add	x8, sp, #0x20
+  231efc: 910023e0     	add	x0, sp, #0x8
+  231f00: 94023f90     	bl	0x2c1d40 <_ZN7QString13toUtf8_helperERKS_@plt>  ;;; CALL QString::toUtf8_helper(QString const&)
+  231f04: 910083e0     	add	x0, sp, #0x20
+  231f08: aa1303e8     	mov	x8, x19
+  231f0c: 94024075     	bl	0x2c20e0 <_ZNK10QByteArray11toStdStringEv@plt>  ;;; CALL QByteArray::toStdString() const
+  231f10: 1400000f     	b	0x231f4c <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x164>
+  231f14: f0fff4c0     	adrp	x0, 0xcc000 <vsnprintf+0xcc000>
+  231f18: 91354000     	add	x0, x0, #0xd50
+  231f1c: f0fff4c1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  231f20: 913e5421     	add	x1, x1, #0xf95
+  231f24: 910023e8     	add	x8, sp, #0x8
+  231f28: aa1f03e2     	mov	x2, xzr
+  231f2c: 12800003     	mov	w3, #-0x1               // =-1
+  231f30: 940243b4     	bl	0x2c2e00 <_ZN16QCoreApplication9translateEPKcS1_S1_i@plt>  ;;; CALL QCoreApplication::translate(char const*, char const*, char const*, int)  [x3=-1(0xffffffff)]
+  231f34: 910083e8     	add	x8, sp, #0x20
+  231f38: 910023e0     	add	x0, sp, #0x8
+  231f3c: 94023f81     	bl	0x2c1d40 <_ZN7QString13toUtf8_helperERKS_@plt>  ;;; CALL QString::toUtf8_helper(QString const&)
+  231f40: 910083e0     	add	x0, sp, #0x20
+  231f44: aa1303e8     	mov	x8, x19
+  231f48: 94024066     	bl	0x2c20e0 <_ZNK10QByteArray11toStdStringEv@plt>  ;;; CALL QByteArray::toStdString() const
+  231f4c: f94013e1     	ldr	x1, [sp, #0x20]
+  231f50: b4000121     	cbz	x1, 0x231f74 <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x18c>
+  231f54: 12800000     	mov	w0, #-0x1               // =-1
+  231f58: 94022cda     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  231f5c: 7100041f     	cmp	w0, #0x1
+  231f60: 540000a1     	b.ne	0x231f74 <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x18c>
+  231f64: f94013e0     	ldr	x0, [sp, #0x20]
+  231f68: 52800021     	mov	w1, #0x1                // =1
+  231f6c: 52800102     	mov	w2, #0x8                // =8
+  231f70: 94023c5c     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=1(0x1), x2=8(0x8)]
+  231f74: f94007e1     	ldr	x1, [sp, #0x8]
+  231f78: b4000121     	cbz	x1, 0x231f9c <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x1b4>
+  231f7c: 12800000     	mov	w0, #-0x1               // =-1
+  231f80: 94022cd0     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  231f84: 7100041f     	cmp	w0, #0x1
+  231f88: 540000a1     	b.ne	0x231f9c <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x1b4>
+  231f8c: f94007e0     	ldr	x0, [sp, #0x8]
+  231f90: 52800041     	mov	w1, #0x2                // =2
+  231f94: 52800102     	mov	w2, #0x8                // =8
+  231f98: 94023c52     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  231f9c: f9401688     	ldr	x8, [x20, #0x28]
+  231fa0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  231fa4: eb09011f     	cmp	x8, x9
+  231fa8: 54000541     	b.ne	0x232050 <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x268>
+  231fac: a9454ff4     	ldp	x20, x19, [sp, #0x50]
+  231fb0: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+  231fb4: 910183ff     	add	sp, sp, #0x60
+  231fb8: d65f03c0     	ret
+  231fbc: 14000004     	b	0x231fcc <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x1e4>
+  231fc0: 14000003     	b	0x231fcc <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x1e4>
+  231fc4: 14000002     	b	0x231fcc <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x1e4>
+  231fc8: 14000001     	b	0x231fcc <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x1e4>
+  231fcc: f94013e1     	ldr	x1, [sp, #0x20]
+  231fd0: aa0003f3     	mov	x19, x0
+  231fd4: b40001e1     	cbz	x1, 0x232010 <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x228>
+  231fd8: 12800000     	mov	w0, #-0x1               // =-1
+  231fdc: 94022cb9     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  231fe0: 7100041f     	cmp	w0, #0x1
+  231fe4: 54000161     	b.ne	0x232010 <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x228>
+  231fe8: f94013e0     	ldr	x0, [sp, #0x20]
+  231fec: 52800021     	mov	w1, #0x1                // =1
+  231ff0: 52800102     	mov	w2, #0x8                // =8
+  231ff4: 94023c3b     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=1(0x1), x2=8(0x8)]
+  231ff8: 14000006     	b	0x232010 <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x228>
+  231ffc: 14000004     	b	0x23200c <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x224>
+  232000: 14000003     	b	0x23200c <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x224>
+  232004: 14000002     	b	0x23200c <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x224>
+  232008: 14000001     	b	0x23200c <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x224>
+  23200c: aa0003f3     	mov	x19, x0
+  232010: f94007e1     	ldr	x1, [sp, #0x8]
+  232014: b4000121     	cbz	x1, 0x232038 <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x250>
+  232018: 12800000     	mov	w0, #-0x1               // =-1
+  23201c: 94022ca9     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  232020: 7100041f     	cmp	w0, #0x1
+  232024: 540000a1     	b.ne	0x232038 <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x250>
+  232028: f94007e0     	ldr	x0, [sp, #0x8]
+  23202c: 52800041     	mov	w1, #0x2                // =2
+  232030: 52800102     	mov	w2, #0x8                // =8
+  232034: 94023c2b     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  232038: f9401688     	ldr	x8, [x20, #0x28]
+  23203c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  232040: eb09011f     	cmp	x8, x9
+  232044: 54000061     	b.ne	0x232050 <SW::CmdRetTypeString(SW::CmdRetType_::E)+0x268>
+  232048: aa1303e0     	mov	x0, x19
+  23204c: 94022d0e     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  232050: 94023c58     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+

@@ -1,0 +1,441 @@
+00000000002583f0 <SW::UnixUDP::Close()>:
+  2583f0: 39419008     	ldrb	w8, [x0, #0x64]
+  2583f4: 34000188     	cbz	w8, 0x258424 <SW::UnixUDP::Close()+0x34>
+  2583f8: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  2583fc: f9000bf3     	str	x19, [sp, #0x10]
+  258400: 910003fd     	mov	x29, sp
+  258404: b9406008     	ldr	w8, [x0, #0x60]
+  258408: 3901701f     	strb	wzr, [x0, #0x5c]
+  25840c: aa0003f3     	mov	x19, x0
+  258410: 2a0803e0     	mov	w0, w8
+  258414: 9401b547     	bl	0x2c5930 <close@plt>  ;;; CALL close
+  258418: 3901927f     	strb	wzr, [x19, #0x64]
+  25841c: f9400bf3     	ldr	x19, [sp, #0x10]
+  258420: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  258424: d65f03c0     	ret
+
+000000000025844c <SW::UnixUDP::valid()>:
+  25844c: 39419000     	ldrb	w0, [x0, #0x64]
+  258450: d65f03c0     	ret
+
+0000000000258454 <SW::UnixUDP::write(SW::CBytes const&)>:
+  258454: d10143ff     	sub	sp, sp, #0x50
+  258458: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  25845c: f9001bf5     	str	x21, [sp, #0x30]
+  258460: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  258464: 910083fd     	add	x29, sp, #0x20
+  258468: d53bd054     	mrs	x20, TPIDR_EL0
+  25846c: 52800049     	mov	w9, #0x2                // =2
+  258470: f9401688     	ldr	x8, [x20, #0x28]
+  258474: f81f83a8     	stur	x8, [x29, #-0x8]
+  258478: 7940a008     	ldrh	w8, [x0, #0x50]
+  25847c: 3941700a     	ldrb	w10, [x0, #0x5c]
+  258480: f9000bff     	str	xzr, [sp, #0x10]
+  258484: 790013e9     	strh	w9, [sp, #0x8]
+  258488: 5ac00908     	rev	w8, w8
+  25848c: 53107d08     	lsr	w8, w8, #16
+  258490: 790017e8     	strh	w8, [sp, #0xa]
+  258494: 3600044a     	tbz	w10, #0x0, 0x25851c <SW::UnixUDP::write(SW::CBytes const&)+0xc8>
+  258498: b9405808     	ldr	w8, [x0, #0x58]
+  25849c: 39419009     	ldrb	w9, [x0, #0x64]
+  2584a0: 5ac00908     	rev	w8, w8
+  2584a4: b9000fe8     	str	w8, [sp, #0xc]
+  2584a8: 36000489     	tbz	w9, #0x0, 0x258538 <SW::UnixUDP::write(SW::CBytes const&)+0xe4>
+  2584ac: a9402029     	ldp	x9, x8, [x1]
+  2584b0: 910023e4     	add	x4, sp, #0x8
+  2584b4: b9406000     	ldr	w0, [x0, #0x60]
+  2584b8: 2a1f03e3     	mov	w3, wzr
+  2584bc: 52800205     	mov	w5, #0x10               // =16
+  2584c0: eb090102     	subs	x2, x8, x9
+  2584c4: 9a8903e1     	csel	x1, xzr, x9, eq
+  2584c8: 9401b522     	bl	0x2c5950 <sendto@plt>  ;;; CALL sendto
+  2584cc: aa0003f3     	mov	x19, x0
+  2584d0: b6f80100     	tbz	x0, #0x3f, 0x2584f0 <SW::UnixUDP::write(SW::CBytes const&)+0x9c>
+  2584d4: 9401b523     	bl	0x2c5960 <__errno@plt>  ;;; CALL __errno
+  2584d8: b9400000     	ldr	w0, [x0]
+  2584dc: 9401b525     	bl	0x2c5970 <strerror@plt>  ;;; CALL strerror
+  2584e0: aa0003e1     	mov	x1, x0
+  2584e4: b0fff3a0     	adrp	x0, 0xcd000 <vsnprintf+0xcd000>
+  2584e8: 91128800     	add	x0, x0, #0x4a2
+  2584ec: 9401b1bd     	bl	0x2c4be0 <SSLog@plt>  ;;; CALL SSLog
+  2584f0: f9401688     	ldr	x8, [x20, #0x28]
+  2584f4: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2584f8: f100027f     	cmp	x19, #0x0
+  2584fc: 1a9fd7e0     	cset	w0, gt
+  258500: eb09011f     	cmp	x8, x9
+  258504: 540004e1     	b.ne	0x2585a0 <SW::UnixUDP::write(SW::CBytes const&)+0x14c>
+  258508: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  25850c: f9401bf5     	ldr	x21, [sp, #0x30]
+  258510: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  258514: 910143ff     	add	sp, sp, #0x50
+  258518: d65f03c0     	ret
+  25851c: 52800200     	mov	w0, #0x10               // =16
+  258520: 9401a424     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  258524: aa0003f3     	mov	x19, x0
+  258528: 90fff3a1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  25852c: 910f4421     	add	x1, x1, #0x3d1
+  258530: 9401aabc     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  258534: 14000007     	b	0x258550 <SW::UnixUDP::write(SW::CBytes const&)+0xfc>
+  258538: 52800200     	mov	w0, #0x10               // =16
+  25853c: 9401a41d     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  258540: aa0003f3     	mov	x19, x0
+  258544: 90fff3a1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  258548: 910f4421     	add	x1, x1, #0x3d1
+  25854c: 9401aab5     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  258550: f9401688     	ldr	x8, [x20, #0x28]
+  258554: f85f83a9     	ldur	x9, [x29, #-0x8]
+  258558: eb09011f     	cmp	x8, x9
+  25855c: 54000221     	b.ne	0x2585a0 <SW::UnixUDP::write(SW::CBytes const&)+0x14c>
+  258560: b0000401     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  258564: b0000402     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  258568: aa1303e0     	mov	x0, x19
+  25856c: f9409c21     	ldr	x1, [x1, #0x138]
+  258570: f940a042     	ldr	x2, [x2, #0x140]
+  258574: 9401a417     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  258578: 14000001     	b	0x25857c <SW::UnixUDP::write(SW::CBytes const&)+0x128>
+  25857c: f9401688     	ldr	x8, [x20, #0x28]
+  258580: f85f83a9     	ldur	x9, [x29, #-0x8]
+  258584: aa0003f5     	mov	x21, x0
+  258588: eb09011f     	cmp	x8, x9
+  25858c: 540000a1     	b.ne	0x2585a0 <SW::UnixUDP::write(SW::CBytes const&)+0x14c>
+  258590: aa1303e0     	mov	x0, x19
+  258594: 9401a6fb     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  258598: aa1503e0     	mov	x0, x21
+  25859c: 940193ba     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  2585a0: 9401a304     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000002585a4 <SW::UnixUDP::read()>:
+  2585a4: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  2585a8: f9000bfc     	str	x28, [sp, #0x10]
+  2585ac: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  2585b0: 910003fd     	mov	x29, sp
+  2585b4: d117c3ff     	sub	sp, sp, #0x5f0
+  2585b8: d53bd054     	mrs	x20, TPIDR_EL0
+  2585bc: f9401689     	ldr	x9, [x20, #0x28]
+  2585c0: f81f83a9     	stur	x9, [x29, #-0x8]
+  2585c4: 39419009     	ldrb	w9, [x0, #0x64]
+  2585c8: 360002c9     	tbz	w9, #0x0, 0x258620 <SW::UnixUDP::read()+0x7c>
+  2585cc: b9406000     	ldr	w0, [x0, #0x60]
+  2585d0: 910033e1     	add	x1, sp, #0xc
+  2585d4: 5280bb82     	mov	w2, #0x5dc              // =1500
+  2585d8: 2a1f03e3     	mov	w3, wzr
+  2585dc: aa1f03e4     	mov	x4, xzr
+  2585e0: aa1f03e5     	mov	x5, xzr
+  2585e4: aa0803f3     	mov	x19, x8
+  2585e8: 9401b4e6     	bl	0x2c5980 <recvfrom@plt>  ;;; CALL recvfrom  [x2=1500(0x5dc)]
+  2585ec: 8aa0fc02     	bic	x2, x0, x0, asr #63
+  2585f0: 910033e1     	add	x1, sp, #0xc
+  2585f4: aa1303e0     	mov	x0, x19
+  2585f8: 9401b22a     	bl	0x2c4ea0 <_ZN2SW6CBytesC1EPKcm@plt>  ;;; CALL SW::CBytes::CBytes(char const*, unsigned long)
+  2585fc: f9401688     	ldr	x8, [x20, #0x28]
+  258600: f85f83a9     	ldur	x9, [x29, #-0x8]
+  258604: eb09011f     	cmp	x8, x9
+  258608: 540003e1     	b.ne	0x258684 <SW::UnixUDP::read()+0xe0>
+  25860c: 9117c3ff     	add	sp, sp, #0x5f0
+  258610: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  258614: f9400bfc     	ldr	x28, [sp, #0x10]
+  258618: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  25861c: d65f03c0     	ret
+  258620: 52800200     	mov	w0, #0x10               // =16
+  258624: 9401a3e3     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  258628: aa0003f3     	mov	x19, x0
+  25862c: 90fff3a1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  258630: 910f4421     	add	x1, x1, #0x3d1
+  258634: 9401aa7b     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  258638: f9401688     	ldr	x8, [x20, #0x28]
+  25863c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  258640: eb09011f     	cmp	x8, x9
+  258644: 54000201     	b.ne	0x258684 <SW::UnixUDP::read()+0xe0>
+  258648: b0000401     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  25864c: b0000402     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  258650: aa1303e0     	mov	x0, x19
+  258654: f9409c21     	ldr	x1, [x1, #0x138]
+  258658: f940a042     	ldr	x2, [x2, #0x140]
+  25865c: 9401a3dd     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  258660: f9401688     	ldr	x8, [x20, #0x28]
+  258664: f85f83a9     	ldur	x9, [x29, #-0x8]
+  258668: eb09011f     	cmp	x8, x9
+  25866c: 540000c1     	b.ne	0x258684 <SW::UnixUDP::read()+0xe0>
+  258670: aa0003f4     	mov	x20, x0
+  258674: aa1303e0     	mov	x0, x19
+  258678: 9401a6c2     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  25867c: aa1403e0     	mov	x0, x20
+  258680: 94019381     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  258684: 9401a2cb     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000258688 <SW::UnixUDP::clearReadBuffer()>:
+  258688: d10103ff     	sub	sp, sp, #0x40
+  25868c: a9017bfd     	stp	x29, x30, [sp, #0x10]
+  258690: f90013f5     	str	x21, [sp, #0x20]
+  258694: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  258698: 910043fd     	add	x29, sp, #0x10
+  25869c: d53bd054     	mrs	x20, TPIDR_EL0
+  2586a0: f9401688     	ldr	x8, [x20, #0x28]
+  2586a4: f90007e8     	str	x8, [sp, #0x8]
+  2586a8: 39419008     	ldrb	w8, [x0, #0x64]
+  2586ac: 340002c8     	cbz	w8, 0x258704 <SW::UnixUDP::clearReadBuffer()+0x7c>
+  2586b0: aa0003f3     	mov	x19, x0
+  2586b4: b9406260     	ldr	w0, [x19, #0x60]
+  2586b8: 91001fe1     	add	x1, sp, #0x7
+  2586bc: 52800022     	mov	w2, #0x1                // =1
+  2586c0: 52800843     	mov	w3, #0x42               // =66
+  2586c4: aa1f03e4     	mov	x4, xzr
+  2586c8: aa1f03e5     	mov	x5, xzr
+  2586cc: 9401b4ad     	bl	0x2c5980 <recvfrom@plt>  ;;; CALL recvfrom  [x2=1(0x1), x3=66(0x42)]
+  2586d0: f100041f     	cmp	x0, #0x1
+  2586d4: 54000261     	b.ne	0x258720 <SW::UnixUDP::clearReadBuffer()+0x98>
+  2586d8: 39419268     	ldrb	w8, [x19, #0x64]
+  2586dc: 36000348     	tbz	w8, #0x0, 0x258744 <SW::UnixUDP::clearReadBuffer()+0xbc>
+  2586e0: b9406260     	ldr	w0, [x19, #0x60]
+  2586e4: 91001fe1     	add	x1, sp, #0x7
+  2586e8: 52800022     	mov	w2, #0x1                // =1
+  2586ec: 2a1f03e3     	mov	w3, wzr
+  2586f0: aa1f03e4     	mov	x4, xzr
+  2586f4: aa1f03e5     	mov	x5, xzr
+  2586f8: 9401b4a2     	bl	0x2c5980 <recvfrom@plt>  ;;; CALL recvfrom  [x2=1(0x1)]
+  2586fc: 39419268     	ldrb	w8, [x19, #0x64]
+  258700: 35fffda8     	cbnz	w8, 0x2586b4 <SW::UnixUDP::clearReadBuffer()+0x2c>
+  258704: 52800200     	mov	w0, #0x10               // =16
+  258708: 9401a3aa     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  25870c: aa0003f3     	mov	x19, x0
+  258710: 90fff3a1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  258714: 910f4421     	add	x1, x1, #0x3d1
+  258718: 9401aa42     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  25871c: 14000010     	b	0x25875c <SW::UnixUDP::clearReadBuffer()+0xd4>
+  258720: f9401688     	ldr	x8, [x20, #0x28]
+  258724: f94007e9     	ldr	x9, [sp, #0x8]
+  258728: eb09011f     	cmp	x8, x9
+  25872c: 54000401     	b.ne	0x2587ac <SW::UnixUDP::clearReadBuffer()+0x124>
+  258730: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  258734: f94013f5     	ldr	x21, [sp, #0x20]
+  258738: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+  25873c: 910103ff     	add	sp, sp, #0x40
+  258740: d65f03c0     	ret
+  258744: 52800200     	mov	w0, #0x10               // =16
+  258748: 9401a39a     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  25874c: aa0003f3     	mov	x19, x0
+  258750: 90fff3a1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  258754: 910f4421     	add	x1, x1, #0x3d1
+  258758: 9401aa32     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  25875c: f9401688     	ldr	x8, [x20, #0x28]
+  258760: f94007e9     	ldr	x9, [sp, #0x8]
+  258764: eb09011f     	cmp	x8, x9
+  258768: 54000221     	b.ne	0x2587ac <SW::UnixUDP::clearReadBuffer()+0x124>
+  25876c: b0000401     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  258770: b0000402     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  258774: aa1303e0     	mov	x0, x19
+  258778: f9409c21     	ldr	x1, [x1, #0x138]
+  25877c: f940a042     	ldr	x2, [x2, #0x140]
+  258780: 9401a394     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  258784: 14000001     	b	0x258788 <SW::UnixUDP::clearReadBuffer()+0x100>
+  258788: aa0003f5     	mov	x21, x0
+  25878c: aa1303e0     	mov	x0, x19
+  258790: 9401a67c     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  258794: f9401688     	ldr	x8, [x20, #0x28]
+  258798: f94007e9     	ldr	x9, [sp, #0x8]
+  25879c: eb09011f     	cmp	x8, x9
+  2587a0: 54000061     	b.ne	0x2587ac <SW::UnixUDP::clearReadBuffer()+0x124>
+  2587a4: aa1503e0     	mov	x0, x21
+  2587a8: 94019337     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  2587ac: 9401a281     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000002587b0 <SW::UnixUDP::changeLocalPort()>:
+  2587b0: 39419008     	ldrb	w8, [x0, #0x64]
+  2587b4: 340001a8     	cbz	w8, 0x2587e8 <SW::UnixUDP::changeLocalPort()+0x38>
+  2587b8: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  2587bc: f9000bf3     	str	x19, [sp, #0x10]
+  2587c0: 910003fd     	mov	x29, sp
+  2587c4: b9406008     	ldr	w8, [x0, #0x60]
+  2587c8: 3901701f     	strb	wzr, [x0, #0x5c]
+  2587cc: aa0003f3     	mov	x19, x0
+  2587d0: 2a0803e0     	mov	w0, w8
+  2587d4: 9401b457     	bl	0x2c5930 <close@plt>  ;;; CALL close
+  2587d8: aa1303e0     	mov	x0, x19
+  2587dc: 3901927f     	strb	wzr, [x19, #0x64]
+  2587e0: f9400bf3     	ldr	x19, [sp, #0x10]
+  2587e4: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2587e8: 1401b0f2     	b	0x2c4bb0 <_ZN2SW7UnixUDP4OpenEv@plt>
+
+00000000002587ec <SW::UnixUDP::Open()>:
+  2587ec: d101c3ff     	sub	sp, sp, #0x70
+  2587f0: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  2587f4: f9001bf9     	str	x25, [sp, #0x30]
+  2587f8: a9045ff8     	stp	x24, x23, [sp, #0x40]
+  2587fc: a90557f6     	stp	x22, x21, [sp, #0x50]
+  258800: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  258804: 910083fd     	add	x29, sp, #0x20
+  258808: d53bd059     	mrs	x25, TPIDR_EL0
+  25880c: 9100840a     	add	x10, x0, #0x21
+  258810: aa0003f3     	mov	x19, x0
+  258814: f9401728     	ldr	x8, [x25, #0x28]
+  258818: f81f83a8     	stur	x8, [x29, #-0x8]
+  25881c: 39408008     	ldrb	w8, [x0, #0x20]
+  258820: f9401809     	ldr	x9, [x0, #0x30]
+  258824: 7200011f     	tst	w8, #0x1
+  258828: 9a890155     	csel	x21, x10, x9, eq
+  25882c: aa1503e0     	mov	x0, x21
+  258830: 9401a268     	bl	0x2c11d0 <strlen@plt>  ;;; CALL strlen
+  258834: b100201f     	cmn	x0, #0x8
+  258838: 54001202     	b.hs	0x258a78 <SW::UnixUDP::Open()+0x28c>
+  25883c: aa0003f4     	mov	x20, x0
+  258840: f1005c1f     	cmp	x0, #0x17
+  258844: 540000e2     	b.hs	0x258860 <SW::UnixUDP::Open()+0x74>
+  258848: 531f7a88     	lsl	w8, w20, #1
+  25884c: 910003e9     	mov	x9, sp
+  258850: b2400136     	orr	x22, x9, #0x1
+  258854: 390003e8     	strb	w8, [sp]
+  258858: b50001d4     	cbnz	x20, 0x258890 <SW::UnixUDP::Open()+0xa4>
+  25885c: 14000011     	b	0x2588a0 <SW::UnixUDP::Open()+0xb4>
+  258860: 927df288     	and	x8, x20, #0xfffffffffffffff8
+  258864: b2400a89     	orr	x9, x20, #0x7
+  258868: 91002108     	add	x8, x8, #0x8
+  25886c: f1005d3f     	cmp	x9, #0x17
+  258870: 9a890108     	csel	x8, x8, x9, eq
+  258874: 91000517     	add	x23, x8, #0x1
+  258878: aa1703e0     	mov	x0, x23
+  25887c: 9401a221     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  258880: b24002e8     	orr	x8, x23, #0x1
+  258884: aa0003f6     	mov	x22, x0
+  258888: a90083f4     	stp	x20, x0, [sp, #0x8]
+  25888c: f90003e8     	str	x8, [sp]
+  258890: aa1603e0     	mov	x0, x22
+  258894: aa1503e1     	mov	x1, x21
+  258898: aa1403e2     	mov	x2, x20
+  25889c: 9401a469     	bl	0x2c1a40 <memmove@plt>  ;;; CALL memmove
+  2588a0: 38346adf     	strb	wzr, [x22, x20]
+  2588a4: 910003e0     	mov	x0, sp
+  2588a8: 94000086     	bl	0x258ac0 <SW::ParseIPv4String(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)>  ;;; CALL SW::ParseIPv4String(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char
+  2588ac: 394003e8     	ldrb	w8, [sp]
+  2588b0: aa0003f4     	mov	x20, x0
+  2588b4: 36000068     	tbz	w8, #0x0, 0x2588c0 <SW::UnixUDP::Open()+0xd4>
+  2588b8: f9400be0     	ldr	x0, [sp, #0x10]
+  2588bc: 9401a2b5     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2588c0: d3609e88     	ubfx	x8, x20, #32, #8
+  2588c4: 34000ac8     	cbz	w8, 0x258a1c <SW::UnixUDP::Open()+0x230>
+  2588c8: 39402268     	ldrb	w8, [x19, #0x8]
+  2588cc: f9400e69     	ldr	x9, [x19, #0x18]
+  2588d0: 9100266a     	add	x10, x19, #0x9
+  2588d4: 7200011f     	tst	w8, #0x1
+  2588d8: 9a890156     	csel	x22, x10, x9, eq
+  2588dc: aa1603e0     	mov	x0, x22
+  2588e0: 9401a23c     	bl	0x2c11d0 <strlen@plt>  ;;; CALL strlen
+  2588e4: b100201f     	cmn	x0, #0x8
+  2588e8: 54000c82     	b.hs	0x258a78 <SW::UnixUDP::Open()+0x28c>
+  2588ec: aa0003f5     	mov	x21, x0
+  2588f0: f1005c1f     	cmp	x0, #0x17
+  2588f4: 540000e2     	b.hs	0x258910 <SW::UnixUDP::Open()+0x124>
+  2588f8: 531f7aa8     	lsl	w8, w21, #1
+  2588fc: 910003e9     	mov	x9, sp
+  258900: b2400137     	orr	x23, x9, #0x1
+  258904: 390003e8     	strb	w8, [sp]
+  258908: b50001d5     	cbnz	x21, 0x258940 <SW::UnixUDP::Open()+0x154>
+  25890c: 14000011     	b	0x258950 <SW::UnixUDP::Open()+0x164>
+  258910: 927df2a8     	and	x8, x21, #0xfffffffffffffff8
+  258914: b2400aa9     	orr	x9, x21, #0x7
+  258918: 91002108     	add	x8, x8, #0x8
+  25891c: f1005d3f     	cmp	x9, #0x17
+  258920: 9a890108     	csel	x8, x8, x9, eq
+  258924: 91000518     	add	x24, x8, #0x1
+  258928: aa1803e0     	mov	x0, x24
+  25892c: 9401a1f5     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  258930: b2400308     	orr	x8, x24, #0x1
+  258934: aa0003f7     	mov	x23, x0
+  258938: a90083f5     	stp	x21, x0, [sp, #0x8]
+  25893c: f90003e8     	str	x8, [sp]
+  258940: aa1703e0     	mov	x0, x23
+  258944: aa1603e1     	mov	x1, x22
+  258948: aa1503e2     	mov	x2, x21
+  25894c: 9401a43d     	bl	0x2c1a40 <memmove@plt>  ;;; CALL memmove
+  258950: 38356aff     	strb	wzr, [x23, x21]
+  258954: 910003e0     	mov	x0, sp
+  258958: 9400005a     	bl	0x258ac0 <SW::ParseIPv4String(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)>  ;;; CALL SW::ParseIPv4String(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char
+  25895c: 394003e8     	ldrb	w8, [sp]
+  258960: aa0003f5     	mov	x21, x0
+  258964: 36000068     	tbz	w8, #0x0, 0x258970 <SW::UnixUDP::Open()+0x184>
+  258968: f9400be0     	ldr	x0, [sp, #0x10]
+  25896c: 9401a289     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  258970: f2601ebf     	tst	x21, #0xff00000000
+  258974: 52800040     	mov	w0, #0x2                // =2
+  258978: 52800041     	mov	w1, #0x2                // =2
+  25897c: 2a1f03e2     	mov	w2, wzr
+  258980: 1a9503f6     	csel	w22, wzr, w21, eq
+  258984: 9401b403     	bl	0x2c5990 <socket@plt>  ;;; CALL socket  [x1=2(0x2)]
+  258988: 37f804a0     	tbnz	w0, #0x1f, 0x258a1c <SW::UnixUDP::Open()+0x230>
+  25898c: b9405668     	ldr	w8, [x19, #0x54]
+  258990: 5289ba69     	mov	w9, #0x4dd3             // =19923
+  258994: 52807d0a     	mov	w10, #0x3e8             // =1000
+  258998: 72a20c49     	movk	w9, #0x1062, lsl #16
+  25899c: 910003e3     	mov	x3, sp
+  2589a0: 52800021     	mov	w1, #0x1                // =1
+  2589a4: 9ba97d09     	umull	x9, w8, w9
+  2589a8: 52800282     	mov	w2, #0x14               // =20
+  2589ac: 52800204     	mov	w4, #0x10               // =16
+  2589b0: 2a0003f5     	mov	w21, w0
+  2589b4: 52800037     	mov	w23, #0x1               // =1
+  2589b8: d366fd29     	lsr	x9, x9, #38
+  2589bc: 1b0aa128     	msub	w8, w9, w10, w8
+  2589c0: 1b0a7d08     	mul	w8, w8, w10
+  2589c4: a90023e9     	stp	x9, x8, [sp]
+  2589c8: 9401b3f6     	bl	0x2c59a0 <setsockopt@plt>  ;;; CALL setsockopt  [x1=1(0x1), x2=20(0x14)]
+  2589cc: 35000240     	cbnz	w0, 0x258a14 <SW::UnixUDP::Open()+0x228>
+  2589d0: 910003e3     	mov	x3, sp
+  2589d4: 2a1503e0     	mov	w0, w21
+  2589d8: 52800021     	mov	w1, #0x1                // =1
+  2589dc: 528000c2     	mov	w2, #0x6                // =6
+  2589e0: 52800084     	mov	w4, #0x4                // =4
+  2589e4: b90003f7     	str	w23, [sp]
+  2589e8: 9401b3ee     	bl	0x2c59a0 <setsockopt@plt>  ;;; CALL setsockopt  [x1=1(0x1), x2=6(0x6)]
+  2589ec: 35000140     	cbnz	w0, 0x258a14 <SW::UnixUDP::Open()+0x228>
+  2589f0: 52800048     	mov	w8, #0x2                // =2
+  2589f4: 5ac00ac9     	rev	w9, w22
+  2589f8: 910003e1     	mov	x1, sp
+  2589fc: 2a1503e0     	mov	w0, w21
+  258a00: 52800202     	mov	w2, #0x10               // =16
+  258a04: f90007ff     	str	xzr, [sp, #0x8]
+  258a08: 290027e8     	stp	w8, w9, [sp]
+  258a0c: 9401b3e9     	bl	0x2c59b0 <bind@plt>  ;;; CALL bind  [x2=16(0x10)]
+  258a10: 340001e0     	cbz	w0, 0x258a4c <SW::UnixUDP::Open()+0x260>
+  258a14: 2a1503e0     	mov	w0, w21
+  258a18: 9401b3c6     	bl	0x2c5930 <close@plt>  ;;; CALL close
+  258a1c: 2a1f03e0     	mov	w0, wzr
+  258a20: f9401728     	ldr	x8, [x25, #0x28]
+  258a24: f85f83a9     	ldur	x9, [x29, #-0x8]
+  258a28: eb09011f     	cmp	x8, x9
+  258a2c: 54000241     	b.ne	0x258a74 <SW::UnixUDP::Open()+0x288>
+  258a30: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  258a34: f9401bf9     	ldr	x25, [sp, #0x30]
+  258a38: a94557f6     	ldp	x22, x21, [sp, #0x50]
+  258a3c: a9445ff8     	ldp	x24, x23, [sp, #0x40]
+  258a40: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  258a44: 9101c3ff     	add	sp, sp, #0x70
+  258a48: d65f03c0     	ret
+  258a4c: d360fe88     	lsr	x8, x20, #32
+  258a50: 52800020     	mov	w0, #0x1                // =1
+  258a54: b9005a74     	str	w20, [x19, #0x58]
+  258a58: b9006275     	str	w21, [x19, #0x60]
+  258a5c: 39017268     	strb	w8, [x19, #0x5c]
+  258a60: 39019260     	strb	w0, [x19, #0x64]
+  258a64: f9401728     	ldr	x8, [x25, #0x28]
+  258a68: f85f83a9     	ldur	x9, [x29, #-0x8]
+  258a6c: eb09011f     	cmp	x8, x9
+  258a70: 54fffe00     	b.eq	0x258a30 <SW::UnixUDP::Open()+0x244>
+  258a74: 9401a1cf     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+  258a78: f9401728     	ldr	x8, [x25, #0x28]
+  258a7c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  258a80: eb09011f     	cmp	x8, x9
+  258a84: 54ffff81     	b.ne	0x258a74 <SW::UnixUDP::Open()+0x288>
+  258a88: 910003e0     	mov	x0, sp
+  258a8c: 97fdca35     	bl	0x1cb360 <std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char
+  258a90: 14000001     	b	0x258a94 <SW::UnixUDP::Open()+0x2a8>
+  258a94: 394003e8     	ldrb	w8, [sp]
+  258a98: aa0003f3     	mov	x19, x0
+  258a9c: 36000068     	tbz	w8, #0x0, 0x258aa8 <SW::UnixUDP::Open()+0x2bc>
+  258aa0: f9400be0     	ldr	x0, [sp, #0x10]
+  258aa4: 9401a23b     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  258aa8: f9401728     	ldr	x8, [x25, #0x28]
+  258aac: f85f83a9     	ldur	x9, [x29, #-0x8]
+  258ab0: eb09011f     	cmp	x8, x9
+  258ab4: 54fffe01     	b.ne	0x258a74 <SW::UnixUDP::Open()+0x288>
+  258ab8: aa1303e0     	mov	x0, x19
+  258abc: 94019272     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+

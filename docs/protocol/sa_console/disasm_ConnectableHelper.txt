@@ -1,0 +1,578 @@
+00000000001cfbb8 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)>:
+  1cfbb8: d103c3ff     	sub	sp, sp, #0xf0
+  1cfbbc: a90a7bfd     	stp	x29, x30, [sp, #0xa0]
+  1cfbc0: f9005bf9     	str	x25, [sp, #0xb0]
+  1cfbc4: a90c5ff8     	stp	x24, x23, [sp, #0xc0]
+  1cfbc8: a90d57f6     	stp	x22, x21, [sp, #0xd0]
+  1cfbcc: a90e4ff4     	stp	x20, x19, [sp, #0xe0]
+  1cfbd0: 910283fd     	add	x29, sp, #0xa0
+  1cfbd4: d53bd056     	mrs	x22, TPIDR_EL0
+  1cfbd8: aa0103f5     	mov	x21, x1
+  1cfbdc: aa1f03e1     	mov	x1, xzr
+  1cfbe0: f94016c8     	ldr	x8, [x22, #0x28]
+  1cfbe4: aa0003f3     	mov	x19, x0
+  1cfbe8: f81f83a8     	stur	x8, [x29, #-0x8]
+  1cfbec: 9403c585     	bl	0x2c1200 <_ZN7QObjectC2EPS_@plt>  ;;; CALL QObject::QObject(QObject*)
+  1cfbf0: 6f00e400     	movi	v0.2d, #0000000000000000
+  1cfbf4: b0000848     	adrp	x8, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1cfbf8: aa1303f4     	mov	x20, x19
+  1cfbfc: 3c84c260     	stur	q0, [x19, #0x4c]
+  1cfc00: ad008260     	stp	q0, q0, [x19, #0x10]
+  1cfc04: ad018260     	stp	q0, q0, [x19, #0x30]
+  1cfc08: ad030260     	stp	q0, q0, [x19, #0x60]
+  1cfc0c: f9459508     	ldr	x8, [x8, #0xb28]
+  1cfc10: ad040260     	stp	q0, q0, [x19, #0x80]
+  1cfc14: 3c89c260     	stur	q0, [x19, #0x9c]
+  1cfc18: 91004108     	add	x8, x8, #0x10
+  1cfc1c: f9000268     	str	x8, [x19]
+  1cfc20: f94002a8     	ldr	x8, [x21]
+  1cfc24: f80b0e88     	str	x8, [x20, #0xb0]!
+  1cfc28: f94006a8     	ldr	x8, [x21, #0x8]
+  1cfc2c: f9005e68     	str	x8, [x19, #0xb8]
+  1cfc30: b4000088     	cbz	x8, 0x1cfc40 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x88>
+  1cfc34: 91002101     	add	x1, x8, #0x8
+  1cfc38: 52800020     	mov	w0, #0x1                // =1
+  1cfc3c: 9403b5ad     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1cfc40: f9400aa8     	ldr	x8, [x21, #0x10]
+  1cfc44: f9006268     	str	x8, [x19, #0xc0]
+  1cfc48: f9400ea8     	ldr	x8, [x21, #0x18]
+  1cfc4c: f9006668     	str	x8, [x19, #0xc8]
+  1cfc50: b4000088     	cbz	x8, 0x1cfc60 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0xa8>
+  1cfc54: 91002101     	add	x1, x8, #0x8
+  1cfc58: 52800020     	mov	w0, #0x1                // =1
+  1cfc5c: 9403b5a5     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1cfc60: f94012a8     	ldr	x8, [x21, #0x20]
+  1cfc64: f9006a68     	str	x8, [x19, #0xd0]
+  1cfc68: f94016a8     	ldr	x8, [x21, #0x28]
+  1cfc6c: f9006e68     	str	x8, [x19, #0xd8]
+  1cfc70: b4000088     	cbz	x8, 0x1cfc80 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0xc8>
+  1cfc74: 91002101     	add	x1, x8, #0x8
+  1cfc78: 52800020     	mov	w0, #0x1                // =1
+  1cfc7c: 9403b59d     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1cfc80: f9401aa8     	ldr	x8, [x21, #0x30]
+  1cfc84: f9007268     	str	x8, [x19, #0xe0]
+  1cfc88: f9401ea8     	ldr	x8, [x21, #0x38]
+  1cfc8c: f9007668     	str	x8, [x19, #0xe8]
+  1cfc90: b4000088     	cbz	x8, 0x1cfca0 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0xe8>
+  1cfc94: 91002101     	add	x1, x8, #0x8
+  1cfc98: 52800020     	mov	w0, #0x1                // =1
+  1cfc9c: 9403b595     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1cfca0: f94022a8     	ldr	x8, [x21, #0x40]
+  1cfca4: f9007a68     	str	x8, [x19, #0xf0]
+  1cfca8: f94026a8     	ldr	x8, [x21, #0x48]
+  1cfcac: f9007e68     	str	x8, [x19, #0xf8]
+  1cfcb0: b4000088     	cbz	x8, 0x1cfcc0 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x108>
+  1cfcb4: 91002101     	add	x1, x8, #0x8
+  1cfcb8: 52800020     	mov	w0, #0x1                // =1
+  1cfcbc: 9403b58d     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1cfcc0: a94c5679     	ldp	x25, x21, [x19, #0xc0]
+  1cfcc4: a93cd7b9     	stp	x25, x21, [x29, #-0x38]
+  1cfcc8: b4000095     	cbz	x21, 0x1cfcd8 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x120>
+  1cfccc: 910022a1     	add	x1, x21, #0x8
+  1cfcd0: 52800020     	mov	w0, #0x1                // =1
+  1cfcd4: 9403b587     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1cfcd8: a94e2269     	ldp	x9, x8, [x19, #0xe0]
+  1cfcdc: a93da3a9     	stp	x9, x8, [x29, #-0x28]
+  1cfce0: b4000088     	cbz	x8, 0x1cfcf0 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x138>
+  1cfce4: 91002101     	add	x1, x8, #0x8
+  1cfce8: 52800020     	mov	w0, #0x1                // =1
+  1cfcec: 9403b581     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1cfcf0: a94f2269     	ldp	x9, x8, [x19, #0xf0]
+  1cfcf4: a93ea3a9     	stp	x9, x8, [x29, #-0x18]
+  1cfcf8: b4000088     	cbz	x8, 0x1cfd08 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x150>
+  1cfcfc: 91002101     	add	x1, x8, #0x8
+  1cfd00: 52800020     	mov	w0, #0x1                // =1
+  1cfd04: 9403b57b     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1cfd08: a90257f9     	stp	x25, x21, [sp, #0x20]
+  1cfd0c: b4000095     	cbz	x21, 0x1cfd1c <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x164>
+  1cfd10: 910022a1     	add	x1, x21, #0x8
+  1cfd14: 52800020     	mov	w0, #0x1                // =1
+  1cfd18: 9403b576     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1cfd1c: b0000858     	adrp	x24, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1cfd20: b0000857     	adrp	x23, 0x2d8000 <vtable for libunwind::UnwindCursor<libunwind::LocalAddressSpace, libunwind::Registers_arm64>+0x58>
+  1cfd24: f9459b18     	ldr	x24, [x24, #0xb30]
+  1cfd28: f9459ef7     	ldr	x23, [x23, #0xb38]
+  1cfd2c: b40005f9     	cbz	x25, 0x1cfde8 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x230>
+  1cfd30: 91004308     	add	x8, x24, #0x10
+  1cfd34: a9034fe8     	stp	x8, x19, [sp, #0x30]
+  1cfd38: 9100c3e8     	add	x8, sp, #0x30
+  1cfd3c: f9002be8     	str	x8, [sp, #0x50]
+  1cfd40: 910043e8     	add	x8, sp, #0x10
+  1cfd44: 91004320     	add	x0, x25, #0x10
+  1cfd48: 9100c3e1     	add	x1, sp, #0x30
+  1cfd4c: 9403c9ad     	bl	0x2c2400 <_ZN7eventpp9internal_16CallbackListBaseIFvN2SW18IConnectableHelper6StatusEENS_15DefaultPoliciesEE6appendERKNSt6__ndk18functionIS5_EE@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (SW::IConnectableHelper::Status), eventpp::DefaultPolicies>::append(std::__ndk1::function<void (SW::IConnectableHelper::Status)> const&)
+  1cfd50: f9400fe0     	ldr	x0, [sp, #0x18]
+  1cfd54: b4000040     	cbz	x0, 0x1cfd5c <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x1a4>
+  1cfd58: 9403c50a     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1cfd5c: f9402be0     	ldr	x0, [sp, #0x50]
+  1cfd60: 9100c3e8     	add	x8, sp, #0x30
+  1cfd64: eb08001f     	cmp	x0, x8
+  1cfd68: 54000080     	b.eq	0x1cfd78 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x1c0>
+  1cfd6c: b4000100     	cbz	x0, 0x1cfd8c <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x1d4>
+  1cfd70: 52800508     	mov	w8, #0x28               // =40
+  1cfd74: 14000003     	b	0x1cfd80 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x1c8>
+  1cfd78: 52800408     	mov	w8, #0x20               // =32
+  1cfd7c: 9100c3e0     	add	x0, sp, #0x30
+  1cfd80: f9400009     	ldr	x9, [x0]
+  1cfd84: f8686928     	ldr	x8, [x9, x8]
+  1cfd88: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1cfd8c: 910042e8     	add	x8, x23, #0x10
+  1cfd90: a9034fe8     	stp	x8, x19, [sp, #0x30]
+  1cfd94: 9100c3e8     	add	x8, sp, #0x30
+  1cfd98: f9002be8     	str	x8, [sp, #0x50]
+  1cfd9c: 910003e8     	mov	x8, sp
+  1cfda0: 91018320     	add	x0, x25, #0x60
+  1cfda4: 9100c3e1     	add	x1, sp, #0x30
+  1cfda8: 9403c966     	bl	0x2c2340 <_ZN7eventpp9internal_16CallbackListBaseIFvvENS_15DefaultPoliciesEE6appendERKNSt6__ndk18functionIS2_EE@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (), eventpp::DefaultPolicies>::append(std::__ndk1::function<void ()> const&)
+  1cfdac: f94007e0     	ldr	x0, [sp, #0x8]
+  1cfdb0: b4000040     	cbz	x0, 0x1cfdb8 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x200>
+  1cfdb4: 9403c4f3     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1cfdb8: f9402be0     	ldr	x0, [sp, #0x50]
+  1cfdbc: 9100c3e8     	add	x8, sp, #0x30
+  1cfdc0: eb08001f     	cmp	x0, x8
+  1cfdc4: 54000080     	b.eq	0x1cfdd4 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x21c>
+  1cfdc8: b4000100     	cbz	x0, 0x1cfde8 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x230>
+  1cfdcc: 52800508     	mov	w8, #0x28               // =40
+  1cfdd0: 14000003     	b	0x1cfddc <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x224>
+  1cfdd4: 52800408     	mov	w8, #0x20               // =32
+  1cfdd8: 9100c3e0     	add	x0, sp, #0x30
+  1cfddc: f9400009     	ldr	x9, [x0]
+  1cfde0: f8686928     	ldr	x8, [x9, x8]
+  1cfde4: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1cfde8: b4000175     	cbz	x21, 0x1cfe14 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x25c>
+  1cfdec: 910022a1     	add	x1, x21, #0x8
+  1cfdf0: 92800000     	mov	x0, #-0x1               // =-1
+  1cfdf4: 9403b54b     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1cfdf8: b50000e0     	cbnz	x0, 0x1cfe14 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x25c>
+  1cfdfc: f94002a8     	ldr	x8, [x21]
+  1cfe00: aa1503e0     	mov	x0, x21
+  1cfe04: f9400908     	ldr	x8, [x8, #0x10]
+  1cfe08: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1cfe0c: aa1503e0     	mov	x0, x21
+  1cfe10: 9403c4dc     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1cfe14: a97dd7b9     	ldp	x25, x21, [x29, #-0x28]
+  1cfe18: a90257f9     	stp	x25, x21, [sp, #0x20]
+  1cfe1c: b4000095     	cbz	x21, 0x1cfe2c <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x274>
+  1cfe20: 910022a1     	add	x1, x21, #0x8
+  1cfe24: 52800020     	mov	w0, #0x1                // =1
+  1cfe28: 9403b532     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1cfe2c: b40005f9     	cbz	x25, 0x1cfee8 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x330>
+  1cfe30: 91004308     	add	x8, x24, #0x10
+  1cfe34: a9034fe8     	stp	x8, x19, [sp, #0x30]
+  1cfe38: 9100c3e8     	add	x8, sp, #0x30
+  1cfe3c: f9002be8     	str	x8, [sp, #0x50]
+  1cfe40: 910043e8     	add	x8, sp, #0x10
+  1cfe44: 91004320     	add	x0, x25, #0x10
+  1cfe48: 9100c3e1     	add	x1, sp, #0x30
+  1cfe4c: 9403c96d     	bl	0x2c2400 <_ZN7eventpp9internal_16CallbackListBaseIFvN2SW18IConnectableHelper6StatusEENS_15DefaultPoliciesEE6appendERKNSt6__ndk18functionIS5_EE@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (SW::IConnectableHelper::Status), eventpp::DefaultPolicies>::append(std::__ndk1::function<void (SW::IConnectableHelper::Status)> const&)
+  1cfe50: f9400fe0     	ldr	x0, [sp, #0x18]
+  1cfe54: b4000040     	cbz	x0, 0x1cfe5c <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x2a4>
+  1cfe58: 9403c4ca     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1cfe5c: f9402be0     	ldr	x0, [sp, #0x50]
+  1cfe60: 9100c3e8     	add	x8, sp, #0x30
+  1cfe64: eb08001f     	cmp	x0, x8
+  1cfe68: 54000080     	b.eq	0x1cfe78 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x2c0>
+  1cfe6c: b4000100     	cbz	x0, 0x1cfe8c <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x2d4>
+  1cfe70: 52800508     	mov	w8, #0x28               // =40
+  1cfe74: 14000003     	b	0x1cfe80 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x2c8>
+  1cfe78: 52800408     	mov	w8, #0x20               // =32
+  1cfe7c: 9100c3e0     	add	x0, sp, #0x30
+  1cfe80: f9400009     	ldr	x9, [x0]
+  1cfe84: f8686928     	ldr	x8, [x9, x8]
+  1cfe88: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1cfe8c: 910042e8     	add	x8, x23, #0x10
+  1cfe90: a9034fe8     	stp	x8, x19, [sp, #0x30]
+  1cfe94: 9100c3e8     	add	x8, sp, #0x30
+  1cfe98: f9002be8     	str	x8, [sp, #0x50]
+  1cfe9c: 910003e8     	mov	x8, sp
+  1cfea0: 91018320     	add	x0, x25, #0x60
+  1cfea4: 9100c3e1     	add	x1, sp, #0x30
+  1cfea8: 9403c926     	bl	0x2c2340 <_ZN7eventpp9internal_16CallbackListBaseIFvvENS_15DefaultPoliciesEE6appendERKNSt6__ndk18functionIS2_EE@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (), eventpp::DefaultPolicies>::append(std::__ndk1::function<void ()> const&)
+  1cfeac: f94007e0     	ldr	x0, [sp, #0x8]
+  1cfeb0: b4000040     	cbz	x0, 0x1cfeb8 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x300>
+  1cfeb4: 9403c4b3     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1cfeb8: f9402be0     	ldr	x0, [sp, #0x50]
+  1cfebc: 9100c3e8     	add	x8, sp, #0x30
+  1cfec0: eb08001f     	cmp	x0, x8
+  1cfec4: 54000080     	b.eq	0x1cfed4 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x31c>
+  1cfec8: b4000100     	cbz	x0, 0x1cfee8 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x330>
+  1cfecc: 52800508     	mov	w8, #0x28               // =40
+  1cfed0: 14000003     	b	0x1cfedc <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x324>
+  1cfed4: 52800408     	mov	w8, #0x20               // =32
+  1cfed8: 9100c3e0     	add	x0, sp, #0x30
+  1cfedc: f9400009     	ldr	x9, [x0]
+  1cfee0: f8686928     	ldr	x8, [x9, x8]
+  1cfee4: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1cfee8: b4000175     	cbz	x21, 0x1cff14 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x35c>
+  1cfeec: 910022a1     	add	x1, x21, #0x8
+  1cfef0: 92800000     	mov	x0, #-0x1               // =-1
+  1cfef4: 9403b50b     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1cfef8: b50000e0     	cbnz	x0, 0x1cff14 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x35c>
+  1cfefc: f94002a8     	ldr	x8, [x21]
+  1cff00: aa1503e0     	mov	x0, x21
+  1cff04: f9400908     	ldr	x8, [x8, #0x10]
+  1cff08: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1cff0c: aa1503e0     	mov	x0, x21
+  1cff10: 9403c49c     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1cff14: a97ed7b9     	ldp	x25, x21, [x29, #-0x18]
+  1cff18: a90257f9     	stp	x25, x21, [sp, #0x20]
+  1cff1c: b4000095     	cbz	x21, 0x1cff2c <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x374>
+  1cff20: 910022a1     	add	x1, x21, #0x8
+  1cff24: 52800020     	mov	w0, #0x1                // =1
+  1cff28: 9403b4f2     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  1cff2c: b40005f9     	cbz	x25, 0x1cffe8 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x430>
+  1cff30: 91004308     	add	x8, x24, #0x10
+  1cff34: a9034fe8     	stp	x8, x19, [sp, #0x30]
+  1cff38: 9100c3e8     	add	x8, sp, #0x30
+  1cff3c: f9002be8     	str	x8, [sp, #0x50]
+  1cff40: 910043e8     	add	x8, sp, #0x10
+  1cff44: 91004320     	add	x0, x25, #0x10
+  1cff48: 9100c3e1     	add	x1, sp, #0x30
+  1cff4c: 9403c92d     	bl	0x2c2400 <_ZN7eventpp9internal_16CallbackListBaseIFvN2SW18IConnectableHelper6StatusEENS_15DefaultPoliciesEE6appendERKNSt6__ndk18functionIS5_EE@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (SW::IConnectableHelper::Status), eventpp::DefaultPolicies>::append(std::__ndk1::function<void (SW::IConnectableHelper::Status)> const&)
+  1cff50: f9400fe0     	ldr	x0, [sp, #0x18]
+  1cff54: b4000040     	cbz	x0, 0x1cff5c <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x3a4>
+  1cff58: 9403c48a     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1cff5c: f9402be0     	ldr	x0, [sp, #0x50]
+  1cff60: 9100c3e8     	add	x8, sp, #0x30
+  1cff64: eb08001f     	cmp	x0, x8
+  1cff68: 54000080     	b.eq	0x1cff78 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x3c0>
+  1cff6c: b4000100     	cbz	x0, 0x1cff8c <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x3d4>
+  1cff70: 52800508     	mov	w8, #0x28               // =40
+  1cff74: 14000003     	b	0x1cff80 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x3c8>
+  1cff78: 52800408     	mov	w8, #0x20               // =32
+  1cff7c: 9100c3e0     	add	x0, sp, #0x30
+  1cff80: f9400009     	ldr	x9, [x0]
+  1cff84: f8686928     	ldr	x8, [x9, x8]
+  1cff88: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1cff8c: 910042e8     	add	x8, x23, #0x10
+  1cff90: a9034fe8     	stp	x8, x19, [sp, #0x30]
+  1cff94: 9100c3e8     	add	x8, sp, #0x30
+  1cff98: f9002be8     	str	x8, [sp, #0x50]
+  1cff9c: 910003e8     	mov	x8, sp
+  1cffa0: 91018320     	add	x0, x25, #0x60
+  1cffa4: 9100c3e1     	add	x1, sp, #0x30
+  1cffa8: 9403c8e6     	bl	0x2c2340 <_ZN7eventpp9internal_16CallbackListBaseIFvvENS_15DefaultPoliciesEE6appendERKNSt6__ndk18functionIS2_EE@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (), eventpp::DefaultPolicies>::append(std::__ndk1::function<void ()> const&)
+  1cffac: f94007e0     	ldr	x0, [sp, #0x8]
+  1cffb0: b4000040     	cbz	x0, 0x1cffb8 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x400>
+  1cffb4: 9403c473     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1cffb8: f9402be0     	ldr	x0, [sp, #0x50]
+  1cffbc: 9100c3e8     	add	x8, sp, #0x30
+  1cffc0: eb08001f     	cmp	x0, x8
+  1cffc4: 54000080     	b.eq	0x1cffd4 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x41c>
+  1cffc8: b4000100     	cbz	x0, 0x1cffe8 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x430>
+  1cffcc: 52800508     	mov	w8, #0x28               // =40
+  1cffd0: 14000003     	b	0x1cffdc <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x424>
+  1cffd4: 52800408     	mov	w8, #0x20               // =32
+  1cffd8: 9100c3e0     	add	x0, sp, #0x30
+  1cffdc: f9400009     	ldr	x9, [x0]
+  1cffe0: f8686928     	ldr	x8, [x9, x8]
+  1cffe4: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1cffe8: b4000175     	cbz	x21, 0x1d0014 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x45c>
+  1cffec: 910022a1     	add	x1, x21, #0x8
+  1cfff0: 92800000     	mov	x0, #-0x1               // =-1
+  1cfff4: 9403b4cb     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1cfff8: b50000e0     	cbnz	x0, 0x1d0014 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x45c>
+  1cfffc: f94002a8     	ldr	x8, [x21]
+  1d0000: aa1503e0     	mov	x0, x21
+  1d0004: f9400908     	ldr	x8, [x8, #0x10]
+  1d0008: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1d000c: aa1503e0     	mov	x0, x21
+  1d0010: 9403c45c     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1d0014: f85f03b3     	ldur	x19, [x29, #-0x10]
+  1d0018: b4000173     	cbz	x19, 0x1d0044 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x48c>
+  1d001c: 91002261     	add	x1, x19, #0x8
+  1d0020: 92800000     	mov	x0, #-0x1               // =-1
+  1d0024: 9403b4bf     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1d0028: b50000e0     	cbnz	x0, 0x1d0044 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x48c>
+  1d002c: f9400268     	ldr	x8, [x19]
+  1d0030: aa1303e0     	mov	x0, x19
+  1d0034: f9400908     	ldr	x8, [x8, #0x10]
+  1d0038: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1d003c: aa1303e0     	mov	x0, x19
+  1d0040: 9403c450     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1d0044: f85e03b3     	ldur	x19, [x29, #-0x20]
+  1d0048: b4000173     	cbz	x19, 0x1d0074 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x4bc>
+  1d004c: 91002261     	add	x1, x19, #0x8
+  1d0050: 92800000     	mov	x0, #-0x1               // =-1
+  1d0054: 9403b4b3     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1d0058: b50000e0     	cbnz	x0, 0x1d0074 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x4bc>
+  1d005c: f9400268     	ldr	x8, [x19]
+  1d0060: aa1303e0     	mov	x0, x19
+  1d0064: f9400908     	ldr	x8, [x8, #0x10]
+  1d0068: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1d006c: aa1303e0     	mov	x0, x19
+  1d0070: 9403c444     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1d0074: f85d03b3     	ldur	x19, [x29, #-0x30]
+  1d0078: b4000173     	cbz	x19, 0x1d00a4 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x4ec>
+  1d007c: 91002261     	add	x1, x19, #0x8
+  1d0080: 92800000     	mov	x0, #-0x1               // =-1
+  1d0084: 9403b4a7     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  1d0088: b50000e0     	cbnz	x0, 0x1d00a4 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x4ec>
+  1d008c: f9400268     	ldr	x8, [x19]
+  1d0090: aa1303e0     	mov	x0, x19
+  1d0094: f9400908     	ldr	x8, [x8, #0x10]
+  1d0098: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  1d009c: aa1303e0     	mov	x0, x19
+  1d00a0: 9403c438     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  1d00a4: f94016c8     	ldr	x8, [x22, #0x28]
+  1d00a8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1d00ac: eb09011f     	cmp	x8, x9
+  1d00b0: 540005c1     	b.ne	0x1d0168 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x5b0>
+  1d00b4: a94e4ff4     	ldp	x20, x19, [sp, #0xe0]
+  1d00b8: f9405bf9     	ldr	x25, [sp, #0xb0]
+  1d00bc: a94d57f6     	ldp	x22, x21, [sp, #0xd0]
+  1d00c0: a94c5ff8     	ldp	x24, x23, [sp, #0xc0]
+  1d00c4: a94a7bfd     	ldp	x29, x30, [sp, #0xa0]
+  1d00c8: 9103c3ff     	add	sp, sp, #0xf0
+  1d00cc: d65f03c0     	ret
+  1d00d0: f9402be8     	ldr	x8, [sp, #0x50]
+  1d00d4: 9100c3e9     	add	x9, sp, #0x30
+  1d00d8: aa0003f5     	mov	x21, x0
+  1d00dc: eb09011f     	cmp	x8, x9
+  1d00e0: 54000120     	b.eq	0x1d0104 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x54c>
+  1d00e4: b40001c8     	cbz	x8, 0x1d011c <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x564>
+  1d00e8: 52800509     	mov	w9, #0x28               // =40
+  1d00ec: 14000008     	b	0x1d010c <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x554>
+  1d00f0: f9402be8     	ldr	x8, [sp, #0x50]
+  1d00f4: 9100c3e9     	add	x9, sp, #0x30
+  1d00f8: aa0003f5     	mov	x21, x0
+  1d00fc: eb09011f     	cmp	x8, x9
+  1d0100: 54ffff21     	b.ne	0x1d00e4 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x52c>
+  1d0104: 52800409     	mov	w9, #0x20               // =32
+  1d0108: 9100c3e8     	add	x8, sp, #0x30
+  1d010c: f940010a     	ldr	x10, [x8]
+  1d0110: aa0803e0     	mov	x0, x8
+  1d0114: f8696949     	ldr	x9, [x10, x9]
+  1d0118: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  1d011c: 910083e0     	add	x0, sp, #0x20
+  1d0120: 97ffe6be     	bl	0x1c9c18 <std::__ndk1::shared_ptr<SW::IConnectableHelper>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::IConnectableHelper
+  1d0124: d100e3b7     	sub	x23, x29, #0x38
+  1d0128: 910082e0     	add	x0, x23, #0x20
+  1d012c: 97ffe6bb     	bl	0x1c9c18 <std::__ndk1::shared_ptr<SW::IConnectableHelper>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::IConnectableHelper
+  1d0130: 910042e0     	add	x0, x23, #0x10
+  1d0134: 97ffe6b9     	bl	0x1c9c18 <std::__ndk1::shared_ptr<SW::IConnectableHelper>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::IConnectableHelper
+  1d0138: d100e3a0     	sub	x0, x29, #0x38
+  1d013c: 97ffe6b7     	bl	0x1c9c18 <std::__ndk1::shared_ptr<SW::IConnectableHelper>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::IConnectableHelper
+  1d0140: aa1403e0     	mov	x0, x20
+  1d0144: 9403c45f     	bl	0x2c12c0 <_ZN2SW17ConnectableHelper1DD2Ev@plt>  ;;; CALL SW::ConnectableHelper::D::~D()
+  1d0148: aa1303e0     	mov	x0, x19
+  1d014c: 9403c8a1     	bl	0x2c23d0 <_ZN2SW18IConnectableHelperD2Ev@plt>  ;;; CALL SW::IConnectableHelper::~IConnectableHelper()
+  1d0150: f94016c8     	ldr	x8, [x22, #0x28]
+  1d0154: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1d0158: eb09011f     	cmp	x8, x9
+  1d015c: 54000061     	b.ne	0x1d0168 <SW::ConnectableHelper::ConnectableHelper(SW::ConnectableHelper::D)+0x5b0>
+  1d0160: aa1503e0     	mov	x0, x21
+  1d0164: 9403b4c8     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1d0168: 9403c412     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000235788 <SW::ConnectableHelper::devicesList()>:
+  235788: d10103ff     	sub	sp, sp, #0x40
+  23578c: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  235790: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  235794: 910083fd     	add	x29, sp, #0x20
+  235798: d53bd054     	mrs	x20, TPIDR_EL0
+  23579c: aa0803f3     	mov	x19, x8
+  2357a0: f9401688     	ldr	x8, [x20, #0x28]
+  2357a4: f81f83a8     	stur	x8, [x29, #-0x8]
+  2357a8: 910023e8     	add	x8, sp, #0x8
+  2357ac: 94023c81     	bl	0x2c49b0 <_ZN2SW17ConnectableHelper17connectableHelperEv@plt>  ;;; CALL SW::ConnectableHelper::connectableHelper()
+  2357b0: f94007e0     	ldr	x0, [sp, #0x8]
+  2357b4: f9400008     	ldr	x8, [x0]
+  2357b8: f9403109     	ldr	x9, [x8, #0x60]
+  2357bc: aa1303e8     	mov	x8, x19
+  2357c0: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  2357c4: f9400bf3     	ldr	x19, [sp, #0x10]
+  2357c8: b4000173     	cbz	x19, 0x2357f4 <SW::ConnectableHelper::devicesList()+0x6c>
+  2357cc: 91002261     	add	x1, x19, #0x8
+  2357d0: 92800000     	mov	x0, #-0x1               // =-1
+  2357d4: 94021ed3     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  2357d8: b50000e0     	cbnz	x0, 0x2357f4 <SW::ConnectableHelper::devicesList()+0x6c>
+  2357dc: f9400268     	ldr	x8, [x19]
+  2357e0: aa1303e0     	mov	x0, x19
+  2357e4: f9400908     	ldr	x8, [x8, #0x10]
+  2357e8: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  2357ec: aa1303e0     	mov	x0, x19
+  2357f0: 94022e64     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  2357f4: f9401688     	ldr	x8, [x20, #0x28]
+  2357f8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2357fc: eb09011f     	cmp	x8, x9
+  235800: 540001c1     	b.ne	0x235838 <SW::ConnectableHelper::devicesList()+0xb0>
+  235804: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  235808: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  23580c: 910103ff     	add	sp, sp, #0x40
+  235810: d65f03c0     	ret
+  235814: aa0003f3     	mov	x19, x0
+  235818: 910023e0     	add	x0, sp, #0x8
+  23581c: 97fe50ff     	bl	0x1c9c18 <std::__ndk1::shared_ptr<SW::IConnectableHelper>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::IConnectableHelper
+  235820: f9401688     	ldr	x8, [x20, #0x28]
+  235824: f85f83a9     	ldur	x9, [x29, #-0x8]
+  235828: eb09011f     	cmp	x8, x9
+  23582c: 54000061     	b.ne	0x235838 <SW::ConnectableHelper::devicesList()+0xb0>
+  235830: aa1303e0     	mov	x0, x19
+  235834: 94021f14     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  235838: 94022e5e     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+000000000023583c <SW::ConnectableHelper::connectableHelper()>:
+  23583c: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  235840: a90157f6     	stp	x22, x21, [sp, #0x10]
+  235844: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  235848: 910003fd     	mov	x29, sp
+  23584c: aa0003f5     	mov	x21, x0
+  235850: f9405800     	ldr	x0, [x0, #0xb0]
+  235854: a9007d1f     	stp	xzr, xzr, [x8]
+  235858: aa0803f3     	mov	x19, x8
+  23585c: f9400008     	ldr	x8, [x0]
+  235860: f9404108     	ldr	x8, [x8, #0x80]
+  235864: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  235868: 7100041f     	cmp	w0, #0x1
+  23586c: aa1f03f4     	mov	x20, xzr
+  235870: 540000ec     	b.gt	0x23588c <SW::ConnectableHelper::connectableHelper()+0x50>
+  235874: 34000400     	cbz	w0, 0x2358f4 <SW::ConnectableHelper::connectableHelper()+0xb8>
+  235878: 7100041f     	cmp	w0, #0x1
+  23587c: 540001e1     	b.ne	0x2358b8 <SW::ConnectableHelper::connectableHelper()+0x7c>
+  235880: a94d52b6     	ldp	x22, x20, [x21, #0xd0]
+  235884: b5000114     	cbnz	x20, 0x2358a4 <SW::ConnectableHelper::connectableHelper()+0x68>
+  235888: 1400000a     	b	0x2358b0 <SW::ConnectableHelper::connectableHelper()+0x74>
+  23588c: 7100081f     	cmp	w0, #0x2
+  235890: 54000380     	b.eq	0x235900 <SW::ConnectableHelper::connectableHelper()+0xc4>
+  235894: 71000c1f     	cmp	w0, #0x3
+  235898: 54000101     	b.ne	0x2358b8 <SW::ConnectableHelper::connectableHelper()+0x7c>
+  23589c: a94f52b6     	ldp	x22, x20, [x21, #0xf0]
+  2358a0: b4000094     	cbz	x20, 0x2358b0 <SW::ConnectableHelper::connectableHelper()+0x74>
+  2358a4: 91002281     	add	x1, x20, #0x8
+  2358a8: 52800020     	mov	w0, #0x1                // =1
+  2358ac: 94021e91     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  2358b0: a9005276     	stp	x22, x20, [x19]
+  2358b4: b5000196     	cbnz	x22, 0x2358e4 <SW::ConnectableHelper::connectableHelper()+0xa8>
+  2358b8: a94c5ab5     	ldp	x21, x22, [x21, #0xc0]
+  2358bc: b4000096     	cbz	x22, 0x2358cc <SW::ConnectableHelper::connectableHelper()+0x90>
+  2358c0: 910022c1     	add	x1, x22, #0x8
+  2358c4: 52800020     	mov	w0, #0x1                // =1
+  2358c8: 94021e8a     	bl	0x2bd2f0 <__aarch64_ldadd8_relax>  ;;; CALL __aarch64_ldadd8_relax
+  2358cc: a9005a75     	stp	x21, x22, [x19]
+  2358d0: b40000b4     	cbz	x20, 0x2358e4 <SW::ConnectableHelper::connectableHelper()+0xa8>
+  2358d4: 91002281     	add	x1, x20, #0x8
+  2358d8: 92800000     	mov	x0, #-0x1               // =-1
+  2358dc: 94021e91     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  2358e0: b4000160     	cbz	x0, 0x23590c <SW::ConnectableHelper::connectableHelper()+0xd0>
+  2358e4: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  2358e8: a94157f6     	ldp	x22, x21, [sp, #0x10]
+  2358ec: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  2358f0: d65f03c0     	ret
+  2358f4: a94c52b6     	ldp	x22, x20, [x21, #0xc0]
+  2358f8: b5fffd74     	cbnz	x20, 0x2358a4 <SW::ConnectableHelper::connectableHelper()+0x68>
+  2358fc: 17ffffed     	b	0x2358b0 <SW::ConnectableHelper::connectableHelper()+0x74>
+  235900: a94e52b6     	ldp	x22, x20, [x21, #0xe0]
+  235904: b5fffd14     	cbnz	x20, 0x2358a4 <SW::ConnectableHelper::connectableHelper()+0x68>
+  235908: 17ffffea     	b	0x2358b0 <SW::ConnectableHelper::connectableHelper()+0x74>
+  23590c: f9400288     	ldr	x8, [x20]
+  235910: aa1403e0     	mov	x0, x20
+  235914: f9400908     	ldr	x8, [x8, #0x10]
+  235918: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  23591c: aa1403e0     	mov	x0, x20
+  235920: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  235924: a94157f6     	ldp	x22, x21, [sp, #0x10]
+  235928: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  23592c: 14022e15     	b	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>
+  235930: aa0003f4     	mov	x20, x0
+  235934: aa1303e0     	mov	x0, x19
+  235938: 97fe50b8     	bl	0x1c9c18 <std::__ndk1::shared_ptr<SW::IConnectableHelper>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::IConnectableHelper
+  23593c: aa1403e0     	mov	x0, x20
+  235940: 94021ed1     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+0000000000235944 <SW::ConnectableHelper::startConnect()>:
+  235944: d10103ff     	sub	sp, sp, #0x40
+  235948: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  23594c: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  235950: 910083fd     	add	x29, sp, #0x20
+  235954: d53bd054     	mrs	x20, TPIDR_EL0
+  235958: aa0003f3     	mov	x19, x0
+  23595c: 91018000     	add	x0, x0, #0x60
+  235960: f9401688     	ldr	x8, [x20, #0x28]
+  235964: f81f83a8     	stur	x8, [x29, #-0x8]
+  235968: 940231ee     	bl	0x2c2120 <_ZNK7eventpp9internal_16CallbackListBaseIFvvENS_15DefaultPoliciesEEclEv@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (), eventpp::DefaultPolicies>::operator()() const
+  23596c: 910023e8     	add	x8, sp, #0x8
+  235970: aa1303e0     	mov	x0, x19
+  235974: 94023c0f     	bl	0x2c49b0 <_ZN2SW17ConnectableHelper17connectableHelperEv@plt>  ;;; CALL SW::ConnectableHelper::connectableHelper()
+  235978: f94007e0     	ldr	x0, [sp, #0x8]
+  23597c: f9400008     	ldr	x8, [x0]
+  235980: f9403508     	ldr	x8, [x8, #0x68]
+  235984: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  235988: f9400bf3     	ldr	x19, [sp, #0x10]
+  23598c: b4000173     	cbz	x19, 0x2359b8 <SW::ConnectableHelper::startConnect()+0x74>
+  235990: 91002261     	add	x1, x19, #0x8
+  235994: 92800000     	mov	x0, #-0x1               // =-1
+  235998: 94021e62     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  23599c: b50000e0     	cbnz	x0, 0x2359b8 <SW::ConnectableHelper::startConnect()+0x74>
+  2359a0: f9400268     	ldr	x8, [x19]
+  2359a4: aa1303e0     	mov	x0, x19
+  2359a8: f9400908     	ldr	x8, [x8, #0x10]
+  2359ac: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  2359b0: aa1303e0     	mov	x0, x19
+  2359b4: 94022df3     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  2359b8: f9401688     	ldr	x8, [x20, #0x28]
+  2359bc: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2359c0: eb09011f     	cmp	x8, x9
+  2359c4: 540001c1     	b.ne	0x2359fc <SW::ConnectableHelper::startConnect()+0xb8>
+  2359c8: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  2359cc: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  2359d0: 910103ff     	add	sp, sp, #0x40
+  2359d4: d65f03c0     	ret
+  2359d8: aa0003f3     	mov	x19, x0
+  2359dc: 910023e0     	add	x0, sp, #0x8
+  2359e0: 97fe508e     	bl	0x1c9c18 <std::__ndk1::shared_ptr<SW::IConnectableHelper>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::IConnectableHelper
+  2359e4: f9401688     	ldr	x8, [x20, #0x28]
+  2359e8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2359ec: eb09011f     	cmp	x8, x9
+  2359f0: 54000061     	b.ne	0x2359fc <SW::ConnectableHelper::startConnect()+0xb8>
+  2359f4: aa1303e0     	mov	x0, x19
+  2359f8: 94021ea3     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  2359fc: 94022ded     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000235a00 <SW::ConnectableHelper::selectDevice(int)>:
+  235a00: d10103ff     	sub	sp, sp, #0x40
+  235a04: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  235a08: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  235a0c: 910083fd     	add	x29, sp, #0x20
+  235a10: d53bd054     	mrs	x20, TPIDR_EL0
+  235a14: 2a0103f3     	mov	w19, w1
+  235a18: f9401688     	ldr	x8, [x20, #0x28]
+  235a1c: f81f83a8     	stur	x8, [x29, #-0x8]
+  235a20: 910023e8     	add	x8, sp, #0x8
+  235a24: 94023be3     	bl	0x2c49b0 <_ZN2SW17ConnectableHelper17connectableHelperEv@plt>  ;;; CALL SW::ConnectableHelper::connectableHelper()
+  235a28: f94007e0     	ldr	x0, [sp, #0x8]
+  235a2c: f9400008     	ldr	x8, [x0]
+  235a30: f9403908     	ldr	x8, [x8, #0x70]
+  235a34: 2a1303e1     	mov	w1, w19
+  235a38: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  235a3c: f9400bf3     	ldr	x19, [sp, #0x10]
+  235a40: b4000173     	cbz	x19, 0x235a6c <SW::ConnectableHelper::selectDevice(int)+0x6c>
+  235a44: 91002261     	add	x1, x19, #0x8
+  235a48: 92800000     	mov	x0, #-0x1               // =-1
+  235a4c: 94021e35     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  235a50: b50000e0     	cbnz	x0, 0x235a6c <SW::ConnectableHelper::selectDevice(int)+0x6c>
+  235a54: f9400268     	ldr	x8, [x19]
+  235a58: aa1303e0     	mov	x0, x19
+  235a5c: f9400908     	ldr	x8, [x8, #0x10]
+  235a60: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  235a64: aa1303e0     	mov	x0, x19
+  235a68: 94022dc6     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  235a6c: f9401688     	ldr	x8, [x20, #0x28]
+  235a70: f85f83a9     	ldur	x9, [x29, #-0x8]
+  235a74: eb09011f     	cmp	x8, x9
+  235a78: 540001c1     	b.ne	0x235ab0 <SW::ConnectableHelper::selectDevice(int)+0xb0>
+  235a7c: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  235a80: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  235a84: 910103ff     	add	sp, sp, #0x40
+  235a88: d65f03c0     	ret
+  235a8c: aa0003f3     	mov	x19, x0
+  235a90: 910023e0     	add	x0, sp, #0x8
+  235a94: 97fe5061     	bl	0x1c9c18 <std::__ndk1::shared_ptr<SW::IConnectableHelper>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::IConnectableHelper
+  235a98: f9401688     	ldr	x8, [x20, #0x28]
+  235a9c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  235aa0: eb09011f     	cmp	x8, x9
+  235aa4: 54000061     	b.ne	0x235ab0 <SW::ConnectableHelper::selectDevice(int)+0xb0>
+  235aa8: aa1303e0     	mov	x0, x19
+  235aac: 94021e76     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  235ab0: 94022dc0     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+

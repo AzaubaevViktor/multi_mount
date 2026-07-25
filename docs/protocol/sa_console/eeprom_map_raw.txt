@@ -1,0 +1,55 @@
+SW::SAMSync::connect()                               202150   SW::EEPROMConverser::writeInt8 addr=0x6c len/val=0x1
+SW::SAMSync::readStatus()                            2022c4   SW::EEPROMConverser::readInt8 addr=? len/val=?
+SW::SAMSync::readPowerStatus()                       2026bc   SW::EEPROMConverser::readInt16 addr=0x4 len/val=?
+SW::SAMSync::readPowerStatus()                       2026e0   SW::EEPROMConverser::readInt16 addr=0x1c len/val=?
+SW::SAMSync::readParamSet()                          202854   SW::EEPROMConverser::readInt8 addr=? len/val=?
+SW::SAMSync::readParamSet()                          202890   SW::EEPROMConverser::readInt8 addr=0x28 len/val=?
+SW::SAMSync::readParamSet()                          2028c0   SW::EEPROMConverser::readInt32 addr=0x24 len/val=?
+SW::SAMSync::readParamSet()                          202918   SW::EEPROMConverser::readInt32 addr=0x30 len/val=?
+SW::SAMSync::readParamSet()                          20296c   SW::EEPROMConverser::readInt32 addr=0x34 len/val=?
+SW::SAMSync::programManualMode()                     202ee8   SW::EEPROMConverser::writeInt8 addr=0x20 len/val=?
+SW::SAMSync::programAutoMode(SW::SAMParamSet const&) 203088   SW::EEPROMConverser::readInt8 addr=0x20 len/val=?
+SW::SAMSync::programAutoMode(SW::SAMParamSet const&) 2030e8   SW::EEPROMConverser::readInt8 addr=0x20 len/val=?
+SW::SAMSync::programAutoMode(SW::SAMParamSet const&) 203128   SW::EEPROMConverser::readInt8 addr=0x20 len/val=?
+SW::SAMSync::programAutoMode(SW::SAMParamSet const&) 20316c   SW::EEPROMConverser::readInt8 addr=0x20 len/val=?
+SW::SAMSync::programAutoMode(SW::SAMParamSet const&) 2031b0   SW::EEPROMConverser::readInt8 addr=0x20 len/val=?
+SW::SAMSync::programAutoMode(SW::SAMParamSet const&) 2031f4   SW::EEPROMConverser::readInt8 addr=0x20 len/val=?
+SW::SAMSync::programAutoMode(SW::SAMParamSet const&) 203238   SW::EEPROMConverser::readInt8 addr=0x20 len/val=?
+SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&) 203310   SW::EEPROMConverser::writeInt8 addr=0x48 len/val=?
+SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&) 20335c   SW::EEPROMConverser::writeInt32 addr=0x30 len/val=?
+SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&) 203388   SW::EEPROMConverser::writeInt32 addr=0x40 len/val=?
+SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&) 2033d8   SW::EEPROMConverser::writeInt32 addr=0x3c len/val=?
+SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&) 2033fc   SW::EEPROMConverser::writeInt8 addr=0x38 len/val=?
+SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&) 20341c   SW::EEPROMConverser::writeInt8 addr=0x28 len/val=?
+SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&) 203470   SW::EEPROMConverser::writeInt32 addr=0x24 len/val=?
+SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&) 203498   SW::EEPROMConverser::writeInt32 addr=0x2c len/val=?
+SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&) 2034b4   SW::EEPROMConverser::writeInt32 addr=0x34 len/val=?
+SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&) 203500   SW::EEPROMConverser::writeInt32 addr=0x44 len/val=?
+SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&) 203530   SW::EEPROMConverser::writeInt8 addr=0x1a0 len/val=?
+SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&) 203584   SW::EEPROMConverser::writeInt32 addr=0x1b8 len/val=?
+SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&) 2035cc   SW::EEPROMConverser::writeInt32 addr=0x4c len/val=?
+SW::SAMSync::programAutoMode_writeParams(SW::SAMParamSet const&) 2035e8   SW::EEPROMConverser::writeInt8 addr=0x20 len/val=?
+SW::SAMSync::readDeviceName()                        2036dc   SW::EEPROMConverser::readString addr=0x90 len/val=0x20
+SW::SAMSync::readWifiSettings()                      203858   SW::EEPROMConverser::readInt8 addr=0x88 len/val=?
+SW::SAMSync::readWifiSettings()                      203884   SW::EEPROMConverser::readInt8 addr=0x8c len/val=?
+SW::SAMSync::writeWifiSettings(SW::WifiSettings const&) 203e90   SW::EEPROMConverser::readInt8 addr=0x80 len/val=?
+SW::SAMSync::writeWifiSettings(SW::WifiSettings const&) 203ef0   SW::EEPROMConverser::readInt8 addr=0x80 len/val=?
+SW::SAMSync::writeWifiSettings(SW::WifiSettings const&) 203f30   SW::EEPROMConverser::readInt8 addr=0x80 len/val=?
+SW::SAMSync::writeWifiSettings(SW::WifiSettings const&) 203f74   SW::EEPROMConverser::readInt8 addr=0x80 len/val=?
+SW::SAMSync::writeWifiSettings(SW::WifiSettings const&) 203fb8   SW::EEPROMConverser::readInt8 addr=0x80 len/val=?
+SW::SAMSync::writeWifiSettings(SW::WifiSettings const&) 203ffc   SW::EEPROMConverser::readInt8 addr=0x80 len/val=?
+SW::SAMSync::writeWifiSettings(SW::WifiSettings const&) 204040   SW::EEPROMConverser::readInt8 addr=0x80 len/val=?
+SW::SAMSync::writeWifiSettings_write(SW::WifiSettings const&) 2040ec   SW::EEPROMConverser::writeInt32 addr=0x88 len/val=?
+SW::SAMSync::writeWifiSettings_write(SW::WifiSettings const&) 204124   SW::EEPROMConverser::writeInt32 addr=0x8c len/val=?
+SW::SAMSync::writeWifiSettings_write(SW::WifiSettings const&) 204144   SW::EEPROMConverser::writeString addr=0x90 len/val=0x20
+SW::SAMSync::writeWifiSettings_write(SW::WifiSettings const&) 20416c   SW::EEPROMConverser::writeString addr=0xb0 len/val=0x3f
+SW::SAMSync::writeWifiSettings_write(SW::WifiSettings const&) 20419c   SW::EEPROMConverser::writeString addr=0xf0 len/val=0x20
+SW::SAMSync::writeWifiSettings_write(SW::WifiSettings const&) 2041bc   SW::EEPROMConverser::writeString addr=0x110 len/val=0x3f
+SW::SAMSync::writeWifiSettings_write(SW::WifiSettings const&) 2041dc   SW::EEPROMConverser::writeString addr=0x150 len/val=0xf
+SW::SAMSync::readWifiTimeoutSec()                    204220   SW::EEPROMConverser::readInt32 addr=0x84 len/val=0x1
+SW::SAMSync::readPolarSightLightTimeoutSec()         2043a8   SW::EEPROMConverser::readInt32 addr=0x188 len/val=?
+SW::SAMSync::writePolarSightLightTimeoutSec(unsigned int) 204450   SW::EEPROMConverser::writeInt32 addr=0x188 len/val=?
+SW::SAMSync::readPowerOnAutoPreviousTask()           2044a0   SW::EEPROMConverser::readInt8 addr=0x19c len/val=0x1
+SW::SAMSync::writePowerOnAutoPreviousTask(bool)      20454c   SW::EEPROMConverser::writeInt8 addr=0x19c len/val=?
+SW::SAMSync::readAutoShutdownSec()                   20459c   SW::EEPROMConverser::readInt32 addr=0x184 len/val=0x1
+SW::SAMSync::writeAutoShutdownSec(unsigned int)      204644   SW::EEPROMConverser::writeInt32 addr=0x184 len/val=?

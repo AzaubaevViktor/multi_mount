@@ -1,0 +1,1376 @@
+00000000002286f8 <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)>:
+  2286f8: d101c3ff     	sub	sp, sp, #0x70
+  2286fc: a9047bfd     	stp	x29, x30, [sp, #0x40]
+  228700: f9002bf5     	str	x21, [sp, #0x50]
+  228704: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  228708: 910103fd     	add	x29, sp, #0x40
+  22870c: d53bd054     	mrs	x20, TPIDR_EL0
+  228710: f9401688     	ldr	x8, [x20, #0x28]
+  228714: 7100143f     	cmp	w1, #0x5
+  228718: f81f83a8     	stur	x8, [x29, #-0x8]
+  22871c: 54000740     	b.eq	0x228804 <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x10c>
+  228720: 7100043f     	cmp	w1, #0x1
+  228724: 54000300     	b.eq	0x228784 <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x8c>
+  228728: 35001021     	cbnz	w1, 0x22892c <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x234>
+  22872c: 7100045f     	cmp	w2, #0x1
+  228730: 540009ad     	b.le	0x228864 <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x16c>
+  228734: 7100085f     	cmp	w2, #0x2
+  228738: 54000b60     	b.eq	0x2288a4 <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x1ac>
+  22873c: 71000c5f     	cmp	w2, #0x3
+  228740: 54000ce0     	b.eq	0x2288dc <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x1e4>
+  228744: 7100105f     	cmp	w2, #0x4
+  228748: 54000f21     	b.ne	0x22892c <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x234>
+  22874c: a940a468     	ldp	x8, x9, [x3, #0x8]
+  228750: f9400c6a     	ldr	x10, [x3, #0x18]
+  228754: bd400140     	ldr	s0, [x10]
+  228758: b9400101     	ldr	w1, [x8]
+  22875c: b9400122     	ldr	w2, [x9]
+  228760: f9401688     	ldr	x8, [x20, #0x28]
+  228764: f85f83a9     	ldur	x9, [x29, #-0x8]
+  228768: eb09011f     	cmp	x8, x9
+  22876c: 54000f21     	b.ne	0x228950 <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x258>
+  228770: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  228774: f9402bf5     	ldr	x21, [sp, #0x50]
+  228778: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+  22877c: 9101c3ff     	add	sp, sp, #0x70
+  228780: 14026ee0     	b	0x2c4300 <_ZN2SW16HandleController19handleJoystickEventEiif@plt>
+  228784: 35000d42     	cbnz	w2, 0x22892c <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x234>
+  228788: f9400075     	ldr	x21, [x3]
+  22878c: 910043e8     	add	x8, sp, #0x10
+  228790: 94026ee0     	bl	0x2c4310 <_ZNK2SW16HandleController11getDownKeysEv@plt>  ;;; CALL SW::HandleController::getDownKeys() const
+  228794: f94013e8     	ldr	x8, [sp, #0x20]
+  228798: 3dc007e0     	ldr	q0, [sp, #0x10]
+  22879c: f9000bff     	str	xzr, [sp, #0x10]
+  2287a0: a901ffff     	stp	xzr, xzr, [sp, #0x18]
+  2287a4: f94002b3     	ldr	x19, [x21]
+  2287a8: 3d8002a0     	str	q0, [x21]
+  2287ac: f9000aa8     	str	x8, [x21, #0x10]
+  2287b0: b4000153     	cbz	x19, 0x2287d8 <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0xe0>
+  2287b4: 12800000     	mov	w0, #-0x1               // =-1
+  2287b8: aa1303e1     	mov	x1, x19
+  2287bc: 940252c1     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  2287c0: 7100041f     	cmp	w0, #0x1
+  2287c4: 540000a1     	b.ne	0x2287d8 <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0xe0>
+  2287c8: aa1303e0     	mov	x0, x19
+  2287cc: 52800081     	mov	w1, #0x4                // =4
+  2287d0: 52800102     	mov	w2, #0x8                // =8
+  2287d4: 94026243     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=4(0x4), x2=8(0x8)]
+  2287d8: f9400be1     	ldr	x1, [sp, #0x10]
+  2287dc: b4000a81     	cbz	x1, 0x22892c <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x234>
+  2287e0: 12800000     	mov	w0, #-0x1               // =-1
+  2287e4: 940252b7     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  2287e8: 7100041f     	cmp	w0, #0x1
+  2287ec: 54000a01     	b.ne	0x22892c <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x234>
+  2287f0: f9400be0     	ldr	x0, [sp, #0x10]
+  2287f4: 52800081     	mov	w1, #0x4                // =4
+  2287f8: 52800102     	mov	w2, #0x8                // =8
+  2287fc: 94026239     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=4(0x4), x2=8(0x8)]
+  228800: 1400004b     	b	0x22892c <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x234>
+  228804: f9400468     	ldr	x8, [x3, #0x8]
+  228808: b000058b     	adrp	x11, 0x2d9000 <vsnprintf+0x2d9000>
+  22880c: a9402909     	ldp	x9, x10, [x8]
+  228810: f9426d6b     	ldr	x11, [x11, #0x4d8]
+  228814: 92400148     	and	x8, x10, #0x1
+  228818: f100015f     	cmp	x10, #0x0
+  22881c: aa090108     	orr	x8, x8, x9
+  228820: fa401904     	ccmp	x8, #0x0, #0x4, ne
+  228824: f9400068     	ldr	x8, [x3]
+  228828: 1a9f17ea     	cset	w10, eq
+  22882c: eb0b013f     	cmp	x9, x11
+  228830: 54000081     	b.ne	0x228840 <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x148>
+  228834: 3400006a     	cbz	w10, 0x228840 <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x148>
+  228838: b900011f     	str	wzr, [x8]
+  22883c: 1400003c     	b	0x22892c <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x234>
+  228840: b000058b     	adrp	x11, 0x2d9000 <vsnprintf+0x2d9000>
+  228844: f942716b     	ldr	x11, [x11, #0x4e0]
+  228848: eb0b013f     	cmp	x9, x11
+  22884c: 52000149     	eor	w9, w10, #0x1
+  228850: 1a9f0529     	csinc	w9, w9, wzr, eq
+  228854: 370006c9     	tbnz	w9, #0x0, 0x22892c <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x234>
+  228858: 52800029     	mov	w9, #0x1                // =1
+  22885c: b9000109     	str	w9, [x8]
+  228860: 14000033     	b	0x22892c <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x234>
+  228864: 34000582     	cbz	w2, 0x228914 <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x21c>
+  228868: 7100045f     	cmp	w2, #0x1
+  22886c: 54000601     	b.ne	0x22892c <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x234>
+  228870: a940a468     	ldp	x8, x9, [x3, #0x8]
+  228874: f9400c6a     	ldr	x10, [x3, #0x18]
+  228878: bd400140     	ldr	s0, [x10]
+  22887c: b9400108     	ldr	w8, [x8]
+  228880: b9400129     	ldr	w9, [x9]
+  228884: bd0007e0     	str	s0, [sp, #0x4]
+  228888: 290123e9     	stp	w9, w8, [sp, #0x8]
+  22888c: 910033e8     	add	x8, sp, #0xc
+  228890: 910023e9     	add	x9, sp, #0x8
+  228894: a90123ff     	stp	xzr, x8, [sp, #0x10]
+  228898: 910013e8     	add	x8, sp, #0x4
+  22889c: a90223e9     	stp	x9, x8, [sp, #0x20]
+  2288a0: 1400001f     	b	0x22891c <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x224>
+  2288a4: a940a468     	ldp	x8, x9, [x3, #0x8]
+  2288a8: f9400c6a     	ldr	x10, [x3, #0x18]
+  2288ac: fd400140     	ldr	d0, [x10]
+  2288b0: b9400101     	ldr	w1, [x8]
+  2288b4: b9400122     	ldr	w2, [x9]
+  2288b8: f9401688     	ldr	x8, [x20, #0x28]
+  2288bc: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2288c0: eb09011f     	cmp	x8, x9
+  2288c4: 54000461     	b.ne	0x228950 <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x258>
+  2288c8: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  2288cc: f9402bf5     	ldr	x21, [sp, #0x50]
+  2288d0: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+  2288d4: 9101c3ff     	add	sp, sp, #0x70
+  2288d8: 14026e9a     	b	0x2c4340 <_ZN2SW16HandleController15handleDPadEventEiid@plt>
+  2288dc: a940a468     	ldp	x8, x9, [x3, #0x8]
+  2288e0: f9400c6a     	ldr	x10, [x3, #0x18]
+  2288e4: b9400143     	ldr	w3, [x10]
+  2288e8: b9400101     	ldr	w1, [x8]
+  2288ec: b9400122     	ldr	w2, [x9]
+  2288f0: f9401688     	ldr	x8, [x20, #0x28]
+  2288f4: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2288f8: eb09011f     	cmp	x8, x9
+  2288fc: 540002a1     	b.ne	0x228950 <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x258>
+  228900: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  228904: f9402bf5     	ldr	x21, [sp, #0x50]
+  228908: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+  22890c: 9101c3ff     	add	sp, sp, #0x70
+  228910: 14026e90     	b	0x2c4350 <_ZN2SW16HandleController18handleGamePadEventEiii@plt>
+  228914: 910033e8     	add	x8, sp, #0xc
+  228918: a90123ff     	stp	xzr, x8, [sp, #0x10]
+  22891c: b0000581     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  228920: 910043e3     	add	x3, sp, #0x10
+  228924: f9427c21     	ldr	x1, [x1, #0x4f8]
+  228928: 940267b6     	bl	0x2c2800 <_ZN11QMetaObject8activateEP7QObjectPKS_iPPv@plt>  ;;; CALL QMetaObject::activate(QObject*, QMetaObject const*, int, void**)
+  22892c: f9401688     	ldr	x8, [x20, #0x28]
+  228930: f85f83a9     	ldur	x9, [x29, #-0x8]
+  228934: eb09011f     	cmp	x8, x9
+  228938: 540000c1     	b.ne	0x228950 <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x258>
+  22893c: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  228940: f9402bf5     	ldr	x21, [sp, #0x50]
+  228944: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+  228948: 9101c3ff     	add	sp, sp, #0x70
+  22894c: d65f03c0     	ret
+  228950: 94026218     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000228954 <SW::HandleController::downKeysChanged(SW::HandleController::QPrivateSignal)>:
+  228954: d10103ff     	sub	sp, sp, #0x40
+  228958: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  22895c: f9001bf3     	str	x19, [sp, #0x30]
+  228960: 910083fd     	add	x29, sp, #0x20
+  228964: d53bd053     	mrs	x19, TPIDR_EL0
+  228968: 910023e3     	add	x3, sp, #0x8
+  22896c: 2a1f03e2     	mov	w2, wzr
+  228970: f9401668     	ldr	x8, [x19, #0x28]
+  228974: f81f83a8     	stur	x8, [x29, #-0x8]
+  228978: 910013e8     	add	x8, sp, #0x4
+  22897c: 390013e1     	strb	w1, [sp, #0x4]
+  228980: b0000581     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  228984: a900a3ff     	stp	xzr, x8, [sp, #0x8]
+  228988: f9427c21     	ldr	x1, [x1, #0x4f8]
+  22898c: 9402679d     	bl	0x2c2800 <_ZN11QMetaObject8activateEP7QObjectPKS_iPPv@plt>  ;;; CALL QMetaObject::activate(QObject*, QMetaObject const*, int, void**)
+  228990: f9401668     	ldr	x8, [x19, #0x28]
+  228994: f85f83a9     	ldur	x9, [x29, #-0x8]
+  228998: eb09011f     	cmp	x8, x9
+  22899c: 540000a1     	b.ne	0x2289b0 <SW::HandleController::downKeysChanged(SW::HandleController::QPrivateSignal)+0x5c>
+  2289a0: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  2289a4: f9401bf3     	ldr	x19, [sp, #0x30]
+  2289a8: 910103ff     	add	sp, sp, #0x40
+  2289ac: d65f03c0     	ret
+  2289b0: 94026200     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000002289b4 <SW::HandleController::handleControllerChanged(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction, float)>:
+  2289b4: d10183ff     	sub	sp, sp, #0x60
+  2289b8: a9047bfd     	stp	x29, x30, [sp, #0x40]
+  2289bc: f9002bf3     	str	x19, [sp, #0x50]
+  2289c0: 910103fd     	add	x29, sp, #0x40
+  2289c4: d53bd053     	mrs	x19, TPIDR_EL0
+  2289c8: 910033e9     	add	x9, sp, #0xc
+  2289cc: 910063e3     	add	x3, sp, #0x18
+  2289d0: f9401668     	ldr	x8, [x19, #0x28]
+  2289d4: f81f83a8     	stur	x8, [x29, #-0x8]
+  2289d8: 910053e8     	add	x8, sp, #0x14
+  2289dc: a901a3ff     	stp	xzr, x8, [sp, #0x18]
+  2289e0: 910043e8     	add	x8, sp, #0x10
+  2289e4: 290207e2     	stp	w2, w1, [sp, #0x10]
+  2289e8: b0000581     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  2289ec: 52800022     	mov	w2, #0x1                // =1
+  2289f0: bd000fe0     	str	s0, [sp, #0xc]
+  2289f4: a902a7e8     	stp	x8, x9, [sp, #0x28]
+  2289f8: f9427c21     	ldr	x1, [x1, #0x4f8]
+  2289fc: 94026781     	bl	0x2c2800 <_ZN11QMetaObject8activateEP7QObjectPKS_iPPv@plt>  ;;; CALL QMetaObject::activate(QObject*, QMetaObject const*, int, void**)  [x2=1(0x1)]
+  228a00: f9401668     	ldr	x8, [x19, #0x28]
+  228a04: f85f83a9     	ldur	x9, [x29, #-0x8]
+  228a08: eb09011f     	cmp	x8, x9
+  228a0c: 540000a1     	b.ne	0x228a20 <SW::HandleController::handleControllerChanged(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction, float)+0x6c>
+  228a10: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+  228a14: f9402bf3     	ldr	x19, [sp, #0x50]
+  228a18: 910183ff     	add	sp, sp, #0x60
+  228a1c: d65f03c0     	ret
+  228a20: 940261e4     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000228a24 <SW::HandleController::metaObject() const>:
+  228a24: f9400400     	ldr	x0, [x0, #0x8]
+  228a28: f9401c08     	ldr	x8, [x0, #0x38]
+  228a2c: b4000048     	cbz	x8, 0x228a34 <SW::HandleController::metaObject() const+0x10>
+  228a30: 1402676c     	b	0x2c27e0 <_ZNK11QObjectData17dynamicMetaObjectEv@plt>
+  228a34: b0000580     	adrp	x0, 0x2d9000 <vsnprintf+0x2d9000>
+  228a38: f9427c00     	ldr	x0, [x0, #0x4f8]
+  228a3c: d65f03c0     	ret
+
+0000000000228a40 <SW::HandleController::qt_metacast(char const*)>:
+  228a40: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  228a44: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  228a48: 910003fd     	mov	x29, sp
+  228a4c: b40001c1     	cbz	x1, 0x228a84 <SW::HandleController::qt_metacast(char const*)+0x44>
+  228a50: b0fff9c8     	adrp	x8, 0x161000 <(anonymous namespace)::qt_meta_stringdata_CLASSSWSCOPEEmulatorSettingsENDCLASS+0x34>
+  228a54: 91222108     	add	x8, x8, #0x888
+  228a58: aa0003f3     	mov	x19, x0
+  228a5c: aa0103f4     	mov	x20, x1
+  228a60: aa0103e0     	mov	x0, x1
+  228a64: aa0803e1     	mov	x1, x8
+  228a68: 94026762     	bl	0x2c27f0 <strcmp@plt>  ;;; CALL strcmp
+  228a6c: 34000140     	cbz	w0, 0x228a94 <SW::HandleController::qt_metacast(char const*)+0x54>
+  228a70: aa1303e0     	mov	x0, x19
+  228a74: aa1403e1     	mov	x1, x20
+  228a78: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  228a7c: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  228a80: 1402669c     	b	0x2c24f0 <_ZN7QObject11qt_metacastEPKc@plt>
+  228a84: aa1f03e0     	mov	x0, xzr
+  228a88: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  228a8c: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  228a90: d65f03c0     	ret
+  228a94: aa1303e0     	mov	x0, x19
+  228a98: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  228a9c: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  228aa0: d65f03c0     	ret
+
+0000000000228aa4 <SW::HandleController::qt_metacall(QMetaObject::Call, int, void**)>:
+  228aa4: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  228aa8: a90157f6     	stp	x22, x21, [sp, #0x10]
+  228aac: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  228ab0: 910003fd     	mov	x29, sp
+  228ab4: aa0303f3     	mov	x19, x3
+  228ab8: 2a0103f5     	mov	w21, w1
+  228abc: aa0003f4     	mov	x20, x0
+  228ac0: 94026690     	bl	0x2c2500 <_ZN7QObject11qt_metacallEN11QMetaObject4CallEiPPv@plt>  ;;; CALL QObject::qt_metacall(QMetaObject::Call, int, void**)
+  228ac4: 37f80200     	tbnz	w0, #0x1f, 0x228b04 <SW::HandleController::qt_metacall(QMetaObject::Call, int, void**)+0x60>
+  228ac8: 710022bf     	cmp	w21, #0x8
+  228acc: 540001c8     	b.hi	0x228b04 <SW::HandleController::qt_metacall(QMetaObject::Call, int, void**)+0x60>
+  228ad0: 52800028     	mov	w8, #0x1                // =1
+  228ad4: 528029c9     	mov	w9, #0x14e              // =334
+  228ad8: 1ad52108     	lsl	w8, w8, w21
+  228adc: 6a09011f     	tst	w8, w9
+  228ae0: 540001a0     	b.eq	0x228b14 <SW::HandleController::qt_metacall(QMetaObject::Call, int, void**)+0x70>
+  228ae4: 2a0003f6     	mov	w22, w0
+  228ae8: aa1403e0     	mov	x0, x20
+  228aec: 2a1503e1     	mov	w1, w21
+  228af0: 2a1603e2     	mov	w2, w22
+  228af4: aa1303e3     	mov	x3, x19
+  228af8: 97ffff00     	bl	0x2286f8 <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)>  ;;; CALL SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)
+  228afc: 2a1603e0     	mov	w0, w22
+  228b00: 510006c0     	sub	w0, w22, #0x1
+  228b04: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  228b08: a94157f6     	ldp	x22, x21, [sp, #0x10]
+  228b0c: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  228b10: d65f03c0     	ret
+  228b14: 34000195     	cbz	w21, 0x228b44 <SW::HandleController::qt_metacall(QMetaObject::Call, int, void**)+0xa0>
+  228b18: 71001ebf     	cmp	w21, #0x7
+  228b1c: 54ffff41     	b.ne	0x228b04 <SW::HandleController::qt_metacall(QMetaObject::Call, int, void**)+0x60>
+  228b20: 7100101f     	cmp	w0, #0x4
+  228b24: 54000068     	b.hi	0x228b30 <SW::HandleController::qt_metacall(QMetaObject::Call, int, void**)+0x8c>
+  228b28: f9400268     	ldr	x8, [x19]
+  228b2c: f900011f     	str	xzr, [x8]
+  228b30: 51001400     	sub	w0, w0, #0x5
+  228b34: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  228b38: a94157f6     	ldp	x22, x21, [sp, #0x10]
+  228b3c: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  228b40: d65f03c0     	ret
+  228b44: 7100101f     	cmp	w0, #0x4
+  228b48: 54000108     	b.hi	0x228b68 <SW::HandleController::qt_metacall(QMetaObject::Call, int, void**)+0xc4>
+  228b4c: 2a0003f5     	mov	w21, w0
+  228b50: aa1403e0     	mov	x0, x20
+  228b54: 2a1f03e1     	mov	w1, wzr
+  228b58: 2a1503e2     	mov	w2, w21
+  228b5c: aa1303e3     	mov	x3, x19
+  228b60: 97fffee6     	bl	0x2286f8 <SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)>  ;;; CALL SW::HandleController::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)
+  228b64: 2a1503e0     	mov	w0, w21
+  228b68: 51001400     	sub	w0, w0, #0x5
+  228b6c: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  228b70: a94157f6     	ldp	x22, x21, [sp, #0x10]
+  228b74: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  228b78: d65f03c0     	ret
+
+0000000000228b7c <SW::HandleControllerNative::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)>:
+  228b7c: d65f03c0     	ret
+
+0000000000228b80 <SW::HandleControllerNative::metaObject() const>:
+  228b80: f9400400     	ldr	x0, [x0, #0x8]
+  228b84: f9401c08     	ldr	x8, [x0, #0x38]
+  228b88: b4000048     	cbz	x8, 0x228b90 <SW::HandleControllerNative::metaObject() const+0x10>
+  228b8c: 14026715     	b	0x2c27e0 <_ZNK11QObjectData17dynamicMetaObjectEv@plt>
+  228b90: b0000580     	adrp	x0, 0x2d9000 <vsnprintf+0x2d9000>
+  228b94: f9428000     	ldr	x0, [x0, #0x500]
+  228b98: d65f03c0     	ret
+
+0000000000228b9c <SW::HandleControllerNative::qt_metacast(char const*)>:
+  228b9c: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  228ba0: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  228ba4: 910003fd     	mov	x29, sp
+  228ba8: b4000381     	cbz	x1, 0x228c18 <SW::HandleControllerNative::qt_metacast(char const*)+0x7c>
+  228bac: aa0103f3     	mov	x19, x1
+  228bb0: aa0003f4     	mov	x20, x0
+  228bb4: b0fff9c1     	adrp	x1, 0x161000 <(anonymous namespace)::qt_meta_stringdata_CLASSSWSCOPEEmulatorSettingsENDCLASS+0x34>
+  228bb8: 913bf021     	add	x1, x1, #0xefc
+  228bbc: aa1303e0     	mov	x0, x19
+  228bc0: 9402670c     	bl	0x2c27f0 <strcmp@plt>  ;;; CALL strcmp
+  228bc4: 34000320     	cbz	w0, 0x228c28 <SW::HandleControllerNative::qt_metacast(char const*)+0x8c>
+  228bc8: f0fff501     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  228bcc: 9134fc21     	add	x1, x1, #0xd3f
+  228bd0: aa1303e0     	mov	x0, x19
+  228bd4: 94026707     	bl	0x2c27f0 <strcmp@plt>  ;;; CALL strcmp
+  228bd8: 34000300     	cbz	w0, 0x228c38 <SW::HandleControllerNative::qt_metacast(char const*)+0x9c>
+  228bdc: 90fff521     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  228be0: 912ba821     	add	x1, x1, #0xaea
+  228be4: aa1303e0     	mov	x0, x19
+  228be8: 94026702     	bl	0x2c27f0 <strcmp@plt>  ;;; CALL strcmp
+  228bec: 340002e0     	cbz	w0, 0x228c48 <SW::HandleControllerNative::qt_metacast(char const*)+0xac>
+  228bf0: b0fff9c1     	adrp	x1, 0x161000 <(anonymous namespace)::qt_meta_stringdata_CLASSSWSCOPEEmulatorSettingsENDCLASS+0x34>
+  228bf4: 913ec021     	add	x1, x1, #0xfb0
+  228bf8: aa1303e0     	mov	x0, x19
+  228bfc: 940266fd     	bl	0x2c27f0 <strcmp@plt>  ;;; CALL strcmp
+  228c00: 34000140     	cbz	w0, 0x228c28 <SW::HandleControllerNative::qt_metacast(char const*)+0x8c>
+  228c04: aa1403e0     	mov	x0, x20
+  228c08: aa1303e1     	mov	x1, x19
+  228c0c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  228c10: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  228c14: 14026637     	b	0x2c24f0 <_ZN7QObject11qt_metacastEPKc@plt>
+  228c18: aa1f03e0     	mov	x0, xzr
+  228c1c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  228c20: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  228c24: d65f03c0     	ret
+  228c28: aa1403e0     	mov	x0, x20
+  228c2c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  228c30: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  228c34: d65f03c0     	ret
+  228c38: 91004280     	add	x0, x20, #0x10
+  228c3c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  228c40: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  228c44: d65f03c0     	ret
+  228c48: 91006280     	add	x0, x20, #0x18
+  228c4c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  228c50: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  228c54: d65f03c0     	ret
+
+0000000000228cbc <SW::HandleControllerNative::qt_metacall(QMetaObject::Call, int, void**)>:
+  228cbc: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  228cc0: f9000bf5     	str	x21, [sp, #0x10]
+  228cc4: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  228cc8: 910003fd     	mov	x29, sp
+  228ccc: aa0303f3     	mov	x19, x3
+  228cd0: 2a0103f5     	mov	w21, w1
+  228cd4: aa0003f4     	mov	x20, x0
+  228cd8: 9402660a     	bl	0x2c2500 <_ZN7QObject11qt_metacallEN11QMetaObject4CallEiPPv@plt>  ;;; CALL QObject::qt_metacall(QMetaObject::Call, int, void**)
+  228cdc: 37f80260     	tbnz	w0, #0x1f, 0x228d28 <SW::HandleControllerNative::qt_metacall(QMetaObject::Call, int, void**)+0x6c>
+  228ce0: 71001ebf     	cmp	w21, #0x7
+  228ce4: 54000180     	b.eq	0x228d14 <SW::HandleControllerNative::qt_metacall(QMetaObject::Call, int, void**)+0x58>
+  228ce8: 35000215     	cbnz	w21, 0x228d28 <SW::HandleControllerNative::qt_metacall(QMetaObject::Call, int, void**)+0x6c>
+  228cec: 7100081f     	cmp	w0, #0x2
+  228cf0: 540001a8     	b.hi	0x228d24 <SW::HandleControllerNative::qt_metacall(QMetaObject::Call, int, void**)+0x68>
+  228cf4: 2a0003f5     	mov	w21, w0
+  228cf8: aa1403e0     	mov	x0, x20
+  228cfc: 2a1f03e1     	mov	w1, wzr
+  228d00: 2a1503e2     	mov	w2, w21
+  228d04: aa1303e3     	mov	x3, x19
+  228d08: 9400002b     	bl	0x228db4 <SW::IHandleControllerNative::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)>  ;;; CALL SW::IHandleControllerNative::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)
+  228d0c: 2a1503e0     	mov	w0, w21
+  228d10: 14000005     	b	0x228d24 <SW::HandleControllerNative::qt_metacall(QMetaObject::Call, int, void**)+0x68>
+  228d14: 7100081f     	cmp	w0, #0x2
+  228d18: 54000068     	b.hi	0x228d24 <SW::HandleControllerNative::qt_metacall(QMetaObject::Call, int, void**)+0x68>
+  228d1c: f9400268     	ldr	x8, [x19]
+  228d20: f900011f     	str	xzr, [x8]
+  228d24: 51000c00     	sub	w0, w0, #0x3
+  228d28: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  228d2c: f9400bf5     	ldr	x21, [sp, #0x10]
+  228d30: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  228d34: d65f03c0     	ret
+
+0000000000249e40 <SW::HandleController::HandleController(QObject*)>:
+  249e40: d10243ff     	sub	sp, sp, #0x90
+  249e44: a9057bfd     	stp	x29, x30, [sp, #0x50]
+  249e48: a9065ff8     	stp	x24, x23, [sp, #0x60]
+  249e4c: a90757f6     	stp	x22, x21, [sp, #0x70]
+  249e50: a9084ff4     	stp	x20, x19, [sp, #0x80]
+  249e54: 910143fd     	add	x29, sp, #0x50
+  249e58: d53bd058     	mrs	x24, TPIDR_EL0
+  249e5c: aa0003f3     	mov	x19, x0
+  249e60: f9401708     	ldr	x8, [x24, #0x28]
+  249e64: f81f83a8     	stur	x8, [x29, #-0x8]
+  249e68: 9401dce6     	bl	0x2c1200 <_ZN7QObjectC2EPS_@plt>  ;;; CALL QObject::QObject(QObject*)
+  249e6c: 90000488     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  249e70: 6f00e400     	movi	v0.2d, #0000000000000000
+  249e74: aa1303f4     	mov	x20, x19
+  249e78: f9434108     	ldr	x8, [x8, #0x680]
+  249e7c: f9001e7f     	str	xzr, [x19, #0x38]
+  249e80: 91004108     	add	x8, x8, #0x10
+  249e84: f9000268     	str	x8, [x19]
+  249e88: 3c818e80     	str	q0, [x20, #0x18]!
+  249e8c: 3c828260     	stur	q0, [x19, #0x28]
+  249e90: 90fff420     	adrp	x0, 0xcd000 <vsnprintf+0xcd000>
+  249e94: 91048c00     	add	x0, x0, #0x123
+  249e98: 910083e8     	add	x8, sp, #0x20
+  249e9c: 9401dd95     	bl	0x2c14f0 <_ZN11QMetaObject14normalizedTypeEPKc@plt>  ;;; CALL QMetaObject::normalizedType(char const*)
+  249ea0: 910083e0     	add	x0, sp, #0x20
+  249ea4: 9401e97b     	bl	0x2c4490 <_Z41qRegisterNormalizedMetaTypeImplementationI5QListIN2SW16HandleController19HandleControllerKeyEEEiRK10QByteArray@plt>  ;;; CALL int qRegisterNormalizedMetaTypeImplementation<QList<SW::HandleController::HandleControllerKey>>(QByteArray const&)
+  249ea8: f94013e1     	ldr	x1, [sp, #0x20]
+  249eac: b4000121     	cbz	x1, 0x249ed0 <SW::HandleController::HandleController(QObject*)+0x90>
+  249eb0: 12800000     	mov	w0, #-0x1               // =-1
+  249eb4: 9401cd03     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  249eb8: 7100041f     	cmp	w0, #0x1
+  249ebc: 540000a1     	b.ne	0x249ed0 <SW::HandleController::HandleController(QObject*)+0x90>
+  249ec0: f94013e0     	ldr	x0, [sp, #0x20]
+  249ec4: 52800021     	mov	w1, #0x1                // =1
+  249ec8: 52800102     	mov	w2, #0x8                // =8
+  249ecc: 9401dc85     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=1(0x1), x2=8(0x8)]
+  249ed0: f0fff400     	adrp	x0, 0xcc000 <vsnprintf+0xcc000>
+  249ed4: 9130fc00     	add	x0, x0, #0xc3f
+  249ed8: 9401ec66     	bl	0x2c5070 <_Z17qRegisterMetaTypeIN2SW16HandleController19HandleControllerKeyEEiPKc@plt>  ;;; CALL int qRegisterMetaType<SW::HandleController::HandleControllerKey>(char const*)
+  249edc: f0fff400     	adrp	x0, 0xcc000 <vsnprintf+0xcc000>
+  249ee0: 913fec00     	add	x0, x0, #0xffb
+  249ee4: 9401ec67     	bl	0x2c5080 <_Z17qRegisterMetaTypeIN2SW16HandleController22HandleControllerActionEEiPKc@plt>  ;;; CALL int qRegisterMetaType<SW::HandleController::HandleControllerAction>(char const*)
+  249ee8: b900127f     	str	wzr, [x19, #0x10]
+  249eec: 3900527f     	strb	wzr, [x19, #0x14]
+  249ef0: 52800c00     	mov	w0, #0x60               // =96
+  249ef4: 9401dc83     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  249ef8: 90000488     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  249efc: aa0003f5     	mov	x21, x0
+  249f00: 91006017     	add	x23, x0, #0x18
+  249f04: f943bd08     	ldr	x8, [x8, #0x778]
+  249f08: a900fc1f     	stp	xzr, xzr, [x0, #0x8]
+  249f0c: 91004108     	add	x8, x8, #0x10
+  249f10: f9000008     	str	x8, [x0]
+  249f14: aa1703e0     	mov	x0, x23
+  249f18: aa1f03e1     	mov	x1, xzr
+  249f1c: 9401e981     	bl	0x2c4520 <_ZN2SW22HandleControllerNativeC1EP7QObject@plt>  ;;; CALL SW::HandleControllerNative::HandleControllerNative(QObject*)
+  249f20: f9401e76     	ldr	x22, [x19, #0x38]
+  249f24: a9035677     	stp	x23, x21, [x19, #0x30]
+  249f28: b4000176     	cbz	x22, 0x249f54 <SW::HandleController::HandleController(QObject*)+0x114>
+  249f2c: 910022c1     	add	x1, x22, #0x8
+  249f30: 92800000     	mov	x0, #-0x1               // =-1
+  249f34: 9401ccfb     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  249f38: b50000e0     	cbnz	x0, 0x249f54 <SW::HandleController::HandleController(QObject*)+0x114>
+  249f3c: f94002c8     	ldr	x8, [x22]
+  249f40: aa1603e0     	mov	x0, x22
+  249f44: f9400908     	ldr	x8, [x8, #0x10]
+  249f48: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  249f4c: aa1603e0     	mov	x0, x22
+  249f50: 9401dc8c     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  249f54: 90000488     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  249f58: 90000496     	adrp	x22, 0x2d9000 <vsnprintf+0x2d9000>
+  249f5c: f9428508     	ldr	x8, [x8, #0x508]
+  249f60: f94276d6     	ldr	x22, [x22, #0x4e8]
+  249f64: f8430275     	ldur	x21, [x19, #0x30]
+  249f68: a9027fe8     	stp	x8, xzr, [sp, #0x20]
+  249f6c: a93effb6     	stp	x22, xzr, [x29, #-0x18]
+  249f70: 52800400     	mov	w0, #0x20               // =32
+  249f74: 9401dc63     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  249f78: 90000489     	adrp	x9, 0x2d9000 <vsnprintf+0x2d9000>
+  249f7c: 52800028     	mov	w8, #0x1                // =1
+  249f80: aa0003e4     	mov	x4, x0
+  249f84: f943c129     	ldr	x9, [x9, #0x780]
+  249f88: b9000008     	str	w8, [x0]
+  249f8c: f9000c1f     	str	xzr, [x0, #0x18]
+  249f90: a900d809     	stp	x9, x22, [x0, #0x8]
+  249f94: 90000487     	adrp	x7, 0x2d9000 <vsnprintf+0x2d9000>
+  249f98: 910063e8     	add	x8, sp, #0x18
+  249f9c: 910083e1     	add	x1, sp, #0x20
+  249fa0: f9428ce7     	ldr	x7, [x7, #0x518]
+  249fa4: d10063a3     	sub	x3, x29, #0x18
+  249fa8: aa1503e0     	mov	x0, x21
+  249fac: aa1303e2     	mov	x2, x19
+  249fb0: 2a1f03e5     	mov	w5, wzr
+  249fb4: aa1f03e6     	mov	x6, xzr
+  249fb8: 9401dc5e     	bl	0x2c1130 <_ZN7QObject11connectImplEPKS_PPvS1_S3_PN9QtPrivate15QSlotObjectBaseEN2Qt14ConnectionTypeEPKiPK11QMetaObject@plt>  ;;; CALL QObject::connectImpl(QObject const*, void**, QObject const*, void**, QtPrivate::QSlotObjectBase*, Qt::ConnectionType, int const*, QMetaObject const*)
+  249fbc: 910063e0     	add	x0, sp, #0x18
+  249fc0: 9401dc60     	bl	0x2c1140 <_ZN11QMetaObject10ConnectionD1Ev@plt>  ;;; CALL QMetaObject::Connection::~Connection()
+  249fc4: 90000488     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  249fc8: 90000496     	adrp	x22, 0x2d9000 <vsnprintf+0x2d9000>
+  249fcc: f9428908     	ldr	x8, [x8, #0x510]
+  249fd0: f9427ad6     	ldr	x22, [x22, #0x4f0]
+  249fd4: f8430275     	ldur	x21, [x19, #0x30]
+  249fd8: a9027fe8     	stp	x8, xzr, [sp, #0x20]
+  249fdc: a93effb6     	stp	x22, xzr, [x29, #-0x18]
+  249fe0: 52800400     	mov	w0, #0x20               // =32
+  249fe4: 9401dc47     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  249fe8: 90000489     	adrp	x9, 0x2d9000 <vsnprintf+0x2d9000>
+  249fec: 52800028     	mov	w8, #0x1                // =1
+  249ff0: aa0003e4     	mov	x4, x0
+  249ff4: f943c529     	ldr	x9, [x9, #0x788]
+  249ff8: b9000008     	str	w8, [x0]
+  249ffc: f9000c1f     	str	xzr, [x0, #0x18]
+  24a000: a900d809     	stp	x9, x22, [x0, #0x8]
+  24a004: f0000467     	adrp	x7, 0x2d9000 <vsnprintf+0x2d9000>
+  24a008: 910043e8     	add	x8, sp, #0x10
+  24a00c: 910083e1     	add	x1, sp, #0x20
+  24a010: f9428ce7     	ldr	x7, [x7, #0x518]
+  24a014: d10063a3     	sub	x3, x29, #0x18
+  24a018: aa1503e0     	mov	x0, x21
+  24a01c: aa1303e2     	mov	x2, x19
+  24a020: 2a1f03e5     	mov	w5, wzr
+  24a024: aa1f03e6     	mov	x6, xzr
+  24a028: 9401dc42     	bl	0x2c1130 <_ZN7QObject11connectImplEPKS_PPvS1_S3_PN9QtPrivate15QSlotObjectBaseEN2Qt14ConnectionTypeEPKiPK11QMetaObject@plt>  ;;; CALL QObject::connectImpl(QObject const*, void**, QObject const*, void**, QtPrivate::QSlotObjectBase*, Qt::ConnectionType, int const*, QMetaObject const*)
+  24a02c: 910043e0     	add	x0, sp, #0x10
+  24a030: 9401dc44     	bl	0x2c1140 <_ZN11QMetaObject10ConnectionD1Ev@plt>  ;;; CALL QMetaObject::Connection::~Connection()
+  24a034: f0000468     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  24a038: f0000476     	adrp	x22, 0x2d9000 <vsnprintf+0x2d9000>
+  24a03c: f9429108     	ldr	x8, [x8, #0x520]
+  24a040: f9426ad6     	ldr	x22, [x22, #0x4d0]
+  24a044: f8430275     	ldur	x21, [x19, #0x30]
+  24a048: a9027fe8     	stp	x8, xzr, [sp, #0x20]
+  24a04c: a93effb6     	stp	x22, xzr, [x29, #-0x18]
+  24a050: 52800400     	mov	w0, #0x20               // =32
+  24a054: 9401dc2b     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  24a058: f0000469     	adrp	x9, 0x2d9000 <vsnprintf+0x2d9000>
+  24a05c: 52800028     	mov	w8, #0x1                // =1
+  24a060: aa0003e4     	mov	x4, x0
+  24a064: f943c929     	ldr	x9, [x9, #0x790]
+  24a068: b9000008     	str	w8, [x0]
+  24a06c: f9000c1f     	str	xzr, [x0, #0x18]
+  24a070: a900d809     	stp	x9, x22, [x0, #0x8]
+  24a074: f0000467     	adrp	x7, 0x2d9000 <vsnprintf+0x2d9000>
+  24a078: 910023e8     	add	x8, sp, #0x8
+  24a07c: 910083e1     	add	x1, sp, #0x20
+  24a080: f9428ce7     	ldr	x7, [x7, #0x518]
+  24a084: d10063a3     	sub	x3, x29, #0x18
+  24a088: aa1503e0     	mov	x0, x21
+  24a08c: aa1303e2     	mov	x2, x19
+  24a090: 2a1f03e5     	mov	w5, wzr
+  24a094: aa1f03e6     	mov	x6, xzr
+  24a098: 9401dc26     	bl	0x2c1130 <_ZN7QObject11connectImplEPKS_PPvS1_S3_PN9QtPrivate15QSlotObjectBaseEN2Qt14ConnectionTypeEPKiPK11QMetaObject@plt>  ;;; CALL QObject::connectImpl(QObject const*, void**, QObject const*, void**, QtPrivate::QSlotObjectBase*, Qt::ConnectionType, int const*, QMetaObject const*)
+  24a09c: 910023e0     	add	x0, sp, #0x8
+  24a0a0: 9401dc28     	bl	0x2c1140 <_ZN11QMetaObject10ConnectionD1Ev@plt>  ;;; CALL QMetaObject::Connection::~Connection()
+  24a0a4: f8430260     	ldur	x0, [x19, #0x30]
+  24a0a8: f9400008     	ldr	x8, [x0]
+  24a0ac: f9403508     	ldr	x8, [x8, #0x68]
+  24a0b0: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  24a0b4: f9401708     	ldr	x8, [x24, #0x28]
+  24a0b8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  24a0bc: eb09011f     	cmp	x8, x9
+  24a0c0: 54000501     	b.ne	0x24a160 <SW::HandleController::HandleController(QObject*)+0x320>
+  24a0c4: a9484ff4     	ldp	x20, x19, [sp, #0x80]
+  24a0c8: a94757f6     	ldp	x22, x21, [sp, #0x70]
+  24a0cc: a9465ff8     	ldp	x24, x23, [sp, #0x60]
+  24a0d0: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+  24a0d4: 910243ff     	add	sp, sp, #0x90
+  24a0d8: d65f03c0     	ret
+  24a0dc: aa1503f6     	mov	x22, x21
+  24a0e0: aa0003f5     	mov	x21, x0
+  24a0e4: aa1603e0     	mov	x0, x22
+  24a0e8: 9401dca6     	bl	0x2c1380 <_ZNSt6__ndk119__shared_weak_countD2Ev@plt>  ;;; CALL std::__ndk1::__shared_weak_count::~__shared_weak_count()
+  24a0ec: aa1603e0     	mov	x0, x22
+  24a0f0: 9401dca8     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  24a0f4: 1400000f     	b	0x24a130 <SW::HandleController::HandleController(QObject*)+0x2f0>
+  24a0f8: 1400000d     	b	0x24a12c <SW::HandleController::HandleController(QObject*)+0x2ec>
+  24a0fc: f94013e1     	ldr	x1, [sp, #0x20]
+  24a100: aa0003f5     	mov	x21, x0
+  24a104: b4000161     	cbz	x1, 0x24a130 <SW::HandleController::HandleController(QObject*)+0x2f0>
+  24a108: 12800000     	mov	w0, #-0x1               // =-1
+  24a10c: 9401cc6d     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  24a110: 7100041f     	cmp	w0, #0x1
+  24a114: 540000e1     	b.ne	0x24a130 <SW::HandleController::HandleController(QObject*)+0x2f0>
+  24a118: f94013e0     	ldr	x0, [sp, #0x20]
+  24a11c: 52800021     	mov	w1, #0x1                // =1
+  24a120: 52800102     	mov	w2, #0x8                // =8
+  24a124: 9401dbef     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=1(0x1), x2=8(0x8)]
+  24a128: 14000002     	b	0x24a130 <SW::HandleController::HandleController(QObject*)+0x2f0>
+  24a12c: aa0003f5     	mov	x21, x0
+  24a130: 9100c260     	add	x0, x19, #0x30
+  24a134: 940000c3     	bl	0x24a440 <std::__ndk1::shared_ptr<SW::IHandleControllerNative>::~shared_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::shared_ptr<SW::IHandleControllerNative
+  24a138: aa1403e0     	mov	x0, x20
+  24a13c: 9401ebd5     	bl	0x2c5090 <_ZN5QListIN2SW16HandleController19HandleControllerKeyEED2Ev@plt>  ;;; CALL QList<SW::HandleController::HandleControllerKey>::~QList()
+  24a140: aa1303e0     	mov	x0, x19
+  24a144: 9401dd8f     	bl	0x2c1780 <_ZN7QObjectD2Ev@plt>  ;;; CALL QObject::~QObject()
+  24a148: f9401708     	ldr	x8, [x24, #0x28]
+  24a14c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  24a150: eb09011f     	cmp	x8, x9
+  24a154: 54000061     	b.ne	0x24a160 <SW::HandleController::HandleController(QObject*)+0x320>
+  24a158: aa1503e0     	mov	x0, x21
+  24a15c: 9401ccca     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  24a160: 9401dc14     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+000000000024a3fc <SW::HandleController::handleDPadEvent(int, int, double)>:
+  24a3fc: 2a0203e1     	mov	w1, w2
+  24a400: 1e780002     	fcvtzs	w2, d0
+  24a404: 1401eb27     	b	0x2c50a0 <_ZN2SW16HandleController15triggerDownKeysENS0_19HandleControllerKeyENS0_22HandleControllerActionE@plt>
+
+000000000024a408 <SW::HandleController::handleGamePadEvent(int, int, int)>:
+  24a408: 2a0203e1     	mov	w1, w2
+  24a40c: 2a0303e2     	mov	w2, w3
+  24a410: 1401eb24     	b	0x2c50a0 <_ZN2SW16HandleController15triggerDownKeysENS0_19HandleControllerKeyENS0_22HandleControllerActionE@plt>
+
+000000000024a414 <SW::HandleController::handleJoystickEvent(int, int, float)>:
+  24a414: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  24a418: f9000bf3     	str	x19, [sp, #0x10]
+  24a41c: 910003fd     	mov	x29, sp
+  24a420: 2a0203e1     	mov	w1, w2
+  24a424: 2a1f03e2     	mov	w2, wzr
+  24a428: aa0003f3     	mov	x19, x0
+  24a42c: 9401e7c1     	bl	0x2c4330 <_ZN2SW16HandleController23handleControllerChangedENS0_19HandleControllerKeyENS0_22HandleControllerActionEf@plt>  ;;; CALL SW::HandleController::handleControllerChanged(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction, float)
+  24a430: aa1303e0     	mov	x0, x19
+  24a434: f9400bf3     	ldr	x19, [sp, #0x10]
+  24a438: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  24a43c: 1401e7b9     	b	0x2c4320 <_ZN2SW16HandleController15downKeysChangedENS0_14QPrivateSignalE@plt>
+
+000000000024a6e0 <SW::HandleController::getHandleControllers() const>:
+  24a6e0: a9007d1f     	stp	xzr, xzr, [x8]
+  24a6e4: f900091f     	str	xzr, [x8, #0x10]
+  24a6e8: d65f03c0     	ret
+
+000000000024a6ec <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)>:
+  24a6ec: d10103ff     	sub	sp, sp, #0x40
+  24a6f0: a9017bfd     	stp	x29, x30, [sp, #0x10]
+  24a6f4: a90257f6     	stp	x22, x21, [sp, #0x20]
+  24a6f8: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  24a6fc: 910043fd     	add	x29, sp, #0x10
+  24a700: d53bd055     	mrs	x21, TPIDR_EL0
+  24a704: aa0003f3     	mov	x19, x0
+  24a708: f94016a8     	ldr	x8, [x21, #0x28]
+  24a70c: f90007e8     	str	x8, [sp, #0x8]
+  24a710: 34000502     	cbz	w2, 0x24a7b0 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0xc4>
+  24a714: 7100045f     	cmp	w2, #0x1
+  24a718: 540007e1     	b.ne	0x24a814 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0x128>
+  24a71c: f9401668     	ldr	x8, [x19, #0x28]
+  24a720: f100051f     	cmp	x8, #0x1
+  24a724: 5400016b     	b.lt	0x24a750 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0x64>
+  24a728: f9401269     	ldr	x9, [x19, #0x20]
+  24a72c: d37ef50a     	lsl	x10, x8, #2
+  24a730: aa1f03eb     	mov	x11, xzr
+  24a734: eb0b015f     	cmp	x10, x11
+  24a738: 540000c0     	b.eq	0x24a750 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0x64>
+  24a73c: b86b692c     	ldr	w12, [x9, x11]
+  24a740: 9100116b     	add	x11, x11, #0x4
+  24a744: 6b01019f     	cmp	w12, w1
+  24a748: 54ffff61     	b.ne	0x24a734 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0x48>
+  24a74c: b500064b     	cbnz	x11, 0x24a814 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0x128>
+  24a750: 2a0103f4     	mov	w20, w1
+  24a754: b90007e1     	str	w1, [sp, #0x4]
+  24a758: 91006260     	add	x0, x19, #0x18
+  24a75c: 910013e2     	add	x2, sp, #0x4
+  24a760: aa0803e1     	mov	x1, x8
+  24a764: 9401e73b     	bl	0x2c4450 <_ZN9QtPrivate12QPodArrayOpsIN2SW16HandleController19HandleControllerKeyEE7emplaceIJRS3_EEEvxDpOT_@plt>  ;;; CALL void QtPrivate::QPodArrayOps<SW::HandleController::HandleControllerKey>::emplace<SW::HandleController::HandleControllerKey&>(long long, SW::HandleController::HandleControllerKey&)
+  24a768: f8418268     	ldur	x8, [x19, #0x18]
+  24a76c: b4000088     	cbz	x8, 0x24a77c <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0x90>
+  24a770: b9400108     	ldr	w8, [x8]
+  24a774: 7100091f     	cmp	w8, #0x2
+  24a778: 540000cb     	b.lt	0x24a790 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0xa4>
+  24a77c: 91006260     	add	x0, x19, #0x18
+  24a780: 2a1f03e1     	mov	w1, wzr
+  24a784: aa1f03e2     	mov	x2, xzr
+  24a788: aa1f03e3     	mov	x3, xzr
+  24a78c: 9401e72d     	bl	0x2c4440 <_ZN17QArrayDataPointerIN2SW16HandleController19HandleControllerKeyEE17reallocateAndGrowEN10QArrayData14GrowthPositionExPS3_@plt>  ;;; CALL QArrayDataPointer<SW::HandleController::HandleControllerKey>::reallocateAndGrow(QArrayData::GrowthPosition, long long, QArrayDataPointer<SW::HandleController::HandleControllerKey>*)
+  24a790: 1e2e1000     	fmov	s0, #1.00000000
+  24a794: aa1303e0     	mov	x0, x19
+  24a798: 2a1403e1     	mov	w1, w20
+  24a79c: 52800022     	mov	w2, #0x1                // =1
+  24a7a0: 9401e6e4     	bl	0x2c4330 <_ZN2SW16HandleController23handleControllerChangedENS0_19HandleControllerKeyENS0_22HandleControllerActionEf@plt>  ;;; CALL SW::HandleController::handleControllerChanged(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction, float)  [x2=1(0x1)]
+  24a7a4: aa1303e0     	mov	x0, x19
+  24a7a8: 9401e6de     	bl	0x2c4320 <_ZN2SW16HandleController15downKeysChangedENS0_14QPrivateSignalE@plt>  ;;; CALL SW::HandleController::downKeysChanged(SW::HandleController::QPrivateSignal)
+  24a7ac: 1400001a     	b	0x24a814 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0x128>
+  24a7b0: f9401669     	ldr	x9, [x19, #0x28]
+  24a7b4: f100053f     	cmp	x9, #0x1
+  24a7b8: 540002eb     	b.lt	0x24a814 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0x128>
+  24a7bc: f9401268     	ldr	x8, [x19, #0x20]
+  24a7c0: d37ef52a     	lsl	x10, x9, #2
+  24a7c4: aa1f03eb     	mov	x11, xzr
+  24a7c8: eb0b015f     	cmp	x10, x11
+  24a7cc: 54000240     	b.eq	0x24a814 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0x128>
+  24a7d0: b86b690c     	ldr	w12, [x8, x11]
+  24a7d4: 9100116b     	add	x11, x11, #0x4
+  24a7d8: 6b01019f     	cmp	w12, w1
+  24a7dc: 54ffff61     	b.ne	0x24a7c8 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0xdc>
+  24a7e0: b40001ab     	cbz	x11, 0x24a814 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0x128>
+  24a7e4: aa1f03eb     	mov	x11, xzr
+  24a7e8: eb0b015f     	cmp	x10, x11
+  24a7ec: 54000260     	b.eq	0x24a838 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0x14c>
+  24a7f0: b86b690c     	ldr	w12, [x8, x11]
+  24a7f4: 9100116b     	add	x11, x11, #0x4
+  24a7f8: 6b01019f     	cmp	w12, w1
+  24a7fc: 54ffff61     	b.ne	0x24a7e8 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0xfc>
+  24a800: d100116a     	sub	x10, x11, #0x4
+  24a804: 9342fd54     	asr	x20, x10, #2
+  24a808: f841826a     	ldur	x10, [x19, #0x18]
+  24a80c: b50001ca     	cbnz	x10, 0x24a844 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0x158>
+  24a810: 14000010     	b	0x24a850 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0x164>
+  24a814: f94016a8     	ldr	x8, [x21, #0x28]
+  24a818: f94007e9     	ldr	x9, [sp, #0x8]
+  24a81c: eb09011f     	cmp	x8, x9
+  24a820: 54000681     	b.ne	0x24a8f0 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0x204>
+  24a824: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  24a828: a94257f6     	ldp	x22, x21, [sp, #0x20]
+  24a82c: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+  24a830: 910103ff     	add	sp, sp, #0x40
+  24a834: d65f03c0     	ret
+  24a838: 92800014     	mov	x20, #-0x1              // =-1
+  24a83c: f841826a     	ldur	x10, [x19, #0x18]
+  24a840: b400008a     	cbz	x10, 0x24a850 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0x164>
+  24a844: b940014a     	ldr	w10, [x10]
+  24a848: 7100095f     	cmp	w10, #0x2
+  24a84c: 5400012b     	b.lt	0x24a870 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0x184>
+  24a850: 91006260     	add	x0, x19, #0x18
+  24a854: 2a0103f6     	mov	w22, w1
+  24a858: 2a1f03e1     	mov	w1, wzr
+  24a85c: aa1f03e2     	mov	x2, xzr
+  24a860: aa1f03e3     	mov	x3, xzr
+  24a864: 9401e6f7     	bl	0x2c4440 <_ZN17QArrayDataPointerIN2SW16HandleController19HandleControllerKeyEE17reallocateAndGrowEN10QArrayData14GrowthPositionExPS3_@plt>  ;;; CALL QArrayDataPointer<SW::HandleController::HandleControllerKey>::reallocateAndGrow(QArrayData::GrowthPosition, long long, QArrayDataPointer<SW::HandleController::HandleControllerKey>*)
+  24a868: a9422668     	ldp	x8, x9, [x19, #0x20]
+  24a86c: 2a1603e1     	mov	w1, w22
+  24a870: 8b140900     	add	x0, x8, x20, lsl #2
+  24a874: 8b09090a     	add	x10, x8, x9, lsl #2
+  24a878: 91001008     	add	x8, x0, #0x4
+  24a87c: b50000b4     	cbnz	x20, 0x24a890 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0x1a4>
+  24a880: eb0a011f     	cmp	x8, x10
+  24a884: 54000060     	b.eq	0x24a890 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0x1a4>
+  24a888: f9001268     	str	x8, [x19, #0x20]
+  24a88c: 14000009     	b	0x24a8b0 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0x1c4>
+  24a890: eb0a011f     	cmp	x8, x10
+  24a894: 540000e0     	b.eq	0x24a8b0 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0x1c4>
+  24a898: cb080142     	sub	x2, x10, x8
+  24a89c: 2a0103f4     	mov	w20, w1
+  24a8a0: aa0803e1     	mov	x1, x8
+  24a8a4: 9401dc67     	bl	0x2c1a40 <memmove@plt>  ;;; CALL memmove
+  24a8a8: f9401669     	ldr	x9, [x19, #0x28]
+  24a8ac: 2a1403e1     	mov	w1, w20
+  24a8b0: 2f00e400     	movi	d0, #0000000000000000
+  24a8b4: d1000528     	sub	x8, x9, #0x1
+  24a8b8: aa1303e0     	mov	x0, x19
+  24a8bc: 2a1f03e2     	mov	w2, wzr
+  24a8c0: f9001668     	str	x8, [x19, #0x28]
+  24a8c4: 9401e69b     	bl	0x2c4330 <_ZN2SW16HandleController23handleControllerChangedENS0_19HandleControllerKeyENS0_22HandleControllerActionEf@plt>  ;;; CALL SW::HandleController::handleControllerChanged(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction, float)
+  24a8c8: f94016a8     	ldr	x8, [x21, #0x28]
+  24a8cc: f94007e9     	ldr	x9, [sp, #0x8]
+  24a8d0: eb09011f     	cmp	x8, x9
+  24a8d4: 540000e1     	b.ne	0x24a8f0 <SW::HandleController::triggerDownKeys(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction)+0x204>
+  24a8d8: aa1303e0     	mov	x0, x19
+  24a8dc: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  24a8e0: a94257f6     	ldp	x22, x21, [sp, #0x20]
+  24a8e4: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+  24a8e8: 910103ff     	add	sp, sp, #0x40
+  24a8ec: 1401e68d     	b	0x2c4320 <_ZN2SW16HandleController15downKeysChangedENS0_14QPrivateSignalE@plt>
+  24a8f0: 9401da30     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+000000000024a8f4 <SW::HandleController::triggerJosytickKeys(SW::HandleController::HandleControllerKey, float)>:
+  24a8f4: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  24a8f8: f9000bf3     	str	x19, [sp, #0x10]
+  24a8fc: 910003fd     	mov	x29, sp
+  24a900: 2a1f03e2     	mov	w2, wzr
+  24a904: aa0003f3     	mov	x19, x0
+  24a908: 9401e68a     	bl	0x2c4330 <_ZN2SW16HandleController23handleControllerChangedENS0_19HandleControllerKeyENS0_22HandleControllerActionEf@plt>  ;;; CALL SW::HandleController::handleControllerChanged(SW::HandleController::HandleControllerKey, SW::HandleController::HandleControllerAction, float)
+  24a90c: aa1303e0     	mov	x0, x19
+  24a910: f9400bf3     	ldr	x19, [sp, #0x10]
+  24a914: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  24a918: 1401e682     	b	0x2c4320 <_ZN2SW16HandleController15downKeysChangedENS0_14QPrivateSignalE@plt>
+
+000000000024a91c <SW::HandleController::getDownKeys() const>:
+  24a91c: 3cc18000     	ldur	q0, [x0, #0x18]
+  24a920: f9401409     	ldr	x9, [x0, #0x28]
+  24a924: 9e660001     	fmov	x1, d0
+  24a928: 3d800100     	str	q0, [x8]
+  24a92c: f9000909     	str	x9, [x8, #0x10]
+  24a930: b40000c1     	cbz	x1, 0x24a948 <SW::HandleController::getDownKeys() const+0x2c>
+  24a934: a9bf7bfd     	stp	x29, x30, [sp, #-0x10]!
+  24a938: 910003fd     	mov	x29, sp
+  24a93c: 52800020     	mov	w0, #0x1                // =1
+  24a940: 9401ca60     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  24a944: a8c17bfd     	ldp	x29, x30, [sp], #0x10
+  24a948: d65f03c0     	ret
+
+0000000000256bd8 <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)>:
+  256bd8: d10243ff     	sub	sp, sp, #0x90
+  256bdc: a9037bfd     	stp	x29, x30, [sp, #0x30]
+  256be0: a9046ffc     	stp	x28, x27, [sp, #0x40]
+  256be4: a90567fa     	stp	x26, x25, [sp, #0x50]
+  256be8: a9065ff8     	stp	x24, x23, [sp, #0x60]
+  256bec: a90757f6     	stp	x22, x21, [sp, #0x70]
+  256bf0: a9084ff4     	stp	x20, x19, [sp, #0x80]
+  256bf4: 9100c3fd     	add	x29, sp, #0x30
+  256bf8: d53bd05a     	mrs	x26, TPIDR_EL0
+  256bfc: aa0303e1     	mov	x1, x3
+  256c00: aa0303f3     	mov	x19, x3
+  256c04: f9401748     	ldr	x8, [x26, #0x28]
+  256c08: aa0003f4     	mov	x20, x0
+  256c0c: aa0203f6     	mov	x22, x2
+  256c10: f81f83a8     	stur	x8, [x29, #-0x8]
+  256c14: f9400008     	ldr	x8, [x0]
+  256c18: f942ad08     	ldr	x8, [x8, #0x558]
+  256c1c: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  256c20: f9400288     	ldr	x8, [x20]
+  256c24: 2a0003f7     	mov	w23, w0
+  256c28: aa1403e0     	mov	x0, x20
+  256c2c: aa1303e1     	mov	x1, x19
+  256c30: aa1f03e2     	mov	x2, xzr
+  256c34: f942ed08     	ldr	x8, [x8, #0x5d8]
+  256c38: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  256c3c: aa0003f5     	mov	x21, x0
+  256c40: 710006ff     	cmp	w23, #0x1
+  256c44: a900ffff     	stp	xzr, xzr, [sp, #0x8]
+  256c48: f9000fff     	str	xzr, [sp, #0x18]
+  256c4c: 5400042b     	b.lt	0x256cd0 <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0xf8>
+  256c50: 2a1703f7     	mov	w23, w23
+  256c54: aa1503f8     	mov	x24, x21
+  256c58: 14000008     	b	0x256c78 <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0xa0>
+  256c5c: 910023e0     	add	x0, sp, #0x8
+  256c60: 2a1f03e1     	mov	w1, wzr
+  256c64: aa1f03e2     	mov	x2, xzr
+  256c68: aa1f03e3     	mov	x3, xzr
+  256c6c: 9401bae9     	bl	0x2c5810 <_ZN17QArrayDataPointerIiE17reallocateAndGrowEN10QArrayData14GrowthPositionExPS0_@plt>  ;;; CALL QArrayDataPointer<int>::reallocateAndGrow(QArrayData::GrowthPosition, long long, QArrayDataPointer<int>*)
+  256c70: f10006f7     	subs	x23, x23, #0x1
+  256c74: 540001a0     	b.eq	0x256ca8 <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0xd0>
+  256c78: b8404708     	ldr	w8, [x24], #0x4
+  256c7c: f9400fe1     	ldr	x1, [sp, #0x18]
+  256c80: b81f03a8     	stur	w8, [x29, #-0x10]
+  256c84: 910023e0     	add	x0, sp, #0x8
+  256c88: d10043a2     	sub	x2, x29, #0x10
+  256c8c: 9401bae5     	bl	0x2c5820 <_ZN9QtPrivate12QPodArrayOpsIiE7emplaceIJRiEEEvxDpOT_@plt>  ;;; CALL void QtPrivate::QPodArrayOps<int>::emplace<int&>(long long, int&)
+  256c90: f94007e8     	ldr	x8, [sp, #0x8]
+  256c94: b4fffe48     	cbz	x8, 0x256c5c <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x84>
+  256c98: b9400108     	ldr	w8, [x8]
+  256c9c: 7100091f     	cmp	w8, #0x2
+  256ca0: 54fffdea     	b.ge	0x256c5c <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x84>
+  256ca4: 17fffff3     	b	0x256c70 <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x98>
+  256ca8: a940e3f7     	ldp	x23, x24, [sp, #0x8]
+  256cac: f9400ffb     	ldr	x27, [sp, #0x18]
+  256cb0: b4000177     	cbz	x23, 0x256cdc <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x104>
+  256cb4: 52800020     	mov	w0, #0x1                // =1
+  256cb8: aa1703e1     	mov	x1, x23
+  256cbc: 94019981     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  256cc0: 2a1f03fc     	mov	w28, wzr
+  256cc4: f94022c8     	ldr	x8, [x22, #0x40]
+  256cc8: b5000108     	cbnz	x8, 0x256ce8 <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x110>
+  256ccc: 14000024     	b	0x256d5c <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x184>
+  256cd0: aa1f03f7     	mov	x23, xzr
+  256cd4: aa1f03f8     	mov	x24, xzr
+  256cd8: aa1f03fb     	mov	x27, xzr
+  256cdc: 5280003c     	mov	w28, #0x1               // =1
+  256ce0: f94022c8     	ldr	x8, [x22, #0x40]
+  256ce4: b40003c8     	cbz	x8, 0x256d5c <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x184>
+  256ce8: f84302c8     	ldur	x8, [x22, #0x30]
+  256cec: b40000c8     	cbz	x8, 0x256d04 <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x12c>
+  256cf0: b9400109     	ldr	w9, [x8]
+  256cf4: 7100093f     	cmp	w9, #0x2
+  256cf8: 5400030b     	b.lt	0x256d58 <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x180>
+  256cfc: f9400503     	ldr	x3, [x8, #0x8]
+  256d00: 14000002     	b	0x256d08 <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x130>
+  256d04: aa1f03e3     	mov	x3, xzr
+  256d08: d10043a0     	sub	x0, x29, #0x10
+  256d0c: 52800081     	mov	w1, #0x4                // =4
+  256d10: 52800102     	mov	w2, #0x8                // =8
+  256d14: 52800024     	mov	w4, #0x1                // =1
+  256d18: 9401ab5e     	bl	0x2c1a90 <_ZN10QArrayData8allocateEPPS_xxxNS_16AllocationOptionE@plt>  ;;; CALL QArrayData::allocate(QArrayData**, long long, long long, long long, QArrayData::AllocationOption)  [x1=4(0x4), x2=8(0x8)]
+  256d1c: f85f03a8     	ldur	x8, [x29, #-0x10]
+  256d20: f9401ad9     	ldr	x25, [x22, #0x30]
+  256d24: f90022df     	str	xzr, [x22, #0x40]
+  256d28: a90302c8     	stp	x8, x0, [x22, #0x30]
+  256d2c: b4000199     	cbz	x25, 0x256d5c <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x184>
+  256d30: 12800000     	mov	w0, #-0x1               // =-1
+  256d34: aa1903e1     	mov	x1, x25
+  256d38: 94019962     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  256d3c: 7100041f     	cmp	w0, #0x1
+  256d40: 540000e1     	b.ne	0x256d5c <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x184>
+  256d44: aa1903e0     	mov	x0, x25
+  256d48: 52800081     	mov	w1, #0x4                // =4
+  256d4c: 52800102     	mov	w2, #0x8                // =8
+  256d50: 9401a8e4     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=4(0x4), x2=8(0x8)]
+  256d54: 14000002     	b	0x256d5c <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x184>
+  256d58: f90022df     	str	xzr, [x22, #0x40]
+  256d5c: 8b1b0b02     	add	x2, x24, x27, lsl #2
+  256d60: 9100c2c0     	add	x0, x22, #0x30
+  256d64: aa1803e1     	mov	x1, x24
+  256d68: 9401bab2     	bl	0x2c5830 <_ZN9QtPrivate15QCommonArrayOpsIiE10growAppendEPKiS3_@plt>  ;;; CALL QtPrivate::QCommonArrayOps<int>::growAppend(int const*, int const*)
+  256d6c: 3700015c     	tbnz	w28, #0x0, 0x256d94 <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x1bc>
+  256d70: 12800000     	mov	w0, #-0x1               // =-1
+  256d74: aa1703e1     	mov	x1, x23
+  256d78: 94019952     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  256d7c: 7100041f     	cmp	w0, #0x1
+  256d80: 540000a1     	b.ne	0x256d94 <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x1bc>
+  256d84: aa1703e0     	mov	x0, x23
+  256d88: 52800081     	mov	w1, #0x4                // =4
+  256d8c: 52800102     	mov	w2, #0x8                // =8
+  256d90: 9401a8d4     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=4(0x4), x2=8(0x8)]
+  256d94: f9400288     	ldr	x8, [x20]
+  256d98: f9430d08     	ldr	x8, [x8, #0x618]
+  256d9c: aa1403e0     	mov	x0, x20
+  256da0: aa1303e1     	mov	x1, x19
+  256da4: aa1503e2     	mov	x2, x21
+  256da8: 2a1f03e3     	mov	w3, wzr
+  256dac: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  256db0: f94007e1     	ldr	x1, [sp, #0x8]
+  256db4: b4000121     	cbz	x1, 0x256dd8 <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x200>
+  256db8: 12800000     	mov	w0, #-0x1               // =-1
+  256dbc: 94019941     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  256dc0: 7100041f     	cmp	w0, #0x1
+  256dc4: 540000a1     	b.ne	0x256dd8 <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x200>
+  256dc8: f94007e0     	ldr	x0, [sp, #0x8]
+  256dcc: 52800081     	mov	w1, #0x4                // =4
+  256dd0: 52800102     	mov	w2, #0x8                // =8
+  256dd4: 9401a8c3     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=4(0x4), x2=8(0x8)]
+  256dd8: f9401748     	ldr	x8, [x26, #0x28]
+  256ddc: f85f83a9     	ldur	x9, [x29, #-0x8]
+  256de0: eb09011f     	cmp	x8, x9
+  256de4: 540004e1     	b.ne	0x256e80 <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x2a8>
+  256de8: a9484ff4     	ldp	x20, x19, [sp, #0x80]
+  256dec: a94757f6     	ldp	x22, x21, [sp, #0x70]
+  256df0: a9465ff8     	ldp	x24, x23, [sp, #0x60]
+  256df4: a94567fa     	ldp	x26, x25, [sp, #0x50]
+  256df8: a9446ffc     	ldp	x28, x27, [sp, #0x40]
+  256dfc: a9437bfd     	ldp	x29, x30, [sp, #0x30]
+  256e00: 910243ff     	add	sp, sp, #0x90
+  256e04: d65f03c0     	ret
+  256e08: 1400000d     	b	0x256e3c <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x264>
+  256e0c: aa0003f3     	mov	x19, x0
+  256e10: 3700019c     	tbnz	w28, #0x0, 0x256e40 <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x268>
+  256e14: 12800000     	mov	w0, #-0x1               // =-1
+  256e18: aa1703e1     	mov	x1, x23
+  256e1c: 94019929     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  256e20: 7100041f     	cmp	w0, #0x1
+  256e24: 540000e1     	b.ne	0x256e40 <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x268>
+  256e28: aa1703e0     	mov	x0, x23
+  256e2c: 52800081     	mov	w1, #0x4                // =4
+  256e30: 52800102     	mov	w2, #0x8                // =8
+  256e34: 9401a8ab     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=4(0x4), x2=8(0x8)]
+  256e38: 14000002     	b	0x256e40 <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x268>
+  256e3c: aa0003f3     	mov	x19, x0
+  256e40: f94007e1     	ldr	x1, [sp, #0x8]
+  256e44: b4000121     	cbz	x1, 0x256e68 <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x290>
+  256e48: 12800000     	mov	w0, #-0x1               // =-1
+  256e4c: 9401991d     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  256e50: 7100041f     	cmp	w0, #0x1
+  256e54: 540000a1     	b.ne	0x256e68 <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x290>
+  256e58: f94007e0     	ldr	x0, [sp, #0x8]
+  256e5c: 52800081     	mov	w1, #0x4                // =4
+  256e60: 52800102     	mov	w2, #0x8                // =8
+  256e64: 9401a89f     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=4(0x4), x2=8(0x8)]
+  256e68: f9401748     	ldr	x8, [x26, #0x28]
+  256e6c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  256e70: eb09011f     	cmp	x8, x9
+  256e74: 54000061     	b.ne	0x256e80 <SW::HandleControllerNative_onUpdateHandleController(_JNIEnv*, _jobject*, long, _jintArray*)+0x2a8>
+  256e78: aa1303e0     	mov	x0, x19
+  256e7c: 94019982     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  256e80: 9401a8cc     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000256e84 <SW::HandleControllerNative::setHandleControllers(QList<int>)>:
+  256e84: d10103ff     	sub	sp, sp, #0x40
+  256e88: a9017bfd     	stp	x29, x30, [sp, #0x10]
+  256e8c: a90257f6     	stp	x22, x21, [sp, #0x20]
+  256e90: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  256e94: 910043fd     	add	x29, sp, #0x10
+  256e98: d53bd056     	mrs	x22, TPIDR_EL0
+  256e9c: aa0003f3     	mov	x19, x0
+  256ea0: aa0103f4     	mov	x20, x1
+  256ea4: f94016c8     	ldr	x8, [x22, #0x28]
+  256ea8: f90007e8     	str	x8, [sp, #0x8]
+  256eac: f9402008     	ldr	x8, [x0, #0x40]
+  256eb0: b40003c8     	cbz	x8, 0x256f28 <SW::HandleControllerNative::setHandleControllers(QList<int>)+0xa4>
+  256eb4: f8430268     	ldur	x8, [x19, #0x30]
+  256eb8: b40000c8     	cbz	x8, 0x256ed0 <SW::HandleControllerNative::setHandleControllers(QList<int>)+0x4c>
+  256ebc: b9400109     	ldr	w9, [x8]
+  256ec0: 7100093f     	cmp	w9, #0x2
+  256ec4: 5400030b     	b.lt	0x256f24 <SW::HandleControllerNative::setHandleControllers(QList<int>)+0xa0>
+  256ec8: f9400503     	ldr	x3, [x8, #0x8]
+  256ecc: 14000002     	b	0x256ed4 <SW::HandleControllerNative::setHandleControllers(QList<int>)+0x50>
+  256ed0: aa1f03e3     	mov	x3, xzr
+  256ed4: 910003e0     	mov	x0, sp
+  256ed8: 52800081     	mov	w1, #0x4                // =4
+  256edc: 52800102     	mov	w2, #0x8                // =8
+  256ee0: 52800024     	mov	w4, #0x1                // =1
+  256ee4: 9401aaeb     	bl	0x2c1a90 <_ZN10QArrayData8allocateEPPS_xxxNS_16AllocationOptionE@plt>  ;;; CALL QArrayData::allocate(QArrayData**, long long, long long, long long, QArrayData::AllocationOption)  [x1=4(0x4), x2=8(0x8)]
+  256ee8: f94003e8     	ldr	x8, [sp]
+  256eec: f9401a75     	ldr	x21, [x19, #0x30]
+  256ef0: f900227f     	str	xzr, [x19, #0x40]
+  256ef4: a9030268     	stp	x8, x0, [x19, #0x30]
+  256ef8: b4000195     	cbz	x21, 0x256f28 <SW::HandleControllerNative::setHandleControllers(QList<int>)+0xa4>
+  256efc: 12800000     	mov	w0, #-0x1               // =-1
+  256f00: aa1503e1     	mov	x1, x21
+  256f04: 940198ef     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  256f08: 7100041f     	cmp	w0, #0x1
+  256f0c: 540000e1     	b.ne	0x256f28 <SW::HandleControllerNative::setHandleControllers(QList<int>)+0xa4>
+  256f10: aa1503e0     	mov	x0, x21
+  256f14: 52800081     	mov	w1, #0x4                // =4
+  256f18: 52800102     	mov	w2, #0x8                // =8
+  256f1c: 9401a871     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=4(0x4), x2=8(0x8)]
+  256f20: 14000002     	b	0x256f28 <SW::HandleControllerNative::setHandleControllers(QList<int>)+0xa4>
+  256f24: f900227f     	str	xzr, [x19, #0x40]
+  256f28: a940a281     	ldp	x1, x8, [x20, #0x8]
+  256f2c: 9100c260     	add	x0, x19, #0x30
+  256f30: 8b080822     	add	x2, x1, x8, lsl #2
+  256f34: 9401ba3f     	bl	0x2c5830 <_ZN9QtPrivate15QCommonArrayOpsIiE10growAppendEPKiS3_@plt>  ;;; CALL QtPrivate::QCommonArrayOps<int>::growAppend(int const*, int const*)
+  256f38: f94016c8     	ldr	x8, [x22, #0x28]
+  256f3c: f94007e9     	ldr	x9, [sp, #0x8]
+  256f40: eb09011f     	cmp	x8, x9
+  256f44: 540000c1     	b.ne	0x256f5c <SW::HandleControllerNative::setHandleControllers(QList<int>)+0xd8>
+  256f48: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  256f4c: a94257f6     	ldp	x22, x21, [sp, #0x20]
+  256f50: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+  256f54: 910103ff     	add	sp, sp, #0x40
+  256f58: d65f03c0     	ret
+  256f5c: 9401a895     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000256fac <SW::HandleControllerNative_onHandleDPadEvent(_JNIEnv*, _jobject*, long, int, int, int)>:
+  256fac: aa0203e0     	mov	x0, x2
+  256fb0: 2a0303e1     	mov	w1, w3
+  256fb4: 2a0403e2     	mov	w2, w4
+  256fb8: 2a0503e3     	mov	w3, w5
+  256fbc: 1401b4e9     	b	0x2c4360 <_ZN2SW23IHandleControllerNative22triggerHandleDPadEventEiii@plt>
+
+0000000000256fc0 <SW::HandleControllerNative_onHandleGamePadEvent(_JNIEnv*, _jobject*, long, int, int, int)>:
+  256fc0: aa0203e0     	mov	x0, x2
+  256fc4: 2a0303e1     	mov	w1, w3
+  256fc8: 2a0403e2     	mov	w2, w4
+  256fcc: 2a0503e3     	mov	w3, w5
+  256fd0: 1401b4e8     	b	0x2c4370 <_ZN2SW23IHandleControllerNative25triggerHandleGamePadEventEiii@plt>
+
+0000000000256fd4 <SW::HandleControllerNative_onHandleJoystickEvent(_JNIEnv*, _jobject*, long, int, int, float)>:
+  256fd4: aa0203e0     	mov	x0, x2
+  256fd8: 2a0303e1     	mov	w1, w3
+  256fdc: 2a0403e2     	mov	w2, w4
+  256fe0: 1401b4e8     	b	0x2c4380 <_ZN2SW23IHandleControllerNative26triggerHandleJoystickEventEiif@plt>
+
+0000000000256fe4 <SW::HandleControllerNative::HandleControllerNative(QObject*)>:
+  256fe4: d10303ff     	sub	sp, sp, #0xc0
+  256fe8: a9087bfd     	stp	x29, x30, [sp, #0x80]
+  256fec: a9095ff8     	stp	x24, x23, [sp, #0x90]
+  256ff0: a90a57f6     	stp	x22, x21, [sp, #0xa0]
+  256ff4: a90b4ff4     	stp	x20, x19, [sp, #0xb0]
+  256ff8: 910203fd     	add	x29, sp, #0x80
+  256ffc: d53bd058     	mrs	x24, TPIDR_EL0
+  257000: aa0003f3     	mov	x19, x0
+  257004: f9401708     	ldr	x8, [x24, #0x28]
+  257008: f81f83a8     	stur	x8, [x29, #-0x8]
+  25700c: 9401a87d     	bl	0x2c1200 <_ZN7QObjectC2EPS_@plt>  ;;; CALL QObject::QObject(QObject*)
+  257010: d0000408     	adrp	x8, 0x2d9000 <vsnprintf+0x2d9000>
+  257014: aa1303f4     	mov	x20, x19
+  257018: aa1303f5     	mov	x21, x19
+  25701c: f9434508     	ldr	x8, [x8, #0x688]
+  257020: 9102a109     	add	x9, x8, #0xa8
+  257024: 9103410a     	add	x10, x8, #0xd0
+  257028: 91004108     	add	x8, x8, #0x10
+  25702c: f8010e89     	str	x9, [x20, #0x10]!
+  257030: f8018eaa     	str	x10, [x21, #0x18]!
+  257034: f9000268     	str	x8, [x19]
+  257038: 91008260     	add	x0, x19, #0x20
+  25703c: 9401b68d     	bl	0x2c4a70 <_ZN10QJniObjectC1Ev@plt>  ;;; CALL QJniObject::QJniObject()
+  257040: aa1303f6     	mov	x22, x19
+  257044: a9837edf     	stp	xzr, xzr, [x22, #0x30]!
+  257048: f9000adf     	str	xzr, [x22, #0x10]
+  25704c: aa1403e0     	mov	x0, x20
+  257050: 9401ba04     	bl	0x2c5860 <_ZN16QtAndroidPrivate34registerGenericMotionEventListenerEPNS_26GenericMotionEventListenerE@plt>  ;;; CALL QtAndroidPrivate::registerGenericMotionEventListener(QtAndroidPrivate::GenericMotionEventListener*)
+  257054: aa1503e0     	mov	x0, x21
+  257058: 9401ba06     	bl	0x2c5870 <_ZN16QtAndroidPrivate24registerKeyEventListenerEPNS_16KeyEventListenerE@plt>  ;;; CALL QtAndroidPrivate::registerKeyEventListener(QtAndroidPrivate::KeyEventListener*)
+  25705c: d503201f     	nop
+  257060: 103f3b08     	adr	x8, 0x2d57c0 <typeinfo for SW::AndroidSerialPort+0x18>
+  257064: ad410500     	ldp	q0, q1, [x8, #0x20]
+  257068: ad0187e0     	stp	q0, q1, [sp, #0x30]
+  25706c: ad420900     	ldp	q0, q2, [x8, #0x40]
+  257070: ad028be0     	stp	q0, q2, [sp, #0x50]
+  257074: ad400101     	ldp	q1, q0, [x8]
+  257078: ad0083e1     	stp	q1, q0, [sp, #0x10]
+  25707c: 910023e0     	add	x0, sp, #0x8
+  257080: 9401b6fc     	bl	0x2c4c70 <_ZN15QJniEnvironmentC1Ev@plt>  ;;; CALL QJniEnvironment::QJniEnvironment()
+  257084: b0fff3a1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  257088: 9108c821     	add	x1, x1, #0x232
+  25708c: 910023e0     	add	x0, sp, #0x8
+  257090: 910043e2     	add	x2, sp, #0x10
+  257094: 52800083     	mov	w3, #0x4                // =4
+  257098: 9401b9fa     	bl	0x2c5880 <_ZN15QJniEnvironment21registerNativeMethodsEPKcPK15JNINativeMethodi@plt>  ;;; CALL QJniEnvironment::registerNativeMethods(char const*, JNINativeMethod const*, int)  [x3=4(0x4)]
+  25709c: f90003f3     	str	x19, [sp]
+  2570a0: b0fff3a0     	adrp	x0, 0xcc000 <vsnprintf+0xcc000>
+  2570a4: 9108c800     	add	x0, x0, #0x232
+  2570a8: b0fff3a1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  2570ac: 9139a421     	add	x1, x1, #0xe69
+  2570b0: b0fff3a2     	adrp	x2, 0xcc000 <vsnprintf+0xcc000>
+  2570b4: 9116b442     	add	x2, x2, #0x5ad
+  2570b8: 910003e3     	mov	x3, sp
+  2570bc: 9401b9e5     	bl	0x2c5850 <_ZN10QJniObject16callStaticMethodIvJlEEEDaPKcS2_S2_DpOT0_@plt>  ;;; CALL auto QJniObject::callStaticMethod<void, long>(char const*, char const*, char const*, long&&)
+  2570c0: 910023e0     	add	x0, sp, #0x8
+  2570c4: 9401b6fb     	bl	0x2c4cb0 <_ZN15QJniEnvironmentD1Ev@plt>  ;;; CALL QJniEnvironment::~QJniEnvironment()
+  2570c8: f9401708     	ldr	x8, [x24, #0x28]
+  2570cc: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2570d0: eb09011f     	cmp	x8, x9
+  2570d4: 540003e1     	b.ne	0x257150 <SW::HandleControllerNative::HandleControllerNative(QObject*)+0x16c>
+  2570d8: a94b4ff4     	ldp	x20, x19, [sp, #0xb0]
+  2570dc: a94a57f6     	ldp	x22, x21, [sp, #0xa0]
+  2570e0: a9495ff8     	ldp	x24, x23, [sp, #0x90]
+  2570e4: a9487bfd     	ldp	x29, x30, [sp, #0x80]
+  2570e8: 910303ff     	add	sp, sp, #0xc0
+  2570ec: d65f03c0     	ret
+  2570f0: 14000001     	b	0x2570f4 <SW::HandleControllerNative::HandleControllerNative(QObject*)+0x110>
+  2570f4: aa0003f7     	mov	x23, x0
+  2570f8: 910023e0     	add	x0, sp, #0x8
+  2570fc: 9401b6ed     	bl	0x2c4cb0 <_ZN15QJniEnvironmentD1Ev@plt>  ;;; CALL QJniEnvironment::~QJniEnvironment()
+  257100: 14000004     	b	0x257110 <SW::HandleControllerNative::HandleControllerNative(QObject*)+0x12c>
+  257104: aa0003f7     	mov	x23, x0
+  257108: 14000006     	b	0x257120 <SW::HandleControllerNative::HandleControllerNative(QObject*)+0x13c>
+  25710c: aa0003f7     	mov	x23, x0
+  257110: aa1603e0     	mov	x0, x22
+  257114: 9401b9cb     	bl	0x2c5840 <_ZN5QListIiED2Ev@plt>  ;;; CALL QList<int>::~QList()
+  257118: 91008260     	add	x0, x19, #0x20
+  25711c: 9401b6d1     	bl	0x2c4c60 <_ZN10QJniObjectD1Ev@plt>  ;;; CALL QJniObject::~QJniObject()
+  257120: aa1503e0     	mov	x0, x21
+  257124: 9401b9db     	bl	0x2c5890 <_ZN16QtAndroidPrivate16KeyEventListenerD2Ev@plt>  ;;; CALL QtAndroidPrivate::KeyEventListener::~KeyEventListener()
+  257128: aa1403e0     	mov	x0, x20
+  25712c: 9401b9dd     	bl	0x2c58a0 <_ZN16QtAndroidPrivate26GenericMotionEventListenerD2Ev@plt>  ;;; CALL QtAndroidPrivate::GenericMotionEventListener::~GenericMotionEventListener()
+  257130: aa1303e0     	mov	x0, x19
+  257134: 9401a993     	bl	0x2c1780 <_ZN7QObjectD2Ev@plt>  ;;; CALL QObject::~QObject()
+  257138: f9401708     	ldr	x8, [x24, #0x28]
+  25713c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  257140: eb09011f     	cmp	x8, x9
+  257144: 54000061     	b.ne	0x257150 <SW::HandleControllerNative::HandleControllerNative(QObject*)+0x16c>
+  257148: aa1703e0     	mov	x0, x23
+  25714c: 940198ce     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  257150: 9401a818     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000257154 <SW::HandleControllerNative::registerMethod()>:
+  257154: d10283ff     	sub	sp, sp, #0xa0
+  257158: a9087bfd     	stp	x29, x30, [sp, #0x80]
+  25715c: a9094ff4     	stp	x20, x19, [sp, #0x90]
+  257160: 910203fd     	add	x29, sp, #0x80
+  257164: d503201f     	nop
+  257168: 103f32c9     	adr	x9, 0x2d57c0 <typeinfo for SW::AndroidSerialPort+0x18>
+  25716c: d53bd054     	mrs	x20, TPIDR_EL0
+  257170: ad418121     	ldp	q1, q0, [x9, #0x30]
+  257174: f9401688     	ldr	x8, [x20, #0x28]
+  257178: 3dc00923     	ldr	q3, [x9, #0x20]
+  25717c: 3dc01522     	ldr	q2, [x9, #0x50]
+  257180: aa0003f3     	mov	x19, x0
+  257184: f81f83a8     	stur	x8, [x29, #-0x8]
+  257188: 910023e0     	add	x0, sp, #0x8
+  25718c: ad0187e3     	stp	q3, q1, [sp, #0x30]
+  257190: ad028be0     	stp	q0, q2, [sp, #0x50]
+  257194: ad400121     	ldp	q1, q0, [x9]
+  257198: ad0083e1     	stp	q1, q0, [sp, #0x10]
+  25719c: 9401b6b5     	bl	0x2c4c70 <_ZN15QJniEnvironmentC1Ev@plt>  ;;; CALL QJniEnvironment::QJniEnvironment()
+  2571a0: b0fff3a1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  2571a4: 9108c821     	add	x1, x1, #0x232
+  2571a8: 910023e0     	add	x0, sp, #0x8
+  2571ac: 910043e2     	add	x2, sp, #0x10
+  2571b0: 52800083     	mov	w3, #0x4                // =4
+  2571b4: 9401b9b3     	bl	0x2c5880 <_ZN15QJniEnvironment21registerNativeMethodsEPKcPK15JNINativeMethodi@plt>  ;;; CALL QJniEnvironment::registerNativeMethods(char const*, JNINativeMethod const*, int)  [x3=4(0x4)]
+  2571b8: f90003f3     	str	x19, [sp]
+  2571bc: b0fff3a0     	adrp	x0, 0xcc000 <vsnprintf+0xcc000>
+  2571c0: 9108c800     	add	x0, x0, #0x232
+  2571c4: b0fff3a1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  2571c8: 9139a421     	add	x1, x1, #0xe69
+  2571cc: b0fff3a2     	adrp	x2, 0xcc000 <vsnprintf+0xcc000>
+  2571d0: 9116b442     	add	x2, x2, #0x5ad
+  2571d4: 910003e3     	mov	x3, sp
+  2571d8: 9401b99e     	bl	0x2c5850 <_ZN10QJniObject16callStaticMethodIvJlEEEDaPKcS2_S2_DpOT0_@plt>  ;;; CALL auto QJniObject::callStaticMethod<void, long>(char const*, char const*, char const*, long&&)
+  2571dc: 910023e0     	add	x0, sp, #0x8
+  2571e0: 9401b6b4     	bl	0x2c4cb0 <_ZN15QJniEnvironmentD1Ev@plt>  ;;; CALL QJniEnvironment::~QJniEnvironment()
+  2571e4: f9401688     	ldr	x8, [x20, #0x28]
+  2571e8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2571ec: eb09011f     	cmp	x8, x9
+  2571f0: 540001e1     	b.ne	0x25722c <SW::HandleControllerNative::registerMethod()+0xd8>
+  2571f4: a9494ff4     	ldp	x20, x19, [sp, #0x90]
+  2571f8: a9487bfd     	ldp	x29, x30, [sp, #0x80]
+  2571fc: 910283ff     	add	sp, sp, #0xa0
+  257200: d65f03c0     	ret
+  257204: 14000001     	b	0x257208 <SW::HandleControllerNative::registerMethod()+0xb4>
+  257208: aa0003f3     	mov	x19, x0
+  25720c: 910023e0     	add	x0, sp, #0x8
+  257210: 9401b6a8     	bl	0x2c4cb0 <_ZN15QJniEnvironmentD1Ev@plt>  ;;; CALL QJniEnvironment::~QJniEnvironment()
+  257214: f9401688     	ldr	x8, [x20, #0x28]
+  257218: f85f83a9     	ldur	x9, [x29, #-0x8]
+  25721c: eb09011f     	cmp	x8, x9
+  257220: 54000061     	b.ne	0x25722c <SW::HandleControllerNative::registerMethod()+0xd8>
+  257224: aa1303e0     	mov	x0, x19
+  257228: 94019897     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  25722c: 9401a7e1     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000257498 <SW::HandleControllerNative::getHandleControllers() const>:
+  257498: 3dc00c00     	ldr	q0, [x0, #0x30]
+  25749c: f9402009     	ldr	x9, [x0, #0x40]
+  2574a0: 9e660001     	fmov	x1, d0
+  2574a4: 3d800100     	str	q0, [x8]
+  2574a8: f9000909     	str	x9, [x8, #0x10]
+  2574ac: b40000c1     	cbz	x1, 0x2574c4 <SW::HandleControllerNative::getHandleControllers() const+0x2c>
+  2574b0: a9bf7bfd     	stp	x29, x30, [sp, #-0x10]!
+  2574b4: 910003fd     	mov	x29, sp
+  2574b8: 52800020     	mov	w0, #0x1                // =1
+  2574bc: 94019781     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  2574c0: a8c17bfd     	ldp	x29, x30, [sp], #0x10
+  2574c4: d65f03c0     	ret
+
+00000000002574c8 <SW::HandleControllerNative::start()>:
+  2574c8: d101c3ff     	sub	sp, sp, #0x70
+  2574cc: a9037bfd     	stp	x29, x30, [sp, #0x30]
+  2574d0: f90023f7     	str	x23, [sp, #0x40]
+  2574d4: a90557f6     	stp	x22, x21, [sp, #0x50]
+  2574d8: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  2574dc: 9100c3fd     	add	x29, sp, #0x30
+  2574e0: d53bd056     	mrs	x22, TPIDR_EL0
+  2574e4: aa0003f3     	mov	x19, x0
+  2574e8: 91008000     	add	x0, x0, #0x20
+  2574ec: f94016c8     	ldr	x8, [x22, #0x28]
+  2574f0: f81f83a8     	stur	x8, [x29, #-0x8]
+  2574f4: 9401b5ff     	bl	0x2c4cf0 <_ZNK10QJniObject7isValidEv@plt>  ;;; CALL QJniObject::isValid() const
+  2574f8: 37000580     	tbnz	w0, #0x0, 0x2575a8 <SW::HandleControllerNative::start()+0xe0>
+  2574fc: 9401b5c9     	bl	0x2c4c20 <_ZN16QNativeInterface19QAndroidApplication7contextEv@plt>  ;;; CALL QNativeInterface::QAndroidApplication::context()
+  257500: aa0003e1     	mov	x1, x0
+  257504: 910023e0     	add	x0, sp, #0x8
+  257508: 9401b5ca     	bl	0x2c4c30 <_ZN10QJniObjectC2EP8_jobject@plt>  ;;; CALL QJniObject::QJniObject(_jobject*)
+  25750c: 910023e0     	add	x0, sp, #0x8
+  257510: 9401b5cc     	bl	0x2c4c40 <_ZNK10QJniObject6objectEv@plt>  ;;; CALL QJniObject::object() const
+  257514: aa0003e3     	mov	x3, x0
+  257518: b0fff3a1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  25751c: 9108c821     	add	x1, x1, #0x232
+  257520: b0fff3a2     	adrp	x2, 0xcc000 <vsnprintf+0xcc000>
+  257524: 910bd042     	add	x2, x2, #0x2f4
+  257528: 910063e0     	add	x0, sp, #0x18
+  25752c: 9401b8ed     	bl	0x2c58e0 <_ZN10QJniObjectC1EPKcS1_z@plt>  ;;; CALL QJniObject::QJniObject(char const*, char const*, ...)
+  257530: a941d7f7     	ldp	x23, x21, [sp, #0x18]
+  257534: b40000f5     	cbz	x21, 0x257550 <SW::HandleControllerNative::start()+0x88>
+  257538: 52800020     	mov	w0, #0x1                // =1
+  25753c: aa1503e1     	mov	x1, x21
+  257540: 94019760     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  257544: 910012a1     	add	x1, x21, #0x4
+  257548: 52800020     	mov	w0, #0x1                // =1
+  25754c: 9401975d     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  257550: f9401674     	ldr	x20, [x19, #0x28]
+  257554: a9025677     	stp	x23, x21, [x19, #0x20]
+  257558: b4000214     	cbz	x20, 0x257598 <SW::HandleControllerNative::start()+0xd0>
+  25755c: 91001281     	add	x1, x20, #0x4
+  257560: 12800000     	mov	w0, #-0x1               // =-1
+  257564: 94019757     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  257568: 7100041f     	cmp	w0, #0x1
+  25756c: 54000081     	b.ne	0x25757c <SW::HandleControllerNative::start()+0xb4>
+  257570: f9400688     	ldr	x8, [x20, #0x8]
+  257574: aa1403e0     	mov	x0, x20
+  257578: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  25757c: 12800000     	mov	w0, #-0x1               // =-1
+  257580: aa1403e1     	mov	x1, x20
+  257584: 9401974f     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  257588: 7100041f     	cmp	w0, #0x1
+  25758c: 54000061     	b.ne	0x257598 <SW::HandleControllerNative::start()+0xd0>
+  257590: aa1403e0     	mov	x0, x20
+  257594: 9401a77f     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  257598: 910063e0     	add	x0, sp, #0x18
+  25759c: 9401b5b1     	bl	0x2c4c60 <_ZN10QJniObjectD1Ev@plt>  ;;; CALL QJniObject::~QJniObject()
+  2575a0: 910023e0     	add	x0, sp, #0x8
+  2575a4: 9401b5af     	bl	0x2c4c60 <_ZN10QJniObjectD1Ev@plt>  ;;; CALL QJniObject::~QJniObject()
+  2575a8: 91008260     	add	x0, x19, #0x20
+  2575ac: 9401b5d1     	bl	0x2c4cf0 <_ZNK10QJniObject7isValidEv@plt>  ;;; CALL QJniObject::isValid() const
+  2575b0: 360000e0     	tbz	w0, #0x0, 0x2575cc <SW::HandleControllerNative::start()+0x104>
+  2575b4: f0fff381     	adrp	x1, 0xca000 <GCC_except_table29+0x24>
+  2575b8: 913ddc21     	add	x1, x1, #0xf77
+  2575bc: 90fff3a2     	adrp	x2, 0xcb000 <vsnprintf+0xcb000>
+  2575c0: 91132c42     	add	x2, x2, #0x4cb
+  2575c4: 91008260     	add	x0, x19, #0x20
+  2575c8: 9401b852     	bl	0x2c5710 <_ZNK10QJniObject10callMethodIvJEEEDaPKcS2_DpOT0_@plt>  ;;; CALL auto QJniObject::callMethod<void>(char const*, char const*) const
+  2575cc: f94016c8     	ldr	x8, [x22, #0x28]
+  2575d0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2575d4: eb09011f     	cmp	x8, x9
+  2575d8: 54000241     	b.ne	0x257620 <SW::HandleControllerNative::start()+0x158>
+  2575dc: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  2575e0: f94023f7     	ldr	x23, [sp, #0x40]
+  2575e4: a94557f6     	ldp	x22, x21, [sp, #0x50]
+  2575e8: a9437bfd     	ldp	x29, x30, [sp, #0x30]
+  2575ec: 9101c3ff     	add	sp, sp, #0x70
+  2575f0: d65f03c0     	ret
+  2575f4: 97fd87c6     	bl	0x1b950c <__clang_call_terminate>  ;;; CALL __clang_call_terminate
+  2575f8: 97fd87c5     	bl	0x1b950c <__clang_call_terminate>  ;;; CALL __clang_call_terminate
+  2575fc: aa0003f3     	mov	x19, x0
+  257600: 910023e0     	add	x0, sp, #0x8
+  257604: 9401b597     	bl	0x2c4c60 <_ZN10QJniObjectD1Ev@plt>  ;;; CALL QJniObject::~QJniObject()
+  257608: f94016c8     	ldr	x8, [x22, #0x28]
+  25760c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  257610: eb09011f     	cmp	x8, x9
+  257614: 54000061     	b.ne	0x257620 <SW::HandleControllerNative::start()+0x158>
+  257618: aa1303e0     	mov	x0, x19
+  25761c: 9401979a     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  257620: 9401a6e4     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000257624 <SW::HandleControllerNative::stop()>:
+  257624: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  257628: f9000bf3     	str	x19, [sp, #0x10]
+  25762c: 910003fd     	mov	x29, sp
+  257630: aa0003f3     	mov	x19, x0
+  257634: 91008000     	add	x0, x0, #0x20
+  257638: 9401b5ae     	bl	0x2c4cf0 <_ZNK10QJniObject7isValidEv@plt>  ;;; CALL QJniObject::isValid() const
+  25763c: 36000120     	tbz	w0, #0x0, 0x257660 <SW::HandleControllerNative::stop()+0x3c>
+  257640: b0fff3a1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  257644: 91276821     	add	x1, x1, #0x9da
+  257648: 90fff3a2     	adrp	x2, 0xcb000 <vsnprintf+0xcb000>
+  25764c: 91132c42     	add	x2, x2, #0x4cb
+  257650: 91008260     	add	x0, x19, #0x20
+  257654: f9400bf3     	ldr	x19, [sp, #0x10]
+  257658: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  25765c: 1401b82d     	b	0x2c5710 <_ZNK10QJniObject10callMethodIvJEEEDaPKcS2_DpOT0_@plt>
+  257660: f9400bf3     	ldr	x19, [sp, #0x10]
+  257664: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  257668: d65f03c0     	ret
+
+000000000025766c <SW::HandleControllerNative::handleGenericMotionEvent(_jobject*)>:
+  25766c: d100c3ff     	sub	sp, sp, #0x30
+  257670: a9017bfd     	stp	x29, x30, [sp, #0x10]
+  257674: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  257678: 910043fd     	add	x29, sp, #0x10
+  25767c: d53bd054     	mrs	x20, TPIDR_EL0
+  257680: aa0003f3     	mov	x19, x0
+  257684: 91008000     	add	x0, x0, #0x20
+  257688: f9401688     	ldr	x8, [x20, #0x28]
+  25768c: f90007e8     	str	x8, [sp, #0x8]
+  257690: f90003e1     	str	x1, [sp]
+  257694: 9401b597     	bl	0x2c4cf0 <_ZNK10QJniObject7isValidEv@plt>  ;;; CALL QJniObject::isValid() const
+  257698: 36000160     	tbz	w0, #0x0, 0x2576c4 <SW::HandleControllerNative::handleGenericMotionEvent(_jobject*)+0x58>
+  25769c: 90fff3a1     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  2576a0: 910f6021     	add	x1, x1, #0x3d8
+  2576a4: 90fff3a2     	adrp	x2, 0xcb000 <vsnprintf+0xcb000>
+  2576a8: 913cb442     	add	x2, x2, #0xf2d
+  2576ac: 91008260     	add	x0, x19, #0x20
+  2576b0: 910003e3     	mov	x3, sp
+  2576b4: 9401b88f     	bl	0x2c58f0 <_ZNK10QJniObject10callMethodIhJRP8_jobjectEEEDaPKcS5_DpOT0_@plt>  ;;; CALL auto QJniObject::callMethod<unsigned char, _jobject*&>(char const*, char const*, _jobject*&) const
+  2576b8: 72001c1f     	tst	w0, #0xff
+  2576bc: 1a9f07e0     	cset	w0, ne
+  2576c0: 14000002     	b	0x2576c8 <SW::HandleControllerNative::handleGenericMotionEvent(_jobject*)+0x5c>
+  2576c4: 2a1f03e0     	mov	w0, wzr
+  2576c8: f9401688     	ldr	x8, [x20, #0x28]
+  2576cc: f94007e9     	ldr	x9, [sp, #0x8]
+  2576d0: eb09011f     	cmp	x8, x9
+  2576d4: 540000a1     	b.ne	0x2576e8 <SW::HandleControllerNative::handleGenericMotionEvent(_jobject*)+0x7c>
+  2576d8: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  2576dc: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+  2576e0: 9100c3ff     	add	sp, sp, #0x30
+  2576e4: d65f03c0     	ret
+  2576e8: 9401a6b2     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000257898 <SW::HandleControllerNative::handleKeyEvent(_jobject*)>:
+  257898: d100c3ff     	sub	sp, sp, #0x30
+  25789c: a9017bfd     	stp	x29, x30, [sp, #0x10]
+  2578a0: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  2578a4: 910043fd     	add	x29, sp, #0x10
+  2578a8: d53bd054     	mrs	x20, TPIDR_EL0
+  2578ac: aa0003f3     	mov	x19, x0
+  2578b0: 91008000     	add	x0, x0, #0x20
+  2578b4: f9401688     	ldr	x8, [x20, #0x28]
+  2578b8: f90007e8     	str	x8, [sp, #0x8]
+  2578bc: f90003e1     	str	x1, [sp]
+  2578c0: 9401b50c     	bl	0x2c4cf0 <_ZNK10QJniObject7isValidEv@plt>  ;;; CALL QJniObject::isValid() const
+  2578c4: 36000160     	tbz	w0, #0x0, 0x2578f0 <SW::HandleControllerNative::handleKeyEvent(_jobject*)+0x58>
+  2578c8: b0fff3a1     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  2578cc: 91279421     	add	x1, x1, #0x9e5
+  2578d0: b0fff3a2     	adrp	x2, 0xcc000 <vsnprintf+0xcc000>
+  2578d4: 9139ec42     	add	x2, x2, #0xe7b
+  2578d8: 91008260     	add	x0, x19, #0x20
+  2578dc: 910003e3     	mov	x3, sp
+  2578e0: 9401b804     	bl	0x2c58f0 <_ZNK10QJniObject10callMethodIhJRP8_jobjectEEEDaPKcS5_DpOT0_@plt>  ;;; CALL auto QJniObject::callMethod<unsigned char, _jobject*&>(char const*, char const*, _jobject*&) const
+  2578e4: 72001c1f     	tst	w0, #0xff
+  2578e8: 1a9f07e0     	cset	w0, ne
+  2578ec: 14000002     	b	0x2578f4 <SW::HandleControllerNative::handleKeyEvent(_jobject*)+0x5c>
+  2578f0: 2a1f03e0     	mov	w0, wzr
+  2578f4: f9401688     	ldr	x8, [x20, #0x28]
+  2578f8: f94007e9     	ldr	x9, [sp, #0x8]
+  2578fc: eb09011f     	cmp	x8, x9
+  257900: 540000a1     	b.ne	0x257914 <SW::HandleControllerNative::handleKeyEvent(_jobject*)+0x7c>
+  257904: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  257908: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+  25790c: 9100c3ff     	add	sp, sp, #0x30
+  257910: d65f03c0     	ret
+  257914: 9401a627     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+

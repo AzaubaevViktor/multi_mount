@@ -1,0 +1,1194 @@
+000000000023c4d4 <SW::UDPConnectableHelper::devicesList()>:
+  23c4d4: d102c3ff     	sub	sp, sp, #0xb0
+  23c4d8: a9077bfd     	stp	x29, x30, [sp, #0x70]
+  23c4dc: a9085ff8     	stp	x24, x23, [sp, #0x80]
+  23c4e0: a90957f6     	stp	x22, x21, [sp, #0x90]
+  23c4e4: a90a4ff4     	stp	x20, x19, [sp, #0xa0]
+  23c4e8: 9101c3fd     	add	x29, sp, #0x70
+  23c4ec: d53bd056     	mrs	x22, TPIDR_EL0
+  23c4f0: aa0803f3     	mov	x19, x8
+  23c4f4: f94016c9     	ldr	x9, [x22, #0x28]
+  23c4f8: f81f83a9     	stur	x9, [x29, #-0x8]
+  23c4fc: 3945e009     	ldrb	w9, [x0, #0x178]
+  23c500: 360009c9     	tbz	w9, #0x0, 0x23c638 <SW::UDPConnectableHelper::devicesList()+0x164>
+  23c504: a9565c15     	ldp	x21, x23, [x0, #0x160]
+  23c508: a9037fff     	stp	xzr, xzr, [sp, #0x30]
+  23c50c: f90023ff     	str	xzr, [sp, #0x40]
+  23c510: eb1702bf     	cmp	x21, x23
+  23c514: 54000640     	b.eq	0x23c5dc <SW::UDPConnectableHelper::devicesList()+0x108>
+  23c518: 910003f8     	mov	x24, sp
+  23c51c: d503201f     	nop
+  23c520: 1054a394     	adr	x20, 0x2e5990 <QtPrivate::QMetaTypeInterfaceWrapper<SW::IConnectableSearchResult>::metaType>
+  23c524: 14000004     	b	0x23c534 <SW::UDPConnectableHelper::devicesList()+0x60>
+  23c528: 910062b5     	add	x21, x21, #0x18
+  23c52c: eb1702bf     	cmp	x21, x23
+  23c530: 54000560     	b.eq	0x23c5dc <SW::UDPConnectableHelper::devicesList()+0x108>
+  23c534: 6f00e400     	movi	v0.2d, #0000000000000000
+  23c538: ad0083e0     	stp	q0, q0, [sp, #0x10]
+  23c53c: 3d8003e0     	str	q0, [sp]
+  23c540: 910003e0     	mov	x0, sp
+  23c544: aa1503e1     	mov	x1, x21
+  23c548: 94021c0a     	bl	0x2c3570 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEaSERKS5_@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::operator=(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  23c54c: 910122b5     	add	x21, x21, #0x48
+  23c550: 91006300     	add	x0, x24, #0x18
+  23c554: aa1503e1     	mov	x1, x21
+  23c558: 94021c06     	bl	0x2c3570 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEaSERKS5_@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::operator=(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  23c55c: d100a3a0     	sub	x0, x29, #0x28
+  23c560: 910003e2     	mov	x2, sp
+  23c564: aa1403e1     	mov	x1, x20
+  23c568: 940214ea     	bl	0x2c1910 <_ZN8QVariantC1E9QMetaTypePKv@plt>  ;;; CALL QVariant::QVariant(QMetaType, void const*)
+  23c56c: f94023e1     	ldr	x1, [sp, #0x40]
+  23c570: 9100c3e0     	add	x0, sp, #0x30
+  23c574: d100a3a2     	sub	x2, x29, #0x28
+  23c578: 94021506     	bl	0x2c1990 <_ZN9QtPrivate16QMovableArrayOpsI8QVariantE7emplaceIJS1_EEEvxDpOT_@plt>  ;;; CALL void QtPrivate::QMovableArrayOps<QVariant>::emplace<QVariant>(long long, QVariant&&)
+  23c57c: f9401be8     	ldr	x8, [sp, #0x30]
+  23c580: b4000088     	cbz	x8, 0x23c590 <SW::UDPConnectableHelper::devicesList()+0xbc>
+  23c584: b9400108     	ldr	w8, [x8]
+  23c588: 7100091f     	cmp	w8, #0x2
+  23c58c: 540000cb     	b.lt	0x23c5a4 <SW::UDPConnectableHelper::devicesList()+0xd0>
+  23c590: 9100c3e0     	add	x0, sp, #0x30
+  23c594: 2a1f03e1     	mov	w1, wzr
+  23c598: aa1f03e2     	mov	x2, xzr
+  23c59c: aa1f03e3     	mov	x3, xzr
+  23c5a0: 940214f8     	bl	0x2c1980 <_ZN17QArrayDataPointerI8QVariantE17reallocateAndGrowEN10QArrayData14GrowthPositionExPS1_@plt>  ;;; CALL QArrayDataPointer<QVariant>::reallocateAndGrow(QArrayData::GrowthPosition, long long, QArrayDataPointer<QVariant>*)
+  23c5a4: d100a3a0     	sub	x0, x29, #0x28
+  23c5a8: 940214a6     	bl	0x2c1840 <_ZN8QVariantD1Ev@plt>  ;;; CALL QVariant::~QVariant()
+  23c5ac: 394063e8     	ldrb	w8, [sp, #0x18]
+  23c5b0: 37000088     	tbnz	w8, #0x0, 0x23c5c0 <SW::UDPConnectableHelper::devicesList()+0xec>
+  23c5b4: 394003e8     	ldrb	w8, [sp]
+  23c5b8: 3607fb88     	tbz	w8, #0x0, 0x23c528 <SW::UDPConnectableHelper::devicesList()+0x54>
+  23c5bc: 14000005     	b	0x23c5d0 <SW::UDPConnectableHelper::devicesList()+0xfc>
+  23c5c0: f94017e0     	ldr	x0, [sp, #0x28]
+  23c5c4: 94021373     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23c5c8: 394003e8     	ldrb	w8, [sp]
+  23c5cc: 3607fae8     	tbz	w8, #0x0, 0x23c528 <SW::UDPConnectableHelper::devicesList()+0x54>
+  23c5d0: f9400be0     	ldr	x0, [sp, #0x10]
+  23c5d4: 9402136f     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23c5d8: 17ffffd4     	b	0x23c528 <SW::UDPConnectableHelper::devicesList()+0x54>
+  23c5dc: 9100c3e1     	add	x1, sp, #0x30
+  23c5e0: aa1303e0     	mov	x0, x19
+  23c5e4: 940214ef     	bl	0x2c19a0 <_ZN8QVariantC1ERK5QListIS_E@plt>  ;;; CALL QVariant::QVariant(QList<QVariant> const&)
+  23c5e8: f9401be1     	ldr	x1, [sp, #0x30]
+  23c5ec: b40002c1     	cbz	x1, 0x23c644 <SW::UDPConnectableHelper::devicesList()+0x170>
+  23c5f0: 12800000     	mov	w0, #-0x1               // =-1
+  23c5f4: 94020333     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  23c5f8: 7100041f     	cmp	w0, #0x1
+  23c5fc: 54000241     	b.ne	0x23c644 <SW::UDPConnectableHelper::devicesList()+0x170>
+  23c600: f94023e8     	ldr	x8, [sp, #0x40]
+  23c604: b4000108     	cbz	x8, 0x23c624 <SW::UDPConnectableHelper::devicesList()+0x150>
+  23c608: f9401ff3     	ldr	x19, [sp, #0x38]
+  23c60c: d37be914     	lsl	x20, x8, #5
+  23c610: aa1303e0     	mov	x0, x19
+  23c614: 9402148b     	bl	0x2c1840 <_ZN8QVariantD1Ev@plt>  ;;; CALL QVariant::~QVariant()
+  23c618: f1008294     	subs	x20, x20, #0x20
+  23c61c: 91008273     	add	x19, x19, #0x20
+  23c620: 54ffff81     	b.ne	0x23c610 <SW::UDPConnectableHelper::devicesList()+0x13c>
+  23c624: f9401be0     	ldr	x0, [sp, #0x30]
+  23c628: 52800401     	mov	w1, #0x20               // =32
+  23c62c: 52800102     	mov	w2, #0x8                // =8
+  23c630: 940212ac     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=32(0x20), x2=8(0x8)]
+  23c634: 14000004     	b	0x23c644 <SW::UDPConnectableHelper::devicesList()+0x170>
+  23c638: 52800048     	mov	w8, #0x2                // =2
+  23c63c: a9007e7f     	stp	xzr, xzr, [x19]
+  23c640: a901227f     	stp	xzr, x8, [x19, #0x10]
+  23c644: f94016c8     	ldr	x8, [x22, #0x28]
+  23c648: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23c64c: eb09011f     	cmp	x8, x9
+  23c650: 540002e1     	b.ne	0x23c6ac <SW::UDPConnectableHelper::devicesList()+0x1d8>
+  23c654: a94a4ff4     	ldp	x20, x19, [sp, #0xa0]
+  23c658: a94957f6     	ldp	x22, x21, [sp, #0x90]
+  23c65c: a9485ff8     	ldp	x24, x23, [sp, #0x80]
+  23c660: a9477bfd     	ldp	x29, x30, [sp, #0x70]
+  23c664: 9102c3ff     	add	sp, sp, #0xb0
+  23c668: d65f03c0     	ret
+  23c66c: 14000005     	b	0x23c680 <SW::UDPConnectableHelper::devicesList()+0x1ac>
+  23c670: aa0003f3     	mov	x19, x0
+  23c674: d100a3a0     	sub	x0, x29, #0x28
+  23c678: 94021472     	bl	0x2c1840 <_ZN8QVariantD1Ev@plt>  ;;; CALL QVariant::~QVariant()
+  23c67c: 14000002     	b	0x23c684 <SW::UDPConnectableHelper::devicesList()+0x1b0>
+  23c680: aa0003f3     	mov	x19, x0
+  23c684: 910003e0     	mov	x0, sp
+  23c688: 9402210a     	bl	0x2c4ab0 <_ZN2SW24IConnectableSearchResultD2Ev@plt>  ;;; CALL SW::IConnectableSearchResult::~IConnectableSearchResult()
+  23c68c: 9100c3e0     	add	x0, sp, #0x30
+  23c690: 940214c8     	bl	0x2c19b0 <_ZN5QListI8QVariantED2Ev@plt>  ;;; CALL QList<QVariant>::~QList()
+  23c694: f94016c8     	ldr	x8, [x22, #0x28]
+  23c698: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23c69c: eb09011f     	cmp	x8, x9
+  23c6a0: 54000061     	b.ne	0x23c6ac <SW::UDPConnectableHelper::devicesList()+0x1d8>
+  23c6a4: aa1303e0     	mov	x0, x19
+  23c6a8: 94020377     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23c6ac: 940212c1     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+000000000023c6f4 <SW::UDPConnectableHelper::startConnect()>:
+  23c6f4: d10143ff     	sub	sp, sp, #0x50
+  23c6f8: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  23c6fc: f9001bf5     	str	x21, [sp, #0x30]
+  23c700: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  23c704: 910083fd     	add	x29, sp, #0x20
+  23c708: d53bd055     	mrs	x21, TPIDR_EL0
+  23c70c: aa0003f3     	mov	x19, x0
+  23c710: 52800100     	mov	w0, #0x8                // =8
+  23c714: f94016a8     	ldr	x8, [x21, #0x28]
+  23c718: f81f83a8     	stur	x8, [x29, #-0x8]
+  23c71c: 94021279     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  23c720: aa0003f4     	mov	x20, x0
+  23c724: 94021a57     	bl	0x2c3080 <_ZNSt6__ndk115__thread_structC1Ev@plt>  ;;; CALL std::__ndk1::__thread_struct::__thread_struct()
+  23c728: f9000bf4     	str	x20, [sp, #0x10]
+  23c72c: 52800200     	mov	w0, #0x10               // =16
+  23c730: 94021274     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  23c734: aa0003e3     	mov	x3, x0
+  23c738: a900ffe0     	stp	x0, xzr, [sp, #0x8]
+  23c73c: a9004c14     	stp	x20, x19, [x0]
+  23c740: d503201f     	nop
+  23c744: 1000f1a2     	adr	x2, 0x23e578 <void* std::__ndk1::__thread_proxy[abi:ne190000]<std::__ndk1::tuple<std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct>>, SW::UDPConnectableHelper::startConnect()::$_0>>(void*)>
+  23c748: 910003e0     	mov	x0, sp
+  23c74c: aa1f03e1     	mov	x1, xzr
+  23c750: 94021a50     	bl	0x2c3090 <pthread_create@plt>  ;;; CALL pthread_create
+  23c754: 350001c0     	cbnz	w0, 0x23c78c <SW::UDPConnectableHelper::startConnect()+0x98>
+  23c758: 910003e0     	mov	x0, sp
+  23c75c: 94021a51     	bl	0x2c30a0 <_ZNSt6__ndk16thread6detachEv@plt>  ;;; CALL std::__ndk1::thread::detach()
+  23c760: 910003e0     	mov	x0, sp
+  23c764: 94021a53     	bl	0x2c30b0 <_ZNSt6__ndk16threadD1Ev@plt>  ;;; CALL std::__ndk1::thread::~thread()
+  23c768: f94016a8     	ldr	x8, [x21, #0x28]
+  23c76c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23c770: eb09011f     	cmp	x8, x9
+  23c774: 54000441     	b.ne	0x23c7fc <SW::UDPConnectableHelper::startConnect()+0x108>
+  23c778: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  23c77c: f9401bf5     	ldr	x21, [sp, #0x30]
+  23c780: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  23c784: 910143ff     	add	sp, sp, #0x50
+  23c788: d65f03c0     	ret
+  23c78c: f94016a8     	ldr	x8, [x21, #0x28]
+  23c790: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23c794: eb09011f     	cmp	x8, x9
+  23c798: 54000321     	b.ne	0x23c7fc <SW::UDPConnectableHelper::startConnect()+0x108>
+  23c79c: f0fff461     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  23c7a0: 9115a021     	add	x1, x1, #0x568
+  23c7a4: 94021a47     	bl	0x2c30c0 <_ZNSt6__ndk120__throw_system_errorEiPKc@plt>  ;;; CALL std::__ndk1::__throw_system_error(int, char const*)
+  23c7a8: aa0003f3     	mov	x19, x0
+  23c7ac: 910003e0     	mov	x0, sp
+  23c7b0: 94021a40     	bl	0x2c30b0 <_ZNSt6__ndk16threadD1Ev@plt>  ;;; CALL std::__ndk1::thread::~thread()
+  23c7b4: 1400000c     	b	0x23c7e4 <SW::UDPConnectableHelper::startConnect()+0xf0>
+  23c7b8: aa0003f3     	mov	x19, x0
+  23c7bc: 14000008     	b	0x23c7dc <SW::UDPConnectableHelper::startConnect()+0xe8>
+  23c7c0: aa0003f3     	mov	x19, x0
+  23c7c4: aa1403e0     	mov	x0, x20
+  23c7c8: 940212f2     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23c7cc: 14000006     	b	0x23c7e4 <SW::UDPConnectableHelper::startConnect()+0xf0>
+  23c7d0: aa0003f3     	mov	x19, x0
+  23c7d4: 910023e0     	add	x0, sp, #0x8
+  23c7d8: 94000796     	bl	0x23e630 <std::__ndk1::unique_ptr<std::__ndk1::tuple<std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct>>, SW::UDPConnectableHelper::startConnect()::$_0>, std::__ndk1::default_delete<std::__ndk1::tuple<std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct>>, SW::UDPConnectableHelper::startConnect()::$_0>>>::~unique_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::unique_ptr<std::__ndk1::tuple<std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct
+  23c7dc: 910043e0     	add	x0, sp, #0x10
+  23c7e0: 97fef300     	bl	0x1f93e0 <std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct>>::~unique_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct
+  23c7e4: f94016a8     	ldr	x8, [x21, #0x28]
+  23c7e8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23c7ec: eb09011f     	cmp	x8, x9
+  23c7f0: 54000061     	b.ne	0x23c7fc <SW::UDPConnectableHelper::startConnect()+0x108>
+  23c7f4: aa1303e0     	mov	x0, x19
+  23c7f8: 94020323     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23c7fc: 9402126d     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+000000000023c800 <SW::UDPConnectableHelper::selectDevice(int)>:
+  23c800: d10483ff     	sub	sp, sp, #0x120
+  23c804: a90f7bfd     	stp	x29, x30, [sp, #0xf0]
+  23c808: f90083fc     	str	x28, [sp, #0x100]
+  23c80c: a9114ff4     	stp	x20, x19, [sp, #0x110]
+  23c810: 9103c3fd     	add	x29, sp, #0xf0
+  23c814: d53bd054     	mrs	x20, TPIDR_EL0
+  23c818: f9401688     	ldr	x8, [x20, #0x28]
+  23c81c: f81f83a8     	stur	x8, [x29, #-0x8]
+  23c820: 37f80b21     	tbnz	w1, #0x1f, 0x23c984 <SW::UDPConnectableHelper::selectDevice(int)+0x184>
+  23c824: 3945e008     	ldrb	w8, [x0, #0x178]
+  23c828: 34000ae8     	cbz	w8, 0x23c984 <SW::UDPConnectableHelper::selectDevice(int)+0x184>
+  23c82c: a9562408     	ldp	x8, x9, [x0, #0x160]
+  23c830: b201f3ea     	mov	x10, #-0x5555555555555556 // =-6148914691236517206
+  23c834: f295556a     	movk	x10, #0xaaab
+  23c838: cb080129     	sub	x9, x9, x8
+  23c83c: 9345fd29     	asr	x9, x9, #5
+  23c840: 9b0a7d2a     	mul	x10, x9, x10
+  23c844: 6b01015f     	cmp	w10, w1
+  23c848: 540009ed     	b.le	0x23c984 <SW::UDPConnectableHelper::selectDevice(int)+0x184>
+  23c84c: 2a0103e9     	mov	w9, w1
+  23c850: aa0003f3     	mov	x19, x0
+  23c854: eb09015f     	cmp	x10, x9
+  23c858: 54000dc9     	b.ls	0x23ca10 <SW::UDPConnectableHelper::selectDevice(int)+0x210>
+  23c85c: 52800c0a     	mov	w10, #0x60              // =96
+  23c860: 9101e3e0     	add	x0, sp, #0x78
+  23c864: 9baa2121     	umaddl	x1, w9, w10, x8
+  23c868: 94022096     	bl	0x2c4ac0 <_ZN2SW20UDPConnectableHelper11FoundDeviceC2ERKS1_@plt>  ;;; CALL SW::UDPConnectableHelper::FoundDevice::FoundDevice(SW::UDPConnectableHelper::FoundDevice const&)
+  23c86c: 910023e0     	add	x0, sp, #0x8
+  23c870: 9101e3e1     	add	x1, sp, #0x78
+  23c874: 94022093     	bl	0x2c4ac0 <_ZN2SW20UDPConnectableHelper11FoundDeviceC2ERKS1_@plt>  ;;; CALL SW::UDPConnectableHelper::FoundDevice::FoundDevice(SW::UDPConnectableHelper::FoundDevice const&)
+  23c878: f90037f3     	str	x19, [sp, #0x68]
+  23c87c: 52800100     	mov	w0, #0x8                // =8
+  23c880: 94021220     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  23c884: aa0003f3     	mov	x19, x0
+  23c888: 940219fe     	bl	0x2c3080 <_ZNSt6__ndk115__thread_structC1Ev@plt>  ;;; CALL std::__ndk1::__thread_struct::__thread_struct()
+  23c88c: f81f03b3     	stur	x19, [x29, #-0x10]
+  23c890: 52800e00     	mov	w0, #0x70               // =112
+  23c894: 9402121b     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  23c898: f9400fe8     	ldr	x8, [sp, #0x18]
+  23c89c: 3cc083e0     	ldur	q0, [sp, #0x8]
+  23c8a0: aa0003e3     	mov	x3, x0
+  23c8a4: f81f03bf     	stur	xzr, [x29, #-0x10]
+  23c8a8: f9000c08     	str	x8, [x0, #0x18]
+  23c8ac: f9401be8     	ldr	x8, [sp, #0x30]
+  23c8b0: 3c808000     	stur	q0, [x0, #0x8]
+  23c8b4: 3cc203e0     	ldur	q0, [sp, #0x20]
+  23c8b8: f9001808     	str	x8, [x0, #0x30]
+  23c8bc: f94027e8     	ldr	x8, [sp, #0x48]
+  23c8c0: 3d800800     	str	q0, [x0, #0x20]
+  23c8c4: 3cc383e0     	ldur	q0, [sp, #0x38]
+  23c8c8: f9002408     	str	x8, [x0, #0x48]
+  23c8cc: a94627e8     	ldp	x8, x9, [sp, #0x60]
+  23c8d0: 3c838000     	stur	q0, [x0, #0x38]
+  23c8d4: 3cc503e0     	ldur	q0, [sp, #0x50]
+  23c8d8: f9000013     	str	x19, [x0]
+  23c8dc: a900ffff     	stp	xzr, xzr, [sp, #0x8]
+  23c8e0: a901ffff     	stp	xzr, xzr, [sp, #0x18]
+  23c8e4: a902ffff     	stp	xzr, xzr, [sp, #0x28]
+  23c8e8: a903ffff     	stp	xzr, xzr, [sp, #0x38]
+  23c8ec: 3d801400     	str	q0, [x0, #0x50]
+  23c8f0: a904ffff     	stp	xzr, xzr, [sp, #0x48]
+  23c8f4: a905ffff     	stp	xzr, xzr, [sp, #0x58]
+  23c8f8: a9062408     	stp	x8, x9, [x0, #0x60]
+  23c8fc: f81e83a0     	stur	x0, [x29, #-0x18]
+  23c900: d503201f     	nop
+  23c904: 1000ec82     	adr	x2, 0x23e694 <void* std::__ndk1::__thread_proxy[abi:ne190000]<std::__ndk1::tuple<std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct>>, SW::UDPConnectableHelper::selectDevice(int)::$_0>>(void*)>
+  23c908: 9101c3e0     	add	x0, sp, #0x70
+  23c90c: aa1f03e1     	mov	x1, xzr
+  23c910: 940219e0     	bl	0x2c3090 <pthread_create@plt>  ;;; CALL pthread_create
+  23c914: 350008a0     	cbnz	w0, 0x23ca28 <SW::UDPConnectableHelper::selectDevice(int)+0x228>
+  23c918: d10063a0     	sub	x0, x29, #0x18
+  23c91c: f81e83bf     	stur	xzr, [x29, #-0x18]
+  23c920: 940007bd     	bl	0x23e814 <std::__ndk1::unique_ptr<std::__ndk1::tuple<std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct>>, SW::UDPConnectableHelper::selectDevice(int)::$_0>, std::__ndk1::default_delete<std::__ndk1::tuple<std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct>>, SW::UDPConnectableHelper::selectDevice(int)::$_0>>>::~unique_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::unique_ptr<std::__ndk1::tuple<std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct
+  23c924: 394143e8     	ldrb	w8, [sp, #0x50]
+  23c928: 37000408     	tbnz	w8, #0x0, 0x23c9a8 <SW::UDPConnectableHelper::selectDevice(int)+0x1a8>
+  23c92c: 3940e3e8     	ldrb	w8, [sp, #0x38]
+  23c930: 37000448     	tbnz	w8, #0x0, 0x23c9b8 <SW::UDPConnectableHelper::selectDevice(int)+0x1b8>
+  23c934: 394083e8     	ldrb	w8, [sp, #0x20]
+  23c938: 37000488     	tbnz	w8, #0x0, 0x23c9c8 <SW::UDPConnectableHelper::selectDevice(int)+0x1c8>
+  23c93c: 394023e8     	ldrb	w8, [sp, #0x8]
+  23c940: 36000068     	tbz	w8, #0x0, 0x23c94c <SW::UDPConnectableHelper::selectDevice(int)+0x14c>
+  23c944: f9400fe0     	ldr	x0, [sp, #0x18]
+  23c948: 94021292     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23c94c: 9101c3e0     	add	x0, sp, #0x70
+  23c950: 940219d4     	bl	0x2c30a0 <_ZNSt6__ndk16thread6detachEv@plt>  ;;; CALL std::__ndk1::thread::detach()
+  23c954: 9101c3e0     	add	x0, sp, #0x70
+  23c958: 940219d6     	bl	0x2c30b0 <_ZNSt6__ndk16threadD1Ev@plt>  ;;; CALL std::__ndk1::thread::~thread()
+  23c95c: 394303e8     	ldrb	w8, [sp, #0xc0]
+  23c960: 370003e8     	tbnz	w8, #0x0, 0x23c9dc <SW::UDPConnectableHelper::selectDevice(int)+0x1dc>
+  23c964: 3942a3e8     	ldrb	w8, [sp, #0xa8]
+  23c968: 37000428     	tbnz	w8, #0x0, 0x23c9ec <SW::UDPConnectableHelper::selectDevice(int)+0x1ec>
+  23c96c: 394243e8     	ldrb	w8, [sp, #0x90]
+  23c970: 37000468     	tbnz	w8, #0x0, 0x23c9fc <SW::UDPConnectableHelper::selectDevice(int)+0x1fc>
+  23c974: 3941e3e8     	ldrb	w8, [sp, #0x78]
+  23c978: 36000068     	tbz	w8, #0x0, 0x23c984 <SW::UDPConnectableHelper::selectDevice(int)+0x184>
+  23c97c: f94047e0     	ldr	x0, [sp, #0x88]
+  23c980: 94021284     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23c984: f9401688     	ldr	x8, [x20, #0x28]
+  23c988: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23c98c: eb09011f     	cmp	x8, x9
+  23c990: 54000961     	b.ne	0x23cabc <SW::UDPConnectableHelper::selectDevice(int)+0x2bc>
+  23c994: a9514ff4     	ldp	x20, x19, [sp, #0x110]
+  23c998: f94083fc     	ldr	x28, [sp, #0x100]
+  23c99c: a94f7bfd     	ldp	x29, x30, [sp, #0xf0]
+  23c9a0: 910483ff     	add	sp, sp, #0x120
+  23c9a4: d65f03c0     	ret
+  23c9a8: f94033e0     	ldr	x0, [sp, #0x60]
+  23c9ac: 94021279     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23c9b0: 3940e3e8     	ldrb	w8, [sp, #0x38]
+  23c9b4: 3607fc08     	tbz	w8, #0x0, 0x23c934 <SW::UDPConnectableHelper::selectDevice(int)+0x134>
+  23c9b8: f94027e0     	ldr	x0, [sp, #0x48]
+  23c9bc: 94021275     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23c9c0: 394083e8     	ldrb	w8, [sp, #0x20]
+  23c9c4: 3607fbc8     	tbz	w8, #0x0, 0x23c93c <SW::UDPConnectableHelper::selectDevice(int)+0x13c>
+  23c9c8: f9401be0     	ldr	x0, [sp, #0x30]
+  23c9cc: 94021271     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23c9d0: 394023e8     	ldrb	w8, [sp, #0x8]
+  23c9d4: 3707fb88     	tbnz	w8, #0x0, 0x23c944 <SW::UDPConnectableHelper::selectDevice(int)+0x144>
+  23c9d8: 17ffffdd     	b	0x23c94c <SW::UDPConnectableHelper::selectDevice(int)+0x14c>
+  23c9dc: f9406be0     	ldr	x0, [sp, #0xd0]
+  23c9e0: 9402126c     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23c9e4: 3942a3e8     	ldrb	w8, [sp, #0xa8]
+  23c9e8: 3607fc28     	tbz	w8, #0x0, 0x23c96c <SW::UDPConnectableHelper::selectDevice(int)+0x16c>
+  23c9ec: f9405fe0     	ldr	x0, [sp, #0xb8]
+  23c9f0: 94021268     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23c9f4: 394243e8     	ldrb	w8, [sp, #0x90]
+  23c9f8: 3607fbe8     	tbz	w8, #0x0, 0x23c974 <SW::UDPConnectableHelper::selectDevice(int)+0x174>
+  23c9fc: f94053e0     	ldr	x0, [sp, #0xa0]
+  23ca00: 94021264     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23ca04: 3941e3e8     	ldrb	w8, [sp, #0x78]
+  23ca08: 3707fba8     	tbnz	w8, #0x0, 0x23c97c <SW::UDPConnectableHelper::selectDevice(int)+0x17c>
+  23ca0c: 17ffffde     	b	0x23c984 <SW::UDPConnectableHelper::selectDevice(int)+0x184>
+  23ca10: f9401688     	ldr	x8, [x20, #0x28]
+  23ca14: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23ca18: eb09011f     	cmp	x8, x9
+  23ca1c: 54000501     	b.ne	0x23cabc <SW::UDPConnectableHelper::selectDevice(int)+0x2bc>
+  23ca20: 91058260     	add	x0, x19, #0x160
+  23ca24: 94000717     	bl	0x23e680 <std::__ndk1::vector<SW::UDPConnectableHelper::FoundDevice, std::__ndk1::allocator<SW::UDPConnectableHelper::FoundDevice>>::__throw_out_of_range[abi:ne190000]() const>  ;;; CALL std::__ndk1::vector<SW::UDPConnectableHelper::FoundDevice, std::__ndk1::allocator<SW::UDPConnectableHelper::FoundDevice
+  23ca28: f9401688     	ldr	x8, [x20, #0x28]
+  23ca2c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23ca30: eb09011f     	cmp	x8, x9
+  23ca34: 54000441     	b.ne	0x23cabc <SW::UDPConnectableHelper::selectDevice(int)+0x2bc>
+  23ca38: f0fff461     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  23ca3c: 9115a021     	add	x1, x1, #0x568
+  23ca40: 940219a0     	bl	0x2c30c0 <_ZNSt6__ndk120__throw_system_errorEiPKc@plt>  ;;; CALL std::__ndk1::__throw_system_error(int, char const*)
+  23ca44: aa0003f3     	mov	x19, x0
+  23ca48: 9101c3e0     	add	x0, sp, #0x70
+  23ca4c: 94021999     	bl	0x2c30b0 <_ZNSt6__ndk16threadD1Ev@plt>  ;;; CALL std::__ndk1::thread::~thread()
+  23ca50: 14000013     	b	0x23ca9c <SW::UDPConnectableHelper::selectDevice(int)+0x29c>
+  23ca54: aa0003f3     	mov	x19, x0
+  23ca58: 1400000d     	b	0x23ca8c <SW::UDPConnectableHelper::selectDevice(int)+0x28c>
+  23ca5c: aa1303e8     	mov	x8, x19
+  23ca60: aa0003f3     	mov	x19, x0
+  23ca64: aa0803e0     	mov	x0, x8
+  23ca68: 9402124a     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23ca6c: 1400000a     	b	0x23ca94 <SW::UDPConnectableHelper::selectDevice(int)+0x294>
+  23ca70: aa0003f3     	mov	x19, x0
+  23ca74: 14000008     	b	0x23ca94 <SW::UDPConnectableHelper::selectDevice(int)+0x294>
+  23ca78: aa0003f3     	mov	x19, x0
+  23ca7c: 14000008     	b	0x23ca9c <SW::UDPConnectableHelper::selectDevice(int)+0x29c>
+  23ca80: aa0003f3     	mov	x19, x0
+  23ca84: d10063a0     	sub	x0, x29, #0x18
+  23ca88: 94000763     	bl	0x23e814 <std::__ndk1::unique_ptr<std::__ndk1::tuple<std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct>>, SW::UDPConnectableHelper::selectDevice(int)::$_0>, std::__ndk1::default_delete<std::__ndk1::tuple<std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct>>, SW::UDPConnectableHelper::selectDevice(int)::$_0>>>::~unique_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::unique_ptr<std::__ndk1::tuple<std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct
+  23ca8c: d10043a0     	sub	x0, x29, #0x10
+  23ca90: 97fef254     	bl	0x1f93e0 <std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct>>::~unique_ptr[abi:ne190000]()>  ;;; CALL std::__ndk1::unique_ptr<std::__ndk1::__thread_struct, std::__ndk1::default_delete<std::__ndk1::__thread_struct
+  23ca94: 910023e0     	add	x0, sp, #0x8
+  23ca98: 94000058     	bl	0x23cbf8 <SW::UDPConnectableHelper::selectDevice(int)::$_0::~$_0()>  ;;; CALL SW::UDPConnectableHelper::selectDevice(int)::$_0::~$_0()
+  23ca9c: 9101e3e0     	add	x0, sp, #0x78
+  23caa0: 9402200c     	bl	0x2c4ad0 <_ZN2SW20UDPConnectableHelper11FoundDeviceD2Ev@plt>  ;;; CALL SW::UDPConnectableHelper::FoundDevice::~FoundDevice()
+  23caa4: f9401688     	ldr	x8, [x20, #0x28]
+  23caa8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  23caac: eb09011f     	cmp	x8, x9
+  23cab0: 54000061     	b.ne	0x23cabc <SW::UDPConnectableHelper::selectDevice(int)+0x2bc>
+  23cab4: aa1303e0     	mov	x0, x19
+  23cab8: 94020273     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23cabc: 940211bd     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+000000000023cac0 <SW::UDPConnectableHelper::FoundDevice::FoundDevice(SW::UDPConnectableHelper::FoundDevice const&)>:
+  23cac0: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  23cac4: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  23cac8: 910003fd     	mov	x29, sp
+  23cacc: 39400028     	ldrb	w8, [x1]
+  23cad0: aa0103f4     	mov	x20, x1
+  23cad4: aa0003f3     	mov	x19, x0
+  23cad8: 37000268     	tbnz	w8, #0x0, 0x23cb24 <SW::UDPConnectableHelper::FoundDevice::FoundDevice(SW::UDPConnectableHelper::FoundDevice const&)+0x64>
+  23cadc: f9400a88     	ldr	x8, [x20, #0x10]
+  23cae0: 3dc00280     	ldr	q0, [x20]
+  23cae4: f9000a68     	str	x8, [x19, #0x10]
+  23cae8: 3d800260     	str	q0, [x19]
+  23caec: aa1403e8     	mov	x8, x20
+  23caf0: 38418d09     	ldrb	w9, [x8, #0x18]!
+  23caf4: 36000249     	tbz	w9, #0x0, 0x23cb3c <SW::UDPConnectableHelper::FoundDevice::FoundDevice(SW::UDPConnectableHelper::FoundDevice const&)+0x7c>
+  23caf8: a9420682     	ldp	x2, x1, [x20, #0x20]
+  23cafc: 91006260     	add	x0, x19, #0x18
+  23cb00: 940215a8     	bl	0x2c21a0 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE25__init_copy_ctor_externalEPKcm@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::__init_copy_ctor_external(char const*, unsigned long)
+  23cb04: aa1403e8     	mov	x8, x20
+  23cb08: 38430d09     	ldrb	w9, [x8, #0x30]!
+  23cb0c: 37000269     	tbnz	w9, #0x0, 0x23cb58 <SW::UDPConnectableHelper::FoundDevice::FoundDevice(SW::UDPConnectableHelper::FoundDevice const&)+0x98>
+  23cb10: f9400909     	ldr	x9, [x8, #0x10]
+  23cb14: 3dc00100     	ldr	q0, [x8]
+  23cb18: f8040269     	stur	x9, [x19, #0x40]
+  23cb1c: 3c830260     	stur	q0, [x19, #0x30]
+  23cb20: 14000011     	b	0x23cb64 <SW::UDPConnectableHelper::FoundDevice::FoundDevice(SW::UDPConnectableHelper::FoundDevice const&)+0xa4>
+  23cb24: a9408682     	ldp	x2, x1, [x20, #0x8]
+  23cb28: aa1303e0     	mov	x0, x19
+  23cb2c: 9402159d     	bl	0x2c21a0 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE25__init_copy_ctor_externalEPKcm@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::__init_copy_ctor_external(char const*, unsigned long)
+  23cb30: aa1403e8     	mov	x8, x20
+  23cb34: 38418d09     	ldrb	w9, [x8, #0x18]!
+  23cb38: 3707fe09     	tbnz	w9, #0x0, 0x23caf8 <SW::UDPConnectableHelper::FoundDevice::FoundDevice(SW::UDPConnectableHelper::FoundDevice const&)+0x38>
+  23cb3c: f9400909     	ldr	x9, [x8, #0x10]
+  23cb40: 3dc00100     	ldr	q0, [x8]
+  23cb44: f8028269     	stur	x9, [x19, #0x28]
+  23cb48: 3c818260     	stur	q0, [x19, #0x18]
+  23cb4c: aa1403e8     	mov	x8, x20
+  23cb50: 38430d09     	ldrb	w9, [x8, #0x30]!
+  23cb54: 3607fde9     	tbz	w9, #0x0, 0x23cb10 <SW::UDPConnectableHelper::FoundDevice::FoundDevice(SW::UDPConnectableHelper::FoundDevice const&)+0x50>
+  23cb58: a9438682     	ldp	x2, x1, [x20, #0x38]
+  23cb5c: 9100c260     	add	x0, x19, #0x30
+  23cb60: 94021590     	bl	0x2c21a0 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE25__init_copy_ctor_externalEPKcm@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::__init_copy_ctor_external(char const*, unsigned long)
+  23cb64: aa1403e8     	mov	x8, x20
+  23cb68: 38448d09     	ldrb	w9, [x8, #0x48]!
+  23cb6c: 37000109     	tbnz	w9, #0x0, 0x23cb8c <SW::UDPConnectableHelper::FoundDevice::FoundDevice(SW::UDPConnectableHelper::FoundDevice const&)+0xcc>
+  23cb70: f9400909     	ldr	x9, [x8, #0x10]
+  23cb74: 3dc00100     	ldr	q0, [x8]
+  23cb78: f8058269     	stur	x9, [x19, #0x58]
+  23cb7c: 3c848260     	stur	q0, [x19, #0x48]
+  23cb80: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23cb84: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23cb88: d65f03c0     	ret
+  23cb8c: a9450682     	ldp	x2, x1, [x20, #0x50]
+  23cb90: 91012260     	add	x0, x19, #0x48
+  23cb94: 94021583     	bl	0x2c21a0 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE25__init_copy_ctor_externalEPKcm@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::__init_copy_ctor_external(char const*, unsigned long)
+  23cb98: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23cb9c: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23cba0: d65f03c0     	ret
+  23cba4: 38430268     	ldurb	w8, [x19, #0x30]
+  23cba8: aa0003f4     	mov	x20, x0
+  23cbac: 36000108     	tbz	w8, #0x0, 0x23cbcc <SW::UDPConnectableHelper::FoundDevice::FoundDevice(SW::UDPConnectableHelper::FoundDevice const&)+0x10c>
+  23cbb0: f9402260     	ldr	x0, [x19, #0x40]
+  23cbb4: 940211f7     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23cbb8: aa1303e0     	mov	x0, x19
+  23cbbc: 94021fc9     	bl	0x2c4ae0 <_ZN2SW13UdpRemoteHostD2Ev@plt>  ;;; CALL SW::UdpRemoteHost::~UdpRemoteHost()
+  23cbc0: aa1403e0     	mov	x0, x20
+  23cbc4: 94020230     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23cbc8: aa0003f4     	mov	x20, x0
+  23cbcc: aa1303e0     	mov	x0, x19
+  23cbd0: 94021fc4     	bl	0x2c4ae0 <_ZN2SW13UdpRemoteHostD2Ev@plt>  ;;; CALL SW::UdpRemoteHost::~UdpRemoteHost()
+  23cbd4: aa1403e0     	mov	x0, x20
+  23cbd8: 9402022b     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23cbdc: 39400268     	ldrb	w8, [x19]
+  23cbe0: aa0003f4     	mov	x20, x0
+  23cbe4: 36000068     	tbz	w8, #0x0, 0x23cbf0 <SW::UDPConnectableHelper::FoundDevice::FoundDevice(SW::UDPConnectableHelper::FoundDevice const&)+0x130>
+  23cbe8: f9400a60     	ldr	x0, [x19, #0x10]
+  23cbec: 940211e9     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23cbf0: aa1403e0     	mov	x0, x20
+  23cbf4: 94020224     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+000000000023ce88 <SW::UDPConnectableHelper::bg_startConnect()>:
+  23ce88: a9ba7bfd     	stp	x29, x30, [sp, #-0x60]!
+  23ce8c: a9016ffc     	stp	x28, x27, [sp, #0x10]
+  23ce90: a90267fa     	stp	x26, x25, [sp, #0x20]
+  23ce94: a9035ff8     	stp	x24, x23, [sp, #0x30]
+  23ce98: a90457f6     	stp	x22, x21, [sp, #0x40]
+  23ce9c: a9054ff4     	stp	x20, x19, [sp, #0x50]
+  23cea0: 910003fd     	mov	x29, sp
+  23cea4: d10843ff     	sub	sp, sp, #0x210
+  23cea8: d53bd057     	mrs	x23, TPIDR_EL0
+  23ceac: aa0003f3     	mov	x19, x0
+  23ceb0: 910143f9     	add	x25, sp, #0x50
+  23ceb4: f94016e8     	ldr	x8, [x23, #0x28]
+  23ceb8: f81e83a8     	stur	x8, [x29, #-0x18]
+  23cebc: 3905e01f     	strb	wzr, [x0, #0x178]
+  23cec0: 91018000     	add	x0, x0, #0x60
+  23cec4: 94021497     	bl	0x2c2120 <_ZNK7eventpp9internal_16CallbackListBaseIFvvENS_15DefaultPoliciesEEclEv@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (), eventpp::DefaultPolicies>::operator()() const
+  23cec8: 52800048     	mov	w8, #0x2                // =2
+  23cecc: f0fff474     	adrp	x20, 0xcb000 <vsnprintf+0xcb000>
+  23ced0: 911e5e94     	add	x20, x20, #0x797
+  23ced4: 91004260     	add	x0, x19, #0x10
+  23ced8: d103e3a1     	sub	x1, x29, #0xf8
+  23cedc: b81083a8     	stur	w8, [x29, #-0xf8]
+  23cee0: a9317fb4     	stp	x20, xzr, [x29, #-0xf0]
+  23cee4: 94021553     	bl	0x2c2430 <_ZNK7eventpp9internal_16CallbackListBaseIFvN2SW18IConnectableHelper6StatusEENS_15DefaultPoliciesEEclES4_@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (SW::IConnectableHelper::Status), eventpp::DefaultPolicies>::operator()(SW::IConnectableHelper::Status) const
+  23cee8: f9405a60     	ldr	x0, [x19, #0xb0]
+  23ceec: f9400008     	ldr	x8, [x0]
+  23cef0: f9405908     	ldr	x8, [x8, #0xb0]
+  23cef4: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  23cef8: 36001240     	tbz	w0, #0x0, 0x23d140 <SW::UDPConnectableHelper::bg_startConnect()+0x2b8>
+  23cefc: 91004260     	add	x0, x19, #0x10
+  23cf00: 910403e1     	add	x1, sp, #0x100
+  23cf04: b90103ff     	str	wzr, [sp, #0x100]
+  23cf08: a910fff4     	stp	x20, xzr, [sp, #0x108]
+  23cf0c: 94021549     	bl	0x2c2430 <_ZNK7eventpp9internal_16CallbackListBaseIFvN2SW18IConnectableHelper6StatusEENS_15DefaultPoliciesEEclES4_@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (SW::IConnectableHelper::Status), eventpp::DefaultPolicies>::operator()(SW::IConnectableHelper::Status) const
+  23cf10: 52800ca8     	mov	w8, #0x65               // =101
+  23cf14: b90053ff     	str	wzr, [sp, #0x50]
+  23cf18: 390153e8     	strb	w8, [sp, #0x54]
+  23cf1c: a9067fff     	stp	xzr, xzr, [sp, #0x60]
+  23cf20: f9002fff     	str	xzr, [sp, #0x58]
+  23cf24: 9103a3e8     	add	x8, sp, #0xe8
+  23cf28: 910143e0     	add	x0, sp, #0x50
+  23cf2c: 94021e19     	bl	0x2c4790 <_ZNK2SW5SwCmd6encodeEv@plt>  ;;; CALL SW::SwCmd::encode() const
+  23cf30: f9402fe0     	ldr	x0, [sp, #0x58]
+  23cf34: b4000060     	cbz	x0, 0x23cf40 <SW::UDPConnectableHelper::bg_startConnect()+0xb8>
+  23cf38: f90033e0     	str	x0, [sp, #0x60]
+  23cf3c: 94021115     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23cf40: f9406260     	ldr	x0, [x19, #0xc0]
+  23cf44: f9400008     	ldr	x8, [x0]
+  23cf48: f9400909     	ldr	x9, [x8, #0x10]
+  23cf4c: 910343e8     	add	x8, sp, #0xd0
+  23cf50: 9103a3e1     	add	x1, sp, #0xe8
+  23cf54: 910343f4     	add	x20, sp, #0xd0
+  23cf58: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  23cf5c: f9406ffa     	ldr	x26, [sp, #0xd8]
+  23cf60: a90b7fff     	stp	xzr, xzr, [sp, #0xb0]
+  23cf64: f90063ff     	str	xzr, [sp, #0xc0]
+  23cf68: eb14035f     	cmp	x26, x20
+  23cf6c: 54001240     	b.eq	0x23d1b4 <SW::UDPConnectableHelper::bg_startConnect()+0x32c>
+  23cf70: d102c3a8     	sub	x8, x29, #0xb0
+  23cf74: 910143fb     	add	x27, sp, #0x50
+  23cf78: 910343f8     	add	x24, sp, #0xd0
+  23cf7c: b240011c     	orr	x28, x8, #0x1
+  23cf80: 14000004     	b	0x23cf90 <SW::UDPConnectableHelper::bg_startConnect()+0x108>
+  23cf84: f940075a     	ldr	x26, [x26, #0x8]
+  23cf88: eb18035f     	cmp	x26, x24
+  23cf8c: 54001140     	b.eq	0x23d1b4 <SW::UDPConnectableHelper::bg_startConnect()+0x32c>
+  23cf90: 91016340     	add	x0, x26, #0x58
+  23cf94: 94021e17     	bl	0x2c47f0 <_ZN2SW10SwCmdCoder14parseMCVersionERKNS_6CBytesE@plt>  ;;; CALL SW::SwCmdCoder::parseMCVersion(SW::CBytes const&)
+  23cf98: 53187c08     	lsr	w8, w0, #24
+  23cf9c: 2a0003f4     	mov	w20, w0
+  23cfa0: 34ffff28     	cbz	w8, 0x23cf84 <SW::UDPConnectableHelper::bg_startConnect()+0xfc>
+  23cfa4: f9409260     	ldr	x0, [x19, #0x120]
+  23cfa8: b4000100     	cbz	x0, 0x23cfc8 <SW::UDPConnectableHelper::bg_startConnect()+0x140>
+  23cfac: 53107e88     	lsr	w8, w20, #16
+  23cfb0: 381503a8     	sturb	w8, [x29, #-0xb0]
+  23cfb4: f9400008     	ldr	x8, [x0]
+  23cfb8: f9401908     	ldr	x8, [x8, #0x30]
+  23cfbc: d102c3a1     	sub	x1, x29, #0xb0
+  23cfc0: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  23cfc4: 3607fe00     	tbz	w0, #0x0, 0x23cf84 <SW::UDPConnectableHelper::bg_startConnect()+0xfc>
+  23cfc8: 6f00e400     	movi	v0.2d, #0000000000000000
+  23cfcc: ad020320     	stp	q0, q0, [x25, #0x40]
+  23cfd0: ad0283e0     	stp	q0, q0, [sp, #0x50]
+  23cfd4: ad0383e0     	stp	q0, q0, [sp, #0x70]
+  23cfd8: 910143e0     	add	x0, sp, #0x50
+  23cfdc: 9100a341     	add	x1, x26, #0x28
+  23cfe0: 94021964     	bl	0x2c3570 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEaSERKS5_@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::operator=(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  23cfe4: 91006360     	add	x0, x27, #0x18
+  23cfe8: 91010341     	add	x1, x26, #0x40
+  23cfec: 94021961     	bl	0x2c3570 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEaSERKS5_@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::operator=(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  23cff0: 9100c360     	add	x0, x27, #0x30
+  23cff4: 91004341     	add	x1, x26, #0x10
+  23cff8: 9402195e     	bl	0x2c3570 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEaSERKS5_@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::operator=(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  23cffc: 53083e85     	ubfx	w5, w20, #8, #8
+  23d000: 53105e86     	ubfx	w6, w20, #16, #8
+  23d004: d10183a0     	sub	x0, x29, #0x60
+  23d008: 12001e84     	and	w4, w20, #0xff
+  23d00c: 940004c8     	bl	0x23e32c <snprintf(char*, unsigned long pass_object_size1, char const*, ...)>  ;;; CALL snprintf(char*, unsigned long pass_object_size1, char const*, ...)
+  23d010: d10183a0     	sub	x0, x29, #0x60
+  23d014: 9402106f     	bl	0x2c11d0 <strlen@plt>  ;;; CALL strlen
+  23d018: b100201f     	cmn	x0, #0x8
+  23d01c: 54003aa2     	b.hs	0x23d770 <SW::UDPConnectableHelper::bg_startConnect()+0x8e8>
+  23d020: aa0003f4     	mov	x20, x0
+  23d024: f1005c1f     	cmp	x0, #0x17
+  23d028: 540002c2     	b.hs	0x23d080 <SW::UDPConnectableHelper::bg_startConnect()+0x1f8>
+  23d02c: 531f7a88     	lsl	w8, w20, #1
+  23d030: aa1c03f5     	mov	x21, x28
+  23d034: 381503a8     	sturb	w8, [x29, #-0xb0]
+  23d038: b50003d4     	cbnz	x20, 0x23d0b0 <SW::UDPConnectableHelper::bg_startConnect()+0x228>
+  23d03c: 394263e8     	ldrb	w8, [sp, #0x98]
+  23d040: 38346abf     	strb	wzr, [x21, x20]
+  23d044: 36000068     	tbz	w8, #0x0, 0x23d050 <SW::UDPConnectableHelper::bg_startConnect()+0x1c8>
+  23d048: f94057e0     	ldr	x0, [sp, #0xa8]
+  23d04c: 940210d1     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23d050: a94ba3f4     	ldp	x20, x8, [sp, #0xb8]
+  23d054: 3dc04720     	ldr	q0, [x25, #0x110]
+  23d058: f85603a9     	ldur	x9, [x29, #-0xa0]
+  23d05c: 3c848360     	stur	q0, [x27, #0x48]
+  23d060: eb08029f     	cmp	x20, x8
+  23d064: f8058369     	stur	x9, [x27, #0x58]
+  23d068: 54000342     	b.hs	0x23d0d0 <SW::UDPConnectableHelper::bg_startConnect()+0x248>
+  23d06c: 910143e1     	add	x1, sp, #0x50
+  23d070: aa1403e0     	mov	x0, x20
+  23d074: 94021e93     	bl	0x2c4ac0 <_ZN2SW20UDPConnectableHelper11FoundDeviceC2ERKS1_@plt>  ;;; CALL SW::UDPConnectableHelper::FoundDevice::FoundDevice(SW::UDPConnectableHelper::FoundDevice const&)
+  23d078: 91018280     	add	x0, x20, #0x60
+  23d07c: 14000018     	b	0x23d0dc <SW::UDPConnectableHelper::bg_startConnect()+0x254>
+  23d080: 927df288     	and	x8, x20, #0xfffffffffffffff8
+  23d084: b2400a89     	orr	x9, x20, #0x7
+  23d088: 91002108     	add	x8, x8, #0x8
+  23d08c: f1005d3f     	cmp	x9, #0x17
+  23d090: 9a890108     	csel	x8, x8, x9, eq
+  23d094: 91000516     	add	x22, x8, #0x1
+  23d098: aa1603e0     	mov	x0, x22
+  23d09c: 94021019     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  23d0a0: b24002c8     	orr	x8, x22, #0x1
+  23d0a4: aa0003f5     	mov	x21, x0
+  23d0a8: a93583b4     	stp	x20, x0, [x29, #-0xa8]
+  23d0ac: f81503a8     	stur	x8, [x29, #-0xb0]
+  23d0b0: d10183a1     	sub	x1, x29, #0x60
+  23d0b4: aa1503e0     	mov	x0, x21
+  23d0b8: aa1403e2     	mov	x2, x20
+  23d0bc: 94021571     	bl	0x2c2680 <memcpy@plt>  ;;; CALL memcpy
+  23d0c0: 394263e8     	ldrb	w8, [sp, #0x98]
+  23d0c4: 38346abf     	strb	wzr, [x21, x20]
+  23d0c8: 3707fc08     	tbnz	w8, #0x0, 0x23d048 <SW::UDPConnectableHelper::bg_startConnect()+0x1c0>
+  23d0cc: 17ffffe1     	b	0x23d050 <SW::UDPConnectableHelper::bg_startConnect()+0x1c8>
+  23d0d0: 9102c3e0     	add	x0, sp, #0xb0
+  23d0d4: 910143e1     	add	x1, sp, #0x50
+  23d0d8: 94021e8a     	bl	0x2c4b00 <_ZNSt6__ndk16vectorIN2SW20UDPConnectableHelper11FoundDeviceENS_9allocatorIS3_EEE21__push_back_slow_pathIRKS3_EEPS3_OT_@plt>  ;;; CALL SW::UDPConnectableHelper::FoundDevice* std::__ndk1::vector<SW::UDPConnectableHelper::FoundDevice, std::__ndk1::allocator<SW::UDPConnectableHelper::FoundDevice>>::__push_back_slow_path<SW::UDPConnectableHelper::FoundDevice const&>(SW::UDPConnectableHelper::FoundDevice const&)
+  23d0dc: 394263e8     	ldrb	w8, [sp, #0x98]
+  23d0e0: f9005fe0     	str	x0, [sp, #0xb8]
+  23d0e4: 37000108     	tbnz	w8, #0x0, 0x23d104 <SW::UDPConnectableHelper::bg_startConnect()+0x27c>
+  23d0e8: 394203e8     	ldrb	w8, [sp, #0x80]
+  23d0ec: 37000148     	tbnz	w8, #0x0, 0x23d114 <SW::UDPConnectableHelper::bg_startConnect()+0x28c>
+  23d0f0: 3941a3e8     	ldrb	w8, [sp, #0x68]
+  23d0f4: 37000188     	tbnz	w8, #0x0, 0x23d124 <SW::UDPConnectableHelper::bg_startConnect()+0x29c>
+  23d0f8: 394143e8     	ldrb	w8, [sp, #0x50]
+  23d0fc: 3607f448     	tbz	w8, #0x0, 0x23cf84 <SW::UDPConnectableHelper::bg_startConnect()+0xfc>
+  23d100: 1400000d     	b	0x23d134 <SW::UDPConnectableHelper::bg_startConnect()+0x2ac>
+  23d104: f94057e0     	ldr	x0, [sp, #0xa8]
+  23d108: 940210a2     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23d10c: 394203e8     	ldrb	w8, [sp, #0x80]
+  23d110: 3607ff08     	tbz	w8, #0x0, 0x23d0f0 <SW::UDPConnectableHelper::bg_startConnect()+0x268>
+  23d114: f9404be0     	ldr	x0, [sp, #0x90]
+  23d118: 9402109e     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23d11c: 3941a3e8     	ldrb	w8, [sp, #0x68]
+  23d120: 3607fec8     	tbz	w8, #0x0, 0x23d0f8 <SW::UDPConnectableHelper::bg_startConnect()+0x270>
+  23d124: f9403fe0     	ldr	x0, [sp, #0x78]
+  23d128: 9402109a     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23d12c: 394143e8     	ldrb	w8, [sp, #0x50]
+  23d130: 3607f2a8     	tbz	w8, #0x0, 0x23cf84 <SW::UDPConnectableHelper::bg_startConnect()+0xfc>
+  23d134: f94033e0     	ldr	x0, [sp, #0x60]
+  23d138: 94021096     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23d13c: 17ffff92     	b	0x23cf84 <SW::UDPConnectableHelper::bg_startConnect()+0xfc>
+  23d140: 6f00e400     	movi	v0.2d, #0000000000000000
+  23d144: f9405a60     	ldr	x0, [x19, #0xb0]
+  23d148: 781503bf     	sturh	wzr, [x29, #-0xb0]
+  23d14c: ad0303e0     	stp	q0, q0, [sp, #0x60]
+  23d150: 3d8017e0     	str	q0, [sp, #0x50]
+  23d154: f9400008     	ldr	x8, [x0]
+  23d158: f9406109     	ldr	x9, [x8, #0xc0]
+  23d15c: d10183a8     	sub	x8, x29, #0x60
+  23d160: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  23d164: 3dc05b20     	ldr	q0, [x25, #0x160]
+  23d168: f85b03a8     	ldur	x8, [x29, #-0x50]
+  23d16c: 3d8017e0     	str	q0, [sp, #0x50]
+  23d170: f90033e8     	str	x8, [sp, #0x60]
+  23d174: 910143e8     	add	x8, sp, #0x50
+  23d178: d0fff461     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  23d17c: 911e5c21     	add	x1, x1, #0x797
+  23d180: 91006100     	add	x0, x8, #0x18
+  23d184: 94021e7b     	bl	0x2c4b70 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE6assignEPKc@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::assign(char const*)
+  23d188: d102c3a1     	sub	x1, x29, #0xb0
+  23d18c: 910143e2     	add	x2, sp, #0x50
+  23d190: aa1303e0     	mov	x0, x19
+  23d194: 94021e5f     	bl	0x2c4b10 <_ZN2SW20UDPConnectableHelper18bg_connectToRemoteERKNSt6__ndk112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEERKNS_13UdpRemoteHostE@plt>  ;;; CALL SW::UDPConnectableHelper::bg_connectToRemote(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&, SW::UdpRemoteHost const&)
+  23d198: 3941a3e8     	ldrb	w8, [sp, #0x68]
+  23d19c: 37000728     	tbnz	w8, #0x0, 0x23d280 <SW::UDPConnectableHelper::bg_startConnect()+0x3f8>
+  23d1a0: 394143e8     	ldrb	w8, [sp, #0x50]
+  23d1a4: 37000768     	tbnz	w8, #0x0, 0x23d290 <SW::UDPConnectableHelper::bg_startConnect()+0x408>
+  23d1a8: 385503a8     	ldurb	w8, [x29, #-0xb0]
+  23d1ac: 370007a8     	tbnz	w8, #0x0, 0x23d2a0 <SW::UDPConnectableHelper::bg_startConnect()+0x418>
+  23d1b0: 140000f7     	b	0x23d58c <SW::UDPConnectableHelper::bg_startConnect()+0x704>
+  23d1b4: 6f00e400     	movi	v0.2d, #0000000000000000
+  23d1b8: ad0b8320     	stp	q0, q0, [x25, #0x170]
+  23d1bc: 3d805b20     	str	q0, [x25, #0x160]
+  23d1c0: d0fff461     	adrp	x1, 0xcb000 <vsnprintf+0xcb000>
+  23d1c4: 913b5021     	add	x1, x1, #0xed4
+  23d1c8: d10183a0     	sub	x0, x29, #0x60
+  23d1cc: d10183b6     	sub	x22, x29, #0x60
+  23d1d0: 94021e68     	bl	0x2c4b70 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE6assignEPKc@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::assign(char const*)
+  23d1d4: f0fff461     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23d1d8: 91214021     	add	x1, x1, #0x850
+  23d1dc: 910062c0     	add	x0, x22, #0x18
+  23d1e0: 94021e64     	bl	0x2c4b70 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE6assignEPKc@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::assign(char const*)
+  23d1e4: f9406ff5     	ldr	x21, [sp, #0xd8]
+  23d1e8: 910343f8     	add	x24, sp, #0xd0
+  23d1ec: eb1802bf     	cmp	x21, x24
+  23d1f0: 540005c0     	b.eq	0x23d2a8 <SW::UDPConnectableHelper::bg_startConnect()+0x420>
+  23d1f4: 385a03a8     	ldurb	w8, [x29, #-0x60]
+  23d1f8: a97aafaa     	ldp	x10, x11, [x29, #-0x58]
+  23d1fc: d341fd09     	lsr	x9, x8, #1
+  23d200: 7200011f     	tst	w8, #0x1
+  23d204: d10183a8     	sub	x8, x29, #0x60
+  23d208: 9a881574     	csinc	x20, x11, x8, ne
+  23d20c: 9a8a013a     	csel	x26, x9, x10, eq
+  23d210: 14000008     	b	0x23d230 <SW::UDPConnectableHelper::bg_startConnect()+0x3a8>
+  23d214: f9401ea0     	ldr	x0, [x21, #0x38]
+  23d218: aa1403e1     	mov	x1, x20
+  23d21c: 940210ad     	bl	0x2c14d0 <memcmp@plt>  ;;; CALL memcmp
+  23d220: 34000ba0     	cbz	w0, 0x23d394 <SW::UDPConnectableHelper::bg_startConnect()+0x50c>
+  23d224: f94006b5     	ldr	x21, [x21, #0x8]
+  23d228: eb1802bf     	cmp	x21, x24
+  23d22c: 540003e0     	b.eq	0x23d2a8 <SW::UDPConnectableHelper::bg_startConnect()+0x420>
+  23d230: 3940a2a9     	ldrb	w9, [x21, #0x28]
+  23d234: f9401aa2     	ldr	x2, [x21, #0x30]
+  23d238: d341fd28     	lsr	x8, x9, #1
+  23d23c: 7200013f     	tst	w9, #0x1
+  23d240: 9a82010a     	csel	x10, x8, x2, eq
+  23d244: eb1a015f     	cmp	x10, x26
+  23d248: 54fffee1     	b.ne	0x23d224 <SW::UDPConnectableHelper::bg_startConnect()+0x39c>
+  23d24c: 3707fe49     	tbnz	w9, #0x0, 0x23d214 <SW::UDPConnectableHelper::bg_startConnect()+0x38c>
+  23d250: 7100093f     	cmp	w9, #0x2
+  23d254: 54000a03     	b.lo	0x23d394 <SW::UDPConnectableHelper::bg_startConnect()+0x50c>
+  23d258: 9100a6a9     	add	x9, x21, #0x29
+  23d25c: aa1403ea     	mov	x10, x20
+  23d260: 3840152b     	ldrb	w11, [x9], #0x1
+  23d264: 3940014c     	ldrb	w12, [x10]
+  23d268: 6b0c017f     	cmp	w11, w12
+  23d26c: 54fffdc1     	b.ne	0x23d224 <SW::UDPConnectableHelper::bg_startConnect()+0x39c>
+  23d270: f1000508     	subs	x8, x8, #0x1
+  23d274: 9100054a     	add	x10, x10, #0x1
+  23d278: 54ffff41     	b.ne	0x23d260 <SW::UDPConnectableHelper::bg_startConnect()+0x3d8>
+  23d27c: 14000046     	b	0x23d394 <SW::UDPConnectableHelper::bg_startConnect()+0x50c>
+  23d280: f9403fe0     	ldr	x0, [sp, #0x78]
+  23d284: 94021043     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23d288: 394143e8     	ldrb	w8, [sp, #0x50]
+  23d28c: 3607f8e8     	tbz	w8, #0x0, 0x23d1a8 <SW::UDPConnectableHelper::bg_startConnect()+0x320>
+  23d290: f94033e0     	ldr	x0, [sp, #0x60]
+  23d294: 9402103f     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23d298: 385503a8     	ldurb	w8, [x29, #-0xb0]
+  23d29c: 36001788     	tbz	w8, #0x0, 0x23d58c <SW::UDPConnectableHelper::bg_startConnect()+0x704>
+  23d2a0: f85603a0     	ldur	x0, [x29, #-0xa0]
+  23d2a4: 140000b9     	b	0x23d588 <SW::UDPConnectableHelper::bg_startConnect()+0x700>
+  23d2a8: f9406a60     	ldr	x0, [x19, #0xd0]
+  23d2ac: 790073ff     	strh	wzr, [sp, #0x38]
+  23d2b0: f9400008     	ldr	x8, [x0]
+  23d2b4: f9400909     	ldr	x9, [x8, #0x10]
+  23d2b8: d102c3a8     	sub	x8, x29, #0xb0
+  23d2bc: 9100e3e1     	add	x1, sp, #0x38
+  23d2c0: d10183a2     	sub	x2, x29, #0x60
+  23d2c4: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  23d2c8: f85503a0     	ldur	x0, [x29, #-0xb0]
+  23d2cc: f9400008     	ldr	x8, [x0]
+  23d2d0: f9401108     	ldr	x8, [x8, #0x20]
+  23d2d4: 2a1f03e1     	mov	w1, wzr
+  23d2d8: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  23d2dc: aa0003f4     	mov	x20, x0
+  23d2e0: 340016f4     	cbz	w20, 0x23d5bc <SW::UDPConnectableHelper::bg_startConnect()+0x734>
+  23d2e4: 385803a8     	ldurb	w8, [x29, #-0x80]
+  23d2e8: 36000068     	tbz	w8, #0x0, 0x23d2f4 <SW::UDPConnectableHelper::bg_startConnect()+0x46c>
+  23d2ec: f85903a0     	ldur	x0, [x29, #-0x70]
+  23d2f0: 94021028     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23d2f4: f85783b4     	ldur	x20, [x29, #-0x88]
+  23d2f8: b4000174     	cbz	x20, 0x23d324 <SW::UDPConnectableHelper::bg_startConnect()+0x49c>
+  23d2fc: 91002281     	add	x1, x20, #0x8
+  23d300: 92800000     	mov	x0, #-0x1               // =-1
+  23d304: 94020007     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  23d308: b50000e0     	cbnz	x0, 0x23d324 <SW::UDPConnectableHelper::bg_startConnect()+0x49c>
+  23d30c: f9400288     	ldr	x8, [x20]
+  23d310: aa1403e0     	mov	x0, x20
+  23d314: f9400908     	ldr	x8, [x8, #0x10]
+  23d318: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  23d31c: aa1403e0     	mov	x0, x20
+  23d320: 94020f98     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  23d324: f85683b4     	ldur	x20, [x29, #-0x98]
+  23d328: b4000174     	cbz	x20, 0x23d354 <SW::UDPConnectableHelper::bg_startConnect()+0x4cc>
+  23d32c: 91002281     	add	x1, x20, #0x8
+  23d330: 92800000     	mov	x0, #-0x1               // =-1
+  23d334: 9401fffb     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  23d338: b50000e0     	cbnz	x0, 0x23d354 <SW::UDPConnectableHelper::bg_startConnect()+0x4cc>
+  23d33c: f9400288     	ldr	x8, [x20]
+  23d340: aa1403e0     	mov	x0, x20
+  23d344: f9400908     	ldr	x8, [x8, #0x10]
+  23d348: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  23d34c: aa1403e0     	mov	x0, x20
+  23d350: 94020f8c     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  23d354: f85583b4     	ldur	x20, [x29, #-0xa8]
+  23d358: b4000174     	cbz	x20, 0x23d384 <SW::UDPConnectableHelper::bg_startConnect()+0x4fc>
+  23d35c: 91002281     	add	x1, x20, #0x8
+  23d360: 92800000     	mov	x0, #-0x1               // =-1
+  23d364: 9401ffef     	bl	0x2bd320 <__aarch64_ldadd8_acq_rel>  ;;; CALL __aarch64_ldadd8_acq_rel
+  23d368: b50000e0     	cbnz	x0, 0x23d384 <SW::UDPConnectableHelper::bg_startConnect()+0x4fc>
+  23d36c: f9400288     	ldr	x8, [x20]
+  23d370: aa1403e0     	mov	x0, x20
+  23d374: f9400908     	ldr	x8, [x8, #0x10]
+  23d378: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  23d37c: aa1403e0     	mov	x0, x20
+  23d380: 94020f80     	bl	0x2c1180 <_ZNSt6__ndk119__shared_weak_count14__release_weakEv@plt>  ;;; CALL std::__ndk1::__shared_weak_count::__release_weak()
+  23d384: 3940e3e8     	ldrb	w8, [sp, #0x38]
+  23d388: 36000068     	tbz	w8, #0x0, 0x23d394 <SW::UDPConnectableHelper::bg_startConnect()+0x50c>
+  23d38c: f94027e0     	ldr	x0, [sp, #0x48]
+  23d390: 94021000     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23d394: 385b83a8     	ldurb	w8, [x29, #-0x48]
+  23d398: 36000068     	tbz	w8, #0x0, 0x23d3a4 <SW::UDPConnectableHelper::bg_startConnect()+0x51c>
+  23d39c: f85c83a0     	ldur	x0, [x29, #-0x38]
+  23d3a0: 94020ffc     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23d3a4: 385a03a8     	ldurb	w8, [x29, #-0x60]
+  23d3a8: 36000068     	tbz	w8, #0x0, 0x23d3b4 <SW::UDPConnectableHelper::bg_startConnect()+0x52c>
+  23d3ac: f85b03a0     	ldur	x0, [x29, #-0x50]
+  23d3b0: 94020ff8     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23d3b4: f00004a8     	adrp	x8, 0x2d4000 <typeinfo for SW::Location>
+  23d3b8: 91274108     	add	x8, x8, #0x9d0
+  23d3bc: d102c3a9     	sub	x9, x29, #0xb0
+  23d3c0: d10383b5     	sub	x21, x29, #0xe0
+  23d3c4: f81503a8     	stur	x8, [x29, #-0xb0]
+  23d3c8: f81703a9     	stur	x9, [x29, #-0x90]
+  23d3cc: f81403b5     	stur	x21, [x29, #-0xc0]
+  23d3d0: f81203a8     	stur	x8, [x29, #-0xe0]
+  23d3d4: 910143e8     	add	x8, sp, #0x50
+  23d3d8: 9102c3e0     	add	x0, sp, #0xb0
+  23d3dc: d10383a1     	sub	x1, x29, #0xe0
+  23d3e0: 910143f6     	add	x22, sp, #0x50
+  23d3e4: 94021dcf     	bl	0x2c4b20 <_ZN2SW10uniqueListINSt6__ndk16vectorINS_20UDPConnectableHelper11FoundDeviceENS1_9allocatorIS4_EEEES4_NS1_12basic_stringIcNS1_11char_traitsIcEENS5_IcEEEEEENS2_IT0_NS5_ISD_EEEERKT_NS1_8functionIFT1_SD_EEE@plt>  ;;; CALL std::__ndk1::vector<SW::UDPConnectableHelper::FoundDevice, std::__ndk1::allocator<SW::UDPConnectableHelper::FoundDevice>> SW::uniqueList<std::__ndk1::vector<SW::UDPConnectableHelper::FoundDevice, std::__ndk1::allocator<SW::UDPConnectableHelper::FoundDevice>>, SW::UDPConnectableHelper::FoundDevice, std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>>(std::__ndk1::vector<SW::UDPConnectableHelper::FoundDevice, std::__ndk1::allocator<SW::UDPConnectableHelper::FoundDevice>> const&, std::__ndk1::function<std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> (SW::UDPConnectableHelper::FoundDevice)>)
+  23d3e8: 9102c3e0     	add	x0, sp, #0xb0
+  23d3ec: 91058274     	add	x20, x19, #0x160
+  23d3f0: 940007cc     	bl	0x23f320 <std::__ndk1::vector<SW::UDPConnectableHelper::FoundDevice, std::__ndk1::allocator<SW::UDPConnectableHelper::FoundDevice>>::__vdeallocate()>  ;;; CALL std::__ndk1::vector<SW::UDPConnectableHelper::FoundDevice, std::__ndk1::allocator<SW::UDPConnectableHelper::FoundDevice
+  23d3f4: 3dc017e0     	ldr	q0, [sp, #0x50]
+  23d3f8: f94033e8     	ldr	x8, [sp, #0x60]
+  23d3fc: d10183a0     	sub	x0, x29, #0x60
+  23d400: a905ffff     	stp	xzr, xzr, [sp, #0x58]
+  23d404: 3d801b20     	str	q0, [x25, #0x60]
+  23d408: f90063e8     	str	x8, [sp, #0xc0]
+  23d40c: f9002bff     	str	xzr, [sp, #0x50]
+  23d410: f81a03b6     	stur	x22, [x29, #-0x60]
+  23d414: 9400041c     	bl	0x23e484 <std::__ndk1::vector<SW::UDPConnectableHelper::FoundDevice, std::__ndk1::allocator<SW::UDPConnectableHelper::FoundDevice>>::__destroy_vector::operator()[abi:ne190000]()>  ;;; CALL std::__ndk1::vector<SW::UDPConnectableHelper::FoundDevice, std::__ndk1::allocator<SW::UDPConnectableHelper::FoundDevice
+  23d418: f85403a0     	ldur	x0, [x29, #-0xc0]
+  23d41c: eb15001f     	cmp	x0, x21
+  23d420: 54000080     	b.eq	0x23d430 <SW::UDPConnectableHelper::bg_startConnect()+0x5a8>
+  23d424: b4000100     	cbz	x0, 0x23d444 <SW::UDPConnectableHelper::bg_startConnect()+0x5bc>
+  23d428: 52800508     	mov	w8, #0x28               // =40
+  23d42c: 14000003     	b	0x23d438 <SW::UDPConnectableHelper::bg_startConnect()+0x5b0>
+  23d430: 52800408     	mov	w8, #0x20               // =32
+  23d434: d10383a0     	sub	x0, x29, #0xe0
+  23d438: f9400009     	ldr	x9, [x0]
+  23d43c: f8686928     	ldr	x8, [x9, x8]
+  23d440: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  23d444: 9102c3e8     	add	x8, sp, #0xb0
+  23d448: eb08029f     	cmp	x20, x8
+  23d44c: 54000120     	b.eq	0x23d470 <SW::UDPConnectableHelper::bg_startConnect()+0x5e8>
+  23d450: a94b0be1     	ldp	x1, x2, [sp, #0xb0]
+  23d454: b201f3e9     	mov	x9, #-0x5555555555555556 // =-6148914691236517206
+  23d458: f2955569     	movk	x9, #0xaaab
+  23d45c: cb010048     	sub	x8, x2, x1
+  23d460: 9345fd08     	asr	x8, x8, #5
+  23d464: 9b097d03     	mul	x3, x8, x9
+  23d468: aa1403e0     	mov	x0, x20
+  23d46c: 94021db1     	bl	0x2c4b30 <_ZNSt6__ndk16vectorIN2SW20UDPConnectableHelper11FoundDeviceENS_9allocatorIS3_EEE18__assign_with_sizeB8ne190000IPS3_S8_EEvT_T0_l@plt>  ;;; CALL void std::__ndk1::vector<SW::UDPConnectableHelper::FoundDevice, std::__ndk1::allocator<SW::UDPConnectableHelper::FoundDevice>>::__assign_with_size[abi:ne190000]<SW::UDPConnectableHelper::FoundDevice*, SW::UDPConnectableHelper::FoundDevice*>(SW::UDPConnectableHelper::FoundDevice*, SW::UDPConnectableHelper::FoundDevice*, long)
+  23d470: 52800028     	mov	w8, #0x1                // =1
+  23d474: 3905e268     	strb	w8, [x19, #0x178]
+  23d478: 91018260     	add	x0, x19, #0x60
+  23d47c: 94021329     	bl	0x2c2120 <_ZNK7eventpp9internal_16CallbackListBaseIFvvENS_15DefaultPoliciesEEclEv@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (), eventpp::DefaultPolicies>::operator()() const
+  23d480: 3945e268     	ldrb	w8, [x19, #0x178]
+  23d484: d0fff469     	adrp	x9, 0xcb000 <vsnprintf+0xcb000>
+  23d488: 911e5d29     	add	x9, x9, #0x797
+  23d48c: 360017e8     	tbz	w8, #0x0, 0x23d788 <SW::UDPConnectableHelper::bg_startConnect()+0x900>
+  23d490: a9562261     	ldp	x1, x8, [x19, #0x160]
+  23d494: cb010108     	sub	x8, x8, x1
+  23d498: f101811f     	cmp	x8, #0x60
+  23d49c: 54000221     	b.ne	0x23d4e0 <SW::UDPConnectableHelper::bg_startConnect()+0x658>
+  23d4a0: 910143e0     	add	x0, sp, #0x50
+  23d4a4: 910143f4     	add	x20, sp, #0x50
+  23d4a8: 94021d86     	bl	0x2c4ac0 <_ZN2SW20UDPConnectableHelper11FoundDeviceC2ERKS1_@plt>  ;;; CALL SW::UDPConnectableHelper::FoundDevice::FoundDevice(SW::UDPConnectableHelper::FoundDevice const&)
+  23d4ac: 9100c281     	add	x1, x20, #0x30
+  23d4b0: 910143e2     	add	x2, sp, #0x50
+  23d4b4: aa1303e0     	mov	x0, x19
+  23d4b8: 94021d96     	bl	0x2c4b10 <_ZN2SW20UDPConnectableHelper18bg_connectToRemoteERKNSt6__ndk112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEERKNS_13UdpRemoteHostE@plt>  ;;; CALL SW::UDPConnectableHelper::bg_connectToRemote(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&, SW::UdpRemoteHost const&)
+  23d4bc: 394263e8     	ldrb	w8, [sp, #0x98]
+  23d4c0: 370001e8     	tbnz	w8, #0x0, 0x23d4fc <SW::UDPConnectableHelper::bg_startConnect()+0x674>
+  23d4c4: 394203e8     	ldrb	w8, [sp, #0x80]
+  23d4c8: 37000228     	tbnz	w8, #0x0, 0x23d50c <SW::UDPConnectableHelper::bg_startConnect()+0x684>
+  23d4cc: 3941a3e8     	ldrb	w8, [sp, #0x68]
+  23d4d0: 37000268     	tbnz	w8, #0x0, 0x23d51c <SW::UDPConnectableHelper::bg_startConnect()+0x694>
+  23d4d4: 394143e8     	ldrb	w8, [sp, #0x50]
+  23d4d8: 370002a8     	tbnz	w8, #0x0, 0x23d52c <SW::UDPConnectableHelper::bg_startConnect()+0x6a4>
+  23d4dc: 14000016     	b	0x23d534 <SW::UDPConnectableHelper::bg_startConnect()+0x6ac>
+  23d4e0: 52800028     	mov	w8, #0x1                // =1
+  23d4e4: a9017fe9     	stp	x9, xzr, [sp, #0x10]
+  23d4e8: b9000be8     	str	w8, [sp, #0x8]
+  23d4ec: 91004260     	add	x0, x19, #0x10
+  23d4f0: 910023e1     	add	x1, sp, #0x8
+  23d4f4: 940213cf     	bl	0x2c2430 <_ZNK7eventpp9internal_16CallbackListBaseIFvN2SW18IConnectableHelper6StatusEENS_15DefaultPoliciesEEclES4_@plt>  ;;; CALL eventpp::internal_::CallbackListBase<void (SW::IConnectableHelper::Status), eventpp::DefaultPolicies>::operator()(SW::IConnectableHelper::Status) const
+  23d4f8: 1400000f     	b	0x23d534 <SW::UDPConnectableHelper::bg_startConnect()+0x6ac>
+  23d4fc: f94057e0     	ldr	x0, [sp, #0xa8]
+  23d500: 94020fa4     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23d504: 394203e8     	ldrb	w8, [sp, #0x80]
+  23d508: 3607fe28     	tbz	w8, #0x0, 0x23d4cc <SW::UDPConnectableHelper::bg_startConnect()+0x644>
+  23d50c: f9404be0     	ldr	x0, [sp, #0x90]
+  23d510: 94020fa0     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23d514: 3941a3e8     	ldrb	w8, [sp, #0x68]
+  23d518: 3607fde8     	tbz	w8, #0x0, 0x23d4d4 <SW::UDPConnectableHelper::bg_startConnect()+0x64c>
+  23d51c: f9403fe0     	ldr	x0, [sp, #0x78]
+  23d520: 94020f9c     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23d524: 394143e8     	ldrb	w8, [sp, #0x50]
+  23d528: 36000068     	tbz	w8, #0x0, 0x23d534 <SW::UDPConnectableHelper::bg_startConnect()+0x6ac>
+  23d52c: f94033e0     	ldr	x0, [sp, #0x60]
+  23d530: 94020f98     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23d534: f85703a0     	ldur	x0, [x29, #-0x90]
+  23d538: d102c3a8     	sub	x8, x29, #0xb0
+  23d53c: eb08001f     	cmp	x0, x8
+  23d540: 54000080     	b.eq	0x23d550 <SW::UDPConnectableHelper::bg_startConnect()+0x6c8>
+  23d544: b4000100     	cbz	x0, 0x23d564 <SW::UDPConnectableHelper::bg_startConnect()+0x6dc>
+  23d548: 52800508     	mov	w8, #0x28               // =40
+  23d54c: 14000003     	b	0x23d558 <SW::UDPConnectableHelper::bg_startConnect()+0x6d0>
+  23d550: 52800408     	mov	w8, #0x20               // =32
+  23d554: d102c3a0     	sub	x0, x29, #0xb0
+  23d558: f9400009     	ldr	x9, [x0]
+  23d55c: f8686928     	ldr	x8, [x9, x8]
+  23d560: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  23d564: 9102c3e8     	add	x8, sp, #0xb0
+  23d568: 910143e0     	add	x0, sp, #0x50
+  23d56c: f9002be8     	str	x8, [sp, #0x50]
+  23d570: 940003c5     	bl	0x23e484 <std::__ndk1::vector<SW::UDPConnectableHelper::FoundDevice, std::__ndk1::allocator<SW::UDPConnectableHelper::FoundDevice>>::__destroy_vector::operator()[abi:ne190000]()>  ;;; CALL std::__ndk1::vector<SW::UDPConnectableHelper::FoundDevice, std::__ndk1::allocator<SW::UDPConnectableHelper::FoundDevice
+  23d574: 910343e0     	add	x0, sp, #0xd0
+  23d578: 94000394     	bl	0x23e3c8 <std::__ndk1::__list_imp<SW::UDPBroadcasterResult, std::__ndk1::allocator<SW::UDPBroadcasterResult>>::clear()>  ;;; CALL std::__ndk1::__list_imp<SW::UDPBroadcasterResult, std::__ndk1::allocator<SW::UDPBroadcasterResult
+  23d57c: f94077e0     	ldr	x0, [sp, #0xe8]
+  23d580: b4000060     	cbz	x0, 0x23d58c <SW::UDPConnectableHelper::bg_startConnect()+0x704>
+  23d584: f9007be0     	str	x0, [sp, #0xf0]
+  23d588: 94020f82     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23d58c: f94016e8     	ldr	x8, [x23, #0x28]
+  23d590: f85e83a9     	ldur	x9, [x29, #-0x18]
+  23d594: eb09011f     	cmp	x8, x9
+  23d598: 54002461     	b.ne	0x23da24 <SW::UDPConnectableHelper::bg_startConnect()+0xb9c>
+  23d59c: 910843ff     	add	sp, sp, #0x210
+  23d5a0: a9454ff4     	ldp	x20, x19, [sp, #0x50]
+  23d5a4: a94457f6     	ldp	x22, x21, [sp, #0x40]
+  23d5a8: a9435ff8     	ldp	x24, x23, [sp, #0x30]
+  23d5ac: a94267fa     	ldp	x26, x25, [sp, #0x20]
+  23d5b0: a9416ffc     	ldp	x28, x27, [sp, #0x10]
+  23d5b4: a8c67bfd     	ldp	x29, x30, [sp], #0x60
+  23d5b8: d65f03c0     	ret
+  23d5bc: f9409260     	ldr	x0, [x19, #0x120]
+  23d5c0: d3609e98     	ubfx	x24, x20, #32, #8
+  23d5c4: d378fe95     	lsr	x21, x20, #56
+  23d5c8: b4000100     	cbz	x0, 0x23d5e8 <SW::UDPConnectableHelper::bg_startConnect()+0x760>
+  23d5cc: 340012b8     	cbz	w24, 0x23d820 <SW::UDPConnectableHelper::bg_startConnect()+0x998>
+  23d5d0: 390083f5     	strb	w21, [sp, #0x20]
+  23d5d4: f9400008     	ldr	x8, [x0]
+  23d5d8: f9401908     	ldr	x8, [x8, #0x30]
+  23d5dc: 910083e1     	add	x1, sp, #0x20
+  23d5e0: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  23d5e4: 3607e800     	tbz	w0, #0x0, 0x23d2e4 <SW::UDPConnectableHelper::bg_startConnect()+0x45c>
+  23d5e8: 6f00e400     	movi	v0.2d, #0000000000000000
+  23d5ec: ad020320     	stp	q0, q0, [x25, #0x40]
+  23d5f0: ad0283e0     	stp	q0, q0, [sp, #0x50]
+  23d5f4: ad0383e0     	stp	q0, q0, [sp, #0x70]
+  23d5f8: 910143e0     	add	x0, sp, #0x50
+  23d5fc: d10183a1     	sub	x1, x29, #0x60
+  23d600: 910143fa     	add	x26, sp, #0x50
+  23d604: 940217db     	bl	0x2c3570 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEaSERKS5_@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::operator=(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  23d608: 91006340     	add	x0, x26, #0x18
+  23d60c: 910062c1     	add	x1, x22, #0x18
+  23d610: 940217d8     	bl	0x2c3570 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEaSERKS5_@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::operator=(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  23d614: 910143e8     	add	x8, sp, #0x50
+  23d618: 9100c100     	add	x0, x8, #0x30
+  23d61c: 9100e3e1     	add	x1, sp, #0x38
+  23d620: 940217d4     	bl	0x2c3570 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEaSERKS5_@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::operator=(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>> const&)
+  23d624: 34000d38     	cbz	w24, 0x23d7c8 <SW::UDPConnectableHelper::bg_startConnect()+0x940>
+  23d628: d368fe88     	lsr	x8, x20, #40
+  23d62c: d370fe89     	lsr	x9, x20, #48
+  23d630: d100b3a0     	sub	x0, x29, #0x2c
+  23d634: 2a1503e6     	mov	w6, w21
+  23d638: 12001d04     	and	w4, w8, #0xff
+  23d63c: 12001d25     	and	w5, w9, #0xff
+  23d640: 9400033b     	bl	0x23e32c <snprintf(char*, unsigned long pass_object_size1, char const*, ...)>  ;;; CALL snprintf(char*, unsigned long pass_object_size1, char const*, ...)
+  23d644: d100b3a0     	sub	x0, x29, #0x2c
+  23d648: 94020ee2     	bl	0x2c11d0 <strlen@plt>  ;;; CALL strlen
+  23d64c: b100201f     	cmn	x0, #0x8
+  23d650: 54000dc2     	b.hs	0x23d808 <SW::UDPConnectableHelper::bg_startConnect()+0x980>
+  23d654: aa0003f4     	mov	x20, x0
+  23d658: f1005c1f     	cmp	x0, #0x17
+  23d65c: 540000e2     	b.hs	0x23d678 <SW::UDPConnectableHelper::bg_startConnect()+0x7f0>
+  23d660: 531f7a88     	lsl	w8, w20, #1
+  23d664: 910083e9     	add	x9, sp, #0x20
+  23d668: b2400135     	orr	x21, x9, #0x1
+  23d66c: 390083e8     	strb	w8, [sp, #0x20]
+  23d670: b50001d4     	cbnz	x20, 0x23d6a8 <SW::UDPConnectableHelper::bg_startConnect()+0x820>
+  23d674: 14000011     	b	0x23d6b8 <SW::UDPConnectableHelper::bg_startConnect()+0x830>
+  23d678: 927df288     	and	x8, x20, #0xfffffffffffffff8
+  23d67c: b2400a89     	orr	x9, x20, #0x7
+  23d680: 91002108     	add	x8, x8, #0x8
+  23d684: f1005d3f     	cmp	x9, #0x17
+  23d688: 9a890108     	csel	x8, x8, x9, eq
+  23d68c: 91000516     	add	x22, x8, #0x1
+  23d690: aa1603e0     	mov	x0, x22
+  23d694: 94020e9b     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  23d698: b24002c8     	orr	x8, x22, #0x1
+  23d69c: aa0003f5     	mov	x21, x0
+  23d6a0: a90283f4     	stp	x20, x0, [sp, #0x28]
+  23d6a4: f90013e8     	str	x8, [sp, #0x20]
+  23d6a8: d100b3a1     	sub	x1, x29, #0x2c
+  23d6ac: aa1503e0     	mov	x0, x21
+  23d6b0: aa1403e2     	mov	x2, x20
+  23d6b4: 940213f3     	bl	0x2c2680 <memcpy@plt>  ;;; CALL memcpy
+  23d6b8: 394263e8     	ldrb	w8, [sp, #0x98]
+  23d6bc: 38346abf     	strb	wzr, [x21, x20]
+  23d6c0: 910143f5     	add	x21, sp, #0x50
+  23d6c4: 36000068     	tbz	w8, #0x0, 0x23d6d0 <SW::UDPConnectableHelper::bg_startConnect()+0x848>
+  23d6c8: f94057e0     	ldr	x0, [sp, #0xa8]
+  23d6cc: 94020f31     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23d6d0: a94ba3f4     	ldp	x20, x8, [sp, #0xb8]
+  23d6d4: 3dc00be0     	ldr	q0, [sp, #0x20]
+  23d6d8: f9401be9     	ldr	x9, [sp, #0x30]
+  23d6dc: 3c8482a0     	stur	q0, [x21, #0x48]
+  23d6e0: eb08029f     	cmp	x20, x8
+  23d6e4: f80582a9     	stur	x9, [x21, #0x58]
+  23d6e8: 540000c2     	b.hs	0x23d700 <SW::UDPConnectableHelper::bg_startConnect()+0x878>
+  23d6ec: 910143e1     	add	x1, sp, #0x50
+  23d6f0: aa1403e0     	mov	x0, x20
+  23d6f4: 94021cf3     	bl	0x2c4ac0 <_ZN2SW20UDPConnectableHelper11FoundDeviceC2ERKS1_@plt>  ;;; CALL SW::UDPConnectableHelper::FoundDevice::FoundDevice(SW::UDPConnectableHelper::FoundDevice const&)
+  23d6f8: 91018280     	add	x0, x20, #0x60
+  23d6fc: 14000004     	b	0x23d70c <SW::UDPConnectableHelper::bg_startConnect()+0x884>
+  23d700: 9102c3e0     	add	x0, sp, #0xb0
+  23d704: 910143e1     	add	x1, sp, #0x50
+  23d708: 94021cfe     	bl	0x2c4b00 <_ZNSt6__ndk16vectorIN2SW20UDPConnectableHelper11FoundDeviceENS_9allocatorIS3_EEE21__push_back_slow_pathIRKS3_EEPS3_OT_@plt>  ;;; CALL SW::UDPConnectableHelper::FoundDevice* std::__ndk1::vector<SW::UDPConnectableHelper::FoundDevice, std::__ndk1::allocator<SW::UDPConnectableHelper::FoundDevice>>::__push_back_slow_path<SW::UDPConnectableHelper::FoundDevice const&>(SW::UDPConnectableHelper::FoundDevice const&)
+  23d70c: 394263e8     	ldrb	w8, [sp, #0x98]
+  23d710: f9005fe0     	str	x0, [sp, #0xb8]
+  23d714: 37000108     	tbnz	w8, #0x0, 0x23d734 <SW::UDPConnectableHelper::bg_startConnect()+0x8ac>
+  23d718: 394203e8     	ldrb	w8, [sp, #0x80]
+  23d71c: 37000148     	tbnz	w8, #0x0, 0x23d744 <SW::UDPConnectableHelper::bg_startConnect()+0x8bc>
+  23d720: 3941a3e8     	ldrb	w8, [sp, #0x68]
+  23d724: 37000188     	tbnz	w8, #0x0, 0x23d754 <SW::UDPConnectableHelper::bg_startConnect()+0x8cc>
+  23d728: 394143e8     	ldrb	w8, [sp, #0x50]
+  23d72c: 3607ddc8     	tbz	w8, #0x0, 0x23d2e4 <SW::UDPConnectableHelper::bg_startConnect()+0x45c>
+  23d730: 1400000d     	b	0x23d764 <SW::UDPConnectableHelper::bg_startConnect()+0x8dc>
+  23d734: f94057e0     	ldr	x0, [sp, #0xa8]
+  23d738: 94020f16     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23d73c: 394203e8     	ldrb	w8, [sp, #0x80]
+  23d740: 3607ff08     	tbz	w8, #0x0, 0x23d720 <SW::UDPConnectableHelper::bg_startConnect()+0x898>
+  23d744: f9404be0     	ldr	x0, [sp, #0x90]
+  23d748: 94020f12     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23d74c: 3941a3e8     	ldrb	w8, [sp, #0x68]
+  23d750: 3607fec8     	tbz	w8, #0x0, 0x23d728 <SW::UDPConnectableHelper::bg_startConnect()+0x8a0>
+  23d754: f9403fe0     	ldr	x0, [sp, #0x78]
+  23d758: 94020f0e     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23d75c: 394143e8     	ldrb	w8, [sp, #0x50]
+  23d760: 3607dc28     	tbz	w8, #0x0, 0x23d2e4 <SW::UDPConnectableHelper::bg_startConnect()+0x45c>
+  23d764: f94033e0     	ldr	x0, [sp, #0x60]
+  23d768: 94020f0a     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23d76c: 17fffede     	b	0x23d2e4 <SW::UDPConnectableHelper::bg_startConnect()+0x45c>
+  23d770: f94016e8     	ldr	x8, [x23, #0x28]
+  23d774: f85e83a9     	ldur	x9, [x29, #-0x18]
+  23d778: eb09011f     	cmp	x8, x9
+  23d77c: 54001541     	b.ne	0x23da24 <SW::UDPConnectableHelper::bg_startConnect()+0xb9c>
+  23d780: d102c3a0     	sub	x0, x29, #0xb0
+  23d784: 97fe36f7     	bl	0x1cb360 <std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char
+  23d788: 52800200     	mov	w0, #0x10               // =16
+  23d78c: 94020f89     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23d790: aa0003f4     	mov	x20, x0
+  23d794: f0fff461     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23d798: 910f4421     	add	x1, x1, #0x3d1
+  23d79c: 94021621     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23d7a0: f94016e8     	ldr	x8, [x23, #0x28]
+  23d7a4: f85e83a9     	ldur	x9, [x29, #-0x18]
+  23d7a8: eb09011f     	cmp	x8, x9
+  23d7ac: 540013c1     	b.ne	0x23da24 <SW::UDPConnectableHelper::bg_startConnect()+0xb9c>
+  23d7b0: 900004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23d7b4: 900004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23d7b8: aa1403e0     	mov	x0, x20
+  23d7bc: f9409c21     	ldr	x1, [x1, #0x138]
+  23d7c0: f940a042     	ldr	x2, [x2, #0x140]
+  23d7c4: 94020f83     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23d7c8: 52800200     	mov	w0, #0x10               // =16
+  23d7cc: 94020f79     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23d7d0: aa0003f4     	mov	x20, x0
+  23d7d4: f0fff461     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23d7d8: 9135a421     	add	x1, x1, #0xd69
+  23d7dc: 94021611     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23d7e0: f94016e8     	ldr	x8, [x23, #0x28]
+  23d7e4: f85e83a9     	ldur	x9, [x29, #-0x18]
+  23d7e8: eb09011f     	cmp	x8, x9
+  23d7ec: 540011c1     	b.ne	0x23da24 <SW::UDPConnectableHelper::bg_startConnect()+0xb9c>
+  23d7f0: 900004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23d7f4: 900004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23d7f8: aa1403e0     	mov	x0, x20
+  23d7fc: f9409c21     	ldr	x1, [x1, #0x138]
+  23d800: f940a042     	ldr	x2, [x2, #0x140]
+  23d804: 94020f73     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23d808: f94016e8     	ldr	x8, [x23, #0x28]
+  23d80c: f85e83a9     	ldur	x9, [x29, #-0x18]
+  23d810: eb09011f     	cmp	x8, x9
+  23d814: 54001081     	b.ne	0x23da24 <SW::UDPConnectableHelper::bg_startConnect()+0xb9c>
+  23d818: 910083e0     	add	x0, sp, #0x20
+  23d81c: 97fe36d1     	bl	0x1cb360 <std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char
+  23d820: 52800200     	mov	w0, #0x10               // =16
+  23d824: 94020f63     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  23d828: aa0003f4     	mov	x20, x0
+  23d82c: f0fff461     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  23d830: 9135a421     	add	x1, x1, #0xd69
+  23d834: 940215fb     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  23d838: f94016e8     	ldr	x8, [x23, #0x28]
+  23d83c: f85e83a9     	ldur	x9, [x29, #-0x18]
+  23d840: eb09011f     	cmp	x8, x9
+  23d844: 54000f01     	b.ne	0x23da24 <SW::UDPConnectableHelper::bg_startConnect()+0xb9c>
+  23d848: 900004e1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  23d84c: 900004e2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  23d850: aa1403e0     	mov	x0, x20
+  23d854: f9409c21     	ldr	x1, [x1, #0x138]
+  23d858: f940a042     	ldr	x2, [x2, #0x140]
+  23d85c: 94020f5d     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  23d860: aa0003f3     	mov	x19, x0
+  23d864: aa1403e0     	mov	x0, x20
+  23d868: 94021246     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23d86c: 1400001b     	b	0x23d8d8 <SW::UDPConnectableHelper::bg_startConnect()+0xa50>
+  23d870: aa0003f3     	mov	x19, x0
+  23d874: f9005ff4     	str	x20, [sp, #0xb8]
+  23d878: 14000007     	b	0x23d894 <SW::UDPConnectableHelper::bg_startConnect()+0xa0c>
+  23d87c: aa0003f3     	mov	x19, x0
+  23d880: aa1403e0     	mov	x0, x20
+  23d884: 9402123f     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23d888: 14000003     	b	0x23d894 <SW::UDPConnectableHelper::bg_startConnect()+0xa0c>
+  23d88c: 14000001     	b	0x23d890 <SW::UDPConnectableHelper::bg_startConnect()+0xa08>
+  23d890: aa0003f3     	mov	x19, x0
+  23d894: 910143e0     	add	x0, sp, #0x50
+  23d898: 94021c8e     	bl	0x2c4ad0 <_ZN2SW20UDPConnectableHelper11FoundDeviceD2Ev@plt>  ;;; CALL SW::UDPConnectableHelper::FoundDevice::~FoundDevice()
+  23d89c: 1400000f     	b	0x23d8d8 <SW::UDPConnectableHelper::bg_startConnect()+0xa50>
+  23d8a0: aa0003f3     	mov	x19, x0
+  23d8a4: 1400000f     	b	0x23d8e0 <SW::UDPConnectableHelper::bg_startConnect()+0xa58>
+  23d8a8: aa0003f3     	mov	x19, x0
+  23d8ac: 910143e0     	add	x0, sp, #0x50
+  23d8b0: 94021c88     	bl	0x2c4ad0 <_ZN2SW20UDPConnectableHelper11FoundDeviceD2Ev@plt>  ;;; CALL SW::UDPConnectableHelper::FoundDevice::~FoundDevice()
+  23d8b4: 14000021     	b	0x23d938 <SW::UDPConnectableHelper::bg_startConnect()+0xab0>
+  23d8b8: aa0003f3     	mov	x19, x0
+  23d8bc: 1400001f     	b	0x23d938 <SW::UDPConnectableHelper::bg_startConnect()+0xab0>
+  23d8c0: aa0003f3     	mov	x19, x0
+  23d8c4: aa1403e0     	mov	x0, x20
+  23d8c8: 9402122e     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  23d8cc: 1400001b     	b	0x23d938 <SW::UDPConnectableHelper::bg_startConnect()+0xab0>
+  23d8d0: 97fdef0f     	bl	0x1b950c <__clang_call_terminate>  ;;; CALL __clang_call_terminate
+  23d8d4: aa0003f3     	mov	x19, x0
+  23d8d8: d102c3a0     	sub	x0, x29, #0xb0
+  23d8dc: 940213d9     	bl	0x2c2840 <_ZN2SW15SwConverserEtalD2Ev@plt>  ;;; CALL SW::SwConverserEtal::~SwConverserEtal()
+  23d8e0: 3940e3e8     	ldrb	w8, [sp, #0x38]
+  23d8e4: 36000588     	tbz	w8, #0x0, 0x23d994 <SW::UDPConnectableHelper::bg_startConnect()+0xb0c>
+  23d8e8: f94027e0     	ldr	x0, [sp, #0x48]
+  23d8ec: 94020ea9     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23d8f0: 14000029     	b	0x23d994 <SW::UDPConnectableHelper::bg_startConnect()+0xb0c>
+  23d8f4: aa0003f3     	mov	x19, x0
+  23d8f8: 14000010     	b	0x23d938 <SW::UDPConnectableHelper::bg_startConnect()+0xab0>
+  23d8fc: aa0003f3     	mov	x19, x0
+  23d900: 1400000e     	b	0x23d938 <SW::UDPConnectableHelper::bg_startConnect()+0xab0>
+  23d904: f85403a8     	ldur	x8, [x29, #-0xc0]
+  23d908: aa0003f3     	mov	x19, x0
+  23d90c: eb15011f     	cmp	x8, x21
+  23d910: 54000081     	b.ne	0x23d920 <SW::UDPConnectableHelper::bg_startConnect()+0xa98>
+  23d914: 52800409     	mov	w9, #0x20               // =32
+  23d918: d10383a8     	sub	x8, x29, #0xe0
+  23d91c: 14000003     	b	0x23d928 <SW::UDPConnectableHelper::bg_startConnect()+0xaa0>
+  23d920: b40000c8     	cbz	x8, 0x23d938 <SW::UDPConnectableHelper::bg_startConnect()+0xab0>
+  23d924: 52800509     	mov	w9, #0x28               // =40
+  23d928: f940010a     	ldr	x10, [x8]
+  23d92c: aa0803e0     	mov	x0, x8
+  23d930: f8696949     	ldr	x9, [x10, x9]
+  23d934: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  23d938: f85703a0     	ldur	x0, [x29, #-0x90]
+  23d93c: d102c3a8     	sub	x8, x29, #0xb0
+  23d940: eb08001f     	cmp	x0, x8
+  23d944: 54000081     	b.ne	0x23d954 <SW::UDPConnectableHelper::bg_startConnect()+0xacc>
+  23d948: 52800408     	mov	w8, #0x20               // =32
+  23d94c: d102c3a0     	sub	x0, x29, #0xb0
+  23d950: 14000003     	b	0x23d95c <SW::UDPConnectableHelper::bg_startConnect()+0xad4>
+  23d954: b4000480     	cbz	x0, 0x23d9e4 <SW::UDPConnectableHelper::bg_startConnect()+0xb5c>
+  23d958: 52800508     	mov	w8, #0x28               // =40
+  23d95c: f9400009     	ldr	x9, [x0]
+  23d960: f8686928     	ldr	x8, [x9, x8]
+  23d964: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  23d968: 1400001f     	b	0x23d9e4 <SW::UDPConnectableHelper::bg_startConnect()+0xb5c>
+  23d96c: aa0003f3     	mov	x19, x0
+  23d970: 14000023     	b	0x23d9fc <SW::UDPConnectableHelper::bg_startConnect()+0xb74>
+  23d974: 1400000b     	b	0x23d9a0 <SW::UDPConnectableHelper::bg_startConnect()+0xb18>
+  23d978: f9402fe8     	ldr	x8, [sp, #0x58]
+  23d97c: aa0003f3     	mov	x19, x0
+  23d980: b4000468     	cbz	x8, 0x23da0c <SW::UDPConnectableHelper::bg_startConnect()+0xb84>
+  23d984: f90033e8     	str	x8, [sp, #0x60]
+  23d988: aa0803e0     	mov	x0, x8
+  23d98c: 1400001f     	b	0x23da08 <SW::UDPConnectableHelper::bg_startConnect()+0xb80>
+  23d990: aa0003f3     	mov	x19, x0
+  23d994: d10183a0     	sub	x0, x29, #0x60
+  23d998: 94021c52     	bl	0x2c4ae0 <_ZN2SW13UdpRemoteHostD2Ev@plt>  ;;; CALL SW::UdpRemoteHost::~UdpRemoteHost()
+  23d99c: 14000012     	b	0x23d9e4 <SW::UDPConnectableHelper::bg_startConnect()+0xb5c>
+  23d9a0: aa0003f3     	mov	x19, x0
+  23d9a4: 910143e0     	add	x0, sp, #0x50
+  23d9a8: 94021c4e     	bl	0x2c4ae0 <_ZN2SW13UdpRemoteHostD2Ev@plt>  ;;; CALL SW::UdpRemoteHost::~UdpRemoteHost()
+  23d9ac: 385503a8     	ldurb	w8, [x29, #-0xb0]
+  23d9b0: 360002e8     	tbz	w8, #0x0, 0x23da0c <SW::UDPConnectableHelper::bg_startConnect()+0xb84>
+  23d9b4: f85603a0     	ldur	x0, [x29, #-0xa0]
+  23d9b8: 14000014     	b	0x23da08 <SW::UDPConnectableHelper::bg_startConnect()+0xb80>
+  23d9bc: 14000005     	b	0x23d9d0 <SW::UDPConnectableHelper::bg_startConnect()+0xb48>
+  23d9c0: aa0003f3     	mov	x19, x0
+  23d9c4: f9005ff4     	str	x20, [sp, #0xb8]
+  23d9c8: 14000003     	b	0x23d9d4 <SW::UDPConnectableHelper::bg_startConnect()+0xb4c>
+  23d9cc: 14000001     	b	0x23d9d0 <SW::UDPConnectableHelper::bg_startConnect()+0xb48>
+  23d9d0: aa0003f3     	mov	x19, x0
+  23d9d4: 910143e0     	add	x0, sp, #0x50
+  23d9d8: 94021c3e     	bl	0x2c4ad0 <_ZN2SW20UDPConnectableHelper11FoundDeviceD2Ev@plt>  ;;; CALL SW::UDPConnectableHelper::FoundDevice::~FoundDevice()
+  23d9dc: 14000002     	b	0x23d9e4 <SW::UDPConnectableHelper::bg_startConnect()+0xb5c>
+  23d9e0: aa0003f3     	mov	x19, x0
+  23d9e4: 9102c3e8     	add	x8, sp, #0xb0
+  23d9e8: 910143e0     	add	x0, sp, #0x50
+  23d9ec: f9002be8     	str	x8, [sp, #0x50]
+  23d9f0: 940002a5     	bl	0x23e484 <std::__ndk1::vector<SW::UDPConnectableHelper::FoundDevice, std::__ndk1::allocator<SW::UDPConnectableHelper::FoundDevice>>::__destroy_vector::operator()[abi:ne190000]()>  ;;; CALL std::__ndk1::vector<SW::UDPConnectableHelper::FoundDevice, std::__ndk1::allocator<SW::UDPConnectableHelper::FoundDevice
+  23d9f4: 910343e0     	add	x0, sp, #0xd0
+  23d9f8: 94000274     	bl	0x23e3c8 <std::__ndk1::__list_imp<SW::UDPBroadcasterResult, std::__ndk1::allocator<SW::UDPBroadcasterResult>>::clear()>  ;;; CALL std::__ndk1::__list_imp<SW::UDPBroadcasterResult, std::__ndk1::allocator<SW::UDPBroadcasterResult
+  23d9fc: f94077e0     	ldr	x0, [sp, #0xe8]
+  23da00: b4000060     	cbz	x0, 0x23da0c <SW::UDPConnectableHelper::bg_startConnect()+0xb84>
+  23da04: f9007be0     	str	x0, [sp, #0xf0]
+  23da08: 94020e62     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  23da0c: f94016e8     	ldr	x8, [x23, #0x28]
+  23da10: f85e83a9     	ldur	x9, [x29, #-0x18]
+  23da14: eb09011f     	cmp	x8, x9
+  23da18: 54000061     	b.ne	0x23da24 <SW::UDPConnectableHelper::bg_startConnect()+0xb9c>
+  23da1c: aa1303e0     	mov	x0, x19
+  23da20: 9401fe99     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  23da24: 94020de3     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+

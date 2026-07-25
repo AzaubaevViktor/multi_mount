@@ -1,0 +1,497 @@
+0000000000242510 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)>:
+  242510: d103c3ff     	sub	sp, sp, #0xf0
+  242514: a90a7bfd     	stp	x29, x30, [sp, #0xa0]
+  242518: f9005bf9     	str	x25, [sp, #0xb0]
+  24251c: a90c5ff8     	stp	x24, x23, [sp, #0xc0]
+  242520: a90d57f6     	stp	x22, x21, [sp, #0xd0]
+  242524: a90e4ff4     	stp	x20, x19, [sp, #0xe0]
+  242528: 910283fd     	add	x29, sp, #0xa0
+  24252c: d53bd058     	mrs	x24, TPIDR_EL0
+  242530: aa0803f4     	mov	x20, x8
+  242534: aa0003f5     	mov	x21, x0
+  242538: f9401708     	ldr	x8, [x24, #0x28]
+  24253c: f81f83a8     	stur	x8, [x29, #-0x8]
+  242540: 52800028     	mov	w8, #0x1                // =1
+  242544: b9001fe8     	str	w8, [sp, #0x1c]
+  242548: a9402036     	ldp	x22, x8, [x1]
+  24254c: a9005294     	stp	x20, x20, [x20]
+  242550: f9000a9f     	str	xzr, [x20, #0x10]
+  242554: eb160117     	subs	x23, x8, x22
+  242558: a93e7fbf     	stp	xzr, xzr, [x29, #-0x20]
+  24255c: f81f03bf     	stur	xzr, [x29, #-0x10]
+  242560: 540001a0     	b.eq	0x242594 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x84>
+  242564: b7f80ef7     	tbnz	x23, #0x3f, 0x242740 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x230>
+  242568: aa1703e0     	mov	x0, x23
+  24256c: 9401fae5     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  242570: 8b170019     	add	x25, x0, x23
+  242574: aa1603e1     	mov	x1, x22
+  242578: aa1703e2     	mov	x2, x23
+  24257c: aa0003f3     	mov	x19, x0
+  242580: f81e03a0     	stur	x0, [x29, #-0x20]
+  242584: f81f03b9     	stur	x25, [x29, #-0x10]
+  242588: 9402003e     	bl	0x2c2680 <memcpy@plt>  ;;; CALL memcpy
+  24258c: f81e83b9     	stur	x25, [x29, #-0x18]
+  242590: 14000003     	b	0x24259c <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x8c>
+  242594: aa1f03f9     	mov	x25, xzr
+  242598: aa1f03f3     	mov	x19, xzr
+  24259c: 910003e8     	mov	x8, sp
+  2425a0: f9000bff     	str	xzr, [sp, #0x10]
+  2425a4: a90023e8     	stp	x8, x8, [sp]
+  2425a8: 52800500     	mov	w0, #0x28               // =40
+  2425ac: 9401fad5     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  2425b0: 6f00e400     	movi	v0.2d, #0000000000000000
+  2425b4: aa0003f6     	mov	x22, x0
+  2425b8: aa0003e8     	mov	x8, x0
+  2425bc: eb130337     	subs	x23, x25, x19
+  2425c0: f900101f     	str	xzr, [x0, #0x20]
+  2425c4: 3c810d00     	str	q0, [x8, #0x10]!
+  2425c8: 3d800000     	str	q0, [x0]
+  2425cc: 54000160     	b.eq	0x2425f8 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0xe8>
+  2425d0: b7f80c57     	tbnz	x23, #0x3f, 0x242758 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x248>
+  2425d4: aa1703e0     	mov	x0, x23
+  2425d8: 9401faca     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  2425dc: 8b170019     	add	x25, x0, x23
+  2425e0: aa1303e1     	mov	x1, x19
+  2425e4: aa1703e2     	mov	x2, x23
+  2425e8: f9000ac0     	str	x0, [x22, #0x10]
+  2425ec: f90012d9     	str	x25, [x22, #0x20]
+  2425f0: 94020024     	bl	0x2c2680 <memcpy@plt>  ;;; CALL memcpy
+  2425f4: f9000ed9     	str	x25, [x22, #0x18]
+  2425f8: 910003e8     	mov	x8, sp
+  2425fc: 910073e9     	add	x9, sp, #0x1c
+  242600: a9005bf6     	stp	x22, x22, [sp]
+  242604: a90022c8     	stp	x8, x8, [x22]
+  242608: 52800028     	mov	w8, #0x1                // =1
+  24260c: 910083f6     	add	x22, sp, #0x20
+  242610: f9000be8     	str	x8, [sp, #0x10]
+  242614: d0000488     	adrp	x8, 0x2d4000 <typeinfo for SW::Location>
+  242618: 9133c108     	add	x8, x8, #0xcf0
+  24261c: a90527e8     	stp	x8, x9, [sp, #0x50]
+  242620: 910143e8     	add	x8, sp, #0x50
+  242624: d0000489     	adrp	x9, 0x2d4000 <typeinfo for SW::Location>
+  242628: 91360129     	add	x9, x9, #0xd80
+  24262c: f9003be8     	str	x8, [sp, #0x70]
+  242630: f94002a8     	ldr	x8, [x21]
+  242634: f90023f6     	str	x22, [sp, #0x40]
+  242638: f9400d08     	ldr	x8, [x8, #0x18]
+  24263c: a90253e9     	stp	x9, x20, [sp, #0x20]
+  242640: 910003e2     	mov	x2, sp
+  242644: 910143e3     	add	x3, sp, #0x50
+  242648: 910083e4     	add	x4, sp, #0x20
+  24264c: aa1503e0     	mov	x0, x21
+  242650: 5285cd01     	mov	w1, #0x2e68             // =11880
+  242654: d63f0100     	blr	x8  ;;; CALL <indirect x8>  [x1=11880(0x2e68)]
+  242658: f94023e0     	ldr	x0, [sp, #0x40]
+  24265c: eb16001f     	cmp	x0, x22
+  242660: 54000080     	b.eq	0x242670 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x160>
+  242664: b4000100     	cbz	x0, 0x242684 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x174>
+  242668: 52800508     	mov	w8, #0x28               // =40
+  24266c: 14000003     	b	0x242678 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x168>
+  242670: 52800408     	mov	w8, #0x20               // =32
+  242674: 910083e0     	add	x0, sp, #0x20
+  242678: f9400009     	ldr	x9, [x0]
+  24267c: f8686928     	ldr	x8, [x9, x8]
+  242680: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  242684: f9403be0     	ldr	x0, [sp, #0x70]
+  242688: 910143e8     	add	x8, sp, #0x50
+  24268c: eb08001f     	cmp	x0, x8
+  242690: 54000080     	b.eq	0x2426a0 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x190>
+  242694: b4000100     	cbz	x0, 0x2426b4 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x1a4>
+  242698: 52800508     	mov	w8, #0x28               // =40
+  24269c: 14000003     	b	0x2426a8 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x198>
+  2426a0: 52800408     	mov	w8, #0x20               // =32
+  2426a4: 910143e0     	add	x0, sp, #0x50
+  2426a8: f9400009     	ldr	x9, [x0]
+  2426ac: f8686928     	ldr	x8, [x9, x8]
+  2426b0: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  2426b4: f9400be8     	ldr	x8, [sp, #0x10]
+  2426b8: b4000148     	cbz	x8, 0x2426e0 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x1d0>
+  2426bc: a94053e8     	ldp	x8, x20, [sp]
+  2426c0: 910003f5     	mov	x21, sp
+  2426c4: f9000bff     	str	xzr, [sp, #0x10]
+  2426c8: f9400508     	ldr	x8, [x8, #0x8]
+  2426cc: f9400289     	ldr	x9, [x20]
+  2426d0: eb15029f     	cmp	x20, x21
+  2426d4: f9000528     	str	x8, [x9, #0x8]
+  2426d8: f9000109     	str	x9, [x8]
+  2426dc: 54000281     	b.ne	0x24272c <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x21c>
+  2426e0: b4000073     	cbz	x19, 0x2426ec <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x1dc>
+  2426e4: aa1303e0     	mov	x0, x19
+  2426e8: 9401fb2a     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2426ec: f9401708     	ldr	x8, [x24, #0x28]
+  2426f0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2426f4: eb09011f     	cmp	x8, x9
+  2426f8: 54000ae1     	b.ne	0x242854 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x344>
+  2426fc: a94e4ff4     	ldp	x20, x19, [sp, #0xe0]
+  242700: f9405bf9     	ldr	x25, [sp, #0xb0]
+  242704: a94d57f6     	ldp	x22, x21, [sp, #0xd0]
+  242708: a94c5ff8     	ldp	x24, x23, [sp, #0xc0]
+  24270c: a94a7bfd     	ldp	x29, x30, [sp, #0xa0]
+  242710: 9103c3ff     	add	sp, sp, #0xf0
+  242714: d65f03c0     	ret
+  242718: aa1403e0     	mov	x0, x20
+  24271c: 9401fb1d     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  242720: eb1502df     	cmp	x22, x21
+  242724: aa1603f4     	mov	x20, x22
+  242728: 54fffdc0     	b.eq	0x2426e0 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x1d0>
+  24272c: a9408296     	ldp	x22, x0, [x20, #0x8]
+  242730: b4ffff40     	cbz	x0, 0x242718 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x208>
+  242734: f9000e80     	str	x0, [x20, #0x18]
+  242738: 9401fb16     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  24273c: 17fffff7     	b	0x242718 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x208>
+  242740: f9401708     	ldr	x8, [x24, #0x28]
+  242744: f85f83a9     	ldur	x9, [x29, #-0x8]
+  242748: eb09011f     	cmp	x8, x9
+  24274c: 54000841     	b.ne	0x242854 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x344>
+  242750: d10083a0     	sub	x0, x29, #0x20
+  242754: 97fefbf3     	bl	0x201720 <std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char
+  242758: aa0803f5     	mov	x21, x8
+  24275c: f9401708     	ldr	x8, [x24, #0x28]
+  242760: f85f83a9     	ldur	x9, [x29, #-0x8]
+  242764: eb09011f     	cmp	x8, x9
+  242768: 54000761     	b.ne	0x242854 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x344>
+  24276c: aa1503e0     	mov	x0, x21
+  242770: 97fefbec     	bl	0x201720 <std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char
+  242774: f94002a8     	ldr	x8, [x21]
+  242778: aa0003f5     	mov	x21, x0
+  24277c: b40000c8     	cbz	x8, 0x242794 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x284>
+  242780: aa0803e0     	mov	x0, x8
+  242784: f9000ec8     	str	x8, [x22, #0x18]
+  242788: 9401fb02     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  24278c: 14000002     	b	0x242794 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x284>
+  242790: aa0003f5     	mov	x21, x0
+  242794: aa1603e0     	mov	x0, x22
+  242798: 9401fafe     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  24279c: 1400001c     	b	0x24280c <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x2fc>
+  2427a0: f94023e8     	ldr	x8, [sp, #0x40]
+  2427a4: aa0003f5     	mov	x21, x0
+  2427a8: eb16011f     	cmp	x8, x22
+  2427ac: 54000081     	b.ne	0x2427bc <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x2ac>
+  2427b0: 52800409     	mov	w9, #0x20               // =32
+  2427b4: 910083e8     	add	x8, sp, #0x20
+  2427b8: 14000003     	b	0x2427c4 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x2b4>
+  2427bc: b40000c8     	cbz	x8, 0x2427d4 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x2c4>
+  2427c0: 52800509     	mov	w9, #0x28               // =40
+  2427c4: f940010a     	ldr	x10, [x8]
+  2427c8: aa0803e0     	mov	x0, x8
+  2427cc: f8696949     	ldr	x9, [x10, x9]
+  2427d0: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  2427d4: f9403be0     	ldr	x0, [sp, #0x70]
+  2427d8: 910143e8     	add	x8, sp, #0x50
+  2427dc: eb08001f     	cmp	x0, x8
+  2427e0: 54000081     	b.ne	0x2427f0 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x2e0>
+  2427e4: 52800408     	mov	w8, #0x20               // =32
+  2427e8: 910143e0     	add	x0, sp, #0x50
+  2427ec: 14000003     	b	0x2427f8 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x2e8>
+  2427f0: b40000e0     	cbz	x0, 0x24280c <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x2fc>
+  2427f4: 52800508     	mov	w8, #0x28               // =40
+  2427f8: f9400009     	ldr	x9, [x0]
+  2427fc: f8686928     	ldr	x8, [x9, x8]
+  242800: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  242804: 14000002     	b	0x24280c <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x2fc>
+  242808: aa0003f5     	mov	x21, x0
+  24280c: 910003e0     	mov	x0, sp
+  242810: 94000012     	bl	0x242858 <std::__ndk1::__list_imp<SW::CBytes, std::__ndk1::allocator<SW::CBytes>>::~__list_imp()>  ;;; CALL std::__ndk1::__list_imp<SW::CBytes, std::__ndk1::allocator<SW::CBytes
+  242814: b50000d3     	cbnz	x19, 0x24282c <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x31c>
+  242818: 14000007     	b	0x242834 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x324>
+  24281c: f85e03b3     	ldur	x19, [x29, #-0x20]
+  242820: aa0003f5     	mov	x21, x0
+  242824: b4000093     	cbz	x19, 0x242834 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x324>
+  242828: f81e83b3     	stur	x19, [x29, #-0x18]
+  24282c: aa1303e0     	mov	x0, x19
+  242830: 9401fad8     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  242834: aa1403e0     	mov	x0, x20
+  242838: 97ffeee4     	bl	0x23e3c8 <std::__ndk1::__list_imp<SW::UDPBroadcasterResult, std::__ndk1::allocator<SW::UDPBroadcasterResult>>::clear()>  ;;; CALL std::__ndk1::__list_imp<SW::UDPBroadcasterResult, std::__ndk1::allocator<SW::UDPBroadcasterResult
+  24283c: f9401708     	ldr	x8, [x24, #0x28]
+  242840: f85f83a9     	ldur	x9, [x29, #-0x8]
+  242844: eb09011f     	cmp	x8, x9
+  242848: 54000061     	b.ne	0x242854 <SW::QtUDPBroadcaster::broadcast(SW::CBytes const&)+0x344>
+  24284c: aa1503e0     	mov	x0, x21
+  242850: 9401eb0d     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  242854: 9401fa57     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000002443a4 <SW::QtUDPBroadcaster::broadcastInfoText()>:
+  2443a4: d10143ff     	sub	sp, sp, #0x50
+  2443a8: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  2443ac: a90357f6     	stp	x22, x21, [sp, #0x30]
+  2443b0: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  2443b4: 910083fd     	add	x29, sp, #0x20
+  2443b8: d53bd055     	mrs	x21, TPIDR_EL0
+  2443bc: aa0803f3     	mov	x19, x8
+  2443c0: f94016a8     	ldr	x8, [x21, #0x28]
+  2443c4: f81f83a8     	stur	x8, [x29, #-0x8]
+  2443c8: a9007e7f     	stp	xzr, xzr, [x19]
+  2443cc: f9000a7f     	str	xzr, [x19, #0x10]
+  2443d0: aa1303e0     	mov	x0, x19
+  2443d4: 52827101     	mov	w1, #0x1388             // =5000
+  2443d8: 940202e6     	bl	0x2c4f70 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE7reserveEm@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::reserve(unsigned long)  [x1=5000(0x1388)]
+  2443dc: 910003e8     	mov	x8, sp
+  2443e0: aa1303e0     	mov	x0, x19
+  2443e4: 94020257     	bl	0x2c4d40 <_ZN2SW22getLocalBroadcastAddrsEPNSt6__ndk112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEE@plt>  ;;; CALL SW::getLocalBroadcastAddrs(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>*)
+  2443e8: f9400be8     	ldr	x8, [sp, #0x10]
+  2443ec: b4000288     	cbz	x8, 0x24443c <SW::QtUDPBroadcaster::broadcastInfoText()+0x98>
+  2443f0: a9404fe8     	ldp	x8, x19, [sp]
+  2443f4: 910003f4     	mov	x20, sp
+  2443f8: f9000bff     	str	xzr, [sp, #0x10]
+  2443fc: f9400508     	ldr	x8, [x8, #0x8]
+  244400: f9400269     	ldr	x9, [x19]
+  244404: eb14027f     	cmp	x19, x20
+  244408: f9000528     	str	x8, [x9, #0x8]
+  24440c: f9000109     	str	x9, [x8]
+  244410: 54000160     	b.eq	0x24443c <SW::QtUDPBroadcaster::broadcastInfoText()+0x98>
+  244414: f9400676     	ldr	x22, [x19, #0x8]
+  244418: 91006260     	add	x0, x19, #0x18
+  24441c: 94020271     	bl	0x2c4de0 <_ZN12QHostAddressD1Ev@plt>  ;;; CALL QHostAddress::~QHostAddress()
+  244420: 91004260     	add	x0, x19, #0x10
+  244424: 9402026f     	bl	0x2c4de0 <_ZN12QHostAddressD1Ev@plt>  ;;; CALL QHostAddress::~QHostAddress()
+  244428: aa1303e0     	mov	x0, x19
+  24442c: 9401f3d9     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  244430: eb1402df     	cmp	x22, x20
+  244434: aa1603f3     	mov	x19, x22
+  244438: 54fffee1     	b.ne	0x244414 <SW::QtUDPBroadcaster::broadcastInfoText()+0x70>
+  24443c: f94016a8     	ldr	x8, [x21, #0x28]
+  244440: f85f83a9     	ldur	x9, [x29, #-0x8]
+  244444: eb09011f     	cmp	x8, x9
+  244448: 54000221     	b.ne	0x24448c <SW::QtUDPBroadcaster::broadcastInfoText()+0xe8>
+  24444c: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  244450: a94357f6     	ldp	x22, x21, [sp, #0x30]
+  244454: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  244458: 910143ff     	add	sp, sp, #0x50
+  24445c: d65f03c0     	ret
+  244460: 39400268     	ldrb	w8, [x19]
+  244464: aa0003f4     	mov	x20, x0
+  244468: 36000068     	tbz	w8, #0x0, 0x244474 <SW::QtUDPBroadcaster::broadcastInfoText()+0xd0>
+  24446c: f9400a60     	ldr	x0, [x19, #0x10]
+  244470: 9401f3c8     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  244474: f94016a8     	ldr	x8, [x21, #0x28]
+  244478: f85f83a9     	ldur	x9, [x29, #-0x8]
+  24447c: eb09011f     	cmp	x8, x9
+  244480: 54000061     	b.ne	0x24448c <SW::QtUDPBroadcaster::broadcastInfoText()+0xe8>
+  244484: aa1403e0     	mov	x0, x20
+  244488: 9401e3ff     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  24448c: 9401f349     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000244490 <SW::QtUDPBroadcaster::localIpList()>:
+  244490: d10343ff     	sub	sp, sp, #0xd0
+  244494: a9077bfd     	stp	x29, x30, [sp, #0x70]
+  244498: a9086ffc     	stp	x28, x27, [sp, #0x80]
+  24449c: a90967fa     	stp	x26, x25, [sp, #0x90]
+  2444a0: a90a5ff8     	stp	x24, x23, [sp, #0xa0]
+  2444a4: a90b57f6     	stp	x22, x21, [sp, #0xb0]
+  2444a8: a90c4ff4     	stp	x20, x19, [sp, #0xc0]
+  2444ac: 9101c3fd     	add	x29, sp, #0x70
+  2444b0: aa0803f3     	mov	x19, x8
+  2444b4: d53bd048     	mrs	x8, TPIDR_EL0
+  2444b8: aa1f03e0     	mov	x0, xzr
+  2444bc: f90003e8     	str	x8, [sp]
+  2444c0: 9100e3f4     	add	x20, sp, #0x38
+  2444c4: f9401508     	ldr	x8, [x8, #0x28]
+  2444c8: f81f83a8     	stur	x8, [x29, #-0x8]
+  2444cc: 9100e3e8     	add	x8, sp, #0x38
+  2444d0: 9402021c     	bl	0x2c4d40 <_ZN2SW22getLocalBroadcastAddrsEPNSt6__ndk112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEE@plt>  ;;; CALL SW::getLocalBroadcastAddrs(std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>*)
+  2444d4: f94023f9     	ldr	x25, [sp, #0x40]
+  2444d8: a9007e7f     	stp	xzr, xzr, [x19]
+  2444dc: f9000a7f     	str	xzr, [x19, #0x10]
+  2444e0: eb14033f     	cmp	x25, x20
+  2444e4: 54000dc0     	b.eq	0x24469c <SW::QtUDPBroadcaster::localIpList()+0x20c>
+  2444e8: b201f3fa     	mov	x26, #-0x5555555555555556 // =-6148914691236517206
+  2444ec: b201f3fb     	mov	x27, #-0x5555555555555556 // =-6148914691236517206
+  2444f0: 52800317     	mov	w23, #0x18              // =24
+  2444f4: f2e1555a     	movk	x26, #0xaaa, lsl #48
+  2444f8: f295557b     	movk	x27, #0xaaab
+  2444fc: 14000004     	b	0x24450c <SW::QtUDPBroadcaster::localIpList()+0x7c>
+  244500: f9400739     	ldr	x25, [x25, #0x8]
+  244504: eb14033f     	cmp	x25, x20
+  244508: 54000ca0     	b.eq	0x24469c <SW::QtUDPBroadcaster::localIpList()+0x20c>
+  24450c: 910023e8     	add	x8, sp, #0x8
+  244510: 91004320     	add	x0, x25, #0x10
+  244514: 9402025b     	bl	0x2c4e80 <_ZNK12QHostAddress8toStringEv@plt>  ;;; CALL QHostAddress::toString() const
+  244518: d10083a8     	sub	x8, x29, #0x20
+  24451c: 910023e0     	add	x0, sp, #0x8
+  244520: 9401f608     	bl	0x2c1d40 <_ZN7QString13toUtf8_helperERKS_@plt>  ;;; CALL QString::toUtf8_helper(QString const&)
+  244524: 910083e8     	add	x8, sp, #0x20
+  244528: d10083a0     	sub	x0, x29, #0x20
+  24452c: 9401f6ed     	bl	0x2c20e0 <_ZNK10QByteArray11toStdStringEv@plt>  ;;; CALL QByteArray::toStdString() const
+  244530: f85e03a1     	ldur	x1, [x29, #-0x20]
+  244534: b4000121     	cbz	x1, 0x244558 <SW::QtUDPBroadcaster::localIpList()+0xc8>
+  244538: 12800000     	mov	w0, #-0x1               // =-1
+  24453c: 9401e361     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  244540: 7100041f     	cmp	w0, #0x1
+  244544: 540000a1     	b.ne	0x244558 <SW::QtUDPBroadcaster::localIpList()+0xc8>
+  244548: f85e03a0     	ldur	x0, [x29, #-0x20]
+  24454c: 52800021     	mov	w1, #0x1                // =1
+  244550: 52800102     	mov	w2, #0x8                // =8
+  244554: 9401f2e3     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=1(0x1), x2=8(0x8)]
+  244558: a940a668     	ldp	x8, x9, [x19, #0x8]
+  24455c: eb09011f     	cmp	x8, x9
+  244560: 54000182     	b.hs	0x244590 <SW::QtUDPBroadcaster::localIpList()+0x100>
+  244564: f9401be9     	ldr	x9, [sp, #0x30]
+  244568: 3dc00be0     	ldr	q0, [sp, #0x20]
+  24456c: 9100611c     	add	x28, x8, #0x18
+  244570: f9000909     	str	x9, [x8, #0x10]
+  244574: 3d800100     	str	q0, [x8]
+  244578: a902ffff     	stp	xzr, xzr, [sp, #0x28]
+  24457c: f90013ff     	str	xzr, [sp, #0x20]
+  244580: f900067c     	str	x28, [x19, #0x8]
+  244584: f94007e1     	ldr	x1, [sp, #0x8]
+  244588: b50006e1     	cbnz	x1, 0x244664 <SW::QtUDPBroadcaster::localIpList()+0x1d4>
+  24458c: 17ffffdd     	b	0x244500 <SW::QtUDPBroadcaster::localIpList()+0x70>
+  244590: f9400274     	ldr	x20, [x19]
+  244594: cb140115     	sub	x21, x8, x20
+  244598: 9343fea8     	asr	x8, x21, #3
+  24459c: 9b1b7d16     	mul	x22, x8, x27
+  2445a0: 910006c8     	add	x8, x22, #0x1
+  2445a4: eb1a011f     	cmp	x8, x26
+  2445a8: 54000be8     	b.hi	0x244724 <SW::QtUDPBroadcaster::localIpList()+0x294>
+  2445ac: cb140129     	sub	x9, x9, x20
+  2445b0: 9343fd29     	asr	x9, x9, #3
+  2445b4: 9b1b7d29     	mul	x9, x9, x27
+  2445b8: d37ff92a     	lsl	x10, x9, #1
+  2445bc: eb08015f     	cmp	x10, x8
+  2445c0: 9a888148     	csel	x8, x10, x8, hi
+  2445c4: b200f3ea     	mov	x10, #0x5555555555555555 // =6148914691236517205
+  2445c8: f2e0aaaa     	movk	x10, #0x555, lsl #48
+  2445cc: eb0a013f     	cmp	x9, x10
+  2445d0: 9a9a311c     	csel	x28, x8, x26, lo
+  2445d4: b40000fc     	cbz	x28, 0x2445f0 <SW::QtUDPBroadcaster::localIpList()+0x160>
+  2445d8: eb1a039f     	cmp	x28, x26
+  2445dc: 54000b28     	b.hi	0x244740 <SW::QtUDPBroadcaster::localIpList()+0x2b0>
+  2445e0: 8b1c0788     	add	x8, x28, x28, lsl #1
+  2445e4: d37df100     	lsl	x0, x8, #3
+  2445e8: 9401f2c6     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  2445ec: 14000002     	b	0x2445f4 <SW::QtUDPBroadcaster::localIpList()+0x164>
+  2445f0: aa1f03e0     	mov	x0, xzr
+  2445f4: 9b1702c8     	madd	x8, x22, x23, x0
+  2445f8: 3dc00be0     	ldr	q0, [sp, #0x20]
+  2445fc: f9401be9     	ldr	x9, [sp, #0x30]
+  244600: aa1403e1     	mov	x1, x20
+  244604: aa1503e2     	mov	x2, x21
+  244608: a902ffff     	stp	xzr, xzr, [sp, #0x28]
+  24460c: d503201f     	nop
+  244610: 9b170398     	madd	x24, x28, x23, x0
+  244614: f90013ff     	str	xzr, [sp, #0x20]
+  244618: cb150116     	sub	x22, x8, x21
+  24461c: 3d800100     	str	q0, [x8]
+  244620: 9100611c     	add	x28, x8, #0x18
+  244624: aa1603e0     	mov	x0, x22
+  244628: f9000909     	str	x9, [x8, #0x10]
+  24462c: 9401f815     	bl	0x2c2680 <memcpy@plt>  ;;; CALL memcpy
+  244630: a9007276     	stp	x22, x28, [x19]
+  244634: f9000a78     	str	x24, [x19, #0x10]
+  244638: b4000294     	cbz	x20, 0x244688 <SW::QtUDPBroadcaster::localIpList()+0x1f8>
+  24463c: aa1403e0     	mov	x0, x20
+  244640: 9401f354     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  244644: 394083e8     	ldrb	w8, [sp, #0x20]
+  244648: 9100e3f4     	add	x20, sp, #0x38
+  24464c: f900067c     	str	x28, [x19, #0x8]
+  244650: 36000068     	tbz	w8, #0x0, 0x24465c <SW::QtUDPBroadcaster::localIpList()+0x1cc>
+  244654: f9401be0     	ldr	x0, [sp, #0x30]
+  244658: 9401f34e     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  24465c: f94007e1     	ldr	x1, [sp, #0x8]
+  244660: b4fff501     	cbz	x1, 0x244500 <SW::QtUDPBroadcaster::localIpList()+0x70>
+  244664: 12800000     	mov	w0, #-0x1               // =-1
+  244668: 9401e316     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  24466c: 7100041f     	cmp	w0, #0x1
+  244670: 54fff481     	b.ne	0x244500 <SW::QtUDPBroadcaster::localIpList()+0x70>
+  244674: f94007e0     	ldr	x0, [sp, #0x8]
+  244678: 52800041     	mov	w1, #0x2                // =2
+  24467c: 52800102     	mov	w2, #0x8                // =8
+  244680: 9401f298     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  244684: 17ffff9f     	b	0x244500 <SW::QtUDPBroadcaster::localIpList()+0x70>
+  244688: 9100e3f4     	add	x20, sp, #0x38
+  24468c: f900067c     	str	x28, [x19, #0x8]
+  244690: f94007e1     	ldr	x1, [sp, #0x8]
+  244694: b5fffe81     	cbnz	x1, 0x244664 <SW::QtUDPBroadcaster::localIpList()+0x1d4>
+  244698: 17ffff9a     	b	0x244500 <SW::QtUDPBroadcaster::localIpList()+0x70>
+  24469c: f94027e8     	ldr	x8, [sp, #0x48]
+  2446a0: b4000288     	cbz	x8, 0x2446f0 <SW::QtUDPBroadcaster::localIpList()+0x260>
+  2446a4: a943cfe8     	ldp	x8, x19, [sp, #0x38]
+  2446a8: 9100e3f4     	add	x20, sp, #0x38
+  2446ac: f90027ff     	str	xzr, [sp, #0x48]
+  2446b0: f9400508     	ldr	x8, [x8, #0x8]
+  2446b4: f9400269     	ldr	x9, [x19]
+  2446b8: eb14027f     	cmp	x19, x20
+  2446bc: f9000528     	str	x8, [x9, #0x8]
+  2446c0: f9000109     	str	x9, [x8]
+  2446c4: 54000160     	b.eq	0x2446f0 <SW::QtUDPBroadcaster::localIpList()+0x260>
+  2446c8: f9400675     	ldr	x21, [x19, #0x8]
+  2446cc: 91006260     	add	x0, x19, #0x18
+  2446d0: 940201c4     	bl	0x2c4de0 <_ZN12QHostAddressD1Ev@plt>  ;;; CALL QHostAddress::~QHostAddress()
+  2446d4: 91004260     	add	x0, x19, #0x10
+  2446d8: 940201c2     	bl	0x2c4de0 <_ZN12QHostAddressD1Ev@plt>  ;;; CALL QHostAddress::~QHostAddress()
+  2446dc: aa1303e0     	mov	x0, x19
+  2446e0: 9401f32c     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2446e4: eb1402bf     	cmp	x21, x20
+  2446e8: aa1503f3     	mov	x19, x21
+  2446ec: 54fffee1     	b.ne	0x2446c8 <SW::QtUDPBroadcaster::localIpList()+0x238>
+  2446f0: f94003e8     	ldr	x8, [sp]
+  2446f4: f9401508     	ldr	x8, [x8, #0x28]
+  2446f8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2446fc: eb09011f     	cmp	x8, x9
+  244700: 54000821     	b.ne	0x244804 <SW::QtUDPBroadcaster::localIpList()+0x374>
+  244704: a94c4ff4     	ldp	x20, x19, [sp, #0xc0]
+  244708: a94b57f6     	ldp	x22, x21, [sp, #0xb0]
+  24470c: a94a5ff8     	ldp	x24, x23, [sp, #0xa0]
+  244710: a94967fa     	ldp	x26, x25, [sp, #0x90]
+  244714: a9486ffc     	ldp	x28, x27, [sp, #0x80]
+  244718: a9477bfd     	ldp	x29, x30, [sp, #0x70]
+  24471c: 910343ff     	add	sp, sp, #0xd0
+  244720: d65f03c0     	ret
+  244724: f94003e8     	ldr	x8, [sp]
+  244728: f9401508     	ldr	x8, [x8, #0x28]
+  24472c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  244730: eb09011f     	cmp	x8, x9
+  244734: 54000681     	b.ne	0x244804 <SW::QtUDPBroadcaster::localIpList()+0x374>
+  244738: aa1303e0     	mov	x0, x19
+  24473c: 97ffccc3     	bl	0x237a48 <std::__ndk1::vector<std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>, std::__ndk1::allocator<std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::vector<std::__ndk1::basic_string<char, std::__ndk1::char_traits<char
+  244740: f94003e8     	ldr	x8, [sp]
+  244744: f9401508     	ldr	x8, [x8, #0x28]
+  244748: f85f83a9     	ldur	x9, [x29, #-0x8]
+  24474c: eb09011f     	cmp	x8, x9
+  244750: 540005a1     	b.ne	0x244804 <SW::QtUDPBroadcaster::localIpList()+0x374>
+  244754: 97fdd6ab     	bl	0x1ba200 <std::__throw_bad_array_new_length[abi:ne190000]()>  ;;; CALL std::__throw_bad_array_new_length[abi:ne190000]()
+  244758: 14000001     	b	0x24475c <SW::QtUDPBroadcaster::localIpList()+0x2cc>
+  24475c: 394083e8     	ldrb	w8, [sp, #0x20]
+  244760: aa0003f4     	mov	x20, x0
+  244764: 36000268     	tbz	w8, #0x0, 0x2447b0 <SW::QtUDPBroadcaster::localIpList()+0x320>
+  244768: f9401be0     	ldr	x0, [sp, #0x30]
+  24476c: 9401f309     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  244770: 14000010     	b	0x2447b0 <SW::QtUDPBroadcaster::localIpList()+0x320>
+  244774: aa0003f4     	mov	x20, x0
+  244778: 14000018     	b	0x2447d8 <SW::QtUDPBroadcaster::localIpList()+0x348>
+  24477c: aa0003f4     	mov	x20, x0
+  244780: 1400000c     	b	0x2447b0 <SW::QtUDPBroadcaster::localIpList()+0x320>
+  244784: f85e03a1     	ldur	x1, [x29, #-0x20]
+  244788: aa0003f4     	mov	x20, x0
+  24478c: b4000121     	cbz	x1, 0x2447b0 <SW::QtUDPBroadcaster::localIpList()+0x320>
+  244790: 12800000     	mov	w0, #-0x1               // =-1
+  244794: 9401e2cb     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  244798: 7100041f     	cmp	w0, #0x1
+  24479c: 540000a1     	b.ne	0x2447b0 <SW::QtUDPBroadcaster::localIpList()+0x320>
+  2447a0: f85e03a0     	ldur	x0, [x29, #-0x20]
+  2447a4: 52800021     	mov	w1, #0x1                // =1
+  2447a8: 52800102     	mov	w2, #0x8                // =8
+  2447ac: 9401f24d     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=1(0x1), x2=8(0x8)]
+  2447b0: f94007e1     	ldr	x1, [sp, #0x8]
+  2447b4: b4000121     	cbz	x1, 0x2447d8 <SW::QtUDPBroadcaster::localIpList()+0x348>
+  2447b8: 12800000     	mov	w0, #-0x1               // =-1
+  2447bc: 9401e2c1     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  2447c0: 7100041f     	cmp	w0, #0x1
+  2447c4: 540000a1     	b.ne	0x2447d8 <SW::QtUDPBroadcaster::localIpList()+0x348>
+  2447c8: f94007e0     	ldr	x0, [sp, #0x8]
+  2447cc: 52800041     	mov	w1, #0x2                // =2
+  2447d0: 52800102     	mov	w2, #0x8                // =8
+  2447d4: 9401f243     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  2447d8: aa1303e0     	mov	x0, x19
+  2447dc: 97ff98d3     	bl	0x22ab28 <std::__ndk1::vector<std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>, std::__ndk1::allocator<std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>>>::~vector[abi:ne190000]()>  ;;; CALL std::__ndk1::vector<std::__ndk1::basic_string<char, std::__ndk1::char_traits<char
+  2447e0: 9100e3e0     	add	x0, sp, #0x38
+  2447e4: 97fffed3     	bl	0x244330 <std::__ndk1::__list_imp<SW::LocalBroadcastAddr, std::__ndk1::allocator<SW::LocalBroadcastAddr>>::~__list_imp()>  ;;; CALL std::__ndk1::__list_imp<SW::LocalBroadcastAddr, std::__ndk1::allocator<SW::LocalBroadcastAddr
+  2447e8: f94003e8     	ldr	x8, [sp]
+  2447ec: f9401508     	ldr	x8, [x8, #0x28]
+  2447f0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  2447f4: eb09011f     	cmp	x8, x9
+  2447f8: 54000061     	b.ne	0x244804 <SW::QtUDPBroadcaster::localIpList()+0x374>
+  2447fc: aa1403e0     	mov	x0, x20
+  244800: 9401e321     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  244804: 9401f26b     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+

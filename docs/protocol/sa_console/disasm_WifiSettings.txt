@@ -1,0 +1,747 @@
+00000000001db4d4 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)>:
+  1db4d4: d103c3ff     	sub	sp, sp, #0xf0
+  1db4d8: a90c7bfd     	stp	x29, x30, [sp, #0xc0]
+  1db4dc: f9006bf5     	str	x21, [sp, #0xd0]
+  1db4e0: a90e4ff4     	stp	x20, x19, [sp, #0xe0]
+  1db4e4: 910303fd     	add	x29, sp, #0xc0
+  1db4e8: d53bd054     	mrs	x20, TPIDR_EL0
+  1db4ec: f9401688     	ldr	x8, [x20, #0x28]
+  1db4f0: 7100083f     	cmp	w1, #0x2
+  1db4f4: f81f83a8     	stur	x8, [x29, #-0x8]
+  1db4f8: 540001e0     	b.eq	0x1db534 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x60>
+  1db4fc: 7100043f     	cmp	w1, #0x1
+  1db500: 54001ca1     	b.ne	0x1db894 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3c0>
+  1db504: f9400075     	ldr	x21, [x3]
+  1db508: 71000c5f     	cmp	w2, #0x3
+  1db50c: 540004ec     	b.gt	0x1db5a8 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0xd4>
+  1db510: 7100045f     	cmp	w2, #0x1
+  1db514: 54000acc     	b.gt	0x1db66c <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x198>
+  1db518: 34001682     	cbz	w2, 0x1db7e8 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x314>
+  1db51c: 7100045f     	cmp	w2, #0x1
+  1db520: 54001ba1     	b.ne	0x1db894 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3c0>
+  1db524: 39402008     	ldrb	w8, [x0, #0x8]
+  1db528: a9412c09     	ldp	x9, x11, [x0, #0x10]
+  1db52c: 9100240c     	add	x12, x0, #0x9
+  1db530: 140000b7     	b	0x1db80c <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x338>
+  1db534: f9400068     	ldr	x8, [x3]
+  1db538: 7100085f     	cmp	w2, #0x2
+  1db53c: 540004ad     	b.le	0x1db5d0 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0xfc>
+  1db540: 7100105f     	cmp	w2, #0x4
+  1db544: 5400078c     	b.gt	0x1db634 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x160>
+  1db548: 71000c5f     	cmp	w2, #0x3
+  1db54c: 54000d60     	b.eq	0x1db6f8 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x224>
+  1db550: 7100105f     	cmp	w2, #0x4
+  1db554: 54001a01     	b.ne	0x1db894 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3c0>
+  1db558: 3dc00100     	ldr	q0, [x8]
+  1db55c: f9400908     	ldr	x8, [x8, #0x10]
+  1db560: 9e660001     	fmov	x1, d0
+  1db564: 3d800be0     	str	q0, [sp, #0x20]
+  1db568: f9001be8     	str	x8, [sp, #0x30]
+  1db56c: b40000a1     	cbz	x1, 0x1db580 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0xac>
+  1db570: aa0003f3     	mov	x19, x0
+  1db574: 52800020     	mov	w0, #0x1                // =1
+  1db578: 94038752     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1db57c: aa1303e0     	mov	x0, x19
+  1db580: 910083e1     	add	x1, sp, #0x20
+  1db584: 94039ce3     	bl	0x2c2910 <_ZN2SW12WifiSettings13setSTA_pass_qE7QString@plt>  ;;; CALL SW::WifiSettings::setSTA_pass_q(QString)
+  1db588: f94013e1     	ldr	x1, [sp, #0x20]
+  1db58c: b4001841     	cbz	x1, 0x1db894 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3c0>
+  1db590: 12800000     	mov	w0, #-0x1               // =-1
+  1db594: 9403874b     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1db598: 7100041f     	cmp	w0, #0x1
+  1db59c: 540017c1     	b.ne	0x1db894 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3c0>
+  1db5a0: f94013e0     	ldr	x0, [sp, #0x20]
+  1db5a4: 140000b9     	b	0x1db888 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3b4>
+  1db5a8: 7100145f     	cmp	w2, #0x5
+  1db5ac: 5400070c     	b.gt	0x1db68c <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x1b8>
+  1db5b0: 7100105f     	cmp	w2, #0x4
+  1db5b4: 540011e0     	b.eq	0x1db7f0 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x31c>
+  1db5b8: 7100145f     	cmp	w2, #0x5
+  1db5bc: 540016c1     	b.ne	0x1db894 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3c0>
+  1db5c0: 3941a008     	ldrb	w8, [x0, #0x68]
+  1db5c4: a9472c09     	ldp	x9, x11, [x0, #0x70]
+  1db5c8: 9101a40c     	add	x12, x0, #0x69
+  1db5cc: 14000090     	b	0x1db80c <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x338>
+  1db5d0: 34000802     	cbz	w2, 0x1db6d0 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x1fc>
+  1db5d4: 7100045f     	cmp	w2, #0x1
+  1db5d8: 54000e00     	b.eq	0x1db798 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x2c4>
+  1db5dc: 7100085f     	cmp	w2, #0x2
+  1db5e0: 540015a1     	b.ne	0x1db894 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3c0>
+  1db5e4: 3dc00100     	ldr	q0, [x8]
+  1db5e8: f9400908     	ldr	x8, [x8, #0x10]
+  1db5ec: 9e660001     	fmov	x1, d0
+  1db5f0: 3d801be0     	str	q0, [sp, #0x60]
+  1db5f4: f9003be8     	str	x8, [sp, #0x70]
+  1db5f8: b40000a1     	cbz	x1, 0x1db60c <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x138>
+  1db5fc: aa0003f3     	mov	x19, x0
+  1db600: 52800020     	mov	w0, #0x1                // =1
+  1db604: 9403872f     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1db608: aa1303e0     	mov	x0, x19
+  1db60c: 910183e1     	add	x1, sp, #0x60
+  1db610: 94039cc4     	bl	0x2c2920 <_ZN2SW12WifiSettings12setAP_pass_qE7QString@plt>  ;;; CALL SW::WifiSettings::setAP_pass_q(QString)
+  1db614: f94033e1     	ldr	x1, [sp, #0x60]
+  1db618: b40013e1     	cbz	x1, 0x1db894 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3c0>
+  1db61c: 12800000     	mov	w0, #-0x1               // =-1
+  1db620: 94038728     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1db624: 7100041f     	cmp	w0, #0x1
+  1db628: 54001361     	b.ne	0x1db894 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3c0>
+  1db62c: f94033e0     	ldr	x0, [sp, #0x60]
+  1db630: 14000096     	b	0x1db888 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3b4>
+  1db634: 7100145f     	cmp	w2, #0x5
+  1db638: 54000880     	b.eq	0x1db748 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x274>
+  1db63c: 7100185f     	cmp	w2, #0x6
+  1db640: 540012a1     	b.ne	0x1db894 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3c0>
+  1db644: b9408009     	ldr	w9, [x0, #0x80]
+  1db648: b9400108     	ldr	w8, [x8]
+  1db64c: 6b08013f     	cmp	w9, w8
+  1db650: 54001220     	b.eq	0x1db894 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3c0>
+  1db654: b9008008     	str	w8, [x0, #0x80]
+  1db658: f9401688     	ldr	x8, [x20, #0x28]
+  1db65c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1db660: eb09011f     	cmp	x8, x9
+  1db664: 54001200     	b.eq	0x1db8a4 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3d0>
+  1db668: 1400009a     	b	0x1db8d0 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3fc>
+  1db66c: 7100085f     	cmp	w2, #0x2
+  1db670: 54000c80     	b.eq	0x1db800 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x32c>
+  1db674: 71000c5f     	cmp	w2, #0x3
+  1db678: 540010e1     	b.ne	0x1db894 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3c0>
+  1db67c: 3940e008     	ldrb	w8, [x0, #0x38]
+  1db680: a9442c09     	ldp	x9, x11, [x0, #0x40]
+  1db684: 9100e40c     	add	x12, x0, #0x39
+  1db688: 14000061     	b	0x1db80c <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x338>
+  1db68c: 7100185f     	cmp	w2, #0x6
+  1db690: 54001140     	b.eq	0x1db8b8 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3e4>
+  1db694: 71001c5f     	cmp	w2, #0x7
+  1db698: 54000fe1     	b.ne	0x1db894 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3c0>
+  1db69c: 3941a008     	ldrb	w8, [x0, #0x68]
+  1db6a0: f9403809     	ldr	x9, [x0, #0x70]
+  1db6a4: d341fd0a     	lsr	x10, x8, #1
+  1db6a8: 7200011f     	tst	w8, #0x1
+  1db6ac: 9a890148     	csel	x8, x10, x9, eq
+  1db6b0: f100011f     	cmp	x8, #0x0
+  1db6b4: 1a9f17e8     	cset	w8, eq
+  1db6b8: 390002a8     	strb	w8, [x21]
+  1db6bc: f9401688     	ldr	x8, [x20, #0x28]
+  1db6c0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1db6c4: eb09011f     	cmp	x8, x9
+  1db6c8: 54000ee0     	b.eq	0x1db8a4 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3d0>
+  1db6cc: 14000081     	b	0x1db8d0 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3fc>
+  1db6d0: b9400009     	ldr	w9, [x0]
+  1db6d4: b9400108     	ldr	w8, [x8]
+  1db6d8: 6b08013f     	cmp	w9, w8
+  1db6dc: 54000dc0     	b.eq	0x1db894 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3c0>
+  1db6e0: b9000008     	str	w8, [x0]
+  1db6e4: f9401688     	ldr	x8, [x20, #0x28]
+  1db6e8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1db6ec: eb09011f     	cmp	x8, x9
+  1db6f0: 54000da0     	b.eq	0x1db8a4 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3d0>
+  1db6f4: 14000077     	b	0x1db8d0 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3fc>
+  1db6f8: 3dc00100     	ldr	q0, [x8]
+  1db6fc: f9400908     	ldr	x8, [x8, #0x10]
+  1db700: 9e660001     	fmov	x1, d0
+  1db704: 3d8013e0     	str	q0, [sp, #0x40]
+  1db708: f9002be8     	str	x8, [sp, #0x50]
+  1db70c: b40000a1     	cbz	x1, 0x1db720 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x24c>
+  1db710: aa0003f3     	mov	x19, x0
+  1db714: 52800020     	mov	w0, #0x1                // =1
+  1db718: 940386ea     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1db71c: aa1303e0     	mov	x0, x19
+  1db720: 910103e1     	add	x1, sp, #0x40
+  1db724: 94039c83     	bl	0x2c2930 <_ZN2SW12WifiSettings13setSTA_SSID_qE7QString@plt>  ;;; CALL SW::WifiSettings::setSTA_SSID_q(QString)
+  1db728: f94023e1     	ldr	x1, [sp, #0x40]
+  1db72c: b4000b41     	cbz	x1, 0x1db894 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3c0>
+  1db730: 12800000     	mov	w0, #-0x1               // =-1
+  1db734: 940386e3     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1db738: 7100041f     	cmp	w0, #0x1
+  1db73c: 54000ac1     	b.ne	0x1db894 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3c0>
+  1db740: f94023e0     	ldr	x0, [sp, #0x40]
+  1db744: 14000051     	b	0x1db888 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3b4>
+  1db748: 3dc00100     	ldr	q0, [x8]
+  1db74c: f9400908     	ldr	x8, [x8, #0x10]
+  1db750: 9e660001     	fmov	x1, d0
+  1db754: 3d8003e0     	str	q0, [sp]
+  1db758: f9000be8     	str	x8, [sp, #0x10]
+  1db75c: b40000a1     	cbz	x1, 0x1db770 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x29c>
+  1db760: aa0003f3     	mov	x19, x0
+  1db764: 52800020     	mov	w0, #0x1                // =1
+  1db768: 940386d6     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1db76c: aa1303e0     	mov	x0, x19
+  1db770: 910003e1     	mov	x1, sp
+  1db774: 94039c73     	bl	0x2c2940 <_ZN2SW12WifiSettings16setSTA_fixedIP_qE7QString@plt>  ;;; CALL SW::WifiSettings::setSTA_fixedIP_q(QString)
+  1db778: f94003e1     	ldr	x1, [sp]
+  1db77c: b40008c1     	cbz	x1, 0x1db894 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3c0>
+  1db780: 12800000     	mov	w0, #-0x1               // =-1
+  1db784: 940386cf     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1db788: 7100041f     	cmp	w0, #0x1
+  1db78c: 54000841     	b.ne	0x1db894 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3c0>
+  1db790: f94003e0     	ldr	x0, [sp]
+  1db794: 1400003d     	b	0x1db888 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3b4>
+  1db798: 3dc00100     	ldr	q0, [x8]
+  1db79c: f9400908     	ldr	x8, [x8, #0x10]
+  1db7a0: 9e660001     	fmov	x1, d0
+  1db7a4: 3c9c03a0     	stur	q0, [x29, #-0x40]
+  1db7a8: f81d03a8     	stur	x8, [x29, #-0x30]
+  1db7ac: b40000a1     	cbz	x1, 0x1db7c0 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x2ec>
+  1db7b0: aa0003f3     	mov	x19, x0
+  1db7b4: 52800020     	mov	w0, #0x1                // =1
+  1db7b8: 940386c2     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1db7bc: aa1303e0     	mov	x0, x19
+  1db7c0: d10103a1     	sub	x1, x29, #0x40
+  1db7c4: 94039c63     	bl	0x2c2950 <_ZN2SW12WifiSettings12setAP_SSID_qE7QString@plt>  ;;; CALL SW::WifiSettings::setAP_SSID_q(QString)
+  1db7c8: f85c03a1     	ldur	x1, [x29, #-0x40]
+  1db7cc: b4000641     	cbz	x1, 0x1db894 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3c0>
+  1db7d0: 12800000     	mov	w0, #-0x1               // =-1
+  1db7d4: 940386bb     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1db7d8: 7100041f     	cmp	w0, #0x1
+  1db7dc: 540005c1     	b.ne	0x1db894 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3c0>
+  1db7e0: f85c03a0     	ldur	x0, [x29, #-0x40]
+  1db7e4: 14000029     	b	0x1db888 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3b4>
+  1db7e8: b9400008     	ldr	w8, [x0]
+  1db7ec: 14000034     	b	0x1db8bc <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3e8>
+  1db7f0: 39414008     	ldrb	w8, [x0, #0x50]
+  1db7f4: a945ac09     	ldp	x9, x11, [x0, #0x58]
+  1db7f8: 9101440c     	add	x12, x0, #0x51
+  1db7fc: 14000004     	b	0x1db80c <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x338>
+  1db800: 39408008     	ldrb	w8, [x0, #0x20]
+  1db804: a942ac09     	ldp	x9, x11, [x0, #0x28]
+  1db808: 9100840c     	add	x12, x0, #0x21
+  1db80c: d341fd0a     	lsr	x10, x8, #1
+  1db810: 7200011f     	tst	w8, #0x1
+  1db814: 9a8b0193     	csel	x19, x12, x11, eq
+  1db818: 9a890148     	csel	x8, x10, x9, eq
+  1db81c: f100027f     	cmp	x19, #0x0
+  1db820: 8aa8fd09     	bic	x9, x8, x8, asr #63
+  1db824: 9a8903e0     	csel	x0, xzr, x9, eq
+  1db828: b4000093     	cbz	x19, 0x1db838 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x364>
+  1db82c: b6f80068     	tbz	x8, #0x3f, 0x1db838 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x364>
+  1db830: aa1303e0     	mov	x0, x19
+  1db834: 94039667     	bl	0x2c11d0 <strlen@plt>  ;;; CALL strlen
+  1db838: d10083a8     	sub	x8, x29, #0x20
+  1db83c: aa1303e1     	mov	x1, x19
+  1db840: 94039620     	bl	0x2c10c0 <_ZN7QString8fromUtf8E14QByteArrayView@plt>  ;;; CALL QString::fromUtf8(QByteArrayView)
+  1db844: f85e03a8     	ldur	x8, [x29, #-0x20]
+  1db848: 3dc002a0     	ldr	q0, [x21]
+  1db84c: f9400aa9     	ldr	x9, [x21, #0x10]
+  1db850: f90002a8     	str	x8, [x21]
+  1db854: 9e660001     	fmov	x1, d0
+  1db858: f85e83a8     	ldur	x8, [x29, #-0x18]
+  1db85c: f90006a8     	str	x8, [x21, #0x8]
+  1db860: f85f03a8     	ldur	x8, [x29, #-0x10]
+  1db864: 3c9e03a0     	stur	q0, [x29, #-0x20]
+  1db868: f9000aa8     	str	x8, [x21, #0x10]
+  1db86c: f81f03a9     	stur	x9, [x29, #-0x10]
+  1db870: b4000121     	cbz	x1, 0x1db894 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3c0>
+  1db874: 12800000     	mov	w0, #-0x1               // =-1
+  1db878: 94038692     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1db87c: 7100041f     	cmp	w0, #0x1
+  1db880: 540000a1     	b.ne	0x1db894 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3c0>
+  1db884: f85e03a0     	ldur	x0, [x29, #-0x20]
+  1db888: 52800041     	mov	w1, #0x2                // =2
+  1db88c: 52800102     	mov	w2, #0x8                // =8
+  1db890: 94039614     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1db894: f9401688     	ldr	x8, [x20, #0x28]
+  1db898: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1db89c: eb09011f     	cmp	x8, x9
+  1db8a0: 54000181     	b.ne	0x1db8d0 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3fc>
+  1db8a4: a94e4ff4     	ldp	x20, x19, [sp, #0xe0]
+  1db8a8: f9406bf5     	ldr	x21, [sp, #0xd0]
+  1db8ac: a94c7bfd     	ldp	x29, x30, [sp, #0xc0]
+  1db8b0: 9103c3ff     	add	sp, sp, #0xf0
+  1db8b4: d65f03c0     	ret
+  1db8b8: b9408008     	ldr	w8, [x0, #0x80]
+  1db8bc: b90002a8     	str	w8, [x21]
+  1db8c0: f9401688     	ldr	x8, [x20, #0x28]
+  1db8c4: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1db8c8: eb09011f     	cmp	x8, x9
+  1db8cc: 54fffec0     	b.eq	0x1db8a4 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3d0>
+  1db8d0: 94039638     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+  1db8d4: f85c03a1     	ldur	x1, [x29, #-0x40]
+  1db8d8: aa0003f3     	mov	x19, x0
+  1db8dc: b40005c1     	cbz	x1, 0x1db994 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x4c0>
+  1db8e0: 12800000     	mov	w0, #-0x1               // =-1
+  1db8e4: 94038677     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1db8e8: 7100041f     	cmp	w0, #0x1
+  1db8ec: 54000541     	b.ne	0x1db994 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x4c0>
+  1db8f0: d10103a8     	sub	x8, x29, #0x40
+  1db8f4: 14000024     	b	0x1db984 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x4b0>
+  1db8f8: f94033e1     	ldr	x1, [sp, #0x60]
+  1db8fc: aa0003f3     	mov	x19, x0
+  1db900: b40004a1     	cbz	x1, 0x1db994 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x4c0>
+  1db904: 12800000     	mov	w0, #-0x1               // =-1
+  1db908: 9403866e     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1db90c: 7100041f     	cmp	w0, #0x1
+  1db910: 54000421     	b.ne	0x1db994 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x4c0>
+  1db914: 910183e8     	add	x8, sp, #0x60
+  1db918: 1400001b     	b	0x1db984 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x4b0>
+  1db91c: f94013e1     	ldr	x1, [sp, #0x20]
+  1db920: aa0003f3     	mov	x19, x0
+  1db924: b4000381     	cbz	x1, 0x1db994 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x4c0>
+  1db928: 12800000     	mov	w0, #-0x1               // =-1
+  1db92c: 94038665     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1db930: 7100041f     	cmp	w0, #0x1
+  1db934: 54000301     	b.ne	0x1db994 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x4c0>
+  1db938: 910083e8     	add	x8, sp, #0x20
+  1db93c: 14000012     	b	0x1db984 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x4b0>
+  1db940: f94003e1     	ldr	x1, [sp]
+  1db944: aa0003f3     	mov	x19, x0
+  1db948: b4000261     	cbz	x1, 0x1db994 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x4c0>
+  1db94c: 12800000     	mov	w0, #-0x1               // =-1
+  1db950: 9403865c     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1db954: 7100041f     	cmp	w0, #0x1
+  1db958: 540001e1     	b.ne	0x1db994 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x4c0>
+  1db95c: 910003e8     	mov	x8, sp
+  1db960: 14000009     	b	0x1db984 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x4b0>
+  1db964: f94023e1     	ldr	x1, [sp, #0x40]
+  1db968: aa0003f3     	mov	x19, x0
+  1db96c: b4000141     	cbz	x1, 0x1db994 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x4c0>
+  1db970: 12800000     	mov	w0, #-0x1               // =-1
+  1db974: 94038653     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1db978: 7100041f     	cmp	w0, #0x1
+  1db97c: 540000c1     	b.ne	0x1db994 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x4c0>
+  1db980: 910103e8     	add	x8, sp, #0x40
+  1db984: f9400100     	ldr	x0, [x8]
+  1db988: 52800041     	mov	w1, #0x2                // =2
+  1db98c: 52800102     	mov	w2, #0x8                // =8
+  1db990: 940395d4     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=2(0x2), x2=8(0x8)]
+  1db994: f9401688     	ldr	x8, [x20, #0x28]
+  1db998: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1db99c: eb09011f     	cmp	x8, x9
+  1db9a0: 54fff981     	b.ne	0x1db8d0 <SW::WifiSettings::qt_static_metacall(QObject*, QMetaObject::Call, int, void**)+0x3fc>
+  1db9a4: aa1303e0     	mov	x0, x19
+  1db9a8: 940386b7     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+
+00000000001db9ac <SW::WifiSettings::setAP_SSID_q(QString)>:
+  1db9ac: d101c3ff     	sub	sp, sp, #0x70
+  1db9b0: a9047bfd     	stp	x29, x30, [sp, #0x40]
+  1db9b4: f9002bf5     	str	x21, [sp, #0x50]
+  1db9b8: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  1db9bc: 910103fd     	add	x29, sp, #0x40
+  1db9c0: d53bd054     	mrs	x20, TPIDR_EL0
+  1db9c4: aa0003f3     	mov	x19, x0
+  1db9c8: aa0103e0     	mov	x0, x1
+  1db9cc: f9401688     	ldr	x8, [x20, #0x28]
+  1db9d0: f81f83a8     	stur	x8, [x29, #-0x8]
+  1db9d4: 910083e8     	add	x8, sp, #0x20
+  1db9d8: 940398da     	bl	0x2c1d40 <_ZN7QString13toUtf8_helperERKS_@plt>  ;;; CALL QString::toUtf8_helper(QString const&)
+  1db9dc: 910023e8     	add	x8, sp, #0x8
+  1db9e0: 910083e0     	add	x0, sp, #0x20
+  1db9e4: 940399bf     	bl	0x2c20e0 <_ZNK10QByteArray11toStdStringEv@plt>  ;;; CALL QByteArray::toStdString() const
+  1db9e8: f94013e1     	ldr	x1, [sp, #0x20]
+  1db9ec: b4000121     	cbz	x1, 0x1dba10 <SW::WifiSettings::setAP_SSID_q(QString)+0x64>
+  1db9f0: 12800000     	mov	w0, #-0x1               // =-1
+  1db9f4: 94038633     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1db9f8: 7100041f     	cmp	w0, #0x1
+  1db9fc: 540000a1     	b.ne	0x1dba10 <SW::WifiSettings::setAP_SSID_q(QString)+0x64>
+  1dba00: f94013e0     	ldr	x0, [sp, #0x20]
+  1dba04: 52800021     	mov	w1, #0x1                // =1
+  1dba08: 52800102     	mov	w2, #0x8                // =8
+  1dba0c: 940395b5     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=1(0x1), x2=8(0x8)]
+  1dba10: aa1303f5     	mov	x21, x19
+  1dba14: 38408ea8     	ldrb	w8, [x21, #0x8]!
+  1dba18: 36000068     	tbz	w8, #0x0, 0x1dba24 <SW::WifiSettings::setAP_SSID_q(QString)+0x78>
+  1dba1c: f9400e60     	ldr	x0, [x19, #0x18]
+  1dba20: 9403965c     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1dba24: 3cc083e0     	ldur	q0, [sp, #0x8]
+  1dba28: f9400fe8     	ldr	x8, [sp, #0x18]
+  1dba2c: 3d8002a0     	str	q0, [x21]
+  1dba30: f9000aa8     	str	x8, [x21, #0x10]
+  1dba34: f9401688     	ldr	x8, [x20, #0x28]
+  1dba38: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1dba3c: eb09011f     	cmp	x8, x9
+  1dba40: 540002e1     	b.ne	0x1dba9c <SW::WifiSettings::setAP_SSID_q(QString)+0xf0>
+  1dba44: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  1dba48: f9402bf5     	ldr	x21, [sp, #0x50]
+  1dba4c: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+  1dba50: 9101c3ff     	add	sp, sp, #0x70
+  1dba54: d65f03c0     	ret
+  1dba58: f94013e1     	ldr	x1, [sp, #0x20]
+  1dba5c: aa0003f3     	mov	x19, x0
+  1dba60: b4000121     	cbz	x1, 0x1dba84 <SW::WifiSettings::setAP_SSID_q(QString)+0xd8>
+  1dba64: 12800000     	mov	w0, #-0x1               // =-1
+  1dba68: 94038616     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1dba6c: 7100041f     	cmp	w0, #0x1
+  1dba70: 540000a1     	b.ne	0x1dba84 <SW::WifiSettings::setAP_SSID_q(QString)+0xd8>
+  1dba74: f94013e0     	ldr	x0, [sp, #0x20]
+  1dba78: 52800021     	mov	w1, #0x1                // =1
+  1dba7c: 52800102     	mov	w2, #0x8                // =8
+  1dba80: 94039598     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=1(0x1), x2=8(0x8)]
+  1dba84: f9401688     	ldr	x8, [x20, #0x28]
+  1dba88: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1dba8c: eb09011f     	cmp	x8, x9
+  1dba90: 54000061     	b.ne	0x1dba9c <SW::WifiSettings::setAP_SSID_q(QString)+0xf0>
+  1dba94: aa1303e0     	mov	x0, x19
+  1dba98: 9403867b     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1dba9c: 940395c5     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001dbaa0 <SW::WifiSettings::setAP_pass_q(QString)>:
+  1dbaa0: d101c3ff     	sub	sp, sp, #0x70
+  1dbaa4: a9047bfd     	stp	x29, x30, [sp, #0x40]
+  1dbaa8: f9002bf5     	str	x21, [sp, #0x50]
+  1dbaac: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  1dbab0: 910103fd     	add	x29, sp, #0x40
+  1dbab4: d53bd054     	mrs	x20, TPIDR_EL0
+  1dbab8: aa0003f3     	mov	x19, x0
+  1dbabc: aa0103e0     	mov	x0, x1
+  1dbac0: f9401688     	ldr	x8, [x20, #0x28]
+  1dbac4: f81f83a8     	stur	x8, [x29, #-0x8]
+  1dbac8: 910083e8     	add	x8, sp, #0x20
+  1dbacc: 9403989d     	bl	0x2c1d40 <_ZN7QString13toUtf8_helperERKS_@plt>  ;;; CALL QString::toUtf8_helper(QString const&)
+  1dbad0: 910023e8     	add	x8, sp, #0x8
+  1dbad4: 910083e0     	add	x0, sp, #0x20
+  1dbad8: 94039982     	bl	0x2c20e0 <_ZNK10QByteArray11toStdStringEv@plt>  ;;; CALL QByteArray::toStdString() const
+  1dbadc: f94013e1     	ldr	x1, [sp, #0x20]
+  1dbae0: b4000121     	cbz	x1, 0x1dbb04 <SW::WifiSettings::setAP_pass_q(QString)+0x64>
+  1dbae4: 12800000     	mov	w0, #-0x1               // =-1
+  1dbae8: 940385f6     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1dbaec: 7100041f     	cmp	w0, #0x1
+  1dbaf0: 540000a1     	b.ne	0x1dbb04 <SW::WifiSettings::setAP_pass_q(QString)+0x64>
+  1dbaf4: f94013e0     	ldr	x0, [sp, #0x20]
+  1dbaf8: 52800021     	mov	w1, #0x1                // =1
+  1dbafc: 52800102     	mov	w2, #0x8                // =8
+  1dbb00: 94039578     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=1(0x1), x2=8(0x8)]
+  1dbb04: aa1303f5     	mov	x21, x19
+  1dbb08: 38420ea8     	ldrb	w8, [x21, #0x20]!
+  1dbb0c: 36000068     	tbz	w8, #0x0, 0x1dbb18 <SW::WifiSettings::setAP_pass_q(QString)+0x78>
+  1dbb10: f9401a60     	ldr	x0, [x19, #0x30]
+  1dbb14: 9403961f     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1dbb18: 3cc083e0     	ldur	q0, [sp, #0x8]
+  1dbb1c: f9400fe8     	ldr	x8, [sp, #0x18]
+  1dbb20: 3d8002a0     	str	q0, [x21]
+  1dbb24: f9000aa8     	str	x8, [x21, #0x10]
+  1dbb28: f9401688     	ldr	x8, [x20, #0x28]
+  1dbb2c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1dbb30: eb09011f     	cmp	x8, x9
+  1dbb34: 540002e1     	b.ne	0x1dbb90 <SW::WifiSettings::setAP_pass_q(QString)+0xf0>
+  1dbb38: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  1dbb3c: f9402bf5     	ldr	x21, [sp, #0x50]
+  1dbb40: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+  1dbb44: 9101c3ff     	add	sp, sp, #0x70
+  1dbb48: d65f03c0     	ret
+  1dbb4c: f94013e1     	ldr	x1, [sp, #0x20]
+  1dbb50: aa0003f3     	mov	x19, x0
+  1dbb54: b4000121     	cbz	x1, 0x1dbb78 <SW::WifiSettings::setAP_pass_q(QString)+0xd8>
+  1dbb58: 12800000     	mov	w0, #-0x1               // =-1
+  1dbb5c: 940385d9     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1dbb60: 7100041f     	cmp	w0, #0x1
+  1dbb64: 540000a1     	b.ne	0x1dbb78 <SW::WifiSettings::setAP_pass_q(QString)+0xd8>
+  1dbb68: f94013e0     	ldr	x0, [sp, #0x20]
+  1dbb6c: 52800021     	mov	w1, #0x1                // =1
+  1dbb70: 52800102     	mov	w2, #0x8                // =8
+  1dbb74: 9403955b     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=1(0x1), x2=8(0x8)]
+  1dbb78: f9401688     	ldr	x8, [x20, #0x28]
+  1dbb7c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1dbb80: eb09011f     	cmp	x8, x9
+  1dbb84: 54000061     	b.ne	0x1dbb90 <SW::WifiSettings::setAP_pass_q(QString)+0xf0>
+  1dbb88: aa1303e0     	mov	x0, x19
+  1dbb8c: 9403863e     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1dbb90: 94039588     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001dbb94 <SW::WifiSettings::setSTA_SSID_q(QString)>:
+  1dbb94: d101c3ff     	sub	sp, sp, #0x70
+  1dbb98: a9047bfd     	stp	x29, x30, [sp, #0x40]
+  1dbb9c: f9002bf5     	str	x21, [sp, #0x50]
+  1dbba0: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  1dbba4: 910103fd     	add	x29, sp, #0x40
+  1dbba8: d53bd054     	mrs	x20, TPIDR_EL0
+  1dbbac: aa0003f3     	mov	x19, x0
+  1dbbb0: aa0103e0     	mov	x0, x1
+  1dbbb4: f9401688     	ldr	x8, [x20, #0x28]
+  1dbbb8: f81f83a8     	stur	x8, [x29, #-0x8]
+  1dbbbc: 910083e8     	add	x8, sp, #0x20
+  1dbbc0: 94039860     	bl	0x2c1d40 <_ZN7QString13toUtf8_helperERKS_@plt>  ;;; CALL QString::toUtf8_helper(QString const&)
+  1dbbc4: 910023e8     	add	x8, sp, #0x8
+  1dbbc8: 910083e0     	add	x0, sp, #0x20
+  1dbbcc: 94039945     	bl	0x2c20e0 <_ZNK10QByteArray11toStdStringEv@plt>  ;;; CALL QByteArray::toStdString() const
+  1dbbd0: f94013e1     	ldr	x1, [sp, #0x20]
+  1dbbd4: b4000121     	cbz	x1, 0x1dbbf8 <SW::WifiSettings::setSTA_SSID_q(QString)+0x64>
+  1dbbd8: 12800000     	mov	w0, #-0x1               // =-1
+  1dbbdc: 940385b9     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1dbbe0: 7100041f     	cmp	w0, #0x1
+  1dbbe4: 540000a1     	b.ne	0x1dbbf8 <SW::WifiSettings::setSTA_SSID_q(QString)+0x64>
+  1dbbe8: f94013e0     	ldr	x0, [sp, #0x20]
+  1dbbec: 52800021     	mov	w1, #0x1                // =1
+  1dbbf0: 52800102     	mov	w2, #0x8                // =8
+  1dbbf4: 9403953b     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=1(0x1), x2=8(0x8)]
+  1dbbf8: aa1303f5     	mov	x21, x19
+  1dbbfc: 38438ea8     	ldrb	w8, [x21, #0x38]!
+  1dbc00: 36000068     	tbz	w8, #0x0, 0x1dbc0c <SW::WifiSettings::setSTA_SSID_q(QString)+0x78>
+  1dbc04: f9402660     	ldr	x0, [x19, #0x48]
+  1dbc08: 940395e2     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1dbc0c: 3cc083e0     	ldur	q0, [sp, #0x8]
+  1dbc10: f9400fe8     	ldr	x8, [sp, #0x18]
+  1dbc14: 3d8002a0     	str	q0, [x21]
+  1dbc18: f9000aa8     	str	x8, [x21, #0x10]
+  1dbc1c: f9401688     	ldr	x8, [x20, #0x28]
+  1dbc20: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1dbc24: eb09011f     	cmp	x8, x9
+  1dbc28: 540002e1     	b.ne	0x1dbc84 <SW::WifiSettings::setSTA_SSID_q(QString)+0xf0>
+  1dbc2c: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  1dbc30: f9402bf5     	ldr	x21, [sp, #0x50]
+  1dbc34: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+  1dbc38: 9101c3ff     	add	sp, sp, #0x70
+  1dbc3c: d65f03c0     	ret
+  1dbc40: f94013e1     	ldr	x1, [sp, #0x20]
+  1dbc44: aa0003f3     	mov	x19, x0
+  1dbc48: b4000121     	cbz	x1, 0x1dbc6c <SW::WifiSettings::setSTA_SSID_q(QString)+0xd8>
+  1dbc4c: 12800000     	mov	w0, #-0x1               // =-1
+  1dbc50: 9403859c     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1dbc54: 7100041f     	cmp	w0, #0x1
+  1dbc58: 540000a1     	b.ne	0x1dbc6c <SW::WifiSettings::setSTA_SSID_q(QString)+0xd8>
+  1dbc5c: f94013e0     	ldr	x0, [sp, #0x20]
+  1dbc60: 52800021     	mov	w1, #0x1                // =1
+  1dbc64: 52800102     	mov	w2, #0x8                // =8
+  1dbc68: 9403951e     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=1(0x1), x2=8(0x8)]
+  1dbc6c: f9401688     	ldr	x8, [x20, #0x28]
+  1dbc70: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1dbc74: eb09011f     	cmp	x8, x9
+  1dbc78: 54000061     	b.ne	0x1dbc84 <SW::WifiSettings::setSTA_SSID_q(QString)+0xf0>
+  1dbc7c: aa1303e0     	mov	x0, x19
+  1dbc80: 94038601     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1dbc84: 9403954b     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001dbc88 <SW::WifiSettings::setSTA_pass_q(QString)>:
+  1dbc88: d101c3ff     	sub	sp, sp, #0x70
+  1dbc8c: a9047bfd     	stp	x29, x30, [sp, #0x40]
+  1dbc90: f9002bf5     	str	x21, [sp, #0x50]
+  1dbc94: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  1dbc98: 910103fd     	add	x29, sp, #0x40
+  1dbc9c: d53bd054     	mrs	x20, TPIDR_EL0
+  1dbca0: aa0003f3     	mov	x19, x0
+  1dbca4: aa0103e0     	mov	x0, x1
+  1dbca8: f9401688     	ldr	x8, [x20, #0x28]
+  1dbcac: f81f83a8     	stur	x8, [x29, #-0x8]
+  1dbcb0: 910083e8     	add	x8, sp, #0x20
+  1dbcb4: 94039823     	bl	0x2c1d40 <_ZN7QString13toUtf8_helperERKS_@plt>  ;;; CALL QString::toUtf8_helper(QString const&)
+  1dbcb8: 910023e8     	add	x8, sp, #0x8
+  1dbcbc: 910083e0     	add	x0, sp, #0x20
+  1dbcc0: 94039908     	bl	0x2c20e0 <_ZNK10QByteArray11toStdStringEv@plt>  ;;; CALL QByteArray::toStdString() const
+  1dbcc4: f94013e1     	ldr	x1, [sp, #0x20]
+  1dbcc8: b4000121     	cbz	x1, 0x1dbcec <SW::WifiSettings::setSTA_pass_q(QString)+0x64>
+  1dbccc: 12800000     	mov	w0, #-0x1               // =-1
+  1dbcd0: 9403857c     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1dbcd4: 7100041f     	cmp	w0, #0x1
+  1dbcd8: 540000a1     	b.ne	0x1dbcec <SW::WifiSettings::setSTA_pass_q(QString)+0x64>
+  1dbcdc: f94013e0     	ldr	x0, [sp, #0x20]
+  1dbce0: 52800021     	mov	w1, #0x1                // =1
+  1dbce4: 52800102     	mov	w2, #0x8                // =8
+  1dbce8: 940394fe     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=1(0x1), x2=8(0x8)]
+  1dbcec: aa1303f5     	mov	x21, x19
+  1dbcf0: 38450ea8     	ldrb	w8, [x21, #0x50]!
+  1dbcf4: 36000068     	tbz	w8, #0x0, 0x1dbd00 <SW::WifiSettings::setSTA_pass_q(QString)+0x78>
+  1dbcf8: f9403260     	ldr	x0, [x19, #0x60]
+  1dbcfc: 940395a5     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1dbd00: 3cc083e0     	ldur	q0, [sp, #0x8]
+  1dbd04: f9400fe8     	ldr	x8, [sp, #0x18]
+  1dbd08: 3d8002a0     	str	q0, [x21]
+  1dbd0c: f9000aa8     	str	x8, [x21, #0x10]
+  1dbd10: f9401688     	ldr	x8, [x20, #0x28]
+  1dbd14: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1dbd18: eb09011f     	cmp	x8, x9
+  1dbd1c: 540002e1     	b.ne	0x1dbd78 <SW::WifiSettings::setSTA_pass_q(QString)+0xf0>
+  1dbd20: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  1dbd24: f9402bf5     	ldr	x21, [sp, #0x50]
+  1dbd28: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+  1dbd2c: 9101c3ff     	add	sp, sp, #0x70
+  1dbd30: d65f03c0     	ret
+  1dbd34: f94013e1     	ldr	x1, [sp, #0x20]
+  1dbd38: aa0003f3     	mov	x19, x0
+  1dbd3c: b4000121     	cbz	x1, 0x1dbd60 <SW::WifiSettings::setSTA_pass_q(QString)+0xd8>
+  1dbd40: 12800000     	mov	w0, #-0x1               // =-1
+  1dbd44: 9403855f     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1dbd48: 7100041f     	cmp	w0, #0x1
+  1dbd4c: 540000a1     	b.ne	0x1dbd60 <SW::WifiSettings::setSTA_pass_q(QString)+0xd8>
+  1dbd50: f94013e0     	ldr	x0, [sp, #0x20]
+  1dbd54: 52800021     	mov	w1, #0x1                // =1
+  1dbd58: 52800102     	mov	w2, #0x8                // =8
+  1dbd5c: 940394e1     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=1(0x1), x2=8(0x8)]
+  1dbd60: f9401688     	ldr	x8, [x20, #0x28]
+  1dbd64: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1dbd68: eb09011f     	cmp	x8, x9
+  1dbd6c: 54000061     	b.ne	0x1dbd78 <SW::WifiSettings::setSTA_pass_q(QString)+0xf0>
+  1dbd70: aa1303e0     	mov	x0, x19
+  1dbd74: 940385c4     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1dbd78: 9403950e     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001dbd7c <SW::WifiSettings::setSTA_fixedIP_q(QString)>:
+  1dbd7c: d101c3ff     	sub	sp, sp, #0x70
+  1dbd80: a9047bfd     	stp	x29, x30, [sp, #0x40]
+  1dbd84: f9002bf5     	str	x21, [sp, #0x50]
+  1dbd88: a9064ff4     	stp	x20, x19, [sp, #0x60]
+  1dbd8c: 910103fd     	add	x29, sp, #0x40
+  1dbd90: d53bd054     	mrs	x20, TPIDR_EL0
+  1dbd94: aa0003f3     	mov	x19, x0
+  1dbd98: aa0103e0     	mov	x0, x1
+  1dbd9c: f9401688     	ldr	x8, [x20, #0x28]
+  1dbda0: f81f83a8     	stur	x8, [x29, #-0x8]
+  1dbda4: 910083e8     	add	x8, sp, #0x20
+  1dbda8: 940397e6     	bl	0x2c1d40 <_ZN7QString13toUtf8_helperERKS_@plt>  ;;; CALL QString::toUtf8_helper(QString const&)
+  1dbdac: 910023e8     	add	x8, sp, #0x8
+  1dbdb0: 910083e0     	add	x0, sp, #0x20
+  1dbdb4: 940398cb     	bl	0x2c20e0 <_ZNK10QByteArray11toStdStringEv@plt>  ;;; CALL QByteArray::toStdString() const
+  1dbdb8: f94013e1     	ldr	x1, [sp, #0x20]
+  1dbdbc: b4000121     	cbz	x1, 0x1dbde0 <SW::WifiSettings::setSTA_fixedIP_q(QString)+0x64>
+  1dbdc0: 12800000     	mov	w0, #-0x1               // =-1
+  1dbdc4: 9403853f     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1dbdc8: 7100041f     	cmp	w0, #0x1
+  1dbdcc: 540000a1     	b.ne	0x1dbde0 <SW::WifiSettings::setSTA_fixedIP_q(QString)+0x64>
+  1dbdd0: f94013e0     	ldr	x0, [sp, #0x20]
+  1dbdd4: 52800021     	mov	w1, #0x1                // =1
+  1dbdd8: 52800102     	mov	w2, #0x8                // =8
+  1dbddc: 940394c1     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=1(0x1), x2=8(0x8)]
+  1dbde0: aa1303f5     	mov	x21, x19
+  1dbde4: 38468ea8     	ldrb	w8, [x21, #0x68]!
+  1dbde8: 36000068     	tbz	w8, #0x0, 0x1dbdf4 <SW::WifiSettings::setSTA_fixedIP_q(QString)+0x78>
+  1dbdec: f9403e60     	ldr	x0, [x19, #0x78]
+  1dbdf0: 94039568     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1dbdf4: 3cc083e0     	ldur	q0, [sp, #0x8]
+  1dbdf8: f9400fe8     	ldr	x8, [sp, #0x18]
+  1dbdfc: 3d8002a0     	str	q0, [x21]
+  1dbe00: f9000aa8     	str	x8, [x21, #0x10]
+  1dbe04: f9401688     	ldr	x8, [x20, #0x28]
+  1dbe08: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1dbe0c: eb09011f     	cmp	x8, x9
+  1dbe10: 540002e1     	b.ne	0x1dbe6c <SW::WifiSettings::setSTA_fixedIP_q(QString)+0xf0>
+  1dbe14: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+  1dbe18: f9402bf5     	ldr	x21, [sp, #0x50]
+  1dbe1c: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+  1dbe20: 9101c3ff     	add	sp, sp, #0x70
+  1dbe24: d65f03c0     	ret
+  1dbe28: f94013e1     	ldr	x1, [sp, #0x20]
+  1dbe2c: aa0003f3     	mov	x19, x0
+  1dbe30: b4000121     	cbz	x1, 0x1dbe54 <SW::WifiSettings::setSTA_fixedIP_q(QString)+0xd8>
+  1dbe34: 12800000     	mov	w0, #-0x1               // =-1
+  1dbe38: 94038522     	bl	0x2bd2c0 <__aarch64_ldadd4_acq_rel>  ;;; CALL __aarch64_ldadd4_acq_rel
+  1dbe3c: 7100041f     	cmp	w0, #0x1
+  1dbe40: 540000a1     	b.ne	0x1dbe54 <SW::WifiSettings::setSTA_fixedIP_q(QString)+0xd8>
+  1dbe44: f94013e0     	ldr	x0, [sp, #0x20]
+  1dbe48: 52800021     	mov	w1, #0x1                // =1
+  1dbe4c: 52800102     	mov	w2, #0x8                // =8
+  1dbe50: 940394a4     	bl	0x2c10e0 <_ZN10QArrayData10deallocateEPS_xx@plt>  ;;; CALL QArrayData::deallocate(QArrayData*, long long, long long)  [x1=1(0x1), x2=8(0x8)]
+  1dbe54: f9401688     	ldr	x8, [x20, #0x28]
+  1dbe58: f85f83a9     	ldur	x9, [x29, #-0x8]
+  1dbe5c: eb09011f     	cmp	x8, x9
+  1dbe60: 54000061     	b.ne	0x1dbe6c <SW::WifiSettings::setSTA_fixedIP_q(QString)+0xf0>
+  1dbe64: aa1303e0     	mov	x0, x19
+  1dbe68: 94038587     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1dbe6c: 940394d1     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+00000000001e0ba8 <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)>:
+  1e0ba8: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  1e0bac: f9000bf5     	str	x21, [sp, #0x10]
+  1e0bb0: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  1e0bb4: 910003fd     	mov	x29, sp
+  1e0bb8: b9400028     	ldr	w8, [x1]
+  1e0bbc: aa0003f4     	mov	x20, x0
+  1e0bc0: aa0103f5     	mov	x21, x1
+  1e0bc4: aa0003f3     	mov	x19, x0
+  1e0bc8: b8008688     	str	w8, [x20], #0x8
+  1e0bcc: aa0103e8     	mov	x8, x1
+  1e0bd0: 38408d09     	ldrb	w9, [x8, #0x8]!
+  1e0bd4: 37000269     	tbnz	w9, #0x0, 0x1e0c20 <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)+0x78>
+  1e0bd8: f9400909     	ldr	x9, [x8, #0x10]
+  1e0bdc: 3dc00100     	ldr	q0, [x8]
+  1e0be0: f9000a89     	str	x9, [x20, #0x10]
+  1e0be4: 3d800280     	str	q0, [x20]
+  1e0be8: aa1503e8     	mov	x8, x21
+  1e0bec: 38420d09     	ldrb	w9, [x8, #0x20]!
+  1e0bf0: 36000249     	tbz	w9, #0x0, 0x1e0c38 <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)+0x90>
+  1e0bf4: a94286a2     	ldp	x2, x1, [x21, #0x28]
+  1e0bf8: 91008260     	add	x0, x19, #0x20
+  1e0bfc: 94038569     	bl	0x2c21a0 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE25__init_copy_ctor_externalEPKcm@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::__init_copy_ctor_external(char const*, unsigned long)
+  1e0c00: aa1503e8     	mov	x8, x21
+  1e0c04: 38438d09     	ldrb	w9, [x8, #0x38]!
+  1e0c08: 37000269     	tbnz	w9, #0x0, 0x1e0c54 <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)+0xac>
+  1e0c0c: f9400909     	ldr	x9, [x8, #0x10]
+  1e0c10: 3dc00100     	ldr	q0, [x8]
+  1e0c14: f8048269     	stur	x9, [x19, #0x48]
+  1e0c18: 3c838260     	stur	q0, [x19, #0x38]
+  1e0c1c: 14000011     	b	0x1e0c60 <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)+0xb8>
+  1e0c20: a94106a2     	ldp	x2, x1, [x21, #0x10]
+  1e0c24: aa1403e0     	mov	x0, x20
+  1e0c28: 9403855e     	bl	0x2c21a0 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE25__init_copy_ctor_externalEPKcm@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::__init_copy_ctor_external(char const*, unsigned long)
+  1e0c2c: aa1503e8     	mov	x8, x21
+  1e0c30: 38420d09     	ldrb	w9, [x8, #0x20]!
+  1e0c34: 3707fe09     	tbnz	w9, #0x0, 0x1e0bf4 <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)+0x4c>
+  1e0c38: f9400909     	ldr	x9, [x8, #0x10]
+  1e0c3c: 3dc00100     	ldr	q0, [x8]
+  1e0c40: f8030269     	stur	x9, [x19, #0x30]
+  1e0c44: 3c820260     	stur	q0, [x19, #0x20]
+  1e0c48: aa1503e8     	mov	x8, x21
+  1e0c4c: 38438d09     	ldrb	w9, [x8, #0x38]!
+  1e0c50: 3607fde9     	tbz	w9, #0x0, 0x1e0c0c <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)+0x64>
+  1e0c54: a94406a2     	ldp	x2, x1, [x21, #0x40]
+  1e0c58: 9100e260     	add	x0, x19, #0x38
+  1e0c5c: 94038551     	bl	0x2c21a0 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE25__init_copy_ctor_externalEPKcm@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::__init_copy_ctor_external(char const*, unsigned long)
+  1e0c60: aa1503e8     	mov	x8, x21
+  1e0c64: 38450d09     	ldrb	w9, [x8, #0x50]!
+  1e0c68: 370000c9     	tbnz	w9, #0x0, 0x1e0c80 <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)+0xd8>
+  1e0c6c: f9400909     	ldr	x9, [x8, #0x10]
+  1e0c70: 3dc00100     	ldr	q0, [x8]
+  1e0c74: f8060269     	stur	x9, [x19, #0x60]
+  1e0c78: 3c850260     	stur	q0, [x19, #0x50]
+  1e0c7c: 14000004     	b	0x1e0c8c <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)+0xe4>
+  1e0c80: a94586a2     	ldp	x2, x1, [x21, #0x58]
+  1e0c84: 91014260     	add	x0, x19, #0x50
+  1e0c88: 94038546     	bl	0x2c21a0 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE25__init_copy_ctor_externalEPKcm@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::__init_copy_ctor_external(char const*, unsigned long)
+  1e0c8c: aa1503e8     	mov	x8, x21
+  1e0c90: 38468d09     	ldrb	w9, [x8, #0x68]!
+  1e0c94: 37000169     	tbnz	w9, #0x0, 0x1e0cc0 <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)+0x118>
+  1e0c98: f9400909     	ldr	x9, [x8, #0x10]
+  1e0c9c: 3dc00100     	ldr	q0, [x8]
+  1e0ca0: f8078269     	stur	x9, [x19, #0x78]
+  1e0ca4: 3c868260     	stur	q0, [x19, #0x68]
+  1e0ca8: b94082a8     	ldr	w8, [x21, #0x80]
+  1e0cac: b9008268     	str	w8, [x19, #0x80]
+  1e0cb0: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  1e0cb4: f9400bf5     	ldr	x21, [sp, #0x10]
+  1e0cb8: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  1e0cbc: d65f03c0     	ret
+  1e0cc0: a94706a2     	ldp	x2, x1, [x21, #0x70]
+  1e0cc4: 9101a260     	add	x0, x19, #0x68
+  1e0cc8: 94038536     	bl	0x2c21a0 <_ZNSt6__ndk112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE25__init_copy_ctor_externalEPKcm@plt>  ;;; CALL std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>::__init_copy_ctor_external(char const*, unsigned long)
+  1e0ccc: b94082a8     	ldr	w8, [x21, #0x80]
+  1e0cd0: b9008268     	str	w8, [x19, #0x80]
+  1e0cd4: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  1e0cd8: f9400bf5     	ldr	x21, [sp, #0x10]
+  1e0cdc: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  1e0ce0: d65f03c0     	ret
+  1e0ce4: 38450268     	ldurb	w8, [x19, #0x50]
+  1e0ce8: aa0003f5     	mov	x21, x0
+  1e0cec: 37000128     	tbnz	w8, #0x0, 0x1e0d10 <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)+0x168>
+  1e0cf0: 38438268     	ldurb	w8, [x19, #0x38]
+  1e0cf4: 370001e8     	tbnz	w8, #0x0, 0x1e0d30 <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)+0x188>
+  1e0cf8: 38420268     	ldurb	w8, [x19, #0x20]
+  1e0cfc: 370002a8     	tbnz	w8, #0x0, 0x1e0d50 <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)+0x1a8>
+  1e0d00: 39400288     	ldrb	w8, [x20]
+  1e0d04: 37000368     	tbnz	w8, #0x0, 0x1e0d70 <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)+0x1c8>
+  1e0d08: aa1503e0     	mov	x0, x21
+  1e0d0c: 940371de     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  1e0d10: f9403260     	ldr	x0, [x19, #0x60]
+  1e0d14: 9403819f     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1e0d18: 38438268     	ldurb	w8, [x19, #0x38]
+  1e0d1c: 3607fee8     	tbz	w8, #0x0, 0x1e0cf8 <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)+0x150>
+  1e0d20: 14000004     	b	0x1e0d30 <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)+0x188>
+  1e0d24: aa0003f5     	mov	x21, x0
+  1e0d28: 38438268     	ldurb	w8, [x19, #0x38]
+  1e0d2c: 3607fe68     	tbz	w8, #0x0, 0x1e0cf8 <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)+0x150>
+  1e0d30: f9402660     	ldr	x0, [x19, #0x48]
+  1e0d34: 94038197     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1e0d38: 38420268     	ldurb	w8, [x19, #0x20]
+  1e0d3c: 3607fe28     	tbz	w8, #0x0, 0x1e0d00 <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)+0x158>
+  1e0d40: 14000004     	b	0x1e0d50 <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)+0x1a8>
+  1e0d44: aa0003f5     	mov	x21, x0
+  1e0d48: 38420268     	ldurb	w8, [x19, #0x20]
+  1e0d4c: 3607fda8     	tbz	w8, #0x0, 0x1e0d00 <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)+0x158>
+  1e0d50: f9401a60     	ldr	x0, [x19, #0x30]
+  1e0d54: 9403818f     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1e0d58: 39400288     	ldrb	w8, [x20]
+  1e0d5c: 3607fd68     	tbz	w8, #0x0, 0x1e0d08 <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)+0x160>
+  1e0d60: 14000004     	b	0x1e0d70 <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)+0x1c8>
+  1e0d64: aa0003f5     	mov	x21, x0
+  1e0d68: 39400288     	ldrb	w8, [x20]
+  1e0d6c: 3607fce8     	tbz	w8, #0x0, 0x1e0d08 <SW::WifiSettings::WifiSettings(SW::WifiSettings const&)+0x160>
+  1e0d70: f9400e60     	ldr	x0, [x19, #0x18]
+  1e0d74: 94038187     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  1e0d78: aa1503e0     	mov	x0, x21
+  1e0d7c: 940371c2     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+

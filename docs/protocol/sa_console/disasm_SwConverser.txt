@@ -1,0 +1,541 @@
+00000000002406a4 <SW::SwConverser::converse(SW::SwCmd const&)>:
+  2406a4: d10143ff     	sub	sp, sp, #0x50
+  2406a8: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  2406ac: f9001bf5     	str	x21, [sp, #0x30]
+  2406b0: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  2406b4: 910083fd     	add	x29, sp, #0x20
+  2406b8: d53bd055     	mrs	x21, TPIDR_EL0
+  2406bc: aa0803f4     	mov	x20, x8
+  2406c0: aa0003f3     	mov	x19, x0
+  2406c4: f94016a8     	ldr	x8, [x21, #0x28]
+  2406c8: aa0103e0     	mov	x0, x1
+  2406cc: f81f83a8     	stur	x8, [x29, #-0x8]
+  2406d0: 910003e8     	mov	x8, sp
+  2406d4: 9402102f     	bl	0x2c4790 <_ZNK2SW5SwCmd6encodeEv@plt>  ;;; CALL SW::SwCmd::encode() const
+  2406d8: f9400268     	ldr	x8, [x19]  ; vptr of SW::SwConverser
+  2406dc: f9400d09     	ldr	x9, [x8, #0x18]  ; -> SW::SwConverser::converse(SW::CBytes const&)
+  2406e0: 910003e1     	mov	x1, sp
+  2406e4: aa1403e8     	mov	x8, x20
+  2406e8: aa1303e0     	mov	x0, x19
+  2406ec: d63f0120     	blr	x9  ;;; CALL SW::SwConverser::converse(SW::CBytes const&)
+  2406f0: f94003e0     	ldr	x0, [sp]
+  2406f4: b4000060     	cbz	x0, 0x240700 <SW::SwConverser::converse(SW::SwCmd const&)+0x5c>
+  2406f8: f90007e0     	str	x0, [sp, #0x8]
+  2406fc: 94020325     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  240700: f94016a8     	ldr	x8, [x21, #0x28]
+  240704: f85f83a9     	ldur	x9, [x29, #-0x8]
+  240708: eb09011f     	cmp	x8, x9
+  24070c: 54000241     	b.ne	0x240754 <SW::SwConverser::converse(SW::SwCmd const&)+0xb0>
+  240710: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  240714: f9401bf5     	ldr	x21, [sp, #0x30]
+  240718: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  24071c: 910143ff     	add	sp, sp, #0x50
+  240720: d65f03c0     	ret
+  240724: f94003e8     	ldr	x8, [sp]
+  240728: aa0003f3     	mov	x19, x0
+  24072c: b4000088     	cbz	x8, 0x24073c <SW::SwConverser::converse(SW::SwCmd const&)+0x98>
+  240730: aa0803e0     	mov	x0, x8
+  240734: f90007e8     	str	x8, [sp, #0x8]
+  240738: 94020316     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  24073c: f94016a8     	ldr	x8, [x21, #0x28]
+  240740: f85f83a9     	ldur	x9, [x29, #-0x8]
+  240744: eb09011f     	cmp	x8, x9
+  240748: 54000061     	b.ne	0x240754 <SW::SwConverser::converse(SW::SwCmd const&)+0xb0>
+  24074c: aa1303e0     	mov	x0, x19
+  240750: 9401f34d     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  240754: 94020297     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000240758 <SW::SwConverser::converse(SW::CBytes const&)>:
+  240758: d10283ff     	sub	sp, sp, #0xa0
+  24075c: a9067bfd     	stp	x29, x30, [sp, #0x60]
+  240760: f9003bf7     	str	x23, [sp, #0x70]
+  240764: a90857f6     	stp	x22, x21, [sp, #0x80]
+  240768: a9094ff4     	stp	x20, x19, [sp, #0x90]
+  24076c: 910183fd     	add	x29, sp, #0x60
+  240770: d53bd057     	mrs	x23, TPIDR_EL0
+  240774: aa0803f3     	mov	x19, x8
+  240778: d100a3a8     	sub	x8, x29, #0x28
+  24077c: f94016e9     	ldr	x9, [x23, #0x28]
+  240780: aa0103f4     	mov	x20, x1
+  240784: f81f83a9     	stur	x9, [x29, #-0x8]
+  240788: f9400400     	ldr	x0, [x0, #0x8]
+  24078c: f9400009     	ldr	x9, [x0]
+  240790: f9400929     	ldr	x9, [x9, #0x10]
+  240794: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  240798: b85d83a8     	ldur	w8, [x29, #-0x28]
+  24079c: 34000148     	cbz	w8, 0x2407c4 <SW::SwConverser::converse(SW::CBytes const&)+0x6c>
+  2407a0: b85d83a8     	ldur	w8, [x29, #-0x28]
+  2407a4: 385dc3a9     	ldurb	w9, [x29, #-0x24]
+  2407a8: 3cde03a0     	ldur	q0, [x29, #-0x20]
+  2407ac: b9000268     	str	w8, [x19]
+  2407b0: f85f03a8     	ldur	x8, [x29, #-0x10]
+  2407b4: 39001269     	strb	w9, [x19, #0x4]
+  2407b8: 3c808260     	stur	q0, [x19, #0x8]
+  2407bc: f9000e68     	str	x8, [x19, #0x18]
+  2407c0: 14000030     	b	0x240880 <SW::SwConverser::converse(SW::CBytes const&)+0x128>
+  2407c4: 385dc3a8     	ldurb	w8, [x29, #-0x24]
+  2407c8: 34001268     	cbz	w8, 0x240a14 <SW::SwConverser::converse(SW::CBytes const&)+0x2bc>
+  2407cc: a97e23b6     	ldp	x22, x8, [x29, #-0x20]
+  2407d0: d100a3a9     	sub	x9, x29, #0x28
+  2407d4: 91002135     	add	x21, x9, #0x8
+  2407d8: eb160102     	subs	x2, x8, x22
+  2407dc: 54000180     	b.eq	0x24080c <SW::SwConverser::converse(SW::CBytes const&)+0xb4>
+  2407e0: aa1f03ea     	mov	x10, xzr
+  2407e4: 2a1f03e9     	mov	w9, wzr
+  2407e8: 386a6aca     	ldrb	w10, [x22, x10]
+  2407ec: 7100855f     	cmp	w10, #0x21
+  2407f0: 540005c0     	b.eq	0x2408a8 <SW::SwConverser::converse(SW::CBytes const&)+0x150>
+  2407f4: 7100f55f     	cmp	w10, #0x3d
+  2407f8: 54000580     	b.eq	0x2408a8 <SW::SwConverser::converse(SW::CBytes const&)+0x150>
+  2407fc: 1100052a     	add	w10, w9, #0x1
+  240800: eb0a005f     	cmp	x2, x10
+  240804: 2a0a03e9     	mov	w9, w10
+  240808: 54ffff08     	b.hi	0x2407e8 <SW::SwConverser::converse(SW::CBytes const&)+0x90>
+  24080c: aa1403e0     	mov	x0, x20
+  240810: aa1503e1     	mov	x1, x21
+  240814: 940000e1     	bl	0x240b98 <SW::logAbnormalResp(SW::CBytes const&, SW::CBytes const&)>  ;;; CALL SW::logAbnormalResp(SW::CBytes const&, SW::CBytes const&)
+  240818: 385dc3a8     	ldurb	w8, [x29, #-0x24]
+  24081c: 360011c8     	tbz	w8, #0x0, 0x240a54 <SW::SwConverser::converse(SW::CBytes const&)+0x2fc>
+  240820: 52800088     	mov	w8, #0x4                // =4
+  240824: 52800029     	mov	w9, #0x1                // =1
+  240828: aa1303f5     	mov	x21, x19
+  24082c: b9000268     	str	w8, [x19]
+  240830: a97e23b4     	ldp	x20, x8, [x29, #-0x20]
+  240834: 39001269     	strb	w9, [x19, #0x4]
+  240838: f8008ebf     	str	xzr, [x21, #0x8]!
+  24083c: eb140116     	subs	x22, x8, x20
+  240840: a9017e7f     	stp	xzr, xzr, [x19, #0x10]
+  240844: 54000160     	b.eq	0x240870 <SW::SwConverser::converse(SW::CBytes const&)+0x118>
+  240848: b7f81276     	tbnz	x22, #0x3f, 0x240a94 <SW::SwConverser::converse(SW::CBytes const&)+0x33c>
+  24084c: aa1603e0     	mov	x0, x22
+  240850: 9402022c     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  240854: 8b160015     	add	x21, x0, x22
+  240858: aa1403e1     	mov	x1, x20
+  24085c: aa1603e2     	mov	x2, x22
+  240860: f9000660     	str	x0, [x19, #0x8]
+  240864: f9000e75     	str	x21, [x19, #0x18]
+  240868: 94020786     	bl	0x2c2680 <memcpy@plt>  ;;; CALL memcpy
+  24086c: f9000a75     	str	x21, [x19, #0x10]
+  240870: b4000094     	cbz	x20, 0x240880 <SW::SwConverser::converse(SW::CBytes const&)+0x128>
+  240874: aa1403e0     	mov	x0, x20
+  240878: f81e83b4     	stur	x20, [x29, #-0x18]
+  24087c: 940202c5     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  240880: f94016e8     	ldr	x8, [x23, #0x28]
+  240884: f85f83a9     	ldur	x9, [x29, #-0x8]
+  240888: eb09011f     	cmp	x8, x9
+  24088c: 54001841     	b.ne	0x240b94 <SW::SwConverser::converse(SW::CBytes const&)+0x43c>
+  240890: a9494ff4     	ldp	x20, x19, [sp, #0x90]
+  240894: f9403bf7     	ldr	x23, [sp, #0x70]
+  240898: a94857f6     	ldp	x22, x21, [sp, #0x80]
+  24089c: a9467bfd     	ldp	x29, x30, [sp, #0x60]
+  2408a0: 910283ff     	add	sp, sp, #0xa0
+  2408a4: d65f03c0     	ret
+  2408a8: a9027fff     	stp	xzr, xzr, [sp, #0x20]
+  2408ac: f9001bff     	str	xzr, [sp, #0x30]
+  2408b0: 34000209     	cbz	w9, 0x2408f0 <SW::SwConverser::converse(SW::CBytes const&)+0x198>
+  2408b4: 2a0903e1     	mov	w1, w9
+  2408b8: 910023e8     	add	x8, sp, #0x8
+  2408bc: aa1503e0     	mov	x0, x21
+  2408c0: 94020b00     	bl	0x2c34c0 <_ZNK2SW6CBytes5SliceEmm@plt>  ;;; CALL SW::CBytes::Slice(unsigned long, unsigned long) const
+  2408c4: f94013e0     	ldr	x0, [sp, #0x20]
+  2408c8: b4000060     	cbz	x0, 0x2408d4 <SW::SwConverser::converse(SW::CBytes const&)+0x17c>
+  2408cc: f90017e0     	str	x0, [sp, #0x28]
+  2408d0: 940202b0     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2408d4: 3cc103e0     	ldur	q0, [sp, #0x10]
+  2408d8: f94007f6     	ldr	x22, [sp, #0x8]
+  2408dc: 910083f5     	add	x21, sp, #0x20
+  2408e0: 9e660008     	fmov	x8, d0
+  2408e4: 3c8283e0     	stur	q0, [sp, #0x28]
+  2408e8: f90013f6     	str	x22, [sp, #0x20]
+  2408ec: cb160102     	sub	x2, x8, x22
+  2408f0: f100085f     	cmp	x2, #0x2
+  2408f4: 54000343     	b.lo	0x24095c <SW::SwConverser::converse(SW::CBytes const&)+0x204>
+  2408f8: 8b0202c9     	add	x9, x22, x2
+  2408fc: 385ff129     	ldurb	w9, [x9, #-0x1]
+  240900: 7100353f     	cmp	w9, #0xd
+  240904: 540002c1     	b.ne	0x24095c <SW::SwConverser::converse(SW::CBytes const&)+0x204>
+  240908: 394002c9     	ldrb	w9, [x22]
+  24090c: 7100f53f     	cmp	w9, #0x3d
+  240910: 54000621     	b.ne	0x2409d4 <SW::SwConverser::converse(SW::CBytes const&)+0x27c>
+  240914: 52800029     	mov	w9, #0x1                // =1
+  240918: aa1303f4     	mov	x20, x19
+  24091c: eb16011f     	cmp	x8, x22
+  240920: b900027f     	str	wzr, [x19]
+  240924: 39001269     	strb	w9, [x19, #0x4]
+  240928: f8008e9f     	str	xzr, [x20, #0x8]!
+  24092c: a9017e7f     	stp	xzr, xzr, [x19, #0x10]
+  240930: 54000440     	b.eq	0x2409b8 <SW::SwConverser::converse(SW::CBytes const&)+0x260>
+  240934: b7f80c82     	tbnz	x2, #0x3f, 0x240ac4 <SW::SwConverser::converse(SW::CBytes const&)+0x36c>
+  240938: aa0203e0     	mov	x0, x2
+  24093c: aa0203f5     	mov	x21, x2
+  240940: 940201f0     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  240944: 8b150014     	add	x20, x0, x21
+  240948: f9000660     	str	x0, [x19, #0x8]
+  24094c: aa1503e2     	mov	x2, x21
+  240950: f9000e74     	str	x20, [x19, #0x18]
+  240954: aa1603e1     	mov	x1, x22
+  240958: 14000016     	b	0x2409b0 <SW::SwConverser::converse(SW::CBytes const&)+0x258>
+  24095c: aa1403e0     	mov	x0, x20
+  240960: aa1503e1     	mov	x1, x21
+  240964: 9400008d     	bl	0x240b98 <SW::logAbnormalResp(SW::CBytes const&, SW::CBytes const&)>  ;;; CALL SW::logAbnormalResp(SW::CBytes const&, SW::CBytes const&)
+  240968: 52800088     	mov	w8, #0x4                // =4
+  24096c: 52800029     	mov	w9, #0x1                // =1
+  240970: aa1303f4     	mov	x20, x19
+  240974: b9000268     	str	w8, [x19]
+  240978: a94022b6     	ldp	x22, x8, [x21]
+  24097c: 39001269     	strb	w9, [x19, #0x4]
+  240980: f8008e9f     	str	xzr, [x20, #0x8]!
+  240984: eb160115     	subs	x21, x8, x22
+  240988: a9017e7f     	stp	xzr, xzr, [x19, #0x10]
+  24098c: 54000160     	b.eq	0x2409b8 <SW::SwConverser::converse(SW::CBytes const&)+0x260>
+  240990: b7f808f5     	tbnz	x21, #0x3f, 0x240aac <SW::SwConverser::converse(SW::CBytes const&)+0x354>
+  240994: aa1503e0     	mov	x0, x21
+  240998: 940201da     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  24099c: 8b150014     	add	x20, x0, x21
+  2409a0: aa1603e1     	mov	x1, x22
+  2409a4: aa1503e2     	mov	x2, x21
+  2409a8: f9000660     	str	x0, [x19, #0x8]
+  2409ac: f9000e74     	str	x20, [x19, #0x18]
+  2409b0: 94020734     	bl	0x2c2680 <memcpy@plt>  ;;; CALL memcpy
+  2409b4: f9000a74     	str	x20, [x19, #0x10]
+  2409b8: f94013e0     	ldr	x0, [sp, #0x20]
+  2409bc: b4000060     	cbz	x0, 0x2409c8 <SW::SwConverser::converse(SW::CBytes const&)+0x270>
+  2409c0: f90017e0     	str	x0, [sp, #0x28]
+  2409c4: 94020273     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  2409c8: f85e03b4     	ldur	x20, [x29, #-0x20]
+  2409cc: b5fff554     	cbnz	x20, 0x240874 <SW::SwConverser::converse(SW::CBytes const&)+0x11c>
+  2409d0: 17ffffac     	b	0x240880 <SW::SwConverser::converse(SW::CBytes const&)+0x128>
+  2409d4: aa1403e0     	mov	x0, x20
+  2409d8: aa1503e1     	mov	x1, x21
+  2409dc: 9400006f     	bl	0x240b98 <SW::logAbnormalResp(SW::CBytes const&, SW::CBytes const&)>  ;;; CALL SW::logAbnormalResp(SW::CBytes const&, SW::CBytes const&)
+  2409e0: a94026b6     	ldp	x22, x9, [x21]
+  2409e4: 52800028     	mov	w8, #0x1                // =1
+  2409e8: aa1303f4     	mov	x20, x19
+  2409ec: b9000268     	str	w8, [x19]
+  2409f0: 39001268     	strb	w8, [x19, #0x4]
+  2409f4: eb160135     	subs	x21, x9, x22
+  2409f8: f8008e9f     	str	xzr, [x20, #0x8]!
+  2409fc: a9017e7f     	stp	xzr, xzr, [x19, #0x10]
+  240a00: 54fffdc0     	b.eq	0x2409b8 <SW::SwConverser::converse(SW::CBytes const&)+0x260>
+  240a04: b7f806d5     	tbnz	x21, #0x3f, 0x240adc <SW::SwConverser::converse(SW::CBytes const&)+0x384>
+  240a08: aa1503e0     	mov	x0, x21
+  240a0c: 940201bd     	bl	0x2c1100 <_Znwm@plt>  ;;; CALL operator new(unsigned long)
+  240a10: 17ffffe3     	b	0x24099c <SW::SwConverser::converse(SW::CBytes const&)+0x244>
+  240a14: 52800200     	mov	w0, #0x10               // =16
+  240a18: 940202e6     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  240a1c: aa0003f3     	mov	x19, x0
+  240a20: 90fff461     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  240a24: 9135a421     	add	x1, x1, #0xd69
+  240a28: 9402097e     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  240a2c: f94016e8     	ldr	x8, [x23, #0x28]
+  240a30: f85f83a9     	ldur	x9, [x29, #-0x8]
+  240a34: eb09011f     	cmp	x8, x9
+  240a38: 54000ae1     	b.ne	0x240b94 <SW::SwConverser::converse(SW::CBytes const&)+0x43c>
+  240a3c: b00004c1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  240a40: b00004c2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  240a44: aa1303e0     	mov	x0, x19
+  240a48: f9409c21     	ldr	x1, [x1, #0x138]
+  240a4c: f940a042     	ldr	x2, [x2, #0x140]
+  240a50: 940202e0     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  240a54: 52800200     	mov	w0, #0x10               // =16
+  240a58: 940202d6     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  240a5c: aa0003f3     	mov	x19, x0
+  240a60: 90fff461     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  240a64: 9135a421     	add	x1, x1, #0xd69
+  240a68: 9402096e     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  240a6c: f94016e8     	ldr	x8, [x23, #0x28]
+  240a70: f85f83a9     	ldur	x9, [x29, #-0x8]
+  240a74: eb09011f     	cmp	x8, x9
+  240a78: 540008e1     	b.ne	0x240b94 <SW::SwConverser::converse(SW::CBytes const&)+0x43c>
+  240a7c: b00004c1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  240a80: b00004c2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  240a84: aa1303e0     	mov	x0, x19
+  240a88: f9409c21     	ldr	x1, [x1, #0x138]
+  240a8c: f940a042     	ldr	x2, [x2, #0x140]
+  240a90: 940202d0     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  240a94: f94016e8     	ldr	x8, [x23, #0x28]
+  240a98: f85f83a9     	ldur	x9, [x29, #-0x8]
+  240a9c: eb09011f     	cmp	x8, x9
+  240aa0: 540007a1     	b.ne	0x240b94 <SW::SwConverser::converse(SW::CBytes const&)+0x43c>
+  240aa4: aa1503e0     	mov	x0, x21
+  240aa8: 97ff031e     	bl	0x201720 <std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char
+  240aac: f94016e8     	ldr	x8, [x23, #0x28]
+  240ab0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  240ab4: eb09011f     	cmp	x8, x9
+  240ab8: 540006e1     	b.ne	0x240b94 <SW::SwConverser::converse(SW::CBytes const&)+0x43c>
+  240abc: aa1403e0     	mov	x0, x20
+  240ac0: 97ff0318     	bl	0x201720 <std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char
+  240ac4: f94016e8     	ldr	x8, [x23, #0x28]
+  240ac8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  240acc: eb09011f     	cmp	x8, x9
+  240ad0: 54000621     	b.ne	0x240b94 <SW::SwConverser::converse(SW::CBytes const&)+0x43c>
+  240ad4: aa1403e0     	mov	x0, x20
+  240ad8: 97ff0312     	bl	0x201720 <std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char
+  240adc: f94016e8     	ldr	x8, [x23, #0x28]
+  240ae0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  240ae4: eb09011f     	cmp	x8, x9
+  240ae8: 54000561     	b.ne	0x240b94 <SW::SwConverser::converse(SW::CBytes const&)+0x43c>
+  240aec: aa1403e0     	mov	x0, x20
+  240af0: 97ff030c     	bl	0x201720 <std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char>>::__throw_length_error[abi:ne190000]() const>  ;;; CALL std::__ndk1::vector<unsigned char, std::__ndk1::allocator<unsigned char
+  240af4: 14000005     	b	0x240b08 <SW::SwConverser::converse(SW::CBytes const&)+0x3b0>
+  240af8: 14000006     	b	0x240b10 <SW::SwConverser::converse(SW::CBytes const&)+0x3b8>
+  240afc: 14000005     	b	0x240b10 <SW::SwConverser::converse(SW::CBytes const&)+0x3b8>
+  240b00: 14000002     	b	0x240b08 <SW::SwConverser::converse(SW::CBytes const&)+0x3b0>
+  240b04: 1400000e     	b	0x240b3c <SW::SwConverser::converse(SW::CBytes const&)+0x3e4>
+  240b08: aa0003f4     	mov	x20, x0
+  240b0c: 14000007     	b	0x240b28 <SW::SwConverser::converse(SW::CBytes const&)+0x3d0>
+  240b10: f9400288     	ldr	x8, [x20]
+  240b14: aa0003f4     	mov	x20, x0
+  240b18: b4000088     	cbz	x8, 0x240b28 <SW::SwConverser::converse(SW::CBytes const&)+0x3d0>
+  240b1c: aa0803e0     	mov	x0, x8
+  240b20: f9000a68     	str	x8, [x19, #0x10]
+  240b24: 9402021b     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  240b28: f94013e0     	ldr	x0, [sp, #0x20]
+  240b2c: b4000200     	cbz	x0, 0x240b6c <SW::SwConverser::converse(SW::CBytes const&)+0x414>
+  240b30: f90017e0     	str	x0, [sp, #0x28]
+  240b34: 1400000b     	b	0x240b60 <SW::SwConverser::converse(SW::CBytes const&)+0x408>
+  240b38: 1400000c     	b	0x240b68 <SW::SwConverser::converse(SW::CBytes const&)+0x410>
+  240b3c: aa0003f4     	mov	x20, x0
+  240b40: aa1303e0     	mov	x0, x19
+  240b44: 9402058f     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  240b48: 14000009     	b	0x240b6c <SW::SwConverser::converse(SW::CBytes const&)+0x414>
+  240b4c: f94002a8     	ldr	x8, [x21]
+  240b50: aa0003f4     	mov	x20, x0
+  240b54: b40000c8     	cbz	x8, 0x240b6c <SW::SwConverser::converse(SW::CBytes const&)+0x414>
+  240b58: f9000a68     	str	x8, [x19, #0x10]
+  240b5c: aa0803e0     	mov	x0, x8
+  240b60: 9402020c     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  240b64: 14000002     	b	0x240b6c <SW::SwConverser::converse(SW::CBytes const&)+0x414>
+  240b68: aa0003f4     	mov	x20, x0
+  240b6c: f85e03a0     	ldur	x0, [x29, #-0x20]
+  240b70: b4000060     	cbz	x0, 0x240b7c <SW::SwConverser::converse(SW::CBytes const&)+0x424>
+  240b74: f81e83a0     	stur	x0, [x29, #-0x18]
+  240b78: 94020206     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  240b7c: f94016e8     	ldr	x8, [x23, #0x28]
+  240b80: f85f83a9     	ldur	x9, [x29, #-0x8]
+  240b84: eb09011f     	cmp	x8, x9
+  240b88: 54000061     	b.ne	0x240b94 <SW::SwConverser::converse(SW::CBytes const&)+0x43c>
+  240b8c: aa1403e0     	mov	x0, x20
+  240b90: 9401f23d     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  240b94: 94020187     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000240cc0 <SW::SwConverser::converseReadInt(SW::SwCmd const&)>:
+  240cc0: d10183ff     	sub	sp, sp, #0x60
+  240cc4: a9037bfd     	stp	x29, x30, [sp, #0x30]
+  240cc8: a90457f6     	stp	x22, x21, [sp, #0x40]
+  240ccc: a9054ff4     	stp	x20, x19, [sp, #0x50]
+  240cd0: 9100c3fd     	add	x29, sp, #0x30
+  240cd4: d53bd055     	mrs	x21, TPIDR_EL0
+  240cd8: f94016a8     	ldr	x8, [x21, #0x28]
+  240cdc: f81f83a8     	stur	x8, [x29, #-0x8]
+  240ce0: f9400008     	ldr	x8, [x0]  ; vptr of SW::SwConverser
+  240ce4: f9400909     	ldr	x9, [x8, #0x10]  ; -> SW::SwConverser::converse(SW::SwCmd const&)
+  240ce8: 910023e8     	add	x8, sp, #0x8
+  240cec: d63f0120     	blr	x9  ;;; CALL SW::SwConverser::converse(SW::SwCmd const&)
+  240cf0: b9400bf4     	ldr	w20, [sp, #0x8]
+  240cf4: 340000d4     	cbz	w20, 0x240d0c <SW::SwConverser::converseReadInt(SW::SwCmd const&)+0x4c>
+  240cf8: aa1f03f6     	mov	x22, xzr
+  240cfc: aa1f03f3     	mov	x19, xzr
+  240d00: f9400be0     	ldr	x0, [sp, #0x10]
+  240d04: b50001c0     	cbnz	x0, 0x240d3c <SW::SwConverser::converseReadInt(SW::SwCmd const&)+0x7c>
+  240d08: 1400000f     	b	0x240d44 <SW::SwConverser::converseReadInt(SW::SwCmd const&)+0x84>
+  240d0c: 394033e8     	ldrb	w8, [sp, #0xc]
+  240d10: 360003e8     	tbz	w8, #0x0, 0x240d8c <SW::SwConverser::converseReadInt(SW::SwCmd const&)+0xcc>
+  240d14: 910023e8     	add	x8, sp, #0x8
+  240d18: 91002100     	add	x0, x8, #0x8
+  240d1c: 94020ea5     	bl	0x2c47b0 <_ZN2SW10SwCmdCoder9decodeIntERKNS_6CBytesE@plt>  ;;; CALL SW::SwCmdCoder::decodeInt(SW::CBytes const&)
+  240d20: f2601c1f     	tst	x0, #0xff00000000
+  240d24: 54000280     	b.eq	0x240d74 <SW::SwConverser::converseReadInt(SW::SwCmd const&)+0xb4>
+  240d28: 2a1f03f4     	mov	w20, wzr
+  240d2c: 92407c13     	and	x19, x0, #0xffffffff
+  240d30: d2c00036     	mov	x22, #0x100000000       // =4294967296
+  240d34: f9400be0     	ldr	x0, [sp, #0x10]
+  240d38: b4000060     	cbz	x0, 0x240d44 <SW::SwConverser::converseReadInt(SW::SwCmd const&)+0x84>
+  240d3c: f9000fe0     	str	x0, [sp, #0x18]
+  240d40: 94020194     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  240d44: f94016a8     	ldr	x8, [x21, #0x28]
+  240d48: f85f83a9     	ldur	x9, [x29, #-0x8]
+  240d4c: eb09011f     	cmp	x8, x9
+  240d50: 540005c1     	b.ne	0x240e08 <SW::SwConverser::converseReadInt(SW::SwCmd const&)+0x148>
+  240d54: 2a1403e8     	mov	w8, w20
+  240d58: aa0802c0     	orr	x0, x22, x8
+  240d5c: aa1303e1     	mov	x1, x19
+  240d60: a9454ff4     	ldp	x20, x19, [sp, #0x50]
+  240d64: a94457f6     	ldp	x22, x21, [sp, #0x40]
+  240d68: a9437bfd     	ldp	x29, x30, [sp, #0x30]
+  240d6c: 910183ff     	add	sp, sp, #0x60
+  240d70: d65f03c0     	ret
+  240d74: aa1f03f6     	mov	x22, xzr
+  240d78: aa1f03f3     	mov	x19, xzr
+  240d7c: 52800094     	mov	w20, #0x4               // =4
+  240d80: f9400be0     	ldr	x0, [sp, #0x10]
+  240d84: b5fffdc0     	cbnz	x0, 0x240d3c <SW::SwConverser::converseReadInt(SW::SwCmd const&)+0x7c>
+  240d88: 17ffffef     	b	0x240d44 <SW::SwConverser::converseReadInt(SW::SwCmd const&)+0x84>
+  240d8c: 52800200     	mov	w0, #0x10               // =16
+  240d90: 94020208     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  240d94: aa0003f4     	mov	x20, x0
+  240d98: 90fff461     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  240d9c: 9135a421     	add	x1, x1, #0xd69
+  240da0: 940208a0     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  240da4: f94016a8     	ldr	x8, [x21, #0x28]
+  240da8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  240dac: eb09011f     	cmp	x8, x9
+  240db0: 540002c1     	b.ne	0x240e08 <SW::SwConverser::converseReadInt(SW::SwCmd const&)+0x148>
+  240db4: b00004c1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  240db8: b00004c2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  240dbc: aa1403e0     	mov	x0, x20
+  240dc0: f9409c21     	ldr	x1, [x1, #0x138]
+  240dc4: f940a042     	ldr	x2, [x2, #0x140]
+  240dc8: 94020202     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  240dcc: aa0003f3     	mov	x19, x0
+  240dd0: aa1403e0     	mov	x0, x20
+  240dd4: 940204eb     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  240dd8: 14000002     	b	0x240de0 <SW::SwConverser::converseReadInt(SW::SwCmd const&)+0x120>
+  240ddc: aa0003f3     	mov	x19, x0
+  240de0: f9400be0     	ldr	x0, [sp, #0x10]
+  240de4: b4000060     	cbz	x0, 0x240df0 <SW::SwConverser::converseReadInt(SW::SwCmd const&)+0x130>
+  240de8: f9000fe0     	str	x0, [sp, #0x18]
+  240dec: 94020169     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  240df0: f94016a8     	ldr	x8, [x21, #0x28]
+  240df4: f85f83a9     	ldur	x9, [x29, #-0x8]
+  240df8: eb09011f     	cmp	x8, x9
+  240dfc: 54000061     	b.ne	0x240e08 <SW::SwConverser::converseReadInt(SW::SwCmd const&)+0x148>
+  240e00: aa1303e0     	mov	x0, x19
+  240e04: 9401f1a0     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  240e08: 940200ea     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000240e0c <SW::SwConverser::converseReadX32Int(SW::SwCmd const&)>:
+  240e0c: d10143ff     	sub	sp, sp, #0x50
+  240e10: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  240e14: f9001bf5     	str	x21, [sp, #0x30]
+  240e18: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  240e1c: 910083fd     	add	x29, sp, #0x20
+  240e20: d53bd054     	mrs	x20, TPIDR_EL0
+  240e24: aa0003f3     	mov	x19, x0
+  240e28: aa0103e0     	mov	x0, x1
+  240e2c: f9401688     	ldr	x8, [x20, #0x28]
+  240e30: f81f83a8     	stur	x8, [x29, #-0x8]
+  240e34: 910003e8     	mov	x8, sp
+  240e38: 94020e56     	bl	0x2c4790 <_ZNK2SW5SwCmd6encodeEv@plt>  ;;; CALL SW::SwCmd::encode() const
+  240e3c: f9400268     	ldr	x8, [x19]  ; vptr of SW::SwConverser
+  240e40: f9401908     	ldr	x8, [x8, #0x30]  ; -> SW::SwConverser::converseReadX32Int(SW::CBytes const&)
+  240e44: 910003e1     	mov	x1, sp
+  240e48: aa1303e0     	mov	x0, x19
+  240e4c: d63f0100     	blr	x8  ;;; CALL SW::SwConverser::converseReadX32Int(SW::CBytes const&)
+  240e50: f94003e8     	ldr	x8, [sp]
+  240e54: aa0103f3     	mov	x19, x1
+  240e58: b40000c8     	cbz	x8, 0x240e70 <SW::SwConverser::converseReadX32Int(SW::SwCmd const&)+0x64>
+  240e5c: aa0003f5     	mov	x21, x0
+  240e60: aa0803e0     	mov	x0, x8
+  240e64: f90007e8     	str	x8, [sp, #0x8]
+  240e68: 9402014a     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  240e6c: aa1503e0     	mov	x0, x21
+  240e70: f9401688     	ldr	x8, [x20, #0x28]
+  240e74: f85f83a9     	ldur	x9, [x29, #-0x8]
+  240e78: eb09011f     	cmp	x8, x9
+  240e7c: 54000261     	b.ne	0x240ec8 <SW::SwConverser::converseReadX32Int(SW::SwCmd const&)+0xbc>
+  240e80: 92407e61     	and	x1, x19, #0xffffffff
+  240e84: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  240e88: f9401bf5     	ldr	x21, [sp, #0x30]
+  240e8c: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  240e90: 910143ff     	add	sp, sp, #0x50
+  240e94: d65f03c0     	ret
+  240e98: f94003e8     	ldr	x8, [sp]
+  240e9c: aa0003f3     	mov	x19, x0
+  240ea0: b4000088     	cbz	x8, 0x240eb0 <SW::SwConverser::converseReadX32Int(SW::SwCmd const&)+0xa4>
+  240ea4: aa0803e0     	mov	x0, x8
+  240ea8: f90007e8     	str	x8, [sp, #0x8]
+  240eac: 94020139     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  240eb0: f9401688     	ldr	x8, [x20, #0x28]
+  240eb4: f85f83a9     	ldur	x9, [x29, #-0x8]
+  240eb8: eb09011f     	cmp	x8, x9
+  240ebc: 54000061     	b.ne	0x240ec8 <SW::SwConverser::converseReadX32Int(SW::SwCmd const&)+0xbc>
+  240ec0: aa1303e0     	mov	x0, x19
+  240ec4: 9401f170     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  240ec8: 940200ba     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000240ecc <SW::SwConverser::converseReadX32Int(SW::CBytes const&)>:
+  240ecc: d10183ff     	sub	sp, sp, #0x60
+  240ed0: a9037bfd     	stp	x29, x30, [sp, #0x30]
+  240ed4: a90457f6     	stp	x22, x21, [sp, #0x40]
+  240ed8: a9054ff4     	stp	x20, x19, [sp, #0x50]
+  240edc: 9100c3fd     	add	x29, sp, #0x30
+  240ee0: d53bd055     	mrs	x21, TPIDR_EL0
+  240ee4: f94016a8     	ldr	x8, [x21, #0x28]
+  240ee8: f81f83a8     	stur	x8, [x29, #-0x8]
+  240eec: f9400008     	ldr	x8, [x0]  ; vptr of SW::SwConverser
+  240ef0: f9400d09     	ldr	x9, [x8, #0x18]  ; -> SW::SwConverser::converse(SW::CBytes const&)
+  240ef4: 910023e8     	add	x8, sp, #0x8
+  240ef8: d63f0120     	blr	x9  ;;; CALL SW::SwConverser::converse(SW::CBytes const&)
+  240efc: b9400bf4     	ldr	w20, [sp, #0x8]
+  240f00: 340000d4     	cbz	w20, 0x240f18 <SW::SwConverser::converseReadX32Int(SW::CBytes const&)+0x4c>
+  240f04: aa1f03f6     	mov	x22, xzr
+  240f08: aa1f03f3     	mov	x19, xzr
+  240f0c: f9400be0     	ldr	x0, [sp, #0x10]
+  240f10: b50001c0     	cbnz	x0, 0x240f48 <SW::SwConverser::converseReadX32Int(SW::CBytes const&)+0x7c>
+  240f14: 1400000f     	b	0x240f50 <SW::SwConverser::converseReadX32Int(SW::CBytes const&)+0x84>
+  240f18: 394033e8     	ldrb	w8, [sp, #0xc]
+  240f1c: 360003e8     	tbz	w8, #0x0, 0x240f98 <SW::SwConverser::converseReadX32Int(SW::CBytes const&)+0xcc>
+  240f20: 910023e8     	add	x8, sp, #0x8
+  240f24: 91002100     	add	x0, x8, #0x8
+  240f28: 94020e2a     	bl	0x2c47d0 <_ZN2SW10SwCmdCoder12decodeX32IntERKNS_6CBytesE@plt>  ;;; CALL SW::SwCmdCoder::decodeX32Int(SW::CBytes const&)
+  240f2c: f2601c1f     	tst	x0, #0xff00000000
+  240f30: 54000280     	b.eq	0x240f80 <SW::SwConverser::converseReadX32Int(SW::CBytes const&)+0xb4>
+  240f34: 2a1f03f4     	mov	w20, wzr
+  240f38: 92407c13     	and	x19, x0, #0xffffffff
+  240f3c: d2c00036     	mov	x22, #0x100000000       // =4294967296
+  240f40: f9400be0     	ldr	x0, [sp, #0x10]
+  240f44: b4000060     	cbz	x0, 0x240f50 <SW::SwConverser::converseReadX32Int(SW::CBytes const&)+0x84>
+  240f48: f9000fe0     	str	x0, [sp, #0x18]
+  240f4c: 94020111     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  240f50: f94016a8     	ldr	x8, [x21, #0x28]
+  240f54: f85f83a9     	ldur	x9, [x29, #-0x8]
+  240f58: eb09011f     	cmp	x8, x9
+  240f5c: 540005c1     	b.ne	0x241014 <SW::SwConverser::converseReadX32Int(SW::CBytes const&)+0x148>
+  240f60: 2a1403e8     	mov	w8, w20
+  240f64: aa0802c0     	orr	x0, x22, x8
+  240f68: aa1303e1     	mov	x1, x19
+  240f6c: a9454ff4     	ldp	x20, x19, [sp, #0x50]
+  240f70: a94457f6     	ldp	x22, x21, [sp, #0x40]
+  240f74: a9437bfd     	ldp	x29, x30, [sp, #0x30]
+  240f78: 910183ff     	add	sp, sp, #0x60
+  240f7c: d65f03c0     	ret
+  240f80: aa1f03f6     	mov	x22, xzr
+  240f84: aa1f03f3     	mov	x19, xzr
+  240f88: 52800094     	mov	w20, #0x4               // =4
+  240f8c: f9400be0     	ldr	x0, [sp, #0x10]
+  240f90: b5fffdc0     	cbnz	x0, 0x240f48 <SW::SwConverser::converseReadX32Int(SW::CBytes const&)+0x7c>
+  240f94: 17ffffef     	b	0x240f50 <SW::SwConverser::converseReadX32Int(SW::CBytes const&)+0x84>
+  240f98: 52800200     	mov	w0, #0x10               // =16
+  240f9c: 94020185     	bl	0x2c15b0 <__cxa_allocate_exception@plt>  ;;; CALL __cxa_allocate_exception
+  240fa0: aa0003f4     	mov	x20, x0
+  240fa4: 90fff461     	adrp	x1, 0xcc000 <vsnprintf+0xcc000>
+  240fa8: 9135a421     	add	x1, x1, #0xd69
+  240fac: 9402081d     	bl	0x2c3020 <_ZNSt11logic_errorC1EPKc@plt>  ;;; CALL std::logic_error::logic_error(char const*)
+  240fb0: f94016a8     	ldr	x8, [x21, #0x28]
+  240fb4: f85f83a9     	ldur	x9, [x29, #-0x8]
+  240fb8: eb09011f     	cmp	x8, x9
+  240fbc: 540002c1     	b.ne	0x241014 <SW::SwConverser::converseReadX32Int(SW::CBytes const&)+0x148>
+  240fc0: b00004c1     	adrp	x1, 0x2d9000 <vsnprintf+0x2d9000>
+  240fc4: b00004c2     	adrp	x2, 0x2d9000 <vsnprintf+0x2d9000>
+  240fc8: aa1403e0     	mov	x0, x20
+  240fcc: f9409c21     	ldr	x1, [x1, #0x138]
+  240fd0: f940a042     	ldr	x2, [x2, #0x140]
+  240fd4: 9402017f     	bl	0x2c15d0 <__cxa_throw@plt>  ;;; CALL __cxa_throw
+  240fd8: aa0003f3     	mov	x19, x0
+  240fdc: aa1403e0     	mov	x0, x20
+  240fe0: 94020468     	bl	0x2c2180 <__cxa_free_exception@plt>  ;;; CALL __cxa_free_exception
+  240fe4: 14000002     	b	0x240fec <SW::SwConverser::converseReadX32Int(SW::CBytes const&)+0x120>
+  240fe8: aa0003f3     	mov	x19, x0
+  240fec: f9400be0     	ldr	x0, [sp, #0x10]
+  240ff0: b4000060     	cbz	x0, 0x240ffc <SW::SwConverser::converseReadX32Int(SW::CBytes const&)+0x130>
+  240ff4: f9000fe0     	str	x0, [sp, #0x18]
+  240ff8: 940200e6     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  240ffc: f94016a8     	ldr	x8, [x21, #0x28]
+  241000: f85f83a9     	ldur	x9, [x29, #-0x8]
+  241004: eb09011f     	cmp	x8, x9
+  241008: 54000061     	b.ne	0x241014 <SW::SwConverser::converseReadX32Int(SW::CBytes const&)+0x148>
+  24100c: aa1303e0     	mov	x0, x19
+  241010: 9401f11d     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  241014: 94020067     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+

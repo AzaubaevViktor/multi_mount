@@ -1,0 +1,1211 @@
+0000000000235df4 <SW::ConnectionSettings::dualModeChoice() const>:
+  235df4: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  235df8: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  235dfc: 910003fd     	mov	x29, sp
+  235e00: 39412008     	ldrb	w8, [x0, #0x48]
+  235e04: 91011013     	add	x19, x0, #0x44
+  235e08: 360000a8     	tbz	w8, #0x0, 0x235e1c <SW::ConnectionSettings::dualModeChoice() const+0x28>
+  235e0c: b9400260     	ldr	w0, [x19]
+  235e10: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  235e14: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  235e18: d65f03c0     	ret
+  235e1c: f9401008     	ldr	x8, [x0, #0x20]
+  235e20: f9400108     	ldr	x8, [x8]
+  235e24: b40002a8     	cbz	x8, 0x235e78 <SW::ConnectionSettings::dualModeChoice() const+0x84>
+  235e28: 3940a009     	ldrb	w9, [x0, #0x28]
+  235e2c: f940010b     	ldr	x11, [x8]
+  235e30: 9100a40a     	add	x10, x0, #0x29
+  235e34: a943300d     	ldp	x13, x12, [x0, #0x30]
+  235e38: aa0003f4     	mov	x20, x0
+  235e3c: d341fd2e     	lsr	x14, x9, #1
+  235e40: 7200013f     	tst	w9, #0x1
+  235e44: b9404003     	ldr	w3, [x0, #0x40]
+  235e48: f9401969     	ldr	x9, [x11, #0x30]
+  235e4c: aa0803e0     	mov	x0, x8
+  235e50: 9a8c0141     	csel	x1, x10, x12, eq
+  235e54: 9a8d01c2     	csel	x2, x14, x13, eq
+  235e58: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  235e5c: 52800028     	mov	w8, #0x1                // =1
+  235e60: b9004680     	str	w0, [x20, #0x44]
+  235e64: 39012288     	strb	w8, [x20, #0x48]
+  235e68: b9400260     	ldr	w0, [x19]
+  235e6c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  235e70: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  235e74: d65f03c0     	ret
+  235e78: 91010013     	add	x19, x0, #0x40
+  235e7c: b9400260     	ldr	w0, [x19]
+  235e80: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  235e84: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  235e88: d65f03c0     	ret
+
+0000000000235e8c <SW::ConnectionSettings::setDualModeChoice(SW::DualModeChoice_::E)>:
+  235e8c: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  235e90: f9000bf5     	str	x21, [sp, #0x10]
+  235e94: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  235e98: 910003fd     	mov	x29, sp
+  235e9c: 39412008     	ldrb	w8, [x0, #0x48]
+  235ea0: 2a0103f4     	mov	w20, w1
+  235ea4: aa0003f3     	mov	x19, x0
+  235ea8: 91011015     	add	x21, x0, #0x44
+  235eac: 37000248     	tbnz	w8, #0x0, 0x235ef4 <SW::ConnectionSettings::setDualModeChoice(SW::DualModeChoice_::E)+0x68>
+  235eb0: f9401268     	ldr	x8, [x19, #0x20]
+  235eb4: f9400100     	ldr	x0, [x8]
+  235eb8: b40002c0     	cbz	x0, 0x235f10 <SW::ConnectionSettings::setDualModeChoice(SW::DualModeChoice_::E)+0x84>
+  235ebc: 3940a268     	ldrb	w8, [x19, #0x28]
+  235ec0: f940000a     	ldr	x10, [x0]
+  235ec4: 9100a669     	add	x9, x19, #0x29
+  235ec8: a9432e6c     	ldp	x12, x11, [x19, #0x30]
+  235ecc: b9404263     	ldr	w3, [x19, #0x40]
+  235ed0: d341fd0d     	lsr	x13, x8, #1
+  235ed4: 7200011f     	tst	w8, #0x1
+  235ed8: f9401948     	ldr	x8, [x10, #0x30]
+  235edc: 9a8b0121     	csel	x1, x9, x11, eq
+  235ee0: 9a8c01a2     	csel	x2, x13, x12, eq
+  235ee4: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  235ee8: 52800028     	mov	w8, #0x1                // =1
+  235eec: b9004660     	str	w0, [x19, #0x44]
+  235ef0: 39012268     	strb	w8, [x19, #0x48]
+  235ef4: b94002a8     	ldr	w8, [x21]
+  235ef8: 6b14011f     	cmp	w8, w20
+  235efc: 54000121     	b.ne	0x235f20 <SW::ConnectionSettings::setDualModeChoice(SW::DualModeChoice_::E)+0x94>
+  235f00: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  235f04: f9400bf5     	ldr	x21, [sp, #0x10]
+  235f08: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  235f0c: d65f03c0     	ret
+  235f10: 91010275     	add	x21, x19, #0x40
+  235f14: b94002a8     	ldr	w8, [x21]
+  235f18: 6b14011f     	cmp	w8, w20
+  235f1c: 54ffff20     	b.eq	0x235f00 <SW::ConnectionSettings::setDualModeChoice(SW::DualModeChoice_::E)+0x74>
+  235f20: f9401268     	ldr	x8, [x19, #0x20]
+  235f24: f9400100     	ldr	x0, [x8]
+  235f28: b4000180     	cbz	x0, 0x235f58 <SW::ConnectionSettings::setDualModeChoice(SW::DualModeChoice_::E)+0xcc>
+  235f2c: 3940a268     	ldrb	w8, [x19, #0x28]
+  235f30: f9400009     	ldr	x9, [x0]
+  235f34: 9100a66d     	add	x13, x19, #0x29
+  235f38: a9432a6b     	ldp	x11, x10, [x19, #0x30]
+  235f3c: 2a1403e3     	mov	w3, w20
+  235f40: d341fd0c     	lsr	x12, x8, #1
+  235f44: 7200011f     	tst	w8, #0x1
+  235f48: f9402928     	ldr	x8, [x9, #0x50]
+  235f4c: 9a8a01a1     	csel	x1, x13, x10, eq
+  235f50: 9a8b0182     	csel	x2, x12, x11, eq
+  235f54: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  235f58: 52800028     	mov	w8, #0x1                // =1
+  235f5c: b9004674     	str	w20, [x19, #0x44]
+  235f60: aa1303e0     	mov	x0, x19
+  235f64: 39012268     	strb	w8, [x19, #0x48]
+  235f68: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  235f6c: f9400bf5     	ldr	x21, [sp, #0x10]
+  235f70: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  235f74: 140238bb     	b	0x2c4260 <_ZN2SW19IConnectionSettings12valueChangedEv@plt>
+
+0000000000235f78 <SW::ConnectionSettings::connectAtLaunch() const>:
+  235f78: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  235f7c: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  235f80: 910003fd     	mov	x29, sp
+  235f84: 3941c808     	ldrb	w8, [x0, #0x72]
+  235f88: 9101c413     	add	x19, x0, #0x71
+  235f8c: 360000a8     	tbz	w8, #0x0, 0x235fa0 <SW::ConnectionSettings::connectAtLaunch() const+0x28>
+  235f90: 39400260     	ldrb	w0, [x19]
+  235f94: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  235f98: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  235f9c: d65f03c0     	ret
+  235fa0: f9402808     	ldr	x8, [x0, #0x50]
+  235fa4: f9400108     	ldr	x8, [x8]
+  235fa8: b40002c8     	cbz	x8, 0x236000 <SW::ConnectionSettings::connectAtLaunch() const+0x88>
+  235fac: 39416009     	ldrb	w9, [x0, #0x58]
+  235fb0: f940010b     	ldr	x11, [x8]
+  235fb4: 9101640a     	add	x10, x0, #0x59
+  235fb8: a946300d     	ldp	x13, x12, [x0, #0x60]
+  235fbc: aa0003f4     	mov	x20, x0
+  235fc0: d341fd2e     	lsr	x14, x9, #1
+  235fc4: 7200013f     	tst	w9, #0x1
+  235fc8: 3941c003     	ldrb	w3, [x0, #0x70]
+  235fcc: f9401569     	ldr	x9, [x11, #0x28]
+  235fd0: aa0803e0     	mov	x0, x8
+  235fd4: 9a8c0141     	csel	x1, x10, x12, eq
+  235fd8: 9a8d01c2     	csel	x2, x14, x13, eq
+  235fdc: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  235fe0: 52800028     	mov	w8, #0x1                // =1
+  235fe4: 12000009     	and	w9, w0, #0x1
+  235fe8: 3901c689     	strb	w9, [x20, #0x71]
+  235fec: 3901ca88     	strb	w8, [x20, #0x72]
+  235ff0: 39400260     	ldrb	w0, [x19]
+  235ff4: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  235ff8: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  235ffc: d65f03c0     	ret
+  236000: 9101c013     	add	x19, x0, #0x70
+  236004: 39400260     	ldrb	w0, [x19]
+  236008: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23600c: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  236010: d65f03c0     	ret
+
+0000000000236014 <SW::ConnectionSettings::setConnectAtLaunch(bool)>:
+  236014: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  236018: a90157f6     	stp	x22, x21, [sp, #0x10]
+  23601c: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  236020: 910003fd     	mov	x29, sp
+  236024: 3941c808     	ldrb	w8, [x0, #0x72]
+  236028: aa0003f3     	mov	x19, x0
+  23602c: 12000034     	and	w20, w1, #0x1
+  236030: 9101c415     	add	x21, x0, #0x71
+  236034: 370002c8     	tbnz	w8, #0x0, 0x23608c <SW::ConnectionSettings::setConnectAtLaunch(bool)+0x78>
+  236038: f9402a68     	ldr	x8, [x19, #0x50]
+  23603c: f9400100     	ldr	x0, [x8]
+  236040: b40005a0     	cbz	x0, 0x2360f4 <SW::ConnectionSettings::setConnectAtLaunch(bool)+0xe0>
+  236044: 39416268     	ldrb	w8, [x19, #0x58]
+  236048: a9462e6c     	ldp	x12, x11, [x19, #0x60]
+  23604c: f940000a     	ldr	x10, [x0]
+  236050: 91016669     	add	x9, x19, #0x59
+  236054: 2a0103f6     	mov	w22, w1
+  236058: d341fd0d     	lsr	x13, x8, #1
+  23605c: 7200011f     	tst	w8, #0x1
+  236060: 3941c263     	ldrb	w3, [x19, #0x70]
+  236064: f940154a     	ldr	x10, [x10, #0x28]
+  236068: 9a8b0128     	csel	x8, x9, x11, eq
+  23606c: 9a8c01a2     	csel	x2, x13, x12, eq
+  236070: aa0803e1     	mov	x1, x8
+  236074: d63f0140     	blr	x10  ;;; CALL <indirect x10>
+  236078: 52800028     	mov	w8, #0x1                // =1
+  23607c: 12000009     	and	w9, w0, #0x1
+  236080: 2a1603e1     	mov	w1, w22
+  236084: 3901c669     	strb	w9, [x19, #0x71]
+  236088: 3901ca68     	strb	w8, [x19, #0x72]
+  23608c: 394002a8     	ldrb	w8, [x21]
+  236090: 6b14011f     	cmp	w8, w20
+  236094: 54000380     	b.eq	0x236104 <SW::ConnectionSettings::setConnectAtLaunch(bool)+0xf0>
+  236098: f9402a68     	ldr	x8, [x19, #0x50]
+  23609c: f9400100     	ldr	x0, [x8]
+  2360a0: b40001a0     	cbz	x0, 0x2360d4 <SW::ConnectionSettings::setConnectAtLaunch(bool)+0xc0>
+  2360a4: 39416268     	ldrb	w8, [x19, #0x58]
+  2360a8: a9462a6b     	ldp	x11, x10, [x19, #0x60]
+  2360ac: f9400009     	ldr	x9, [x0]
+  2360b0: 9101666d     	add	x13, x19, #0x59
+  2360b4: 12000023     	and	w3, w1, #0x1
+  2360b8: d341fd0c     	lsr	x12, x8, #1
+  2360bc: 7200011f     	tst	w8, #0x1
+  2360c0: f9402529     	ldr	x9, [x9, #0x48]
+  2360c4: 9a8a01a8     	csel	x8, x13, x10, eq
+  2360c8: 9a8b0182     	csel	x2, x12, x11, eq
+  2360cc: aa0803e1     	mov	x1, x8
+  2360d0: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  2360d4: 52800028     	mov	w8, #0x1                // =1
+  2360d8: 3901c674     	strb	w20, [x19, #0x71]
+  2360dc: aa1303e0     	mov	x0, x19
+  2360e0: 3901ca68     	strb	w8, [x19, #0x72]
+  2360e4: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  2360e8: a94157f6     	ldp	x22, x21, [sp, #0x10]
+  2360ec: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  2360f0: 1402385c     	b	0x2c4260 <_ZN2SW19IConnectionSettings12valueChangedEv@plt>
+  2360f4: 9101c275     	add	x21, x19, #0x70
+  2360f8: 394002a8     	ldrb	w8, [x21]
+  2360fc: 6b14011f     	cmp	w8, w20
+  236100: 54fffcc1     	b.ne	0x236098 <SW::ConnectionSettings::setConnectAtLaunch(bool)+0x84>
+  236104: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  236108: a94157f6     	ldp	x22, x21, [sp, #0x10]
+  23610c: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  236110: d65f03c0     	ret
+
+0000000000236114 <SW::ConnectionSettings::type() const>:
+  236114: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  236118: f9000bf3     	str	x19, [sp, #0x10]
+  23611c: 910003fd     	mov	x29, sp
+  236120: 39428008     	ldrb	w8, [x0, #0xa0]
+  236124: 36000148     	tbz	w8, #0x0, 0x23614c <SW::ConnectionSettings::type() const+0x38>
+  236128: 91027008     	add	x8, x0, #0x9c
+  23612c: b9400100     	ldr	w0, [x8]
+  236130: 71000c1f     	cmp	w0, #0x3
+  236134: 54000360     	b.eq	0x2361a0 <SW::ConnectionSettings::type() const+0x8c>
+  236138: 7100081f     	cmp	w0, #0x2
+  23613c: 540003a1     	b.ne	0x2361b0 <SW::ConnectionSettings::type() const+0x9c>
+  236140: 94022c54     	bl	0x2c1290 <_ZN2SW18hasISerialPortImplEv@plt>  ;;; CALL SW::hasISerialPortImpl()
+  236144: 52800048     	mov	w8, #0x2                // =2
+  236148: 14000018     	b	0x2361a8 <SW::ConnectionSettings::type() const+0x94>
+  23614c: f9403c08     	ldr	x8, [x0, #0x78]
+  236150: f9400108     	ldr	x8, [x8]
+  236154: b4000348     	cbz	x8, 0x2361bc <SW::ConnectionSettings::type() const+0xa8>
+  236158: 39420009     	ldrb	w9, [x0, #0x80]
+  23615c: f940010b     	ldr	x11, [x8]
+  236160: 9102040a     	add	x10, x0, #0x81
+  236164: a948b00d     	ldp	x13, x12, [x0, #0x88]
+  236168: aa0003f3     	mov	x19, x0
+  23616c: d341fd2e     	lsr	x14, x9, #1
+  236170: 7200013f     	tst	w9, #0x1
+  236174: b9409803     	ldr	w3, [x0, #0x98]
+  236178: f9401969     	ldr	x9, [x11, #0x30]
+  23617c: aa0803e0     	mov	x0, x8
+  236180: 9a8c0141     	csel	x1, x10, x12, eq
+  236184: 9a8d01c2     	csel	x2, x14, x13, eq
+  236188: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  23618c: 52800028     	mov	w8, #0x1                // =1
+  236190: b9009e60     	str	w0, [x19, #0x9c]
+  236194: 39028268     	strb	w8, [x19, #0xa0]
+  236198: 71000c1f     	cmp	w0, #0x3
+  23619c: 54fffce1     	b.ne	0x236138 <SW::ConnectionSettings::type() const+0x24>
+  2361a0: 94023a00     	bl	0x2c49a0 <_ZN2SW13hasISwBLEImplEv@plt>  ;;; CALL SW::hasISwBLEImpl()
+  2361a4: 52800068     	mov	w8, #0x3                // =3
+  2361a8: 7200001f     	tst	w0, #0x1
+  2361ac: 1a9f1100     	csel	w0, w8, wzr, ne
+  2361b0: f9400bf3     	ldr	x19, [sp, #0x10]
+  2361b4: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2361b8: d65f03c0     	ret
+  2361bc: 91026008     	add	x8, x0, #0x98
+  2361c0: b9400100     	ldr	w0, [x8]
+  2361c4: 71000c1f     	cmp	w0, #0x3
+  2361c8: 54fffb81     	b.ne	0x236138 <SW::ConnectionSettings::type() const+0x24>
+  2361cc: 17fffff5     	b	0x2361a0 <SW::ConnectionSettings::type() const+0x8c>
+
+00000000002361d0 <SW::ConnectionSettings::setType(SW::ConnectionType_::E)>:
+  2361d0: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  2361d4: f9000bf5     	str	x21, [sp, #0x10]
+  2361d8: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  2361dc: 910003fd     	mov	x29, sp
+  2361e0: 39428008     	ldrb	w8, [x0, #0xa0]
+  2361e4: 2a0103f4     	mov	w20, w1
+  2361e8: aa0003f3     	mov	x19, x0
+  2361ec: 91027015     	add	x21, x0, #0x9c
+  2361f0: 37000248     	tbnz	w8, #0x0, 0x236238 <SW::ConnectionSettings::setType(SW::ConnectionType_::E)+0x68>
+  2361f4: f9403e68     	ldr	x8, [x19, #0x78]
+  2361f8: f9400100     	ldr	x0, [x8]
+  2361fc: b40002c0     	cbz	x0, 0x236254 <SW::ConnectionSettings::setType(SW::ConnectionType_::E)+0x84>
+  236200: 39420268     	ldrb	w8, [x19, #0x80]
+  236204: f940000a     	ldr	x10, [x0]
+  236208: 91020669     	add	x9, x19, #0x81
+  23620c: a948ae6c     	ldp	x12, x11, [x19, #0x88]
+  236210: b9409a63     	ldr	w3, [x19, #0x98]
+  236214: d341fd0d     	lsr	x13, x8, #1
+  236218: 7200011f     	tst	w8, #0x1
+  23621c: f9401948     	ldr	x8, [x10, #0x30]
+  236220: 9a8b0121     	csel	x1, x9, x11, eq
+  236224: 9a8c01a2     	csel	x2, x13, x12, eq
+  236228: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  23622c: 52800028     	mov	w8, #0x1                // =1
+  236230: b9009e60     	str	w0, [x19, #0x9c]
+  236234: 39028268     	strb	w8, [x19, #0xa0]
+  236238: b94002a8     	ldr	w8, [x21]
+  23623c: 6b14011f     	cmp	w8, w20
+  236240: 54000121     	b.ne	0x236264 <SW::ConnectionSettings::setType(SW::ConnectionType_::E)+0x94>
+  236244: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  236248: f9400bf5     	ldr	x21, [sp, #0x10]
+  23624c: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  236250: d65f03c0     	ret
+  236254: 91026275     	add	x21, x19, #0x98
+  236258: b94002a8     	ldr	w8, [x21]
+  23625c: 6b14011f     	cmp	w8, w20
+  236260: 54ffff20     	b.eq	0x236244 <SW::ConnectionSettings::setType(SW::ConnectionType_::E)+0x74>
+  236264: f9403e68     	ldr	x8, [x19, #0x78]
+  236268: f9400100     	ldr	x0, [x8]
+  23626c: b4000180     	cbz	x0, 0x23629c <SW::ConnectionSettings::setType(SW::ConnectionType_::E)+0xcc>
+  236270: 39420268     	ldrb	w8, [x19, #0x80]
+  236274: f9400009     	ldr	x9, [x0]
+  236278: 9102066d     	add	x13, x19, #0x81
+  23627c: a948aa6b     	ldp	x11, x10, [x19, #0x88]
+  236280: 2a1403e3     	mov	w3, w20
+  236284: d341fd0c     	lsr	x12, x8, #1
+  236288: 7200011f     	tst	w8, #0x1
+  23628c: f9402928     	ldr	x8, [x9, #0x50]
+  236290: 9a8a01a1     	csel	x1, x13, x10, eq
+  236294: 9a8b0182     	csel	x2, x12, x11, eq
+  236298: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  23629c: 52800028     	mov	w8, #0x1                // =1
+  2362a0: b9009e74     	str	w20, [x19, #0x9c]
+  2362a4: aa1303e0     	mov	x0, x19
+  2362a8: 39028268     	strb	w8, [x19, #0xa0]
+  2362ac: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  2362b0: f9400bf5     	ldr	x21, [sp, #0x10]
+  2362b4: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  2362b8: 140237ea     	b	0x2c4260 <_ZN2SW19IConnectionSettings12valueChangedEv@plt>
+
+00000000002362bc <SW::ConnectionSettings::readTimeoutMs_other() const>:
+  2362bc: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  2362c0: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  2362c4: 910003fd     	mov	x29, sp
+  2362c8: 39434008     	ldrb	w8, [x0, #0xd0]
+  2362cc: 91033013     	add	x19, x0, #0xcc
+  2362d0: 360000e8     	tbz	w8, #0x0, 0x2362ec <SW::ConnectionSettings::readTimeoutMs_other() const+0x30>
+  2362d4: b9400268     	ldr	w8, [x19]
+  2362d8: 7100011f     	cmp	w8, #0x0
+  2362dc: 5a885500     	cneg	w0, w8, mi
+  2362e0: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2362e4: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2362e8: d65f03c0     	ret
+  2362ec: f9405408     	ldr	x8, [x0, #0xa8]
+  2362f0: f9400108     	ldr	x8, [x8]
+  2362f4: b40002e8     	cbz	x8, 0x236350 <SW::ConnectionSettings::readTimeoutMs_other() const+0x94>
+  2362f8: 3942c009     	ldrb	w9, [x0, #0xb0]
+  2362fc: f940010b     	ldr	x11, [x8]
+  236300: 9102c40a     	add	x10, x0, #0xb1
+  236304: a94bb00d     	ldp	x13, x12, [x0, #0xb8]
+  236308: aa0003f4     	mov	x20, x0
+  23630c: d341fd2e     	lsr	x14, x9, #1
+  236310: 7200013f     	tst	w9, #0x1
+  236314: b940c803     	ldr	w3, [x0, #0xc8]
+  236318: f9401969     	ldr	x9, [x11, #0x30]
+  23631c: aa0803e0     	mov	x0, x8
+  236320: 9a8c0141     	csel	x1, x10, x12, eq
+  236324: 9a8d01c2     	csel	x2, x14, x13, eq
+  236328: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  23632c: 52800028     	mov	w8, #0x1                // =1
+  236330: b900ce80     	str	w0, [x20, #0xcc]
+  236334: 39034288     	strb	w8, [x20, #0xd0]
+  236338: b9400268     	ldr	w8, [x19]
+  23633c: 7100011f     	cmp	w8, #0x0
+  236340: 5a885500     	cneg	w0, w8, mi
+  236344: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  236348: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23634c: d65f03c0     	ret
+  236350: 91032013     	add	x19, x0, #0xc8
+  236354: b9400268     	ldr	w8, [x19]
+  236358: 7100011f     	cmp	w8, #0x0
+  23635c: 5a885500     	cneg	w0, w8, mi
+  236360: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  236364: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  236368: d65f03c0     	ret
+
+000000000023636c <SW::ConnectionSettings::setReadTimeoutMs_other(unsigned int)>:
+  23636c: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  236370: f9000bf5     	str	x21, [sp, #0x10]
+  236374: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  236378: 910003fd     	mov	x29, sp
+  23637c: 39434008     	ldrb	w8, [x0, #0xd0]
+  236380: 2a0103f4     	mov	w20, w1
+  236384: aa0003f3     	mov	x19, x0
+  236388: 91033015     	add	x21, x0, #0xcc
+  23638c: 37000248     	tbnz	w8, #0x0, 0x2363d4 <SW::ConnectionSettings::setReadTimeoutMs_other(unsigned int)+0x68>
+  236390: f9405668     	ldr	x8, [x19, #0xa8]
+  236394: f9400100     	ldr	x0, [x8]
+  236398: b40002c0     	cbz	x0, 0x2363f0 <SW::ConnectionSettings::setReadTimeoutMs_other(unsigned int)+0x84>
+  23639c: 3942c268     	ldrb	w8, [x19, #0xb0]
+  2363a0: f940000a     	ldr	x10, [x0]
+  2363a4: 9102c669     	add	x9, x19, #0xb1
+  2363a8: a94bae6c     	ldp	x12, x11, [x19, #0xb8]
+  2363ac: b940ca63     	ldr	w3, [x19, #0xc8]
+  2363b0: d341fd0d     	lsr	x13, x8, #1
+  2363b4: 7200011f     	tst	w8, #0x1
+  2363b8: f9401948     	ldr	x8, [x10, #0x30]
+  2363bc: 9a8b0121     	csel	x1, x9, x11, eq
+  2363c0: 9a8c01a2     	csel	x2, x13, x12, eq
+  2363c4: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  2363c8: 52800028     	mov	w8, #0x1                // =1
+  2363cc: b900ce60     	str	w0, [x19, #0xcc]
+  2363d0: 39034268     	strb	w8, [x19, #0xd0]
+  2363d4: b94002a8     	ldr	w8, [x21]
+  2363d8: 6b14011f     	cmp	w8, w20
+  2363dc: 54000121     	b.ne	0x236400 <SW::ConnectionSettings::setReadTimeoutMs_other(unsigned int)+0x94>
+  2363e0: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  2363e4: f9400bf5     	ldr	x21, [sp, #0x10]
+  2363e8: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  2363ec: d65f03c0     	ret
+  2363f0: 91032275     	add	x21, x19, #0xc8
+  2363f4: b94002a8     	ldr	w8, [x21]
+  2363f8: 6b14011f     	cmp	w8, w20
+  2363fc: 54ffff20     	b.eq	0x2363e0 <SW::ConnectionSettings::setReadTimeoutMs_other(unsigned int)+0x74>
+  236400: f9405668     	ldr	x8, [x19, #0xa8]
+  236404: f9400100     	ldr	x0, [x8]
+  236408: b4000180     	cbz	x0, 0x236438 <SW::ConnectionSettings::setReadTimeoutMs_other(unsigned int)+0xcc>
+  23640c: 3942c268     	ldrb	w8, [x19, #0xb0]
+  236410: f9400009     	ldr	x9, [x0]
+  236414: 9102c66d     	add	x13, x19, #0xb1
+  236418: a94baa6b     	ldp	x11, x10, [x19, #0xb8]
+  23641c: 2a1403e3     	mov	w3, w20
+  236420: d341fd0c     	lsr	x12, x8, #1
+  236424: 7200011f     	tst	w8, #0x1
+  236428: f9402928     	ldr	x8, [x9, #0x50]
+  23642c: 9a8a01a1     	csel	x1, x13, x10, eq
+  236430: 9a8b0182     	csel	x2, x12, x11, eq
+  236434: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  236438: 52800028     	mov	w8, #0x1                // =1
+  23643c: b900ce74     	str	w20, [x19, #0xcc]
+  236440: aa1303e0     	mov	x0, x19
+  236444: 39034268     	strb	w8, [x19, #0xd0]
+  236448: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  23644c: f9400bf5     	ldr	x21, [sp, #0x10]
+  236450: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  236454: 14023783     	b	0x2c4260 <_ZN2SW19IConnectionSettings12valueChangedEv@plt>
+
+0000000000236458 <SW::ConnectionSettings::maxRetryCount() const>:
+  236458: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  23645c: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  236460: 910003fd     	mov	x29, sp
+  236464: 39440008     	ldrb	w8, [x0, #0x100]
+  236468: 9103f013     	add	x19, x0, #0xfc
+  23646c: 360000e8     	tbz	w8, #0x0, 0x236488 <SW::ConnectionSettings::maxRetryCount() const+0x30>
+  236470: b9400268     	ldr	w8, [x19]
+  236474: 7100011f     	cmp	w8, #0x0
+  236478: 5a885500     	cneg	w0, w8, mi
+  23647c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  236480: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  236484: d65f03c0     	ret
+  236488: f9406c08     	ldr	x8, [x0, #0xd8]
+  23648c: f9400108     	ldr	x8, [x8]
+  236490: b40002e8     	cbz	x8, 0x2364ec <SW::ConnectionSettings::maxRetryCount() const+0x94>
+  236494: 39438009     	ldrb	w9, [x0, #0xe0]
+  236498: f940010b     	ldr	x11, [x8]
+  23649c: 9103840a     	add	x10, x0, #0xe1
+  2364a0: a94eb00d     	ldp	x13, x12, [x0, #0xe8]
+  2364a4: aa0003f4     	mov	x20, x0
+  2364a8: d341fd2e     	lsr	x14, x9, #1
+  2364ac: 7200013f     	tst	w9, #0x1
+  2364b0: b940f803     	ldr	w3, [x0, #0xf8]
+  2364b4: f9401969     	ldr	x9, [x11, #0x30]
+  2364b8: aa0803e0     	mov	x0, x8
+  2364bc: 9a8c0141     	csel	x1, x10, x12, eq
+  2364c0: 9a8d01c2     	csel	x2, x14, x13, eq
+  2364c4: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  2364c8: 52800028     	mov	w8, #0x1                // =1
+  2364cc: b900fe80     	str	w0, [x20, #0xfc]
+  2364d0: 39040288     	strb	w8, [x20, #0x100]
+  2364d4: b9400268     	ldr	w8, [x19]
+  2364d8: 7100011f     	cmp	w8, #0x0
+  2364dc: 5a885500     	cneg	w0, w8, mi
+  2364e0: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2364e4: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2364e8: d65f03c0     	ret
+  2364ec: 9103e013     	add	x19, x0, #0xf8
+  2364f0: b9400268     	ldr	w8, [x19]
+  2364f4: 7100011f     	cmp	w8, #0x0
+  2364f8: 5a885500     	cneg	w0, w8, mi
+  2364fc: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  236500: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  236504: d65f03c0     	ret
+
+0000000000236508 <SW::ConnectionSettings::setMaxRetryCount(unsigned int)>:
+  236508: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  23650c: f9000bf5     	str	x21, [sp, #0x10]
+  236510: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  236514: 910003fd     	mov	x29, sp
+  236518: 39440008     	ldrb	w8, [x0, #0x100]
+  23651c: 2a0103f4     	mov	w20, w1
+  236520: aa0003f3     	mov	x19, x0
+  236524: 9103f015     	add	x21, x0, #0xfc
+  236528: 37000248     	tbnz	w8, #0x0, 0x236570 <SW::ConnectionSettings::setMaxRetryCount(unsigned int)+0x68>
+  23652c: f9406e68     	ldr	x8, [x19, #0xd8]
+  236530: f9400100     	ldr	x0, [x8]
+  236534: b40002c0     	cbz	x0, 0x23658c <SW::ConnectionSettings::setMaxRetryCount(unsigned int)+0x84>
+  236538: 39438268     	ldrb	w8, [x19, #0xe0]
+  23653c: f940000a     	ldr	x10, [x0]
+  236540: 91038669     	add	x9, x19, #0xe1
+  236544: a94eae6c     	ldp	x12, x11, [x19, #0xe8]
+  236548: b940fa63     	ldr	w3, [x19, #0xf8]
+  23654c: d341fd0d     	lsr	x13, x8, #1
+  236550: 7200011f     	tst	w8, #0x1
+  236554: f9401948     	ldr	x8, [x10, #0x30]
+  236558: 9a8b0121     	csel	x1, x9, x11, eq
+  23655c: 9a8c01a2     	csel	x2, x13, x12, eq
+  236560: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  236564: 52800028     	mov	w8, #0x1                // =1
+  236568: b900fe60     	str	w0, [x19, #0xfc]
+  23656c: 39040268     	strb	w8, [x19, #0x100]
+  236570: b94002a8     	ldr	w8, [x21]
+  236574: 6b14011f     	cmp	w8, w20
+  236578: 54000121     	b.ne	0x23659c <SW::ConnectionSettings::setMaxRetryCount(unsigned int)+0x94>
+  23657c: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  236580: f9400bf5     	ldr	x21, [sp, #0x10]
+  236584: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  236588: d65f03c0     	ret
+  23658c: 9103e275     	add	x21, x19, #0xf8
+  236590: b94002a8     	ldr	w8, [x21]
+  236594: 6b14011f     	cmp	w8, w20
+  236598: 54ffff20     	b.eq	0x23657c <SW::ConnectionSettings::setMaxRetryCount(unsigned int)+0x74>
+  23659c: f9406e68     	ldr	x8, [x19, #0xd8]
+  2365a0: f9400100     	ldr	x0, [x8]
+  2365a4: b4000180     	cbz	x0, 0x2365d4 <SW::ConnectionSettings::setMaxRetryCount(unsigned int)+0xcc>
+  2365a8: 39438268     	ldrb	w8, [x19, #0xe0]
+  2365ac: f9400009     	ldr	x9, [x0]
+  2365b0: 9103866d     	add	x13, x19, #0xe1
+  2365b4: a94eaa6b     	ldp	x11, x10, [x19, #0xe8]
+  2365b8: 2a1403e3     	mov	w3, w20
+  2365bc: d341fd0c     	lsr	x12, x8, #1
+  2365c0: 7200011f     	tst	w8, #0x1
+  2365c4: f9402928     	ldr	x8, [x9, #0x50]
+  2365c8: 9a8a01a1     	csel	x1, x13, x10, eq
+  2365cc: 9a8b0182     	csel	x2, x12, x11, eq
+  2365d0: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  2365d4: 52800028     	mov	w8, #0x1                // =1
+  2365d8: b900fe74     	str	w20, [x19, #0xfc]
+  2365dc: aa1303e0     	mov	x0, x19
+  2365e0: 39040268     	strb	w8, [x19, #0x100]
+  2365e4: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  2365e8: f9400bf5     	ldr	x21, [sp, #0x10]
+  2365ec: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  2365f0: 1402371c     	b	0x2c4260 <_ZN2SW19IConnectionSettings12valueChangedEv@plt>
+
+00000000002365f4 <SW::ConnectionSettings::searchIP() const>:
+  2365f4: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  2365f8: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  2365fc: 910003fd     	mov	x29, sp
+  236600: 3944a808     	ldrb	w8, [x0, #0x12a]
+  236604: 9104a413     	add	x19, x0, #0x129
+  236608: 360000a8     	tbz	w8, #0x0, 0x23661c <SW::ConnectionSettings::searchIP() const+0x28>
+  23660c: 39400260     	ldrb	w0, [x19]
+  236610: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  236614: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  236618: d65f03c0     	ret
+  23661c: f9408408     	ldr	x8, [x0, #0x108]
+  236620: f9400108     	ldr	x8, [x8]
+  236624: b40002c8     	cbz	x8, 0x23667c <SW::ConnectionSettings::searchIP() const+0x88>
+  236628: 39444009     	ldrb	w9, [x0, #0x110]
+  23662c: f940010b     	ldr	x11, [x8]
+  236630: 9104440a     	add	x10, x0, #0x111
+  236634: a951b00d     	ldp	x13, x12, [x0, #0x118]
+  236638: aa0003f4     	mov	x20, x0
+  23663c: d341fd2e     	lsr	x14, x9, #1
+  236640: 7200013f     	tst	w9, #0x1
+  236644: 3944a003     	ldrb	w3, [x0, #0x128]
+  236648: f9401569     	ldr	x9, [x11, #0x28]
+  23664c: aa0803e0     	mov	x0, x8
+  236650: 9a8c0141     	csel	x1, x10, x12, eq
+  236654: 9a8d01c2     	csel	x2, x14, x13, eq
+  236658: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  23665c: 52800028     	mov	w8, #0x1                // =1
+  236660: 12000009     	and	w9, w0, #0x1
+  236664: 3904a689     	strb	w9, [x20, #0x129]
+  236668: 3904aa88     	strb	w8, [x20, #0x12a]
+  23666c: 39400260     	ldrb	w0, [x19]
+  236670: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  236674: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  236678: d65f03c0     	ret
+  23667c: 9104a013     	add	x19, x0, #0x128
+  236680: 39400260     	ldrb	w0, [x19]
+  236684: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  236688: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23668c: d65f03c0     	ret
+
+0000000000236690 <SW::ConnectionSettings::setSearchIP(bool)>:
+  236690: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  236694: a90157f6     	stp	x22, x21, [sp, #0x10]
+  236698: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  23669c: 910003fd     	mov	x29, sp
+  2366a0: 3944a808     	ldrb	w8, [x0, #0x12a]
+  2366a4: aa0003f3     	mov	x19, x0
+  2366a8: 12000034     	and	w20, w1, #0x1
+  2366ac: 9104a415     	add	x21, x0, #0x129
+  2366b0: 370002c8     	tbnz	w8, #0x0, 0x236708 <SW::ConnectionSettings::setSearchIP(bool)+0x78>
+  2366b4: f9408668     	ldr	x8, [x19, #0x108]
+  2366b8: f9400100     	ldr	x0, [x8]
+  2366bc: b40005a0     	cbz	x0, 0x236770 <SW::ConnectionSettings::setSearchIP(bool)+0xe0>
+  2366c0: 39444268     	ldrb	w8, [x19, #0x110]
+  2366c4: a951ae6c     	ldp	x12, x11, [x19, #0x118]
+  2366c8: f940000a     	ldr	x10, [x0]
+  2366cc: 91044669     	add	x9, x19, #0x111
+  2366d0: 2a0103f6     	mov	w22, w1
+  2366d4: d341fd0d     	lsr	x13, x8, #1
+  2366d8: 7200011f     	tst	w8, #0x1
+  2366dc: 3944a263     	ldrb	w3, [x19, #0x128]
+  2366e0: f940154a     	ldr	x10, [x10, #0x28]
+  2366e4: 9a8b0128     	csel	x8, x9, x11, eq
+  2366e8: 9a8c01a2     	csel	x2, x13, x12, eq
+  2366ec: aa0803e1     	mov	x1, x8
+  2366f0: d63f0140     	blr	x10  ;;; CALL <indirect x10>
+  2366f4: 52800028     	mov	w8, #0x1                // =1
+  2366f8: 12000009     	and	w9, w0, #0x1
+  2366fc: 2a1603e1     	mov	w1, w22
+  236700: 3904a669     	strb	w9, [x19, #0x129]
+  236704: 3904aa68     	strb	w8, [x19, #0x12a]
+  236708: 394002a8     	ldrb	w8, [x21]
+  23670c: 6b14011f     	cmp	w8, w20
+  236710: 54000380     	b.eq	0x236780 <SW::ConnectionSettings::setSearchIP(bool)+0xf0>
+  236714: f9408668     	ldr	x8, [x19, #0x108]
+  236718: f9400100     	ldr	x0, [x8]
+  23671c: b40001a0     	cbz	x0, 0x236750 <SW::ConnectionSettings::setSearchIP(bool)+0xc0>
+  236720: 39444268     	ldrb	w8, [x19, #0x110]
+  236724: a951aa6b     	ldp	x11, x10, [x19, #0x118]
+  236728: f9400009     	ldr	x9, [x0]
+  23672c: 9104466d     	add	x13, x19, #0x111
+  236730: 12000023     	and	w3, w1, #0x1
+  236734: d341fd0c     	lsr	x12, x8, #1
+  236738: 7200011f     	tst	w8, #0x1
+  23673c: f9402529     	ldr	x9, [x9, #0x48]
+  236740: 9a8a01a8     	csel	x8, x13, x10, eq
+  236744: 9a8b0182     	csel	x2, x12, x11, eq
+  236748: aa0803e1     	mov	x1, x8
+  23674c: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  236750: 52800028     	mov	w8, #0x1                // =1
+  236754: 3904a674     	strb	w20, [x19, #0x129]
+  236758: aa1303e0     	mov	x0, x19
+  23675c: 3904aa68     	strb	w8, [x19, #0x12a]
+  236760: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  236764: a94157f6     	ldp	x22, x21, [sp, #0x10]
+  236768: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  23676c: 140236bd     	b	0x2c4260 <_ZN2SW19IConnectionSettings12valueChangedEv@plt>
+  236770: 9104a275     	add	x21, x19, #0x128
+  236774: 394002a8     	ldrb	w8, [x21]
+  236778: 6b14011f     	cmp	w8, w20
+  23677c: 54fffcc1     	b.ne	0x236714 <SW::ConnectionSettings::setSearchIP(bool)+0x84>
+  236780: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  236784: a94157f6     	ldp	x22, x21, [sp, #0x10]
+  236788: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  23678c: d65f03c0     	ret
+
+0000000000236790 <SW::ConnectionSettings::fixedIP() const>:
+  236790: 9104c000     	add	x0, x0, #0x130
+  236794: 1402388b     	b	0x2c49c0 <_ZNK2SW11KVStoreItemINSt6__ndk112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEEE4loadEv@plt>
+
+0000000000236c58 <SW::ConnectionSettings::serialPortSupported() const>:
+  236c58: 1402298e     	b	0x2c1290 <_ZN2SW18hasISerialPortImplEv@plt>
+
+0000000000236c5c <SW::ConnectionSettings::serialPortNeedsPortName() const>:
+  236c5c: 14023769     	b	0x2c4a00 <_ZN2SW29iSerialPortImpl_needsPortNameEv@plt>
+
+0000000000236c60 <SW::ConnectionSettings::foundSerialPorts() const>:
+  236c60: f9413801     	ldr	x1, [x0, #0x270]
+  236c64: f9413c02     	ldr	x2, [x0, #0x278]
+  236c68: b201f3e9     	mov	x9, #-0x5555555555555556 // =-6148914691236517206
+  236c6c: f2955569     	movk	x9, #0xaaab
+  236c70: aa0803e0     	mov	x0, x8
+  236c74: a9007d1f     	stp	xzr, xzr, [x8]
+  236c78: cb01004a     	sub	x10, x2, x1
+  236c7c: f900091f     	str	xzr, [x8, #0x10]
+  236c80: 9343fd4a     	asr	x10, x10, #3
+  236c84: 9b097d43     	mul	x3, x10, x9
+  236c88: 14023756     	b	0x2c49e0 <_ZNSt6__ndk16vectorINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEENS4_IS6_EEE16__init_with_sizeB8ne190000IPS6_SA_EEvT_T0_m@plt>
+
+0000000000236c8c <SW::ConnectionSettings::detectSerialPorts()>:
+  236c8c: d10143ff     	sub	sp, sp, #0x50
+  236c90: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  236c94: a90357f6     	stp	x22, x21, [sp, #0x30]
+  236c98: a9044ff4     	stp	x20, x19, [sp, #0x40]
+  236c9c: 910083fd     	add	x29, sp, #0x20
+  236ca0: d53bd054     	mrs	x20, TPIDR_EL0
+  236ca4: aa0003f3     	mov	x19, x0
+  236ca8: f9401688     	ldr	x8, [x20, #0x28]
+  236cac: f81f83a8     	stur	x8, [x29, #-0x8]
+  236cb0: 910003e8     	mov	x8, sp
+  236cb4: 94023757     	bl	0x2c4a10 <_ZN2SW20enumerateSerialPortsEv@plt>  ;;; CALL SW::enumerateSerialPorts()
+  236cb8: f9413a75     	ldr	x21, [x19, #0x270]
+  236cbc: b4000255     	cbz	x21, 0x236d04 <SW::ConnectionSettings::detectSerialPorts()+0x78>
+  236cc0: f9413e68     	ldr	x8, [x19, #0x278]
+  236cc4: aa1503e0     	mov	x0, x21
+  236cc8: eb15011f     	cmp	x8, x21
+  236ccc: 54000180     	b.eq	0x236cfc <SW::ConnectionSettings::detectSerialPorts()+0x70>
+  236cd0: aa0803f6     	mov	x22, x8
+  236cd4: 14000004     	b	0x236ce4 <SW::ConnectionSettings::detectSerialPorts()+0x58>
+  236cd8: eb1502df     	cmp	x22, x21
+  236cdc: aa1603e8     	mov	x8, x22
+  236ce0: 540000c0     	b.eq	0x236cf8 <SW::ConnectionSettings::detectSerialPorts()+0x6c>
+  236ce4: 385e8ec9     	ldrb	w9, [x22, #-0x18]!
+  236ce8: 3607ff89     	tbz	w9, #0x0, 0x236cd8 <SW::ConnectionSettings::detectSerialPorts()+0x4c>
+  236cec: f85f8100     	ldur	x0, [x8, #-0x8]
+  236cf0: 940229a8     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  236cf4: 17fffff9     	b	0x236cd8 <SW::ConnectionSettings::detectSerialPorts()+0x4c>
+  236cf8: f9413a60     	ldr	x0, [x19, #0x270]
+  236cfc: f9013e75     	str	x21, [x19, #0x278]
+  236d00: 940229a4     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  236d04: 3dc003e0     	ldr	q0, [sp]
+  236d08: f9400be8     	ldr	x8, [sp, #0x10]
+  236d0c: aa1303e0     	mov	x0, x19
+  236d10: 3d809e60     	str	q0, [x19, #0x270]
+  236d14: f9014268     	str	x8, [x19, #0x280]
+  236d18: 94023552     	bl	0x2c4260 <_ZN2SW19IConnectionSettings12valueChangedEv@plt>  ;;; CALL SW::IConnectionSettings::valueChanged()
+  236d1c: f9401688     	ldr	x8, [x20, #0x28]
+  236d20: f85f83a9     	ldur	x9, [x29, #-0x8]
+  236d24: eb09011f     	cmp	x8, x9
+  236d28: 540000c1     	b.ne	0x236d40 <SW::ConnectionSettings::detectSerialPorts()+0xb4>
+  236d2c: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+  236d30: a94357f6     	ldp	x22, x21, [sp, #0x30]
+  236d34: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  236d38: 910143ff     	add	sp, sp, #0x50
+  236d3c: d65f03c0     	ret
+  236d40: 9402291c     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000236d44 <SW::ConnectionSettings::foundSerialPortsIndex() const>:
+  236d44: d10283ff     	sub	sp, sp, #0xa0
+  236d48: a9047bfd     	stp	x29, x30, [sp, #0x40]
+  236d4c: f9002bfb     	str	x27, [sp, #0x50]
+  236d50: a90667fa     	stp	x26, x25, [sp, #0x60]
+  236d54: a9075ff8     	stp	x24, x23, [sp, #0x70]
+  236d58: a90857f6     	stp	x22, x21, [sp, #0x80]
+  236d5c: a9094ff4     	stp	x20, x19, [sp, #0x90]
+  236d60: 910103fd     	add	x29, sp, #0x40
+  236d64: d53bd055     	mrs	x21, TPIDR_EL0
+  236d68: aa0003f3     	mov	x19, x0
+  236d6c: 91062000     	add	x0, x0, #0x188
+  236d70: f94016a8     	ldr	x8, [x21, #0x28]
+  236d74: 910023f4     	add	x20, sp, #0x8
+  236d78: f81f83a8     	stur	x8, [x29, #-0x8]
+  236d7c: 910023e8     	add	x8, sp, #0x8
+  236d80: 94023710     	bl	0x2c49c0 <_ZNK2SW11KVStoreItemINSt6__ndk112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEEE4loadEv@plt>  ;;; CALL SW::KVStoreItem<std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char>>>::load() const
+  236d84: 394023e8     	ldrb	w8, [sp, #0x8]
+  236d88: a94127ea     	ldp	x10, x9, [sp, #0x10]
+  236d8c: d341fd0b     	lsr	x11, x8, #1
+  236d90: 7200011f     	tst	w8, #0x1
+  236d94: 9a941520     	csinc	x0, x9, x20, ne
+  236d98: 9a8a0161     	csel	x1, x11, x10, eq
+  236d9c: 910083e8     	add	x8, sp, #0x20
+  236da0: 94023720     	bl	0x2c4a20 <_ZN2SW13StrToOsStringENSt6__ndk117basic_string_viewIcNS0_11char_traitsIcEEEE@plt>  ;;; CALL SW::StrToOsString(std::__ndk1::basic_string_view<char, std::__ndk1::char_traits<char>>)
+  236da4: 394023e8     	ldrb	w8, [sp, #0x8]
+  236da8: 36000068     	tbz	w8, #0x0, 0x236db4 <SW::ConnectionSettings::foundSerialPortsIndex() const+0x70>
+  236dac: f9400fe0     	ldr	x0, [sp, #0x18]
+  236db0: 94022978     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  236db4: 394083f6     	ldrb	w22, [sp, #0x20]
+  236db8: f94017e8     	ldr	x8, [sp, #0x28]
+  236dbc: d341fec9     	lsr	x9, x22, #1
+  236dc0: 720002df     	tst	w22, #0x1
+  236dc4: 9a880137     	csel	x23, x9, x8, eq
+  236dc8: b40007f7     	cbz	x23, 0x236ec4 <SW::ConnectionSettings::foundSerialPortsIndex() const+0x180>
+  236dcc: f9413e68     	ldr	x8, [x19, #0x278]
+  236dd0: f9413a78     	ldr	x24, [x19, #0x270]
+  236dd4: eb180108     	subs	x8, x8, x24
+  236dd8: 54000760     	b.eq	0x236ec4 <SW::ConnectionSettings::foundSerialPortsIndex() const+0x180>
+  236ddc: 9343fd08     	asr	x8, x8, #3
+  236de0: b201f3e9     	mov	x9, #-0x5555555555555556 // =-6148914691236517206
+  236de4: 720002df     	tst	w22, #0x1
+  236de8: f2955569     	movk	x9, #0xaaab
+  236dec: 910083ea     	add	x10, sp, #0x20
+  236df0: aa1f03f3     	mov	x19, xzr
+  236df4: 9b097d08     	mul	x8, x8, x9
+  236df8: f9401be9     	ldr	x9, [sp, #0x30]
+  236dfc: 9100071a     	add	x26, x24, #0x1
+  236e00: 5280031b     	mov	w27, #0x18              // =24
+  236e04: 9a8a1534     	csinc	x20, x9, x10, ne
+  236e08: f100051f     	cmp	x8, #0x1
+  236e0c: 9a9f8519     	csinc	x25, x8, xzr, hi
+  236e10: 14000009     	b	0x236e34 <SW::ConnectionSettings::foundSerialPortsIndex() const+0xf0>
+  236e14: f9400920     	ldr	x0, [x9, #0x10]
+  236e18: aa1403e1     	mov	x1, x20
+  236e1c: 940229ad     	bl	0x2c14d0 <memcmp@plt>  ;;; CALL memcmp
+  236e20: 34000320     	cbz	w0, 0x236e84 <SW::ConnectionSettings::foundSerialPortsIndex() const+0x140>
+  236e24: 91000673     	add	x19, x19, #0x1
+  236e28: 9100635a     	add	x26, x26, #0x18
+  236e2c: eb19027f     	cmp	x19, x25
+  236e30: 540004a0     	b.eq	0x236ec4 <SW::ConnectionSettings::foundSerialPortsIndex() const+0x180>
+  236e34: 9b1b6269     	madd	x9, x19, x27, x24
+  236e38: 3940012a     	ldrb	w10, [x9]
+  236e3c: f9400522     	ldr	x2, [x9, #0x8]
+  236e40: d341fd48     	lsr	x8, x10, #1
+  236e44: 7200015f     	tst	w10, #0x1
+  236e48: 9a82010b     	csel	x11, x8, x2, eq
+  236e4c: eb17017f     	cmp	x11, x23
+  236e50: 54fffea1     	b.ne	0x236e24 <SW::ConnectionSettings::foundSerialPortsIndex() const+0xe0>
+  236e54: 3707fe0a     	tbnz	w10, #0x0, 0x236e14 <SW::ConnectionSettings::foundSerialPortsIndex() const+0xd0>
+  236e58: 7100095f     	cmp	w10, #0x2
+  236e5c: 54000143     	b.lo	0x236e84 <SW::ConnectionSettings::foundSerialPortsIndex() const+0x140>
+  236e60: aa1a03e9     	mov	x9, x26
+  236e64: aa1403ea     	mov	x10, x20
+  236e68: 3840152b     	ldrb	w11, [x9], #0x1
+  236e6c: 3940014c     	ldrb	w12, [x10]
+  236e70: 6b0c017f     	cmp	w11, w12
+  236e74: 54fffd81     	b.ne	0x236e24 <SW::ConnectionSettings::foundSerialPortsIndex() const+0xe0>
+  236e78: f1000508     	subs	x8, x8, #0x1
+  236e7c: 9100054a     	add	x10, x10, #0x1
+  236e80: 54ffff41     	b.ne	0x236e68 <SW::ConnectionSettings::foundSerialPortsIndex() const+0x124>
+  236e84: 36000076     	tbz	w22, #0x0, 0x236e90 <SW::ConnectionSettings::foundSerialPortsIndex() const+0x14c>
+  236e88: f9401be0     	ldr	x0, [sp, #0x30]
+  236e8c: 94022941     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  236e90: f94016a8     	ldr	x8, [x21, #0x28]
+  236e94: f85f83a9     	ldur	x9, [x29, #-0x8]
+  236e98: eb09011f     	cmp	x8, x9
+  236e9c: 54000301     	b.ne	0x236efc <SW::ConnectionSettings::foundSerialPortsIndex() const+0x1b8>
+  236ea0: 2a1303e0     	mov	w0, w19
+  236ea4: a9494ff4     	ldp	x20, x19, [sp, #0x90]
+  236ea8: f9402bfb     	ldr	x27, [sp, #0x50]
+  236eac: a94857f6     	ldp	x22, x21, [sp, #0x80]
+  236eb0: a9475ff8     	ldp	x24, x23, [sp, #0x70]
+  236eb4: a94667fa     	ldp	x26, x25, [sp, #0x60]
+  236eb8: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+  236ebc: 910283ff     	add	sp, sp, #0xa0
+  236ec0: d65f03c0     	ret
+  236ec4: 12800013     	mov	w19, #-0x1              // =-1
+  236ec8: 3707fe16     	tbnz	w22, #0x0, 0x236e88 <SW::ConnectionSettings::foundSerialPortsIndex() const+0x144>
+  236ecc: 17fffff1     	b	0x236e90 <SW::ConnectionSettings::foundSerialPortsIndex() const+0x14c>
+  236ed0: 394023e8     	ldrb	w8, [sp, #0x8]
+  236ed4: aa0003f3     	mov	x19, x0
+  236ed8: 36000068     	tbz	w8, #0x0, 0x236ee4 <SW::ConnectionSettings::foundSerialPortsIndex() const+0x1a0>
+  236edc: f9400fe0     	ldr	x0, [sp, #0x18]
+  236ee0: 9402292c     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  236ee4: f94016a8     	ldr	x8, [x21, #0x28]
+  236ee8: f85f83a9     	ldur	x9, [x29, #-0x8]
+  236eec: eb09011f     	cmp	x8, x9
+  236ef0: 54000061     	b.ne	0x236efc <SW::ConnectionSettings::foundSerialPortsIndex() const+0x1b8>
+  236ef4: aa1303e0     	mov	x0, x19
+  236ef8: 94021963     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  236efc: 940228ad     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000236f00 <SW::ConnectionSettings::setFoundSerialPortsIndex(int)>:
+  236f00: d10103ff     	sub	sp, sp, #0x40
+  236f04: a9027bfd     	stp	x29, x30, [sp, #0x20]
+  236f08: a9034ff4     	stp	x20, x19, [sp, #0x30]
+  236f0c: 910083fd     	add	x29, sp, #0x20
+  236f10: d53bd054     	mrs	x20, TPIDR_EL0
+  236f14: f9401688     	ldr	x8, [x20, #0x28]
+  236f18: f81f83a8     	stur	x8, [x29, #-0x8]
+  236f1c: 37f803e1     	tbnz	w1, #0x1f, 0x236f98 <SW::ConnectionSettings::setFoundSerialPortsIndex(int)+0x98>
+  236f20: f9413c09     	ldr	x9, [x0, #0x278]
+  236f24: f9413808     	ldr	x8, [x0, #0x270]
+  236f28: 5295556a     	mov	w10, #0xaaab            // =43691
+  236f2c: 72b5554a     	movk	w10, #0xaaaa, lsl #16
+  236f30: cb080129     	sub	x9, x9, x8
+  236f34: d343fd29     	lsr	x9, x9, #3
+  236f38: 1b0a7d29     	mul	w9, w9, w10
+  236f3c: 6b01013f     	cmp	w9, w1
+  236f40: 540002cd     	b.le	0x236f98 <SW::ConnectionSettings::setFoundSerialPortsIndex(int)+0x98>
+  236f44: 52800309     	mov	w9, #0x18               // =24
+  236f48: aa0003f3     	mov	x19, x0
+  236f4c: 9ba92028     	umaddl	x8, w1, w9, x8
+  236f50: 39400109     	ldrb	w9, [x8]
+  236f54: a940a90b     	ldp	x11, x10, [x8, #0x8]
+  236f58: d341fd2c     	lsr	x12, x9, #1
+  236f5c: 7200013f     	tst	w9, #0x1
+  236f60: 9a881549     	csinc	x9, x10, x8, ne
+  236f64: 910003e8     	mov	x8, sp
+  236f68: 9a8b0181     	csel	x1, x12, x11, eq
+  236f6c: aa0903e0     	mov	x0, x9
+  236f70: 940236b0     	bl	0x2c4a30 <_ZN2SW13OsStringToStrENSt6__ndk117basic_string_viewIcNS0_11char_traitsIcEEEE@plt>  ;;; CALL SW::OsStringToStr(std::__ndk1::basic_string_view<char, std::__ndk1::char_traits<char>>)
+  236f74: f9400268     	ldr	x8, [x19]
+  236f78: f9408508     	ldr	x8, [x8, #0x108]
+  236f7c: 910003e1     	mov	x1, sp
+  236f80: aa1303e0     	mov	x0, x19
+  236f84: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  236f88: 394003e8     	ldrb	w8, [sp]
+  236f8c: 36000068     	tbz	w8, #0x0, 0x236f98 <SW::ConnectionSettings::setFoundSerialPortsIndex(int)+0x98>
+  236f90: f9400be0     	ldr	x0, [sp, #0x10]
+  236f94: 940228ff     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  236f98: f9401688     	ldr	x8, [x20, #0x28]
+  236f9c: f85f83a9     	ldur	x9, [x29, #-0x8]
+  236fa0: eb09011f     	cmp	x8, x9
+  236fa4: 54000201     	b.ne	0x236fe4 <SW::ConnectionSettings::setFoundSerialPortsIndex(int)+0xe4>
+  236fa8: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+  236fac: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+  236fb0: 910103ff     	add	sp, sp, #0x40
+  236fb4: d65f03c0     	ret
+  236fb8: 394003e8     	ldrb	w8, [sp]
+  236fbc: aa0003f3     	mov	x19, x0
+  236fc0: 36000068     	tbz	w8, #0x0, 0x236fcc <SW::ConnectionSettings::setFoundSerialPortsIndex(int)+0xcc>
+  236fc4: f9400be0     	ldr	x0, [sp, #0x10]
+  236fc8: 940228f2     	bl	0x2c1390 <_ZdlPv@plt>  ;;; CALL operator delete(void*)
+  236fcc: f9401688     	ldr	x8, [x20, #0x28]
+  236fd0: f85f83a9     	ldur	x9, [x29, #-0x8]
+  236fd4: eb09011f     	cmp	x8, x9
+  236fd8: 54000061     	b.ne	0x236fe4 <SW::ConnectionSettings::setFoundSerialPortsIndex(int)+0xe4>
+  236fdc: aa1303e0     	mov	x0, x19
+  236fe0: 94021929     	bl	0x2bd484 <_Unwind_Resume>  ;;; CALL _Unwind_Resume
+  236fe4: 94022873     	bl	0x2c11b0 <__stack_chk_fail@plt>  ;;; CALL __stack_chk_fail
+
+0000000000236fe8 <SW::ConnectionSettings::serialPortName() const>:
+  236fe8: 91062000     	add	x0, x0, #0x188
+  236fec: 14023675     	b	0x2c49c0 <_ZNK2SW11KVStoreItemINSt6__ndk112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEEE4loadEv@plt>
+
+0000000000237124 <SW::ConnectionSettings::maxUpgradeBaud() const>:
+  237124: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  237128: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  23712c: 910003fd     	mov	x29, sp
+  237130: 39482008     	ldrb	w8, [x0, #0x208]
+  237134: 91081013     	add	x19, x0, #0x204
+  237138: 360000a8     	tbz	w8, #0x0, 0x23714c <SW::ConnectionSettings::maxUpgradeBaud() const+0x28>
+  23713c: b9400260     	ldr	w0, [x19]
+  237140: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  237144: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  237148: d65f03c0     	ret
+  23714c: f940f008     	ldr	x8, [x0, #0x1e0]
+  237150: f9400108     	ldr	x8, [x8]
+  237154: b40002a8     	cbz	x8, 0x2371a8 <SW::ConnectionSettings::maxUpgradeBaud() const+0x84>
+  237158: 3947a009     	ldrb	w9, [x0, #0x1e8]
+  23715c: f940010b     	ldr	x11, [x8]
+  237160: 9107a40a     	add	x10, x0, #0x1e9
+  237164: a95f300d     	ldp	x13, x12, [x0, #0x1f0]
+  237168: aa0003f4     	mov	x20, x0
+  23716c: d341fd2e     	lsr	x14, x9, #1
+  237170: 7200013f     	tst	w9, #0x1
+  237174: b9420003     	ldr	w3, [x0, #0x200]
+  237178: f9401969     	ldr	x9, [x11, #0x30]
+  23717c: aa0803e0     	mov	x0, x8
+  237180: 9a8c0141     	csel	x1, x10, x12, eq
+  237184: 9a8d01c2     	csel	x2, x14, x13, eq
+  237188: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  23718c: 52800028     	mov	w8, #0x1                // =1
+  237190: b9020680     	str	w0, [x20, #0x204]
+  237194: 39082288     	strb	w8, [x20, #0x208]
+  237198: b9400260     	ldr	w0, [x19]
+  23719c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2371a0: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2371a4: d65f03c0     	ret
+  2371a8: 91080013     	add	x19, x0, #0x200
+  2371ac: b9400260     	ldr	w0, [x19]
+  2371b0: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2371b4: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2371b8: d65f03c0     	ret
+
+00000000002371bc <SW::ConnectionSettings::setMaxUpgradeBaud(unsigned int)>:
+  2371bc: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  2371c0: f9000bf5     	str	x21, [sp, #0x10]
+  2371c4: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  2371c8: 910003fd     	mov	x29, sp
+  2371cc: 39482008     	ldrb	w8, [x0, #0x208]
+  2371d0: 2a0103f4     	mov	w20, w1
+  2371d4: aa0003f3     	mov	x19, x0
+  2371d8: 91081015     	add	x21, x0, #0x204
+  2371dc: 37000248     	tbnz	w8, #0x0, 0x237224 <SW::ConnectionSettings::setMaxUpgradeBaud(unsigned int)+0x68>
+  2371e0: f940f268     	ldr	x8, [x19, #0x1e0]
+  2371e4: f9400100     	ldr	x0, [x8]
+  2371e8: b40002c0     	cbz	x0, 0x237240 <SW::ConnectionSettings::setMaxUpgradeBaud(unsigned int)+0x84>
+  2371ec: 3947a268     	ldrb	w8, [x19, #0x1e8]
+  2371f0: f940000a     	ldr	x10, [x0]
+  2371f4: 9107a669     	add	x9, x19, #0x1e9
+  2371f8: a95f2e6c     	ldp	x12, x11, [x19, #0x1f0]
+  2371fc: b9420263     	ldr	w3, [x19, #0x200]
+  237200: d341fd0d     	lsr	x13, x8, #1
+  237204: 7200011f     	tst	w8, #0x1
+  237208: f9401948     	ldr	x8, [x10, #0x30]
+  23720c: 9a8b0121     	csel	x1, x9, x11, eq
+  237210: 9a8c01a2     	csel	x2, x13, x12, eq
+  237214: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  237218: 52800028     	mov	w8, #0x1                // =1
+  23721c: b9020660     	str	w0, [x19, #0x204]
+  237220: 39082268     	strb	w8, [x19, #0x208]
+  237224: b94002a8     	ldr	w8, [x21]
+  237228: 6b14011f     	cmp	w8, w20
+  23722c: 54000121     	b.ne	0x237250 <SW::ConnectionSettings::setMaxUpgradeBaud(unsigned int)+0x94>
+  237230: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  237234: f9400bf5     	ldr	x21, [sp, #0x10]
+  237238: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  23723c: d65f03c0     	ret
+  237240: 91080275     	add	x21, x19, #0x200
+  237244: b94002a8     	ldr	w8, [x21]
+  237248: 6b14011f     	cmp	w8, w20
+  23724c: 54ffff20     	b.eq	0x237230 <SW::ConnectionSettings::setMaxUpgradeBaud(unsigned int)+0x74>
+  237250: f940f268     	ldr	x8, [x19, #0x1e0]
+  237254: f9400100     	ldr	x0, [x8]
+  237258: b4000180     	cbz	x0, 0x237288 <SW::ConnectionSettings::setMaxUpgradeBaud(unsigned int)+0xcc>
+  23725c: 3947a268     	ldrb	w8, [x19, #0x1e8]
+  237260: f9400009     	ldr	x9, [x0]
+  237264: 9107a66d     	add	x13, x19, #0x1e9
+  237268: a95f2a6b     	ldp	x11, x10, [x19, #0x1f0]
+  23726c: 2a1403e3     	mov	w3, w20
+  237270: d341fd0c     	lsr	x12, x8, #1
+  237274: 7200011f     	tst	w8, #0x1
+  237278: f9402928     	ldr	x8, [x9, #0x50]
+  23727c: 9a8a01a1     	csel	x1, x13, x10, eq
+  237280: 9a8b0182     	csel	x2, x12, x11, eq
+  237284: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  237288: 52800028     	mov	w8, #0x1                // =1
+  23728c: b9020674     	str	w20, [x19, #0x204]
+  237290: aa1303e0     	mov	x0, x19
+  237294: 39082268     	strb	w8, [x19, #0x208]
+  237298: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  23729c: f9400bf5     	ldr	x21, [sp, #0x10]
+  2372a0: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  2372a4: 140233ef     	b	0x2c4260 <_ZN2SW19IConnectionSettings12valueChangedEv@plt>
+
+00000000002372a8 <SW::ConnectionSettings::bleSupported() const>:
+  2372a8: 140235be     	b	0x2c49a0 <_ZN2SW13hasISwBLEImplEv@plt>
+
+00000000002372ac <SW::ConnectionSettings::discoveryTimeoutMs_BLE() const>:
+  2372ac: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  2372b0: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  2372b4: 910003fd     	mov	x29, sp
+  2372b8: 3948e008     	ldrb	w8, [x0, #0x238]
+  2372bc: 9108d013     	add	x19, x0, #0x234
+  2372c0: 360000e8     	tbz	w8, #0x0, 0x2372dc <SW::ConnectionSettings::discoveryTimeoutMs_BLE() const+0x30>
+  2372c4: b9400268     	ldr	w8, [x19]
+  2372c8: 7100011f     	cmp	w8, #0x0
+  2372cc: 5a885500     	cneg	w0, w8, mi
+  2372d0: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2372d4: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2372d8: d65f03c0     	ret
+  2372dc: f9410808     	ldr	x8, [x0, #0x210]
+  2372e0: f9400108     	ldr	x8, [x8]
+  2372e4: b4000308     	cbz	x8, 0x237344 <SW::ConnectionSettings::discoveryTimeoutMs_BLE() const+0x98>
+  2372e8: 39486009     	ldrb	w9, [x0, #0x218]
+  2372ec: f940010b     	ldr	x11, [x8]
+  2372f0: 9108640c     	add	x12, x0, #0x219
+  2372f4: f941140a     	ldr	x10, [x0, #0x228]
+  2372f8: f941100d     	ldr	x13, [x0, #0x220]
+  2372fc: aa0003f4     	mov	x20, x0
+  237300: d341fd2e     	lsr	x14, x9, #1
+  237304: 7200013f     	tst	w9, #0x1
+  237308: b9423003     	ldr	w3, [x0, #0x230]
+  23730c: f9401969     	ldr	x9, [x11, #0x30]
+  237310: 9a8a0181     	csel	x1, x12, x10, eq
+  237314: aa0803e0     	mov	x0, x8
+  237318: 9a8d01c2     	csel	x2, x14, x13, eq
+  23731c: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  237320: 52800028     	mov	w8, #0x1                // =1
+  237324: b9023680     	str	w0, [x20, #0x234]
+  237328: 3908e288     	strb	w8, [x20, #0x238]
+  23732c: b9400268     	ldr	w8, [x19]
+  237330: 7100011f     	cmp	w8, #0x0
+  237334: 5a885500     	cneg	w0, w8, mi
+  237338: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23733c: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  237340: d65f03c0     	ret
+  237344: 9108c013     	add	x19, x0, #0x230
+  237348: b9400268     	ldr	w8, [x19]
+  23734c: 7100011f     	cmp	w8, #0x0
+  237350: 5a885500     	cneg	w0, w8, mi
+  237354: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  237358: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  23735c: d65f03c0     	ret
+
+0000000000237360 <SW::ConnectionSettings::setDiscoveryTimeoutMs_BLE(unsigned int)>:
+  237360: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  237364: f9000bf5     	str	x21, [sp, #0x10]
+  237368: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  23736c: 910003fd     	mov	x29, sp
+  237370: 3948e008     	ldrb	w8, [x0, #0x238]
+  237374: 2a0103f4     	mov	w20, w1
+  237378: aa0003f3     	mov	x19, x0
+  23737c: 9108d015     	add	x21, x0, #0x234
+  237380: 37000268     	tbnz	w8, #0x0, 0x2373cc <SW::ConnectionSettings::setDiscoveryTimeoutMs_BLE(unsigned int)+0x6c>
+  237384: f9410a68     	ldr	x8, [x19, #0x210]
+  237388: f9400100     	ldr	x0, [x8]
+  23738c: b40002e0     	cbz	x0, 0x2373e8 <SW::ConnectionSettings::setDiscoveryTimeoutMs_BLE(unsigned int)+0x88>
+  237390: 39486268     	ldrb	w8, [x19, #0x218]
+  237394: f940000a     	ldr	x10, [x0]
+  237398: 9108666b     	add	x11, x19, #0x219
+  23739c: f9411669     	ldr	x9, [x19, #0x228]
+  2373a0: f941126c     	ldr	x12, [x19, #0x220]
+  2373a4: b9423263     	ldr	w3, [x19, #0x230]
+  2373a8: d341fd0d     	lsr	x13, x8, #1
+  2373ac: 7200011f     	tst	w8, #0x1
+  2373b0: f9401948     	ldr	x8, [x10, #0x30]
+  2373b4: 9a890161     	csel	x1, x11, x9, eq
+  2373b8: 9a8c01a2     	csel	x2, x13, x12, eq
+  2373bc: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  2373c0: 52800028     	mov	w8, #0x1                // =1
+  2373c4: b9023660     	str	w0, [x19, #0x234]
+  2373c8: 3908e268     	strb	w8, [x19, #0x238]
+  2373cc: b94002a8     	ldr	w8, [x21]
+  2373d0: 6b14011f     	cmp	w8, w20
+  2373d4: 54000121     	b.ne	0x2373f8 <SW::ConnectionSettings::setDiscoveryTimeoutMs_BLE(unsigned int)+0x98>
+  2373d8: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  2373dc: f9400bf5     	ldr	x21, [sp, #0x10]
+  2373e0: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  2373e4: d65f03c0     	ret
+  2373e8: 9108c275     	add	x21, x19, #0x230
+  2373ec: b94002a8     	ldr	w8, [x21]
+  2373f0: 6b14011f     	cmp	w8, w20
+  2373f4: 54ffff20     	b.eq	0x2373d8 <SW::ConnectionSettings::setDiscoveryTimeoutMs_BLE(unsigned int)+0x78>
+  2373f8: f9410a68     	ldr	x8, [x19, #0x210]
+  2373fc: f9400100     	ldr	x0, [x8]
+  237400: b40001a0     	cbz	x0, 0x237434 <SW::ConnectionSettings::setDiscoveryTimeoutMs_BLE(unsigned int)+0xd4>
+  237404: 39486268     	ldrb	w8, [x19, #0x218]
+  237408: f9400009     	ldr	x9, [x0]
+  23740c: 9108666d     	add	x13, x19, #0x219
+  237410: f941166a     	ldr	x10, [x19, #0x228]
+  237414: f941126b     	ldr	x11, [x19, #0x220]
+  237418: 2a1403e3     	mov	w3, w20
+  23741c: d341fd0c     	lsr	x12, x8, #1
+  237420: 7200011f     	tst	w8, #0x1
+  237424: f9402928     	ldr	x8, [x9, #0x50]
+  237428: 9a8a01a1     	csel	x1, x13, x10, eq
+  23742c: 9a8b0182     	csel	x2, x12, x11, eq
+  237430: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  237434: 52800028     	mov	w8, #0x1                // =1
+  237438: b9023674     	str	w20, [x19, #0x234]
+  23743c: aa1303e0     	mov	x0, x19
+  237440: 3908e268     	strb	w8, [x19, #0x238]
+  237444: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  237448: f9400bf5     	ldr	x21, [sp, #0x10]
+  23744c: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  237450: 14023384     	b	0x2c4260 <_ZN2SW19IConnectionSettings12valueChangedEv@plt>
+
+0000000000237454 <SW::ConnectionSettings::readTimeoutMs_BLE() const>:
+  237454: a9be7bfd     	stp	x29, x30, [sp, #-0x20]!
+  237458: a9014ff4     	stp	x20, x19, [sp, #0x10]
+  23745c: 910003fd     	mov	x29, sp
+  237460: 3949a008     	ldrb	w8, [x0, #0x268]
+  237464: 91099013     	add	x19, x0, #0x264
+  237468: 360000e8     	tbz	w8, #0x0, 0x237484 <SW::ConnectionSettings::readTimeoutMs_BLE() const+0x30>
+  23746c: b9400268     	ldr	w8, [x19]
+  237470: 7100011f     	cmp	w8, #0x0
+  237474: 5a885500     	cneg	w0, w8, mi
+  237478: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  23747c: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  237480: d65f03c0     	ret
+  237484: f9412008     	ldr	x8, [x0, #0x240]
+  237488: f9400108     	ldr	x8, [x8]
+  23748c: b4000308     	cbz	x8, 0x2374ec <SW::ConnectionSettings::readTimeoutMs_BLE() const+0x98>
+  237490: 39492009     	ldrb	w9, [x0, #0x248]
+  237494: f940010b     	ldr	x11, [x8]
+  237498: 9109240c     	add	x12, x0, #0x249
+  23749c: f9412c0a     	ldr	x10, [x0, #0x258]
+  2374a0: f941280d     	ldr	x13, [x0, #0x250]
+  2374a4: aa0003f4     	mov	x20, x0
+  2374a8: d341fd2e     	lsr	x14, x9, #1
+  2374ac: 7200013f     	tst	w9, #0x1
+  2374b0: b9426003     	ldr	w3, [x0, #0x260]
+  2374b4: f9401969     	ldr	x9, [x11, #0x30]
+  2374b8: 9a8a0181     	csel	x1, x12, x10, eq
+  2374bc: aa0803e0     	mov	x0, x8
+  2374c0: 9a8d01c2     	csel	x2, x14, x13, eq
+  2374c4: d63f0120     	blr	x9  ;;; CALL <indirect x9>
+  2374c8: 52800028     	mov	w8, #0x1                // =1
+  2374cc: b9026680     	str	w0, [x20, #0x264]
+  2374d0: 3909a288     	strb	w8, [x20, #0x268]
+  2374d4: b9400268     	ldr	w8, [x19]
+  2374d8: 7100011f     	cmp	w8, #0x0
+  2374dc: 5a885500     	cneg	w0, w8, mi
+  2374e0: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  2374e4: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  2374e8: d65f03c0     	ret
+  2374ec: 91098013     	add	x19, x0, #0x260
+  2374f0: b9400268     	ldr	w8, [x19]
+  2374f4: 7100011f     	cmp	w8, #0x0
+  2374f8: 5a885500     	cneg	w0, w8, mi
+  2374fc: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+  237500: a8c27bfd     	ldp	x29, x30, [sp], #0x20
+  237504: d65f03c0     	ret
+
+0000000000237508 <SW::ConnectionSettings::setReadTimeoutMs_BLE(unsigned int)>:
+  237508: a9bd7bfd     	stp	x29, x30, [sp, #-0x30]!
+  23750c: f9000bf5     	str	x21, [sp, #0x10]
+  237510: a9024ff4     	stp	x20, x19, [sp, #0x20]
+  237514: 910003fd     	mov	x29, sp
+  237518: 3949a008     	ldrb	w8, [x0, #0x268]
+  23751c: 2a0103f4     	mov	w20, w1
+  237520: aa0003f3     	mov	x19, x0
+  237524: 91099015     	add	x21, x0, #0x264
+  237528: 37000268     	tbnz	w8, #0x0, 0x237574 <SW::ConnectionSettings::setReadTimeoutMs_BLE(unsigned int)+0x6c>
+  23752c: f9412268     	ldr	x8, [x19, #0x240]
+  237530: f9400100     	ldr	x0, [x8]
+  237534: b40002e0     	cbz	x0, 0x237590 <SW::ConnectionSettings::setReadTimeoutMs_BLE(unsigned int)+0x88>
+  237538: 39492268     	ldrb	w8, [x19, #0x248]
+  23753c: f940000a     	ldr	x10, [x0]
+  237540: 9109266b     	add	x11, x19, #0x249
+  237544: f9412e69     	ldr	x9, [x19, #0x258]
+  237548: f9412a6c     	ldr	x12, [x19, #0x250]
+  23754c: b9426263     	ldr	w3, [x19, #0x260]
+  237550: d341fd0d     	lsr	x13, x8, #1
+  237554: 7200011f     	tst	w8, #0x1
+  237558: f9401948     	ldr	x8, [x10, #0x30]
+  23755c: 9a890161     	csel	x1, x11, x9, eq
+  237560: 9a8c01a2     	csel	x2, x13, x12, eq
+  237564: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  237568: 52800028     	mov	w8, #0x1                // =1
+  23756c: b9026660     	str	w0, [x19, #0x264]
+  237570: 3909a268     	strb	w8, [x19, #0x268]
+  237574: b94002a8     	ldr	w8, [x21]
+  237578: 6b14011f     	cmp	w8, w20
+  23757c: 54000121     	b.ne	0x2375a0 <SW::ConnectionSettings::setReadTimeoutMs_BLE(unsigned int)+0x98>
+  237580: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  237584: f9400bf5     	ldr	x21, [sp, #0x10]
+  237588: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  23758c: d65f03c0     	ret
+  237590: 91098275     	add	x21, x19, #0x260
+  237594: b94002a8     	ldr	w8, [x21]
+  237598: 6b14011f     	cmp	w8, w20
+  23759c: 54ffff20     	b.eq	0x237580 <SW::ConnectionSettings::setReadTimeoutMs_BLE(unsigned int)+0x78>
+  2375a0: f9412268     	ldr	x8, [x19, #0x240]
+  2375a4: f9400100     	ldr	x0, [x8]
+  2375a8: b40001a0     	cbz	x0, 0x2375dc <SW::ConnectionSettings::setReadTimeoutMs_BLE(unsigned int)+0xd4>
+  2375ac: 39492268     	ldrb	w8, [x19, #0x248]
+  2375b0: f9400009     	ldr	x9, [x0]
+  2375b4: 9109266d     	add	x13, x19, #0x249
+  2375b8: f9412e6a     	ldr	x10, [x19, #0x258]
+  2375bc: f9412a6b     	ldr	x11, [x19, #0x250]
+  2375c0: 2a1403e3     	mov	w3, w20
+  2375c4: d341fd0c     	lsr	x12, x8, #1
+  2375c8: 7200011f     	tst	w8, #0x1
+  2375cc: f9402928     	ldr	x8, [x9, #0x50]
+  2375d0: 9a8a01a1     	csel	x1, x13, x10, eq
+  2375d4: 9a8b0182     	csel	x2, x12, x11, eq
+  2375d8: d63f0100     	blr	x8  ;;; CALL <indirect x8>
+  2375dc: 52800028     	mov	w8, #0x1                // =1
+  2375e0: b9026674     	str	w20, [x19, #0x264]
+  2375e4: aa1303e0     	mov	x0, x19
+  2375e8: 3909a268     	strb	w8, [x19, #0x268]
+  2375ec: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+  2375f0: f9400bf5     	ldr	x21, [sp, #0x10]
+  2375f4: a8c37bfd     	ldp	x29, x30, [sp], #0x30
+  2375f8: 1402331a     	b	0x2c4260 <_ZN2SW19IConnectionSettings12valueChangedEv@plt>
+
