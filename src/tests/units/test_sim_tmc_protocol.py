@@ -1,4 +1,6 @@
 from sim import Clock, FakeSerial, FaultKind, TMC2209Sim
+from sim.tmc_sim import RX_FIFO_CAPACITY, TX_RING_CAPACITY
+from tmc2209.protocol import Frame, Op, decode_response, encode_frame, response_values
 
 
 def _exchange(sim: TMC2209Sim, line: str) -> str:
@@ -259,3 +261,160 @@ def test_ready_can_be_suppressed_for_fault_scenarios() -> None:
     sim.on_dtr(True)
     assert sim.drain() == b""
     assert sim.drain() == b""
+
+
+# ---------------------------------------------------------------------------
+# The framed dialect (protocol v3) and the board's own ways of losing data.
+# ---------------------------------------------------------------------------
+
+
+def _frame(sim: TMC2209Sim, op: int, seq: int, payload: bytes = b"") -> Frame:
+    sim.feed(encode_frame(op, seq, payload).encode("ascii"))
+    return decode_response(sim.drain().decode("ascii"), op=op, seq=seq)
+
+
+def test_framed_hello_answers_with_the_protocol_version() -> None:
+    sim = _make_sim()
+
+    assert response_values(_frame(sim, Op.HELLO, 1)) == {"protocol": "3", "firmware": "1"}
+
+
+def test_framed_status_carries_the_same_snapshot_as_the_line_dialect() -> None:
+    """Both dialects are rendered from one `_apply`, and this is what pins them together."""
+    clock = Clock()
+    sim = _make_sim(clock)
+    _exchange(sim, "speed 1000\n")
+    _exchange(sim, "acceleration 2000\n")
+    _exchange(sim, "delta 5000\n")
+    _exchange(sim, "run\n")
+    clock.advance(1.0)
+
+    framed = response_values(_frame(sim, Op.STATUS, 7))
+    line = _exchange(sim, "status\n")
+
+    # The framed status adds the TX-ring counter, which the firmware in the field
+    # does not report; everything else must agree key for key.
+    assert framed.pop("tx_overflow") == "0"
+    assert line == "1;" + "".join(f"{key}={value};" for key, value in framed.items()) + "\n"
+
+
+def test_framed_setters_echo_the_value_that_was_applied() -> None:
+    sim = _make_sim()
+
+    assert response_values(_frame(sim, Op.SPEED, 1, (1000).to_bytes(4, "big"))) == {"speed": "1000.00"}
+    assert response_values(_frame(sim, Op.POSITION, 2, (-42).to_bytes(4, "big", signed=True))) == {"position": "-42"}
+    assert response_values(_frame(sim, Op.MODE, 3, b"\x01")) == {"mode": "free_ride"}
+    assert response_values(_frame(sim, Op.MICROSTEPS, 4, (32).to_bytes(2, "big"))) == {"microsteps": "32"}
+    assert response_values(_frame(sim, Op.MICROSTEPS, 5)) == {"microsteps": "32"}
+    assert response_values(_frame(sim, Op.RUN, 6)) == {"running": "1"}
+    # `target` is relative to the position set two commands ago: -42 + 500.
+    assert response_values(_frame(sim, Op.DELTA, 7, (500).to_bytes(4, "big"))) == {
+        "delta": "500",
+        "target": "458",
+        "target_set": "1",
+    }
+
+
+def test_a_command_frame_with_a_damaged_byte_is_refused_not_executed() -> None:
+    """The direction the line protocol could never protect: host -> board."""
+    sim = _make_sim()
+    damaged = encode_frame(Op.SPEED, 9, (1000).to_bytes(4, "big")).replace("3E8", "3E9")
+
+    sim.feed(damaged.encode("ascii"))
+
+    assert response_values(decode_response(sim.drain().decode("ascii"), op=Op.SPEED, seq=9)) == {"error": "bad_crc"}
+    assert sim.speed_sps == 500.0
+
+
+def test_a_frame_whose_payload_is_the_wrong_size_is_refused() -> None:
+    sim = _make_sim()
+
+    assert response_values(_frame(sim, Op.SPEED, 1, b"\x01\x02")) == {"error": "bad_value"}
+    assert response_values(_frame(sim, Op.STATUS, 2, b"\x01")) == {"error": "bad_value"}
+    assert response_values(_frame(sim, 0x7F, 3)) == {"error": "unknown_cmd"}
+
+
+def test_a_board_that_was_not_reflashed_answers_a_frame_with_unknown_cmd() -> None:
+    """Exactly what firmware 300a439 does with a word it does not know (§5.1)."""
+    sim = TMC2209Sim(Clock(), framed=False)
+    sim.drain()
+
+    sim.feed(encode_frame(Op.HELLO, 1).encode("ascii"))
+
+    assert sim.drain() == b"0;error=unknown_cmd;\n"
+
+
+def test_the_tx_ring_cuts_the_second_line_reply_exactly_as_the_board_did() -> None:
+    """DEC_PROTOCOL.md §6.1, reproduced byte for byte: 147 + 108 = 255."""
+    sim = TMC2209Sim(Clock(), power_v=3.88, framed=False, tx_ring_capacity=TX_RING_CAPACITY,
+                     tx_overflow_truncates=True)
+    sim.drain()
+
+    sim.feed(b"status\nstatus\n")
+    out = sim.drain()
+
+    first, second = out.split(b"\n")[0] + b"\n", out.split(b"\n")[1]
+    assert len(first) == 147
+    assert len(second) == 108
+    assert len(out) == TX_RING_CAPACITY
+    assert not second.endswith(b"\n"), "the stump keeps no terminator, which is why the next reply glues onto it"
+
+
+def test_the_same_two_commands_do_not_overflow_the_ring_when_framed() -> None:
+    """The compactness of the frame is not cosmetic: it removes the overflow."""
+    sim = TMC2209Sim(Clock(), power_v=3.88, tx_ring_capacity=TX_RING_CAPACITY, tx_overflow_truncates=True)
+    sim.drain()
+
+    sim.feed((encode_frame(Op.STATUS, 1) + encode_frame(Op.STATUS, 2)).encode("ascii"))
+    out = sim.drain()
+
+    assert len(out) == 128
+    assert sim.tx_overflow == 0
+    assert response_values(decode_response(out.decode("ascii"), op=Op.STATUS, seq=2))["position"] == "0"
+
+
+def test_the_current_firmware_replaces_an_overflowing_reply_with_a_marker() -> None:
+    sim = TMC2209Sim(Clock(), tx_ring_capacity=100)
+    sim.drain()
+
+    sim.feed((encode_frame(Op.STATUS, 1) + encode_frame(Op.STATUS, 2)).encode("ascii"))
+    out = sim.drain().decode("ascii")
+
+    assert sim.tx_overflow == 1
+    assert response_values(decode_response(out, op=Op.STATUS, seq=2)) == {"error": "tx_overflow"}
+    assert response_values(_frame(sim, Op.STATUS, 3))["tx_overflow"] == "1"
+
+
+def test_the_receive_fifo_swallows_commands_and_poisons_the_next_one() -> None:
+    """DEC_PROTOCOL.md §6.2: 6 of 13 commands vanish, then one command is wrecked."""
+    sim = TMC2209Sim(Clock(), framed=False, rx_capacity=RX_FIFO_CAPACITY)
+    sim.drain()
+
+    sim.feed(b"enabled 0\n" * 13)
+    answers = sim.drain()
+
+    assert answers.count(b"\n") == 6
+    assert sim.rx_dropped == 66
+
+    sim.feed(b"status\n")
+    assert sim.drain() == b"0;error=unknown_cmd;\n", "the stump of the cut line glued itself onto the next command"
+
+
+def test_the_board_resynchronises_on_the_newest_frame_after_the_fifo_cut_one() -> None:
+    """The same lost bytes as above, and no command is wrecked by the stump.
+
+    The line protocol had no way to tell a leftover from a command; the frame
+    marker gives the board one, so the write that follows an overflow is executed
+    instead of being glued into nonsense.
+    """
+    sim = TMC2209Sim(Clock(), rx_capacity=RX_FIFO_CAPACITY)
+    sim.drain()
+
+    sim.feed(encode_frame(Op.SPEED, 1, (1000).to_bytes(4, "big")).encode("ascii") * 4)
+    sim.drain()
+    sim.feed(encode_frame(Op.SPEED, 2, (2000).to_bytes(4, "big")).encode("ascii"))
+    answer = sim.drain().decode("ascii")
+
+    assert sim.rx_dropped > 0, "the FIFO really did cut a command in half"
+    assert response_values(decode_response(answer, op=Op.SPEED, seq=2)) == {"speed": "2000.00"}
+    assert sim.speed_sps == 2000.0
