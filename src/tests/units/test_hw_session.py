@@ -364,3 +364,25 @@ def test_a_board_without_the_counter_still_yields_a_key_and_not_a_crash() -> Non
     assert _optional_int("7") == 7
     # A damaged reply must degrade to "unknown", not abort a session mid-run.
     assert _optional_int("not-a-number") is None
+
+
+def test_the_scenario_never_writes_a_position_to_the_ra_board(tmp_path) -> None:
+    """FRAME.md §2.1: `:E` must not reach the RA board on any path.
+
+    Setting the position is sometimes destructive for the axes, so the rule is
+    about the command not existing rather than about the conditions under which
+    it is sent — a guard like "only while stopped" would still leave the tool
+    free to do it. This asserts on the *wire*, not on the driver API, because
+    that is the only place where "it never happened" is checkable.
+
+    The sync step used to write `0` here. What it reproduces (P6: a sync during
+    tracking must leave the axis tracking) survives without the write: a sync
+    moves the software offset, which is invisible at motor level.
+    """
+    _, events = _run_main(tmp_path)
+
+    ra_frames = [event.data for event in events if event.kind is TraceKind.TX and event.name == "ra"]
+    assert ra_frames, "no RA traffic recorded — the assertion below would pass vacuously"
+
+    written = [frame for frame in ra_frames if frame.startswith(b":E")]
+    assert not written, f"position written to the RA board: {written}"
