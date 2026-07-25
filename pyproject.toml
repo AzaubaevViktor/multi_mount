@@ -159,6 +159,7 @@ ignore = [
 "src/tests/units/test_ra_conformance.py" = ["RUF001", "RUF002", "RUF003"]
 "src/tests/hw/test_ra_conformance_hw.py" = ["RUF001", "RUF002", "RUF003"]
 "src/tools/ra_conformance.py" = ["RUF001", "RUF002", "RUF003"]
+"src/tools/ra_step2.py" = ["RUF001", "RUF002", "RUF003"]
 
 # -- BASELINE (file-scoped, so these rules stay enforced everywhere else) ----------------
 # src/stdout_dashboard.py renders internal axis/combiner state (27 hits). That is the
