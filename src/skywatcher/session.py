@@ -30,7 +30,7 @@ that turns those into the axis API.
 
 import logging
 
-from clock import NEVER, REAL_CLOCK, Clock
+from clock import NEVER, REAL_CLOCK, Clock, TtlCache
 from serial_wrapper.wrapper import SerialLine
 from sky.motor import MotorStopRequire
 from skywatcher.board import SkyWatcherBoard, TimerPeriod, probe_board
@@ -105,8 +105,7 @@ class SkyWatcherSession:
         self._last_status: Status | None = None
         # The board's own counter, as last read, in counts around its power-up
         # value of 0x800000. Never written.
-        self._raw_ticks: int | None = None
-        self._position_updated = NEVER
+        self._raw_ticks: TtlCache[int] = TtlCache(self._POSITION_CACHE_TTL_S, clock)
         # logical position = (board counter + this) mod CPR. The only thing a
         # sync changes, and the only thing a reboot recovery changes.
         self._offset_ticks = 0
@@ -120,9 +119,9 @@ class SkyWatcherSession:
         self._reboot_check_busy = False
         self.reboots_detected = 0
 
-        self._battery_v: float | None = None
-        self._usb_v: float | None = None
-        self._power_v_updated = NEVER
+        # Both rails together: they are read as a pair and are only meaningful as
+        # a pair (§6.8), so one cache holds the pair and cannot go half-stale.
+        self._rails: TtlCache[tuple[float, float]] = TtlCache(self._POWER_CACHE_TTL_S, clock)
         self._power_v_retry_at = NEVER
 
     # ------------------------------------------------------------------
@@ -183,8 +182,7 @@ class SkyWatcherSession:
 
     def _forget_expectations(self) -> None:
         self._last_status = None
-        self._raw_ticks = None
-        self._position_updated = NEVER
+        self._raw_ticks.forget()
         self._expected_raw_ticks = None
         self._expected_period = None
         self._expected_initialized = False
@@ -285,14 +283,16 @@ class SkyWatcherSession:
         first sync or the first reboot.
         """
         cpr = self.require_board().cpr
-        if not fresh and self._raw_ticks is not None and self._clock.monotonic() - self._position_updated <= self._POSITION_CACHE_TTL_S:
-            return (self._raw_ticks + self._offset_ticks) % cpr
+        cached = self._raw_ticks.value
+        if not fresh and cached is not None and self._raw_ticks.is_fresh():
+            return (cached + self._offset_ticks) % cpr
         raw = self._read_raw_ticks()
         if self._observe_position(raw):
             # A reboot was found and the offset re-derived: the counter read
             # above belongs to a board that has just restarted, and the answer
             # is what the new offset makes of it.
-            raw = self._raw_ticks if self._raw_ticks is not None else raw
+            recovered = self._raw_ticks.value
+            raw = recovered if recovered is not None else raw
             return (raw + self._offset_ticks) % cpr
         self._remember_raw(raw)
         return (raw + self._offset_ticks) % cpr
@@ -302,8 +302,11 @@ class SkyWatcherSession:
         return (SkyWatcherCodec.decode_revu24(self.transact(Command.INQUIRE_POSITION)) - POSITION_OFFSET) % cpr
 
     def _remember_raw(self, raw: int) -> None:
-        self._raw_ticks = raw
-        self._position_updated = self._clock.monotonic()
+        self._raw_ticks.store(raw)
+        # Not the same thing as the cache above, and deliberately not folded into
+        # it: the cache expires, this does not. It is what §12.2 compares the next
+        # counter reading against, and a memory that quietly went stale would make
+        # a reboot uninterpretable.
         self._expected_raw_ticks = raw
 
     def read_period(self) -> TimerPeriod:
@@ -534,7 +537,7 @@ class SkyWatcherSession:
 
     def power_v(self) -> float | None:
         now = self._clock.monotonic()
-        if now - self._power_v_updated < self._POWER_CACHE_TTL_S or now < self._power_v_retry_at:
+        if self._rails.is_fresh() or now < self._power_v_retry_at:
             return self.cached_power_v()
 
         try:
@@ -543,36 +546,31 @@ class SkyWatcherSession:
         except SkyWatcherMotorError as error:
             # A board that cannot answer this will not answer it in 40ms either, and
             # the caller is a dashboard tick. Back off, report "unknown", stay quiet.
-            self._battery_v = None
-            self._usb_v = None
+            self._rails.forget()
             self._power_v_retry_at = now + self._POWER_FAILURE_BACKOFF_S
             self._logger.warning(
                 "Could not read the RA supply voltage, next try in %.0fs: %s", self._POWER_FAILURE_BACKOFF_S, error
             )
             return None
 
-        self._battery_v = battery_v
-        self._usb_v = usb_v
-        self._power_v_updated = now
+        self._rails.store((battery_v, usb_v))
         self._power_v_retry_at = NEVER
         return self.cached_power_v()
 
     def cached_power_v(self) -> float | None:
-        voltages = [v for v in (self._battery_v, self._usb_v) if v is not None]
-        return max(voltages) if voltages else None
+        rails = self._rails.value
+        return max(rails) if rails is not None else None
 
     @property
     def battery_v(self) -> float | None:
-        return self._battery_v
+        return self._rails.value[0] if self._rails.value is not None else None
 
     @property
     def usb_v(self) -> float | None:
-        return self._usb_v
+        return self._rails.value[1] if self._rails.value is not None else None
 
     def forget_power_v(self) -> None:
-        self._battery_v = None
-        self._usb_v = None
-        self._power_v_updated = NEVER
+        self._rails.forget()
         self._power_v_retry_at = NEVER
 
     def _read_voltage(self, address: int) -> float:

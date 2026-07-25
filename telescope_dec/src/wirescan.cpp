@@ -51,8 +51,15 @@ static const uint8_t LED_B_G = A2;
 static const uint8_t LED_B_B = A5;
 static const uint8_t LED_ALIVE = 11; // power LED, toggled every round
 
-static const uint8_t TMC2209_VERSION = 0x21;
+// Known VERSION bytes in IOIN. Not used to *accept* a reply -- a datagram whose CRC
+// checks out is a reply whatever it says -- only to name the chip afterwards. Assuming
+// 0x21 here was a real bug: the board carries a TMC2225, which is a TMC2208 variant and
+// answers 0x20, so a perfectly good link would have been reported as "no reply".
+static const uint8_t VERSION_TMC220X = 0x20;  // TMC2208 / TMC2224 / TMC2225
+static const uint8_t VERSION_TMC2209 = 0x21;
 
+// TMC2208/2225 have no address pins at all -- the slave address is always 0. (On a
+// TMC2209 it would be the MS1/MS2 strapping.) The board here carries a TMC2225.
 static const uint8_t TMC_ADDRESS = 0b00;
 static const uint8_t REG_IFCNT = 0x02;
 static const uint8_t REG_IOIN = 0x06;
@@ -122,6 +129,27 @@ static void idle(uint8_t rxPin, uint8_t txPin) {
   // Pulled up, so an unconnected pin reads high and cannot be mistaken for a line
   // that is being held low by something real.
   pinMode(rxPin, INPUT_PULLUP);
+}
+
+// How fast the line falls once it is released from high, in microseconds.
+//
+// `link` only says the two pins share copper -- which is equally true when both reach
+// PDN_UART and when the two wires simply touch each other past the chip. This tells
+// those apart. A bare wire is a capacitor with nowhere to discharge and stays high for
+// milliseconds; a real PDN_UART hangs a weak pull-down on the node and collapses in
+// tens of microseconds. Returns the timeout value when it never falls.
+static const uint16_t DECAY_TIMEOUT_US = 5000;
+
+static uint16_t decayMicros(uint8_t pin) {
+  pinMode(pin, OUTPUT);
+  digitalWrite(pin, HIGH);
+  delayMicroseconds(500);
+  pinMode(pin, INPUT);  // released, and deliberately without the internal pull-up
+  const uint32_t started = micros();
+  while (digitalRead(pin) == HIGH) {
+    if (micros() - started > DECAY_TIMEOUT_US) return DECAY_TIMEOUT_US;
+  }
+  return (uint16_t)(micros() - started);
 }
 
 // Drive one pin, read the other. The module joins both of its pads at PDN_UART, so
@@ -207,6 +235,7 @@ struct Orientation {
   // sees a start bit that never ends and fills its buffer with rubbish. Without this
   // field that rubbish reads as `raw=12` and looks exactly like a real reply.
   bool idleHigh;
+  uint16_t decayUs;
   uint8_t raw;
   uint8_t version;
   int16_t ifcntDelta;
@@ -214,12 +243,20 @@ struct Orientation {
 };
 
 static Orientation probe(uint8_t rxPin, uint8_t txPin) {
-  Orientation out = {false, false, 0, 0, -1, false};
+  Orientation out = {false, false, 0, 0, 0, -1, false};
   out.linked = dcLinked(rxPin, txPin);
 
-  idle(rxPin, txPin);
+  // Release the transmit pin *first*. Measuring the idle level while it still drives
+  // the line high reports that driver, not the line: with the two pins linked it read
+  // high every time and said nothing at all. Against the ~40k internal pull-up alone,
+  // a low reading now means a pull-down stronger than about 20k -- which is a
+  // standalone-mode strap to ground, not a UART line waiting to talk.
+  pinMode(txPin, INPUT);
+  pinMode(rxPin, INPUT_PULLUP);
   delayMicroseconds(500);
   out.idleHigh = digitalRead(rxPin) == HIGH;
+
+  out.decayUs = decayMicros(rxPin);
 
   uint32_t ioin = 0;
   out.replied = tmcRead(rxPin, txPin, REG_IOIN, &ioin, &out.raw);
@@ -241,9 +278,13 @@ static Orientation probe(uint8_t rxPin, uint8_t txPin) {
 }
 
 static LinkState classify(const Orientation& o) {
-  if (o.replied && o.version == TMC2209_VERSION) return STATE_TALKING;
-  if (o.linked) return STATE_LINKED;
+  // Any datagram that passed sync, address and CRC is the chip talking. Which chip it
+  // is comes out of `version`, and is not a precondition for hearing it.
+  if (o.replied) return STATE_TALKING;
+  // A line held low outranks continuity on purpose: UART idles high, so a pinned line
+  // cannot carry a byte no matter how well the two pins are connected. Fix this first.
   if (!o.idleHigh) return STATE_GROUNDED;
+  if (o.linked) return STATE_LINKED;
   return STATE_DEAD;
 }
 
@@ -279,6 +320,10 @@ static void report(const char* tag, const Orientation& o) {
   Serial.print(tag);
   Serial.print(F("_idle="));
   Serial.print(o.idleHigh ? 1 : 0);
+  Serial.print(';');
+  Serial.print(tag);
+  Serial.print(F("_decay="));
+  Serial.print(o.decayUs);
   Serial.print(';');
   Serial.print(tag);
   Serial.print(F("_raw="));

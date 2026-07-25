@@ -332,3 +332,55 @@ def test_a_retry_reads_the_leftovers_before_it_throws_them_away() -> None:
     assert line.events == ["query", "read_all_data", "drop_buffers", "query"], (
         "the leftovers were dropped before anyone looked at them"
     )
+
+
+# ---------------------------------------------------------------------------
+# 4. The voltage cache
+# ---------------------------------------------------------------------------
+
+
+def test_the_voltage_is_read_once_per_ttl_and_not_once_per_call() -> None:
+    """A status frame per dashboard tick is what the cache exists to prevent."""
+    clock = Clock()
+    sim = TMC2209Sim(clock)
+    motor = _make(clock, sim, _Dialect.FRAMED)
+    motor.connect()
+
+    assert motor.get_power_v() == pytest.approx(12.0)
+
+    sim.power_v = 11.0
+    clock.advance(TMC2209Motor._POWER_CACHE_TTL_S / 2)
+    assert motor.get_power_v() == pytest.approx(12.0), "re-read the board before the TTL expired"
+
+    clock.advance(TMC2209Motor._POWER_CACHE_TTL_S)
+    assert motor.get_power_v() == pytest.approx(11.0), "the cache froze instead of expiring"
+
+
+def test_a_failed_voltage_read_leaves_the_last_known_one_standing() -> None:
+    """"Unknown" would be a worse answer than "this is what it was two seconds ago".
+
+    The failure path must not overwrite the cached value, and it must not raise:
+    the caller is a dashboard tick.
+    """
+    clock = Clock()
+    sim = TMC2209Sim(clock)
+    motor = _make(clock, sim, _Dialect.FRAMED)
+    motor.connect()
+    assert motor.get_power_v() == pytest.approx(12.0)
+
+    sim.faults.make_dead()
+    clock.advance(TMC2209Motor._POWER_CACHE_TTL_S * 2)
+
+    assert motor.get_power_v() == pytest.approx(12.0)
+
+
+def test_disconnect_forgets_the_voltage_of_the_board_that_is_gone() -> None:
+    clock = Clock()
+    sim = TMC2209Sim(clock)
+    motor = _make(clock, sim, _Dialect.FRAMED)
+    motor.connect()
+    assert motor.get_power_v() == pytest.approx(12.0)
+
+    motor.disconnect()
+
+    assert motor.get_power_v() is None

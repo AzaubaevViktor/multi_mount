@@ -2,7 +2,7 @@ import dataclasses
 import logging
 from enum import StrEnum
 
-from clock import NEVER, REAL_CLOCK, Clock
+from clock import REAL_CLOCK, Clock, TtlCache
 from serial_wrapper.wrapper import SerialLine
 from sky.motor import MotionMode, Motor, MotorDirection, MotorStateError, MotorStatus, MotorStopRequire
 from sky.physics import Dec, DecPerSecond, DecStepsPerSecond, StepsPerSecond
@@ -138,8 +138,10 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         self._microsteps = 16
         self._is_connected = False
         self._direction = MotorDirection.STOP
-        self._last_power_v: float | None = None
-        self._last_power_v_updated = NEVER
+        # Firmware without the `power_v` field answers None, and that answer is
+        # cached like any other: re-asking every tick would cost a status frame
+        # per call to learn the same nothing.
+        self._power_v: TtlCache[float | None] = TtlCache(self._POWER_CACHE_TTL_S, clock)
         self._last_tx_overflow: int | None = None
         self._dialect = dialect
         self._seq = 0
@@ -199,8 +201,7 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
 
     def disconnect(self) -> bool:
         self._is_connected = False
-        self._last_power_v = None
-        self._last_power_v_updated = NEVER
+        self._power_v.forget()
         self._serial.close()
         return True
 
@@ -235,17 +236,15 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         )
 
     def get_power_v(self) -> float | None:
-        power_v = self._last_power_v
-        now = self._clock.monotonic()
-        if self._is_connected and now - self._last_power_v_updated >= self._POWER_CACHE_TTL_S:
+        if self._is_connected and not self._power_v.is_fresh():
             try:
-                power_v = self._status().power_v
-                self._last_power_v = power_v
-                self._last_power_v_updated = now
+                # Stored, not returned directly: a failed read must leave the last
+                # known voltage standing rather than replace it with None.
+                self._power_v.store(self._status().power_v)
             except TMC2209MotorError:
                 self._logger.exception("While querying tmc2209 voltage")
 
-        return power_v
+        return self._power_v.value
 
     def set_steps(self, steps: int) -> bool:
         self._ensure_not_goto(self._status(), "cannot change steps while GOTO is in progress")
@@ -359,8 +358,7 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
 
     def reset(self) -> None:
         self.wait_till_stop(do_stop=True)
-        self._last_power_v = None
-        self._last_power_v_updated = NEVER
+        self._power_v.forget()
 
     def convert_steps_to_speed(self, speed_sps: StepsPerSecond[DecPerSecond]) -> DecPerSecond:
         return DecPerSecond(float(speed_sps) / self._steps_per_arcsecond())

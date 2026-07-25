@@ -57,17 +57,21 @@ BAUD = 115200
 SAY_BINARY = "/usr/bin/say"
 VOICE = "Milena"
 SPEAKER = "Агент ДЕК."
-# The LEDs on the board now carry the live state, so the voice no longer has to prove
-# the process is alive. It stays quiet unless the situation genuinely improves.
-CALM_INTERVAL_S = 0.0
+# The LEDs carry the live state, but the voice is what the person rewiring actually
+# has attention for -- they are looking at the board, not at it. So it also confirms
+# an unchanged situation this often, as a sign of life. Set to 0 to silence that and
+# leave only the changes.
+CALM_INTERVAL_S = 25.0
 # Rounds a state must survive before it is worth saying out loud. A hand resting on a
 # wire makes the reading flap several times a second; without this the voice chases
 # every twitch, which is precisely what made the first version unusable.
 STABLE_ROUNDS = 4
 LOG_DIR = Path(__file__).resolve().parents[2] / "logs" / "protocol"
 
-# A healthy TMC2209 reports this in the top byte of IOIN.
-TMC2209_VERSION = 0x21
+# VERSION byte in IOIN, used only to name the chip once it answers. The board here
+# carries a TMC2225, which is a TMC2208 variant and reports 0x20; requiring 0x21 was a
+# bug that would have called a working link a silent one.
+CHIP_NAMES = {0x20: "двадцать два ноль восемь или двадцать два двадцать пять", 0x21: "двадцать два ноль девять"}
 
 
 @dataclass(frozen=True)
@@ -76,6 +80,7 @@ class Side:
 
     linked: bool
     idle_high: bool
+    decay_us: int
     raw: int
     version: int
     ifcnt: int
@@ -124,10 +129,10 @@ def parse_round(line: str) -> Round | None:
             return None
     try:
         return Round(
-            a=Side(bool(values["a_link"]), bool(values["a_idle"]), values["a_raw"],
-                   values["a_ver"], values["a_ifcnt"], values["a_state"]),
-            b=Side(bool(values["b_link"]), bool(values["b_idle"]), values["b_raw"],
-                   values["b_ver"], values["b_ifcnt"], values["b_state"]),
+            a=Side(bool(values["a_link"]), bool(values["a_idle"]), values["a_decay"],
+                   values["a_raw"], values["a_ver"], values["a_ifcnt"], values["a_state"]),
+            b=Side(bool(values["b_link"]), bool(values["b_idle"]), values["b_decay"],
+                   values["b_raw"], values["b_ver"], values["b_ifcnt"], values["b_state"]),
         )
     except KeyError:
         return None
@@ -144,9 +149,8 @@ def describe(state: Round) -> str:
     sides = (state.a, state.b)
     for (name, pin), side in zip(ORIENTATIONS, sides, strict=True):
         if side.replied:
-            if side.version != TMC2209_VERSION:
-                return f"Драйвер отвечает в {name} ориентации, {pin}, но версия неизвестная."
-            found = f"Драйвер отвечает в {name} ориентации, {pin}, версия двадцать один."
+            chip = CHIP_NAMES.get(side.version, f"версия {side.version:#04x}")
+            found = f"Драйвер отвечает в {name} ориентации, {pin}. Это {chip}."
             return f"{found} Запись проходит." if side.ifcnt > 0 else found
     linked = [name for (name, _), side in zip(ORIENTATIONS, sides, strict=True) if side.linked]
     if linked:
@@ -250,10 +254,10 @@ def main(argv: list[str] | None = None) -> int:
                 continue
 
             LOGGER.info(
-                "A link=%d idle=%d raw=%2d ver=0x%02X ifcnt=%3d | "
-                "B link=%d idle=%d raw=%2d ver=0x%02X ifcnt=%3d",
-                state.a.linked, state.a.idle_high, state.a.raw, state.a.version, state.a.ifcnt,
-                state.b.linked, state.b.idle_high, state.b.raw, state.b.version, state.b.ifcnt,
+                "A link=%d idle=%d decay=%4d raw=%2d ver=0x%02X | "
+                "B link=%d idle=%d decay=%4d raw=%2d ver=0x%02X",
+                state.a.linked, state.a.idle_high, state.a.decay_us, state.a.raw, state.a.version,
+                state.b.linked, state.b.idle_high, state.b.decay_us, state.b.raw, state.b.version,
             )
 
             now = time.monotonic()
