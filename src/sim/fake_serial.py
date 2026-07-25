@@ -49,6 +49,7 @@ import errno
 from typing import Callable, Protocol
 
 from serial.serialutil import PortNotOpenError
+from serial_wrapper.recorder import Recorder
 from serial_wrapper.wrapper import SerialLine, SerialLineState
 
 from sim.clock import Clock
@@ -244,8 +245,11 @@ class SimSerialLine(SerialLine):
         name: str = "sim",
         terminator: str = "\r",
         encoding: str = "ascii",
+        recorder: Recorder | None = None,
     ) -> None:
-        super().__init__(port, baud, timeout_s, name, terminator=terminator, encoding=encoding, clock=clock)
+        super().__init__(
+            port, baud, timeout_s, name, terminator=terminator, encoding=encoding, clock=clock, recorder=recorder
+        )
         self._sim_device = device
         self._sim_clock = clock
         self._sim_transport = transport
@@ -259,5 +263,6 @@ class SimSerialLine(SerialLine):
             self.serial = FakeSerial(self._sim_device, self._sim_clock, self._sim_transport)
             self.serial.timeout = self.timeout_s
             self._state = SerialLineState.OPEN
+            self._record_open()
 
             self.logger.info("Port: %s (simulated)", self.port)

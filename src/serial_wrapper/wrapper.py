@@ -13,6 +13,7 @@ import serial
 from serial.serialutil import SerialException
 
 from clock import REAL_CLOCK, Clock
+from serial_wrapper.recorder import Recorder, TraceEvent, TraceKind
 from utils.method_call_chain import format_stack_frame, log_method_call_chain
 
 
@@ -81,6 +82,13 @@ def _disconnect_when_error(default: T, reraise_closed: bool = False) -> Callable
                 return default
             except EXCEPTIONS_TO_CLOSE as exc:
                 self.logger.exception("Error in %s, closing connection", func.__name__)
+                if self._recorder is not None:
+                    self._record(
+                        TraceKind.ERROR,
+                        method=func.__name__,
+                        error_type=type(exc).__name__,
+                        error_message=str(exc),
+                    )
                 self.close(
                     reason=f"error_in_{func.__name__}",
                     error=exc,
@@ -95,14 +103,16 @@ def _disconnect_when_error(default: T, reraise_closed: bool = False) -> Callable
 
 
 class SerialLine:
-    def __init__(self, port: str, baud: int, timeout_s: float, name: str, terminator: str = "\r", encoding: str ='ascii', clock: Clock = REAL_CLOCK) -> None:
+    def __init__(self, port: str, baud: int, timeout_s: float, name: str, terminator: str = "\r", encoding: str ='ascii', clock: Clock = REAL_CLOCK, recorder: Recorder | None = None) -> None:
         self.logger = logging.getLogger(f"serial.{name}")
+        self.name = name
         self.port = port
         self.baud = baud
         self.timeout_s = timeout_s
         self.encoding = encoding
         self.terminator = terminator.encode(self.encoding)
         self._clock = clock
+        self._recorder = recorder
 
         self._lock = threading.RLock()
 
@@ -138,14 +148,36 @@ class SerialLine:
             f"no match for pattern {pattern!r} in {directory!r}"
         )
     
+    def _record(self, kind: TraceKind, data: bytes = b"", **detail: Any) -> None:
+        # Callers guard with `if self._recorder is not None` so that a line
+        # without a recorder pays one attribute load per I/O and nothing else;
+        # the check is repeated here only to keep the method safe on its own.
+        recorder = self._recorder
+        if recorder is None:
+            return
+        recorder.record(
+            TraceEvent(
+                at_s=self._clock.monotonic(),
+                name=self.name,
+                port=self.port,
+                kind=kind,
+                data=data,
+                detail=detail,
+            )
+        )
+
     @_disconnect_when_error(default=None)
     def reset(self):
         with self._lock:
             serial_obj = self._require_open_serial()
             serial_obj.dtr = False
+            if self._recorder is not None:
+                self._record(TraceKind.RESET, dtr=False)
             self._clock.sleep(0.1)
             self.drop_buffers()
             serial_obj.dtr = True
+            if self._recorder is not None:
+                self._record(TraceKind.RESET, dtr=True)
             self._clock.sleep(0.5)
     
     # Without the decorator this was the one I/O path that could leave the line half-open:
@@ -158,6 +190,8 @@ class SerialLine:
             serial_obj = self._require_open_serial()
             serial_obj.reset_input_buffer()
             serial_obj.reset_output_buffer()
+            if self._recorder is not None:
+                self._record(TraceKind.DROP_BUFFERS)
 
     def connect(self):
         with self._lock:
@@ -167,12 +201,24 @@ class SerialLine:
 
             self.serial = serial.Serial(port=self.port, baudrate=self.baud, timeout=self.timeout_s)
             self._state = SerialLineState.OPEN
+            self._record_open()
 
             self.logger.info("Port: %s", self.port)
             self.logger.info("Baudrate: %d", self.baud)
             self.logger.info("Timeout: %d", self.timeout_s)
             self.logger.info("Encoding: %s", self.encoding)
             self.logger.info("Terminator: %s", self.terminator)
+
+    def _record_open(self) -> None:
+        """Shared by the real ``connect`` and by the simulator's override."""
+        if self._recorder is not None:
+            self._record(
+                TraceKind.OPEN,
+                baud=self.baud,
+                timeout_s=self.timeout_s,
+                encoding=self.encoding,
+                terminator=self.terminator.hex(),
+            )
 
     @_disconnect_when_error(default="")
     def query(
@@ -186,9 +232,15 @@ class SerialLine:
             serial_obj = self._require_open_serial()
             if payload is not None:
                 # self.logger.debug("Send `%r`", payload)
+                raw = payload.encode(self.encoding)
                 serial_obj.reset_input_buffer()
-                serial_obj.write(payload.encode(self.encoding))
+                serial_obj.write(raw)
                 serial_obj.flush()
+                # Recorded after the flush: the trace must claim only bytes that
+                # actually left the host, so a write that raises leaves an
+                # `error` event here instead of a phantom `tx`.
+                if self._recorder is not None:
+                    self._record(TraceKind.TX, raw)
             else:
                 # self.logger.debug("Just wait for answer")
                 pass
@@ -236,6 +288,11 @@ class SerialLine:
             if timeout is not None:
                 serial_obj.timeout = _timeout
 
+        # The raw bytes, not `responce`: the decode drops anything the encoding
+        # cannot represent, and a replay has to see exactly what came back.
+        if self._recorder is not None:
+            self._record(TraceKind.RX, line)
+
         responce = line.decode(self.encoding, errors="ignore")
         # self.logger.debug("Receive `%r`", responce)
 
@@ -254,7 +311,10 @@ class SerialLine:
             finally:
                 if timeout is not None:
                     serial_obj.timeout = _timeout
-            
+
+            if self._recorder is not None:
+                self._record(TraceKind.RX, data)
+
             lines = [line.decode(self.encoding, errors="ignore") for line in data.split(self.terminator)]
 
             self.logger.info("Receive all data from input:\n%s", lines)
@@ -323,6 +383,17 @@ class SerialLine:
 
             self.serial = None
             self._state = SerialLineState.CLOSED
+
+            if self._recorder is not None:
+                meta = self._last_close_meta
+                self._record(
+                    TraceKind.CLOSE,
+                    reason=meta.reason,
+                    closed_from=meta.closed_from,
+                    caller_frame=meta.caller_frame,
+                    error_type=meta.error_type,
+                    error_message=meta.error_message,
+                )
 
     def _require_open_serial(self) -> serial.Serial | Any:
         serial_obj = self.serial
