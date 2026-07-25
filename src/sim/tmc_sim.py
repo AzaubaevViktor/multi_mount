@@ -4,14 +4,26 @@ Ground truth is the firmware ``telescope_dec/src/main.cpp`` (the Python driver
 ``src/tmc2209/motor.py`` is its client). The board speaks two dialects and picks
 one per line:
 
-- a line starting with ``#`` is a **framed** request (protocol v3, length + CRC +
-  sequence number — see ``src/tmc2209/protocol.py``) and is answered with a frame;
+- a line **containing** ``#`` anywhere is a **framed** request (protocol v3, length
+  + CRC + sequence number — see ``src/tmc2209/protocol.py``) and is answered with a
+  frame. Anywhere, not only at position 0: the RX FIFO leaves a stump in front of
+  the next write, and recognising the frame behind that stump is exactly what turns
+  §6.2 from a wrecked command into a resynchronisation;
 - anything else is a v2 **line** command, answered with ``1;key=value;...\\n`` /
   ``0;error=...;\\n`` (``outFlushLineV2`` appends a bare LF), floats formatted with
   2 decimals — byte for byte what ``docs/protocol/DEC_PROTOCOL.md`` recorded from
-  the board it was captured on, firmware ``300a439``. That includes the absence of
-  ``tx_overflow`` from the line-protocol ``status``: the counter is reported in the
-  framed status, where every consumer of it can also trust the number.
+  the board.
+
+The firmware parses a **NUL-terminated buffer**: ``strchr(lineBufV2, '#')``,
+``strtok`` and the frame parser all stop at the first NUL, so anything behind one
+is invisible to the board. A frame preceded by a NUL is therefore not answered at
+all (§12.8, measured live), and that is modelled here rather than glossed over —
+it is the one input that defeats the framed dialect's resynchronisation.
+
+``tx_overflow`` is reported in **both** dialects, but only by the reflashed board:
+``framed=False`` models the firmware still in the field, which has neither the
+counter nor the frame parser (both confirmed on the bench, before and after the
+flash of task #19).
 
 ``ready\\r\\n`` is printed by ``Serial.println(F("ready"))`` at the end of
 ``setup()`` after the board resets (host DTR toggle) and is the same in both.
@@ -346,12 +358,17 @@ class TMC2209Sim:
     def _handle(self, line: str) -> None:
         self._integrate()
 
-        if line.startswith(FRAME_START):
-            if not self.framed:
-                # The board that has not been reflashed yet: a frame is just one
-                # more word it does not know.
-                self._emit_legacy(FRAME_START, _Reply.failure(ErrorCode.UNKNOWN_CMD))
-                return
+        # Everything the firmware does with the line goes through the C string in
+        # `lineBufV2`, so the first NUL ends it: `strchr` finds no marker behind
+        # one and `strtok` finds no command. A frame with a NUL in front of it is
+        # answered with silence, and a NUL before the marker but after some text
+        # turns the frame into an unknown v2 command -- both measured on the board.
+        line = line.split("\x00", 1)[0]
+
+        # A marker anywhere selects the framed dialect. The board that has not been
+        # reflashed has no such rule at all: the frame falls through to the line
+        # parser below, where it is simply a word nobody knows.
+        if self.framed and FRAME_START in line:
             self._handle_frame(line)
             return
 
@@ -496,6 +513,12 @@ class TMC2209Sim:
                 ("accel_per_s", f"{self.accel_sps2:.2f}"),
                 ("power_v", f"{self.power_v:.2f}"),
             ]
+            if self.framed:
+                # Last field, after power_v (main.cpp handleLineV2). Only the
+                # reflashed board has it: `framed` is what tells the two firmware
+                # versions apart, and the counter arrived in the same commit as
+                # the frame parser.
+                pairs.append(("tx_overflow", str(self.tx_overflow)))
             return _Reply(pairs, encode_status_payload(
                 initialised=True,
                 enabled=self.enabled,

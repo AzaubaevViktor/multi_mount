@@ -20,7 +20,7 @@ from serial_wrapper.recorder import JsonlRecorder, TraceKind, read_trace
 from serial_wrapper.wrapper import SerialLineState
 from sky.motor import MotionMode, MotorDirection
 from tools import hw_session
-from tools.hw_session import LineConfig, SessionConfig, Session, SessionSetupError, Step
+from tools.hw_session import LineConfig, SessionConfig, Session, SessionSetupError, Step, _optional_int
 
 # Spelled out rather than derived from `hw_session.SCENARIO`: a test that reads
 # the scenario out of the module under test cannot notice a step disappearing
@@ -172,10 +172,11 @@ def test_manifest_carries_what_the_boards_said_about_themselves(tmp_path) -> Non
     assert dec_board["status"]["ok"] is True
     assert dec_board["status"]["values"]["phase"]
     assert dec_board["full_status"]["command"] == "full_status"
-    # Absent on the simulator and on pre-TX-ring-fix firmware; the key must be
-    # there and null, not missing, and must not abort the session.
+    # The reflashed board reports the counter in the line dialect too, which is
+    # the dialect `_dec_inquire` speaks. Zero, not null: nothing was dropped in a
+    # session that sends one command at a time (measured on the bench, task #19).
     assert "tx_overflow" in dec_board
-    assert dec_board["tx_overflow"] is None
+    assert dec_board["tx_overflow"] == 0
     assert "tx_overflow" in manifest["dec_final"]
 
     # `full_status` really went out on the wire, twice: once with the board
@@ -349,3 +350,17 @@ def test_sim_mode_needs_no_device_at_all(tmp_path) -> None:
 
     assert config.mode == "sim"
     assert config.ra.port.startswith("sim://")
+
+
+def test_a_board_without_the_counter_still_yields_a_key_and_not_a_crash() -> None:
+    """The firmware in the field omits `tx_overflow` entirely, and that is not an error.
+
+    The manifest promises the key either way — a reader must be able to tell
+    "the board reported no drops" from "the board cannot report drops at all",
+    and a missing key would collapse the two into one.
+    """
+    assert _optional_int(None) is None
+    assert _optional_int("0") == 0
+    assert _optional_int("7") == 7
+    # A damaged reply must degrade to "unknown", not abort a session mid-run.
+    assert _optional_int("not-a-number") is None

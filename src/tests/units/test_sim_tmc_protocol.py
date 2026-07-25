@@ -47,13 +47,32 @@ def test_dtr_reset_reboots_and_delays_ready_by_one_drain() -> None:
 
 
 def test_status_snapshot_matches_firmware_key_order() -> None:
+    """Byte for byte what the reflashed board answered on the bench (task #19).
+
+    The live reply differed only in `power_v=12.10`, the supply actually measured
+    at the time; `tx_overflow` is last, after `power_v`, exactly as
+    `handleLineV2` appends it.
+    """
     sim = _make_sim()
 
     assert _exchange(sim, "status\n") == (
         "1;initialised=1;enabled=0;mode=target;position=0;phase=idle;"
         "target=0;target_set=0;speed=500.00;actual_speed=0.00;"
-        "accel_per_s=1000.00;power_v=12.00;\n"
+        "accel_per_s=1000.00;power_v=12.00;tx_overflow=0;\n"
     )
+
+
+def test_the_firmware_in_the_field_reports_no_tx_overflow_counter() -> None:
+    """The board before the flash: no frame parser and no counter, one and the same commit.
+
+    Measured before flashing: none of the `status` replies carried the key, which
+    is why `_Status.tx_overflow` is `None`-able and the driver's warning cannot
+    fire on that firmware.
+    """
+    sim = TMC2209Sim(Clock(), framed=False)
+    sim.drain()
+
+    assert "tx_overflow" not in _exchange(sim, "status\n")
 
 
 def test_simple_setters_reply_with_written_value() -> None:
@@ -292,9 +311,8 @@ def test_framed_status_carries_the_same_snapshot_as_the_line_dialect() -> None:
     framed = response_values(_frame(sim, Op.STATUS, 7))
     line = _exchange(sim, "status\n")
 
-    # The framed status adds the TX-ring counter, which the firmware in the field
-    # does not report; everything else must agree key for key.
-    assert framed.pop("tx_overflow") == "0"
+    # Every key, in the same order, including the TX-ring counter: the reflashed
+    # board reports it in both dialects (measured on the bench, task #19).
     assert line == "1;" + "".join(f"{key}={value};" for key, value in framed.items()) + "\n"
 
 
@@ -418,3 +436,67 @@ def test_the_board_resynchronises_on_the_newest_frame_after_the_fifo_cut_one() -
     assert sim.rx_dropped > 0, "the FIFO really did cut a command in half"
     assert response_values(decode_response(answer, op=Op.SPEED, seq=2)) == {"speed": "2000.00"}
     assert sim.speed_sps == 2000.0
+
+
+def test_a_frame_behind_a_stump_is_still_a_frame() -> None:
+    """Measured live: junk in front of the marker does not hide the frame.
+
+    The firmware selects the dialect with `strchr(lineBufV2, '#')`, not by looking
+    at position 0, precisely because the RX FIFO leaves a stump in front of the
+    next write. On the bench each of these prefixes was answered 10 times out of
+    10 with the status frame the sequence number asked for.
+    """
+    sim = _make_sim()
+
+    for prefix in ("garbage", "garbage#00FF", "1;initialised=1;enabled=0;"):
+        sim.feed(prefix.encode("ascii") + encode_frame(Op.STATUS, 9).encode("ascii"))
+        answer = sim.drain().decode("ascii")
+
+        assert response_values(decode_response(answer, op=Op.STATUS, seq=9))["position"] == "0", prefix
+
+
+def test_a_nul_before_the_marker_makes_the_board_silent() -> None:
+    """The one input that defeats the framed dialect, and it does so quietly.
+
+    `lineBufV2` is a C string: `strchr` stops at the first NUL, so a frame behind
+    one is never recognised as a frame, and the line parser it falls through to
+    sees an empty command and returns without answering. Measured live: 0 replies
+    out of 10, against 10 out of 10 for the same frame without the NUL.
+
+    The host still notices — a missing reply is a timeout, not a wrong value — but
+    the resynchronisation the marker exists for does not happen.
+    """
+    sim = _make_sim()
+
+    sim.feed(b"\x00" + encode_frame(Op.STATUS, 11).encode("ascii"))
+
+    assert sim.drain() == b"", "a NUL in front of the marker swallows the frame whole"
+
+
+def test_a_nul_after_text_turns_the_frame_into_an_unknown_line_command() -> None:
+    """Same C string, one byte later: the board answers, but in the wrong dialect.
+
+    Live, `garbage\\x00#00FF#<frame>` came back as `0;error=unknown_cmd;` — a v2
+    line where a frame was expected, which is what `TMC2209MotorLegacyResponseError`
+    is for.
+    """
+    sim = _make_sim()
+
+    sim.feed(b"garbage\x00" + encode_frame(Op.STATUS, 12).encode("ascii"))
+
+    assert sim.drain() == b"0;error=unknown_cmd;\n"
+
+
+def test_the_board_in_the_field_treats_a_frame_as_one_more_unknown_word() -> None:
+    """Confirmed on the bench immediately before flashing: `#000101EF8C` -> unknown_cmd.
+
+    No special case models this: the un-reflashed board has no marker rule at all,
+    so the frame reaches the line parser as a single unrecognised token. That reply
+    is the *only* positive proof the driver accepts for downgrading to v2.
+    """
+    sim = TMC2209Sim(Clock(), framed=False)
+    sim.drain()
+
+    sim.feed(encode_frame(Op.HELLO, 1).encode("ascii"))
+
+    assert sim.drain() == b"0;error=unknown_cmd;\n"
