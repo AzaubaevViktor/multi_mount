@@ -15,7 +15,7 @@ from sim.clock import Clock as VirtualClock
 from sky.axis import AxisMotionMode, AxisRA
 from sky.constants import STELLAR_SPEED
 from sky.motor import MotionMode, MotorDirection, MotorStatus
-from sky.physics import DecPerSecond, Ha, HaPerSecond, Second, SkyDirection
+from sky.physics import DecPerSecond, Ha, HaPerSecond, HaStepsPerSecond, Second, SkyDirection
 from sky.polar_compensator import PolarCompensator
 
 _SKY_SPEED = HaPerSecond(1)
@@ -41,11 +41,11 @@ class _VirtualMotor:
         self._clock = clock
         self._integrated_at_s = clock.monotonic()
         self._steps = 0.0
-        self._status = MotorStatus(
+        self._status: MotorStatus[HaPerSecond] = MotorStatus(
             is_connected=False,
             steps=0,
             motion_mode=MotionMode.IDLE,
-            speed_sps=0,
+            speed_sps=HaStepsPerSecond(0),
             accel_sps=None,
             direction=MotorDirection.STOP,
             target=None,
@@ -61,9 +61,9 @@ class _VirtualMotor:
             return
 
         if self._status.direction == MotorDirection.FORWARD:
-            self._steps += self._status.speed_sps * elapsed_s
+            self._steps += float(self._status.speed_sps) * elapsed_s
         elif self._status.direction == MotorDirection.BACKWARD:
-            self._steps -= self._status.speed_sps * elapsed_s
+            self._steps -= float(self._status.speed_sps) * elapsed_s
 
     def connect(self):
         self._status.is_connected = True
@@ -72,7 +72,7 @@ class _VirtualMotor:
         self._status.is_connected = False
         return True
 
-    def status(self) -> MotorStatus:
+    def status(self) -> MotorStatus[HaPerSecond]:
         self._integrate()
         self._status.steps = self._steps  # type: ignore[assignment]
         return self._status
@@ -85,7 +85,7 @@ class _VirtualMotor:
         self._steps = float(steps)
         return True
 
-    def set_speed(self, steps_per_second: int) -> int:
+    def set_speed(self, steps_per_second: HaStepsPerSecond) -> HaStepsPerSecond:
         self._integrate()
         self._status.speed_sps = steps_per_second
         return steps_per_second
@@ -103,11 +103,11 @@ class _VirtualMotor:
         self._status.target = int(self._steps) + delta_steps
         return True
 
-    def get_speed_sps_by_delta(self, delta_steps: int) -> int:
-        return max(1, abs(delta_steps))
+    def get_speed_sps_by_delta(self, delta_steps: int) -> HaStepsPerSecond:
+        return HaStepsPerSecond(max(1, abs(delta_steps)))
 
-    def get_speed_by_speed_sps(self, speed_sps: int) -> HaPerSecond:
-        return HaPerSecond(speed_sps)
+    def get_speed_by_speed_sps(self, speed_sps: HaStepsPerSecond) -> HaPerSecond:
+        return HaPerSecond(float(speed_sps))
 
     def set_motion_mode(self, motion_mode: MotionMode) -> bool:
         self._integrate()
@@ -124,8 +124,8 @@ class _VirtualMotor:
     def convert_steps_to_position(self, steps: float) -> Ha:
         return Ha(steps)
 
-    def convert_speed_to_steps_per_second(self, speed: HaPerSecond) -> int:
-        return int(abs(float(speed)))
+    def convert_speed_to_steps_per_second(self, speed: HaPerSecond) -> HaStepsPerSecond:
+        return HaStepsPerSecond(int(abs(float(speed))))
 
     def run(self) -> bool:
         self._integrate()
@@ -135,7 +135,7 @@ class _VirtualMotor:
     def stop(self) -> bool:
         self._integrate()
         self._status.motion_mode = MotionMode.IDLE
-        self._status.speed_sps = 0
+        self._status.speed_sps = HaStepsPerSecond(0)
         self._status.direction = MotorDirection.STOP
         self._status.target = None
         return True

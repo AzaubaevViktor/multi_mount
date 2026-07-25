@@ -22,7 +22,7 @@ import pytest
 
 from sky.axis import AxisRA
 from sky.motor import MotionMode, MotorDirection, MotorStatus
-from sky.physics import Ha, HaPerSecond
+from sky.physics import HaStepsPerSecond, Ha, HaPerSecond
 
 
 class _UnpluggedMotor:
@@ -37,11 +37,11 @@ class _UnpluggedMotor:
     FORWARD_POSITION_SIGN = 1
 
     def __init__(self) -> None:
-        self._status = MotorStatus(
+        self._status: MotorStatus[HaPerSecond] = MotorStatus(
             is_connected=True,
             steps=0,
             motion_mode=MotionMode.IDLE,
-            speed_sps=0,
+            speed_sps=HaStepsPerSecond(0),
             accel_sps=None,
             direction=MotorDirection.STOP,
             target=None,
@@ -55,11 +55,11 @@ class _UnpluggedMotor:
         self._status.is_connected = False
         return True
 
-    def status(self) -> MotorStatus:
+    def status(self) -> MotorStatus[HaPerSecond]:
         return self._status
 
-    def convert_speed_to_steps_per_second(self, speed: HaPerSecond) -> int:
-        return int(abs(float(speed)))
+    def convert_speed_to_steps_per_second(self, speed: HaPerSecond) -> HaStepsPerSecond:
+        return HaStepsPerSecond(int(abs(float(speed))))
 
     def convert_steps_to_position(self, steps: int) -> Ha:
         return Ha(steps)
@@ -67,7 +67,7 @@ class _UnpluggedMotor:
     def set_direction(self, direction: MotorDirection) -> bool:
         raise OSError(errno.ENXIO, "Device not configured")
 
-    def set_speed(self, steps_per_second: int) -> int:
+    def set_speed(self, steps_per_second: HaStepsPerSecond) -> HaStepsPerSecond:
         return steps_per_second
 
     def run(self) -> bool:

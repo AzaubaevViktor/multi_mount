@@ -15,6 +15,7 @@ from typing import Callable
 
 from sky.constants import STELLAR_DAY, STELLAR_SPEED
 from sky.motor import MotorStateError
+from sky.physics import HaPerSecond, HaStepsPerSecond, StepsPerSecond
 from skywatcher.codec import (
     Command,
     SkyWatcherCodec,
@@ -47,7 +48,7 @@ STATUS_EX_ID = "010000"
 # Applied to what is *reported*, never to what is written: the period stays the
 # one the board was asked for, because the axis does go as fast as it can and
 # nothing is gained by asking for less.
-BOARD_SPEED_CEILING_SPS = 9_000
+BOARD_SPEED_CEILING_SPS = HaStepsPerSecond(9_000)
 
 Transactor = Callable[[Command, str | None], str]
 
@@ -112,22 +113,29 @@ class SkyWatcherBoard:
         """
         return max(period, self.min_period)
 
-    def period_from_speed_sps(self, speed_sps: float, speed_mode: SpeedMode) -> int:
+    def period_from_speed_sps(self, speed_sps: StepsPerSecond[HaPerSecond], speed_mode: SpeedMode) -> int:
+        """Timer period to load for a step rate. The inverse of :meth:`speed_sps_from_period`.
+
+        The two are reciprocal, both integral and both "just a number", which is
+        exactly why they are different types: passing a period here, or the
+        answer of this method where a rate is expected, is the mix-up that
+        turned an 800x request into 71.8x once already (§11).
+        """
         if speed_sps <= 0:
             raise MotorStateError("speed must be positive")
-        rate = speed_sps * (24 * 60 * 60) / self.cpr / float(STELLAR_SPEED)
+        rate = float(speed_sps) * (24 * 60 * 60) / self.cpr / float(STELLAR_SPEED)
         if speed_mode == SpeedMode.HIGHSPEED:
             rate /= self.highspeed_ratio
         return int(STELLAR_DAY * self.timer_freq / self.cpr / rate)
 
-    def speed_sps_from_period(self, period: int, speed_mode: SpeedMode) -> int:
+    def speed_sps_from_period(self, period: int, speed_mode: SpeedMode) -> HaStepsPerSecond:
         """Steps per second the axis will really run at with this period."""
         if period <= 0:
             raise MotorStateError("period must be positive")
         rate = self.times_sidereal(period)
         if speed_mode == SpeedMode.HIGHSPEED:
             rate *= self.highspeed_ratio
-        asked = int(round(rate * float(STELLAR_SPEED) * self.cpr / (24 * 60 * 60)))
+        asked = HaStepsPerSecond(round(rate * float(STELLAR_SPEED) * self.cpr / (24 * 60 * 60)))
         return min(asked, BOARD_SPEED_CEILING_SPS)
 
 

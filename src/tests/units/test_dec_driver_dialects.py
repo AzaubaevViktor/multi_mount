@@ -17,6 +17,7 @@ this much machinery — an error is recoverable, a wrong position is not.
 import pytest
 from sim import Chaos, ChaosProfile, Clock, SimSerialLine, TMC2209Sim, Transport
 from sky.motor import MotionMode
+from sky.physics import DecStepsPerSecond
 from tmc2209.motor import (
     TMC2209Motor,
     TMC2209MotorEchoMismatchError,
@@ -67,7 +68,7 @@ def test_a_board_that_was_not_reflashed_drops_the_driver_back_to_the_line_protoc
 
     assert motor._dialect is _Dialect.LEGACY
     assert motor.status().steps == 0
-    assert motor.set_speed(1000) == 1000
+    assert motor.set_speed(DecStepsPerSecond(1000)) == 1000
     assert sim.speed_sps == 1000.0
 
 
@@ -107,7 +108,7 @@ def test_set_speed_returns_what_the_controller_applied() -> None:
     motor = _make(clock, sim, _Dialect.AUTO)
     motor.connect()
 
-    assert motor.set_speed(1234) == 1234
+    assert motor.set_speed(DecStepsPerSecond(1234)) == 1234
     assert sim.speed_sps == 1234.0
 
 
@@ -131,7 +132,7 @@ def test_a_controller_that_acknowledges_another_value_is_not_believed() -> None:
     motor.connect()
 
     with pytest.raises(TMC2209MotorEchoMismatchError, match="acknowledged speed="):
-        motor.set_speed(1000)
+        motor.set_speed(DecStepsPerSecond(1000))
 
 
 def test_an_answer_that_arrives_one_command_late_is_refused() -> None:
@@ -215,7 +216,7 @@ def _count_silent_corruptions(dialect: _Dialect, profile: ChaosProfile) -> tuple
             except (TMC2209MotorError, OSError, KeyError, ValueError):
                 raised += 1
                 continue
-            if (status.steps, status.speed_sps, status.accel_sps) != truth:
+            if (status.steps, int(status.speed_sps), status.accel_sps) != truth:
                 silent += 1
     return silent, raised
 

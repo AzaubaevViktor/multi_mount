@@ -1,7 +1,7 @@
 from sky.motor import MotionMode, Motor, MotorDirection, MotorStatus
 from typing import Any
 
-from sky.physics import AxisPos, AxisSpeed
+from sky.physics import AxisPos, AxisSpeed, StepsPerSecond
 
 
 class UnavailableMotor[_POS_CLS: AxisPos[Any], _SPEED_CLS: AxisSpeed](Motor[_POS_CLS, _SPEED_CLS]):
@@ -23,12 +23,12 @@ class UnavailableMotor[_POS_CLS: AxisPos[Any], _SPEED_CLS: AxisSpeed](Motor[_POS
     def disconnect(self) -> bool:
         return True
 
-    def status(self) -> MotorStatus:
+    def status(self) -> MotorStatus[_SPEED_CLS]:
         return MotorStatus(
             is_connected=False,
             steps=0,
             motion_mode=MotionMode.IDLE,
-            speed_sps=0,
+            speed_sps=StepsPerSecond(0),
             accel_sps=None,
             direction=MotorDirection.STOP,
             target=None,
@@ -42,7 +42,7 @@ class UnavailableMotor[_POS_CLS: AxisPos[Any], _SPEED_CLS: AxisSpeed](Motor[_POS
     def set_steps(self, steps: int) -> bool:
         raise ConnectionError(self._reason)
 
-    def set_speed(self, steps_per_second: int) -> int:
+    def set_speed(self, steps_per_second: StepsPerSecond[_SPEED_CLS]) -> StepsPerSecond[_SPEED_CLS]:
         raise ConnectionError(self._reason)
 
     def set_acceleration(self, steps_per_second_square: float) -> bool:
@@ -54,10 +54,10 @@ class UnavailableMotor[_POS_CLS: AxisPos[Any], _SPEED_CLS: AxisSpeed](Motor[_POS
     def set_delta(self, delta_steps: int) -> bool:
         raise ConnectionError(self._reason)
 
-    def get_speed_sps_by_delta(self, delta_steps: int) -> int:
-        return abs(delta_steps)
+    def get_speed_sps_by_delta(self, delta_steps: int) -> StepsPerSecond[_SPEED_CLS]:
+        return StepsPerSecond(abs(delta_steps))
 
-    def get_speed_by_speed_sps(self, speed_sps: int) -> _SPEED_CLS:
+    def get_speed_by_speed_sps(self, speed_sps: StepsPerSecond[_SPEED_CLS]) -> _SPEED_CLS:
         return self._speed_cls(float(speed_sps))
 
     def set_motion_mode(self, motion_mode: MotionMode) -> bool:
@@ -72,8 +72,8 @@ class UnavailableMotor[_POS_CLS: AxisPos[Any], _SPEED_CLS: AxisSpeed](Motor[_POS
     def convert_steps_to_position(self, steps: int) -> _POS_CLS:
         return self._pos_cls(float(steps))
 
-    def convert_speed_to_steps_per_second(self, speed: _SPEED_CLS) -> int:
-        return int(round(abs(float(speed))))
+    def convert_speed_to_steps_per_second(self, speed: _SPEED_CLS) -> StepsPerSecond[_SPEED_CLS]:
+        return StepsPerSecond(round(abs(float(speed))))
 
     def run(self) -> bool:
         raise ConnectionError(self._reason)

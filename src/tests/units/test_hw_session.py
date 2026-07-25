@@ -19,6 +19,7 @@ import pytest
 from serial_wrapper.recorder import JsonlRecorder, TraceKind, read_trace
 from serial_wrapper.wrapper import SerialLineState
 from sky.motor import MotionMode, MotorDirection
+from sky.physics import DecStepsPerSecond
 from tools import hw_session
 from tools.hw_session import LineConfig, SessionConfig, Session, SessionSetupError, Step, _optional_int
 
@@ -97,7 +98,7 @@ def _start_dec_drift(session: Session) -> None:
     dec = session.dec_motor
     dec.set_motion_mode(MotionMode.RUN)
     dec.set_acceleration(1000)
-    dec.set_speed(500)
+    dec.set_speed(DecStepsPerSecond(500))
     dec.set_direction(MotorDirection.FORWARD)
     dec.run()
     session.clock.sleep(1.0)
@@ -233,6 +234,15 @@ def test_scenario_covers_both_speed_modes_and_both_directions_on_both_axes(tmp_p
 
     guides = {pulse["label"] for pulse in manifest["guide"]}
     assert {"ra_west", "ra_east", "dec_north", "dec_south"} <= guides
+    # Every rate in the manifest is a *number*. The driver speaks `StepsPerSecond`
+    # now, and `json.dumps(default=str)` would happily write "2 steps/s" for one
+    # that reached the manifest unconverted -- a field no later analysis could
+    # compare or plot.
+    rates = [pulse["applied_sps"] for pulse in manifest["guide"]]
+    rates += [move["speed_sps"] for move in manifest["goto"] if "speed_sps" in move]
+    rates += [manifest["tracking"]["applied_sps"], manifest["tracking"]["requested_sps"]]
+    rates += [sample["speed_sps"] for move in manifest["goto"] for sample in (move["start"], move["end"])]
+    assert all(isinstance(rate, int) for rate in rates), rates
 
 
 def test_manifest_states_the_p6_and_halt_verdicts(tmp_path) -> None:

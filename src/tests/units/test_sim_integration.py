@@ -5,7 +5,7 @@ import pytest
 from sim import Clock, FaultKind, SimSerialLine, SkyWatcherSim, TMC2209Sim
 from sky.constants import STELLAR_DAY, STELLAR_SPEED
 from sky.motor import MotionMode, MotorDirection
-from sky.physics import Ha
+from sky.physics import DecStepsPerSecond, Ha
 from skywatcher.board import BOARD_SPEED_CEILING_SPS
 from skywatcher.motor import SkyWatcherMotor, SkyWatcherMotorProtocolError
 from tmc2209.motor import TMC2209Motor
@@ -134,7 +134,7 @@ def test_skywatcher_goto_reports_the_speed_the_board_will_really_run() -> None:
 
     # And the reported speed is the one the axis really moves at: predicted ETA
     # against the arrival measured on the simulated board.
-    predicted_eta_s = delta_steps / reported_sps
+    predicted_eta_s = delta_steps / float(reported_sps)
     motor.set_delta(delta_steps)
     motor.run()
 
@@ -158,10 +158,10 @@ def test_skywatcher_goto_reports_the_speed_the_board_will_really_run() -> None:
     # target (§27). Those two are ~1.1 s and ~0.9 s here, on a 29 s move; what
     # the assertion forbids is the failure this number exists for, an ETA that
     # is out by the factor of eight the period clamp used to hide.
-    approach_penalty_s = 10_000 / 4_650 - 10_000 / reported_sps
-    creep_penalty_s = SkyWatcherMotor._GOTO_BRAKE_MARGIN_TICKS / motor.convert_speed_to_steps_per_second(
+    approach_penalty_s = 10_000 / 4_650 - 10_000 / float(reported_sps)
+    creep_penalty_s = SkyWatcherMotor._GOTO_BRAKE_MARGIN_TICKS / float(motor.convert_speed_to_steps_per_second(
         STELLAR_SPEED * SkyWatcherMotor._CREEP_MULTIPLE
-    )
+    ))
     assert predicted_eta_s < elapsed_s
     assert elapsed_s == pytest.approx(predicted_eta_s + approach_penalty_s + creep_penalty_s, rel=0.15)
 
@@ -335,7 +335,7 @@ def test_tmc_goto_reaches_target_over_virtual_time() -> None:
 
     motor.set_motion_mode(MotionMode.TARGET)
     motor.set_acceleration(1000)
-    motor.set_speed(1000)
+    motor.set_speed(DecStepsPerSecond(1000))
     motor.set_delta(5000)
     motor.run()
 
@@ -353,7 +353,7 @@ def test_tmc_free_ride_integrates_speed() -> None:
 
     motor.set_motion_mode(MotionMode.RUN)
     motor.set_acceleration(0)
-    motor.set_speed(100)
+    motor.set_speed(DecStepsPerSecond(100))
     motor.set_direction(MotorDirection.FORWARD)
     motor.run()
 
@@ -371,7 +371,7 @@ def test_tmc_backward_direction_decreases_steps() -> None:
 
     motor.set_motion_mode(MotionMode.RUN)
     motor.set_acceleration(0)
-    motor.set_speed(200)
+    motor.set_speed(DecStepsPerSecond(200))
     motor.set_direction(MotorDirection.BACKWARD)
     motor.run()
 

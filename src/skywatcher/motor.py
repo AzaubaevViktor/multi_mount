@@ -25,7 +25,7 @@ from clock import REAL_CLOCK, Clock
 from serial_wrapper.wrapper import SerialLine
 from sky.constants import STELLAR_SPEED
 from sky.motor import MotionMode, Motor, MotorDirection, MotorStateError, MotorStatus, MotorStopRequire
-from sky.physics import Ha, HaPerSecond
+from sky.physics import Ha, HaPerSecond, HaStepsPerSecond, StepsPerSecond
 from skywatcher.board import SkyWatcherBoard
 from skywatcher.codec import (
     Command,
@@ -186,7 +186,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._clock = clock
         self._logger = logging.getLogger(type(self).__name__)
         self._is_connected = False
-        self._last_speed_sps = 0
+        self._last_speed_sps = HaStepsPerSecond(0)
         self._last_direction = MotorDirection.STOP
         self._last_target: int | None = None
         self._zero_target_pending = False
@@ -223,7 +223,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     # reporting
     # ------------------------------------------------------------------
 
-    def status(self) -> MotorStatus:
+    def status(self) -> MotorStatus[HaPerSecond]:
         status = self._session.status()
         if self._plan is not None and self._plan.started:
             # The one place the safe GOTO is driven from. `status()` is what the
@@ -247,7 +247,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         target = self._last_target if status.slew_mode == SlewMode.GOTO else None
         return self._motor_status(status, motion_mode, target)
 
-    def _motor_status(self, status: Status, motion_mode: MotionMode, target: int | None) -> MotorStatus:
+    def _motor_status(self, status: Status, motion_mode: MotionMode, target: int | None) -> MotorStatus[HaPerSecond]:
         if not status.running:
             direction = MotorDirection.STOP
         elif status.direction == Direction.FORWARD:
@@ -314,7 +314,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._session.set_position_ticks(steps)
         return True
 
-    def set_speed(self, steps_per_second: int) -> int:
+    def set_speed(self, steps_per_second: StepsPerSecond[HaPerSecond]) -> HaStepsPerSecond:
         status = self._session.status()
         self._ensure_not_goto(status, "cannot change speed while GOTO is in progress")
         if steps_per_second <= 0:
@@ -677,7 +677,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self.stop()
         self._plan = None
         self._plan_distance = 0
-        self._last_speed_sps = 0
+        self._last_speed_sps = HaStepsPerSecond(0)
         self._last_direction = MotorDirection.STOP
         self._last_target = None
         self._zero_target_pending = False
@@ -692,10 +692,10 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     def convert_steps_to_position(self, steps: int) -> Ha:
         return Ha(steps / self._board().cpr * 24 * 60 * 60)
 
-    def convert_speed_to_steps_per_second(self, speed: HaPerSecond) -> int:
-        return int(round(abs(float(speed)) * self._board().cpr / (24 * 60 * 60)))
+    def convert_speed_to_steps_per_second(self, speed: HaPerSecond) -> HaStepsPerSecond:
+        return HaStepsPerSecond(round(abs(float(speed)) * self._board().cpr / (24 * 60 * 60)))
 
-    def get_speed_sps_by_delta(self, delta_steps: int) -> int:
+    def get_speed_sps_by_delta(self, delta_steps: int) -> HaStepsPerSecond:
         # What the axis above gets is what the mount will really do, not what the driver
         # would like it to do. `Axis._run_goto_to` turns this number into the GOTO ETA and
         # subtracts the sky drift over that ETA, so an optimistic answer is not cosmetic:
@@ -706,20 +706,20 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         requested_speed = self._get_goto_speed(self.convert_steps_to_position(delta_steps).moving_wrap())
         return self._achievable_speed_sps(self.convert_speed_to_steps_per_second(requested_speed))
 
-    def get_speed_by_speed_sps(self, speed_sps: int) -> HaPerSecond:
+    def get_speed_by_speed_sps(self, speed_sps: StepsPerSecond[HaPerSecond]) -> HaPerSecond:
         if speed_sps < 0:
             raise ValueError(f"speed_sps must be non-negative, got {speed_sps}")
         return HaPerSecond(float(speed_sps) * 24 * 60 * 60 / self._board().cpr)
 
-    def _achievable_speed_sps(self, speed_sps: int) -> int:
+    def _achievable_speed_sps(self, speed_sps: StepsPerSecond[HaPerSecond]) -> HaStepsPerSecond:
         board = self._board()
         speed_mode = self._get_speed_mode_for_speed_sps(speed_sps)
         return board.speed_sps_from_period(board.clamp_period(self._period_from_speed_sps(speed_sps)), speed_mode)
 
-    def _period_from_speed_sps(self, speed_sps: int) -> int:
+    def _period_from_speed_sps(self, speed_sps: StepsPerSecond[HaPerSecond]) -> int:
         return self._board().period_from_speed_sps(speed_sps, self._get_speed_mode_for_speed_sps(speed_sps))
 
-    def _get_speed_mode_for_speed_sps(self, speed_sps: int) -> SpeedMode:
+    def _get_speed_mode_for_speed_sps(self, speed_sps: StepsPerSecond[HaPerSecond]) -> SpeedMode:
         return SpeedMode.HIGHSPEED if speed_sps > self.convert_speed_to_steps_per_second(self._LOWSPEED_SPEED) else SpeedMode.LOWSPEED
 
     def _get_preferred_speed_mode(self, fallback: SpeedMode) -> SpeedMode:

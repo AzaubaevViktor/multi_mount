@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
-from sky.physics import AxisPos, AxisSpeed
+from sky.physics import AxisPos, AxisSpeed, StepsPerSecond
 
 
 class MotionMode(StrEnum):
@@ -21,11 +21,21 @@ class MotorDirection(StrEnum):
 
 
 @dataclass
-class MotorStatus:
+class MotorStatus[SPEED_CLS: AxisSpeed]:
+    """What one motor reports about itself right now.
+
+    Parameterised by the axis' sky-speed unit for the sake of one field:
+    ``speed_sps``. A step rate is only meaningful on the axis that produced it
+    (the two axes have different counts per revolution), and the status object
+    is the one place where a rate travels away from its driver -- into the
+    dashboard, the hardware session tool and the axis loop, all of which hold
+    both axes at once.
+    """
+
     is_connected: bool
     steps: int
     motion_mode: MotionMode
-    speed_sps: int
+    speed_sps: StepsPerSecond[SPEED_CLS]
     accel_sps: int | None
     direction: MotorDirection
     target: int | None
@@ -98,7 +108,7 @@ class Motor[POS_CLS: AxisPos[Any], SPEED_CLS: AxisSpeed](ABC):
         ...
 
     @abstractmethod
-    def status(self) -> MotorStatus:
+    def status(self) -> MotorStatus[SPEED_CLS]:
         """ Get actual status from motor """
         ...
 
@@ -113,8 +123,13 @@ class Motor[POS_CLS: AxisPos[Any], SPEED_CLS: AxisSpeed](ABC):
         ...
 
     @abstractmethod
-    def set_speed(self, steps_per_second: int) -> int:
-        """ Change current motor speed, absolute value; can raise MotorStopRequire"""
+    def set_speed(self, steps_per_second: StepsPerSecond[SPEED_CLS]) -> StepsPerSecond[SPEED_CLS]:
+        """ Change current motor speed, absolute value; can raise MotorStopRequire
+
+        Returns the rate the axis will really run at, which is not always the one
+        asked for: the RA board clamps the step period, so the request goes
+        through speed -> period -> clamp -> speed before it comes back.
+        """
         ...
     
     @abstractmethod
@@ -133,13 +148,18 @@ class Motor[POS_CLS: AxisPos[Any], SPEED_CLS: AxisSpeed](ABC):
         ...
 
     @abstractmethod
-    def get_speed_sps_by_delta(self, delta_steps: int) -> int:
+    def get_speed_sps_by_delta(self, delta_steps: int) -> StepsPerSecond[SPEED_CLS]:
         """ Get speed in steps per second by delta """
         ...
 
     @abstractmethod
-    def get_speed_by_speed_sps(self, speed_sps: int) -> SPEED_CLS:
-        """ Get speed in steps per second by speed in steps per second """
+    def get_speed_by_speed_sps(self, speed_sps: StepsPerSecond[SPEED_CLS]) -> SPEED_CLS:
+        """ Turn a step rate of *this* axis back into a sky speed.
+
+        The conversion needs the axis geometry (counts per revolution, gear
+        ratios), which is why it is a method of the driver and not arithmetic on
+        the units themselves.
+        """
         ...
 
     @abstractmethod
@@ -162,7 +182,7 @@ class Motor[POS_CLS: AxisPos[Any], SPEED_CLS: AxisSpeed](ABC):
         ...
 
     @abstractmethod
-    def convert_speed_to_steps_per_second(self, speed: SPEED_CLS) -> int:
+    def convert_speed_to_steps_per_second(self, speed: SPEED_CLS) -> StepsPerSecond[SPEED_CLS]:
         """ Convert speed to steps per second, absolute value """
         ...
 

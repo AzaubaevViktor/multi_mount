@@ -4,7 +4,7 @@ import stdout_dashboard as stdout_dashboard_module
 from sky.axis import AxisMotionMode, PointCoordinates
 from sky.constants import STELLAR_SPEED
 from sky.motor import MotionMode, MotorDirection, MotorStatus
-from sky.physics import Dec, DecPerSecond, Ha, HaPerSecond, Second, SkyDirection
+from sky.physics import Dec, DecPerSecond, DecStepsPerSecond, Ha, HaPerSecond, HaStepsPerSecond, Second, SkyDirection
 from lx200.base import LX200Handler
 from stdout_dashboard import StdoutDashboard
 
@@ -166,7 +166,7 @@ class _StubCombiner:
                     is_connected=True,
                     steps=123456,
                     motion_mode=MotionMode.RUN,
-                    speed_sps=321,
+                    speed_sps=HaStepsPerSecond(321),
                     accel_sps=None,
                     direction=MotorDirection.FORWARD,
                     target=None,
@@ -194,7 +194,7 @@ class _StubCombiner:
                     is_connected=True,
                     steps=654321,
                     motion_mode=MotionMode.IDLE,
-                    speed_sps=0,
+                    speed_sps=DecStepsPerSecond(0),
                     accel_sps=None,
                     direction=MotorDirection.STOP,
                     target=None,
@@ -302,6 +302,10 @@ def test_stdout_dashboard_render_fits_30x130(monkeypatch) -> None:
     assert any("current" in line and "-" in line for line in lines)
     assert any("ra_track" in line and "+1.000hs" in line for line in lines)
     assert any("dec_track" in line and "+0.00as" in line for line in lines)
+    # The step rate is a typed quantity now, and its `str()` carries the unit; the
+    # dashboard column has its own "sps" suffix and a fixed width, so it must render
+    # the number and not the quantity ("321 steps/s sps" is what happens otherwise).
+    assert any("speed" in line and "321 sps" in line for line in lines)
     assert any("ra_bat" in line and "13.40V" in line for line in lines)
     # Both RA rails, not just the maximum `get_power_v` reports (§6.8).
     assert any("ra_rail" in line and "6.04/4.70" in line for line in lines)

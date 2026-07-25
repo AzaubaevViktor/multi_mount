@@ -16,7 +16,7 @@ from serial_wrapper.wrapper import SerialLineClosedError
 from sky.axis import AxisDEC, AxisRA, MotorReadinessState
 from sky.combiner import Combiner
 from sky.motor import MotionMode, MotorDirection, MotorStatus
-from sky.physics import Dec, DecPerSecond, Ha, HaPerSecond
+from sky.physics import AxisSpeed, Dec, DecPerSecond, Ha, HaPerSecond, StepsPerSecond
 
 
 class _ProbeMotor:
@@ -31,7 +31,7 @@ class _ProbeMotor:
         self.error = error
         self.status_calls = 0
 
-    def status(self) -> MotorStatus:
+    def status(self) -> MotorStatus[AxisSpeed]:
         self.status_calls += 1
         if self.error is not None:
             raise self.error
@@ -39,7 +39,7 @@ class _ProbeMotor:
             is_connected=self._is_connected,
             steps=0,
             motion_mode=MotionMode.IDLE,
-            speed_sps=0,
+            speed_sps=StepsPerSecond(0),
             accel_sps=None,
             direction=MotorDirection.STOP,
             target=None,

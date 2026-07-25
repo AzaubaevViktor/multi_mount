@@ -36,7 +36,7 @@ from serial_wrapper.wrapper import SerialLineClosedError, SerialLineError, Seria
 from sim import Chaos, ChaosProfile, Clock, FaultKind, SimSerialLine, SkyWatcherSim, TMC2209Sim, Transport
 from sky.constants import STELLAR_SPEED
 from sky.motor import MotionMode, MotorDirection, MotorStateError, MotorStopRequire
-from sky.physics import Ha
+from sky.physics import HaStepsPerSecond, DecStepsPerSecond, Ha
 from skywatcher.codec import Command, SkyWatcherCodec
 from skywatcher.motor import SkyWatcherMotor, SkyWatcherMotorError
 from skywatcher.session import SkyWatcherSession
@@ -187,7 +187,7 @@ def _ra_session(chaos: Chaos) -> _Guard:
             # INV4: a step period the board never received must not come back as
             # "applied".
             guard.check(
-                abs(sim.speed_sps() - applied_sps) <= 1,
+                abs(sim.speed_sps() - float(applied_sps)) <= 1,
                 f"set_speed reported {applied_sps} sps while the mount runs at {sim.speed_sps():.1f} sps",
             )
 
@@ -198,7 +198,7 @@ def _ra_session(chaos: Chaos) -> _Guard:
         guard.call("status_tracking", motor.status)
 
         # A guide pulse reaches this layer as a tracking-rate change.
-        guard.call("guide_speed", lambda: motor.set_speed(int(sidereal_sps * 1.5)))
+        guard.call("guide_speed", lambda: motor.set_speed(HaStepsPerSecond(int(float(sidereal_sps) * 1.5))))
         clock.advance(4)
         guard.call("guide_back", lambda: motor.set_speed(sidereal_sps))
 
@@ -280,7 +280,7 @@ def _dec_session(chaos: Chaos) -> _Guard:
 
     guard.call("mode_target", lambda: motor.set_motion_mode(MotionMode.TARGET))
     guard.call("set_acceleration", lambda: motor.set_acceleration(1000))
-    guard.call("set_speed", lambda: motor.set_speed(1000))
+    guard.call("set_speed", lambda: motor.set_speed(DecStepsPerSecond(1000)))
     guard.call("set_delta", lambda: motor.set_delta(5000))
     guard.call("run", motor.run)
     clock.advance(15)
@@ -288,7 +288,7 @@ def _dec_session(chaos: Chaos) -> _Guard:
 
     # Guide pulse: free ride at guide rate for a few seconds.
     guard.call("mode_free_ride", lambda: motor.set_motion_mode(MotionMode.RUN))
-    guard.call("guide_speed", lambda: motor.set_speed(25))
+    guard.call("guide_speed", lambda: motor.set_speed(DecStepsPerSecond(25)))
     guard.call("guide_direction", lambda: motor.set_direction(MotorDirection.FORWARD))
     guard.call("guide_run", motor.run)
     clock.advance(4)
@@ -564,7 +564,7 @@ def test_ra_start_motion_is_not_re_sent_while_the_axis_is_running() -> None:
     clock, sim, motor, starts = _ra_start_motion_rig()
     delta_steps = motor.convert_position_to_steps(Ha(60))
     motor.set_delta(delta_steps)
-    motor.set_speed(2)
+    motor.set_speed(HaStepsPerSecond(2))
     started_at = sim.position
     sim.faults.push(FaultKind.EMPTY, command="J")
 
@@ -760,10 +760,10 @@ def test_dec_never_reports_a_speed_the_controller_never_applied() -> None:
         chaos.profile = ChaosProfile(lose_write_byte=0.05)
         for _ in range(6):
             try:
-                applied = motor.set_speed(1000)
+                applied = motor.set_speed(DecStepsPerSecond(1000))
             except (TMC2209MotorError, SerialLineError, KeyError, ValueError, OSError):
                 continue
-            assert abs(sim.speed_sps - applied) <= 1, f"seed={seed}: set_speed reported {applied}, controller runs at {sim.speed_sps}"
+            assert abs(sim.speed_sps - float(applied)) <= 1, f"seed={seed}: set_speed reported {applied}, controller runs at {sim.speed_sps}"
 
 
 def test_ra_retried_start_motion_does_not_extend_the_goto_target() -> None:

@@ -13,18 +13,18 @@ import time
 
 from sky.axis import AxisMotionMode, AxisRA, PointCoordinates
 from sky.motor import MotionMode, MotorDirection, MotorStatus
-from sky.physics import Dec, Ha, HaPerSecond, SkyDirection
+from sky.physics import HaStepsPerSecond, Dec, Ha, HaPerSecond, SkyDirection
 
 
 class _StubMotor:
     FORWARD_POSITION_SIGN = 1
 
     def __init__(self) -> None:
-        self._status = MotorStatus(
+        self._status: MotorStatus[HaPerSecond] = MotorStatus(
             is_connected=False,
             steps=0,
             motion_mode=MotionMode.IDLE,
-            speed_sps=0,
+            speed_sps=HaStepsPerSecond(0),
             accel_sps=None,
             direction=MotorDirection.STOP,
             target=None,
@@ -38,7 +38,7 @@ class _StubMotor:
         self._status.is_connected = False
         return True
 
-    def status(self) -> MotorStatus:
+    def status(self) -> MotorStatus[HaPerSecond]:
         return self._status
 
     def get_power_v(self) -> float | None:
@@ -48,7 +48,7 @@ class _StubMotor:
         self._status.steps = steps
         return True
 
-    def set_speed(self, steps_per_second: int) -> int:
+    def set_speed(self, steps_per_second: HaStepsPerSecond) -> HaStepsPerSecond:
         self._status.speed_sps = steps_per_second
         return steps_per_second
 
@@ -63,11 +63,11 @@ class _StubMotor:
         self._status.target = self._status.steps + delta_steps
         return True
 
-    def get_speed_sps_by_delta(self, delta_steps: int) -> int:
-        return max(1, abs(delta_steps))
+    def get_speed_sps_by_delta(self, delta_steps: int) -> HaStepsPerSecond:
+        return HaStepsPerSecond(max(1, abs(delta_steps)))
 
-    def get_speed_by_speed_sps(self, speed_sps: int) -> HaPerSecond:
-        return HaPerSecond(speed_sps)
+    def get_speed_by_speed_sps(self, speed_sps: HaStepsPerSecond) -> HaPerSecond:
+        return HaPerSecond(float(speed_sps))
 
     def set_motion_mode(self, motion_mode: MotionMode) -> bool:
         self._status.motion_mode = motion_mode
@@ -83,8 +83,8 @@ class _StubMotor:
     def convert_steps_to_position(self, steps: int) -> Ha:
         return Ha(steps)
 
-    def convert_speed_to_steps_per_second(self, speed: HaPerSecond) -> int:
-        return int(abs(float(speed)))
+    def convert_speed_to_steps_per_second(self, speed: HaPerSecond) -> HaStepsPerSecond:
+        return HaStepsPerSecond(int(abs(float(speed))))
 
     def run(self) -> bool:
         if self._status.target is not None:
@@ -95,7 +95,7 @@ class _StubMotor:
 
     def stop(self) -> bool:
         self._status.motion_mode = MotionMode.IDLE
-        self._status.speed_sps = 0
+        self._status.speed_sps = HaStepsPerSecond(0)
         self._status.direction = MotorDirection.STOP
         self._status.target = None
         return True

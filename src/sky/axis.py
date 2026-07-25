@@ -9,7 +9,7 @@ from typing import Any, Callable, Concatenate, ParamSpec, Protocol, Sequence, Ty
 
 from serial_wrapper.wrapper import EXCEPTIONS_TO_CLOSE
 from sky.motor import MotionMode, Motor, MotorDirection, MotorStopRequire
-from sky.physics import AxisPos, AxisSpeed, Dec, DecPerSecond, Ha, HaPerSecond, Second, SkyDirection
+from sky.physics import AxisPos, AxisSpeed, Dec, DecPerSecond, Ha, HaPerSecond, Second, SkyDirection, StepsPerSecond
 
 
 class AxisName(StrEnum):
@@ -204,7 +204,9 @@ class Axis[_POS_CLS: AxisPos[Any], _SPEED_CLS: AxisSpeed]:
     def mode(self) -> AxisMotionMode:
         return self._mode
 
-    def _get_motor_direction_and_speed(self, direction: SkyDirection, speed: _SPEED_CLS) -> tuple[MotorDirection, int]:
+    def _get_motor_direction_and_speed(
+        self, direction: SkyDirection, speed: _SPEED_CLS
+    ) -> tuple[MotorDirection, StepsPerSecond[_SPEED_CLS]]:
         if not isinstance(speed, self.SPEED_CLS):
             raise ValueError(f"Speed should be of type {self.SPEED_CLS} for {self.axis.value} axis, got {type(speed)}")
         

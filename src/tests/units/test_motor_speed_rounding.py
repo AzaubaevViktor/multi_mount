@@ -3,7 +3,7 @@ from types import MethodType
 import pytest
 from sky.constants import STELLAR_DAY, STELLAR_SPEED
 from sky.motor import MotorDirection
-from sky.physics import Dec
+from sky.physics import Dec, DecStepsPerSecond, HaStepsPerSecond
 from skywatcher.board import SkyWatcherBoard
 from skywatcher.codec import Command, Direction, MotionStatus, SkyWatcherCodec, SlewMode, SpeedMode, Status
 from skywatcher.motor import SkyWatcherMotor
@@ -28,8 +28,8 @@ def _idle_tmc_status(_self: TMC2209Motor) -> _TmcStatus:
         phase=_Phase.IDLE,
         target=0,
         target_set=False,
-        speed_sps=0.0,
-        actual_speed_sps=0.0,
+        speed_sps=DecStepsPerSecond(0),
+        actual_speed_sps=DecStepsPerSecond(0),
         accel_steps_per_s=0.0,
     )
 
@@ -72,14 +72,14 @@ def _recording_tmc_transact(motor: TMC2209Motor, calls: list[list[str]]) -> Meth
     return MethodType(_transact, motor)
 
 
-@pytest.mark.parametrize("speed_sps", [32.4, 32.6, 127.6])
-def test_skywatcher_set_speed_returns_quantized_speed(speed_sps: float, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize("speed_sps", [HaStepsPerSecond(32.4), HaStepsPerSecond(32.6), HaStepsPerSecond(127.6)])
+def test_skywatcher_set_speed_returns_quantized_speed(speed_sps: HaStepsPerSecond, monkeypatch: pytest.MonkeyPatch) -> None:
     motor = _motor_on_board(SkyWatcherBoard(cpr=12_489_074, timer_freq=15_400_960, highspeed_ratio=1))
     written_commands = _recording_session(motor, monkeypatch)
 
-    # Quantization coverage: set_speed/period_from_speed_sps are annotated int but
-    # accept fractional steps-per-second at runtime; that is exactly what is tested here.
-    actual_speed = motor.set_speed(speed_sps)  # type: ignore[arg-type]
+    # Quantization coverage: a step rate is not a count of anything, and the
+    # fractional values here are what the period arithmetic has to round consistently.
+    actual_speed = motor.set_speed(speed_sps)
 
     board = motor.board
     assert board is not None
@@ -98,7 +98,7 @@ def test_skywatcher_set_speed_switches_to_highspeed_mode_for_fast_speed(monkeypa
     motor = _motor_on_board(SkyWatcherBoard(cpr=12_489_074, timer_freq=15_400_960, highspeed_ratio=2))
     written_commands = _recording_session(motor, monkeypatch)
 
-    speed_sps = motor.convert_speed_to_steps_per_second(motor._LOWSPEED_SPEED) + 1
+    speed_sps = motor.convert_speed_to_steps_per_second(motor._LOWSPEED_SPEED) + HaStepsPerSecond(1)
 
     actual_speed = motor.set_speed(speed_sps)
 
@@ -117,10 +117,10 @@ def test_skywatcher_highspeed_period_uses_lowspeed_threshold_not_ratio() -> None
     board = motor.board
     assert board is not None
 
-    speed_sps = motor.convert_speed_to_steps_per_second(motor._LOWSPEED_SPEED) + 1
+    speed_sps = motor.convert_speed_to_steps_per_second(motor._LOWSPEED_SPEED) + HaStepsPerSecond(1)
 
     period = motor._period_from_speed_sps(speed_sps)
-    rate = speed_sps * (24 * 60 * 60) / board.cpr / float(STELLAR_SPEED)
+    rate = float(speed_sps) * (24 * 60 * 60) / board.cpr / float(STELLAR_SPEED)
     expected = int(float(STELLAR_DAY) * board.timer_freq / board.cpr / (rate / board.highspeed_ratio))
 
     assert period == expected
@@ -153,7 +153,7 @@ def test_skywatcher_set_speed_clamps_lowspeed_period_to_mount_minimum(monkeypatc
     )
     written_commands = _recording_session(motor, monkeypatch)
 
-    speed_sps = 11_598
+    speed_sps = HaStepsPerSecond(11_598)
 
     actual_speed = motor.set_speed(speed_sps)
 

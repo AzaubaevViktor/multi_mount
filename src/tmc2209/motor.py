@@ -5,7 +5,7 @@ from enum import StrEnum
 from clock import NEVER, REAL_CLOCK, Clock
 from serial_wrapper.wrapper import SerialLine
 from sky.motor import MotionMode, Motor, MotorDirection, MotorStateError, MotorStatus, MotorStopRequire
-from sky.physics import Dec, DecPerSecond
+from sky.physics import Dec, DecPerSecond, DecStepsPerSecond, StepsPerSecond
 from tmc2209.protocol import (
     KEY_VALUE_SEPARATOR,
     RESPONSE_DELIMITER,
@@ -85,8 +85,8 @@ class _Status:
     phase: _Phase
     target: int
     target_set: bool
-    speed_sps: float
-    actual_speed_sps: float
+    speed_sps: DecStepsPerSecond
+    actual_speed_sps: DecStepsPerSecond
     accel_steps_per_s: float
     power_v: float | None = None
     # Firmware older than the TX-ring fix does not report it; None means "unknown", not zero.
@@ -109,8 +109,8 @@ class _Status:
                 phase=_Phase(response.values["phase"]),
                 target=int(response.values["target"]),
                 target_set=response.values["target_set"] == "1",
-                speed_sps=float(response.values["speed"]),
-                actual_speed_sps=float(response.values["actual_speed"]),
+                speed_sps=DecStepsPerSecond(float(response.values["speed"])),
+                actual_speed_sps=DecStepsPerSecond(float(response.values["actual_speed"])),
                 accel_steps_per_s=float(response.values["accel_per_s"]),
                 power_v=float(response.values["power_v"]) if "power_v" in response.values else None,
                 tx_overflow=int(response.values["tx_overflow"]) if "tx_overflow" in response.values else None,
@@ -204,7 +204,7 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         self._serial.close()
         return True
 
-    def status(self) -> MotorStatus:
+    def status(self) -> MotorStatus[DecPerSecond]:
         status = self._status()
         if status.phase == _Phase.IDLE:
             motion_mode = MotionMode.IDLE
@@ -226,7 +226,7 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
             is_connected=self._is_connected,
             steps=status.position,
             motion_mode=motion_mode,
-            speed_sps=int(round(abs(status.speed_sps))),
+            speed_sps=DecStepsPerSecond(round(abs(float(status.speed_sps)))),
             accel_sps=int(round(status.accel_steps_per_s)),
             direction=direction,
             target=status.target if status.target_set else None,
@@ -252,16 +252,16 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         self._confirm(self._transact("position", [str(steps)]), "position", steps)
         return True
 
-    def set_speed(self, steps_per_second: int) -> int:
+    def set_speed(self, steps_per_second: StepsPerSecond[DecPerSecond]) -> DecStepsPerSecond:
         self._ensure_not_goto(self._status(), "cannot change speed while GOTO is in progress")
         if steps_per_second < 0:
             raise ValueError(f"steps_per_second must be non-negative, got {steps_per_second}")
-        speed = int(round(steps_per_second))
+        speed = round(float(steps_per_second))
         # The applied speed comes back from the controller, not from the argument:
         # "the command was sent" and "the axis now runs at that rate" are different
         # statements, and only the echo can make the second one.
         applied = self._confirm(self._transact("speed", [str(speed)]), "speed", speed)
-        return int(round(float(applied)))
+        return DecStepsPerSecond(round(float(applied)))
 
     def set_acceleration(self, steps_per_second_square: float) -> bool:
         self._ensure_not_goto(self._status(), "cannot change acceleration while GOTO is in progress")
@@ -288,10 +288,10 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         self._confirm(self._transact("delta", [str(delta_steps)]), "delta", delta_steps)
         return True
 
-    def get_speed_sps_by_delta(self, delta_steps: int) -> int:
-        return min(max(abs(delta_steps), 1), 6000)
+    def get_speed_sps_by_delta(self, delta_steps: int) -> DecStepsPerSecond:
+        return DecStepsPerSecond(min(max(abs(delta_steps), 1), 6000))
 
-    def get_speed_by_speed_sps(self, speed_sps: int) -> DecPerSecond:
+    def get_speed_by_speed_sps(self, speed_sps: StepsPerSecond[DecPerSecond]) -> DecPerSecond:
         if speed_sps < 0:
             raise ValueError(f"speed_sps must be non-negative, got {speed_sps}")
         return self.convert_steps_to_speed(speed_sps)
@@ -330,8 +330,8 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
     def convert_steps_to_position(self, steps: int) -> Dec:
         return Dec(float(steps) / self._steps_per_arcsecond())
 
-    def convert_speed_to_steps_per_second(self, speed: DecPerSecond) -> int:
-        return int(round(abs(float(speed)) * self._steps_per_arcsecond()))
+    def convert_speed_to_steps_per_second(self, speed: DecPerSecond) -> DecStepsPerSecond:
+        return DecStepsPerSecond(round(abs(float(speed)) * self._steps_per_arcsecond()))
 
     def run(self) -> bool:
         status = self._status()
@@ -362,7 +362,7 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         self._last_power_v = None
         self._last_power_v_updated = NEVER
 
-    def convert_steps_to_speed(self, speed_sps: int | float) -> DecPerSecond:
+    def convert_steps_to_speed(self, speed_sps: StepsPerSecond[DecPerSecond]) -> DecPerSecond:
         return DecPerSecond(float(speed_sps) / self._steps_per_arcsecond())
 
     def _steps_per_arcsecond(self) -> float:

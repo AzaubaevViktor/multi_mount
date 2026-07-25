@@ -14,6 +14,7 @@ import pytest
 from serial_wrapper.wrapper import SerialLineState
 from sim import Chaos, ChaosProfile, Clock, SimSerialLine, SkyWatcherSim
 from sky.motor import MotionMode, MotorDirection
+from sky.physics import HaStepsPerSecond
 from skywatcher.motor import SkyWatcherMotor
 
 _RA_CPR = 8_000_000
@@ -34,7 +35,7 @@ def _drive_ra(chaos: Chaos) -> tuple[SimSerialLine, SkyWatcherSim, list[str]]:
 
     for name, action in (
         ("connect", motor.connect),
-        ("speed", lambda: motor.set_speed(100)),
+        ("speed", lambda: motor.set_speed(HaStepsPerSecond(100))),
         ("direction", lambda: motor.set_direction(MotorDirection.FORWARD)),
         ("mode", lambda: motor.set_motion_mode(MotionMode.RUN)),
         ("run", motor.run),

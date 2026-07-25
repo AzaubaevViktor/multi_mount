@@ -67,7 +67,7 @@ from sim import Clock as VirtualClock
 from sim import SimSerialLine, SkyWatcherSim, TMC2209Sim
 from sky.constants import STELLAR_SPEED
 from sky.motor import MotionMode, MotorDirection, MotorStatus
-from sky.physics import DecPerSecond, Ha
+from sky.physics import DecPerSecond, DecStepsPerSecond, Ha, HaStepsPerSecond, StepsPerSecond
 from skywatcher.motor import SkyWatcherMotor
 from skywatcher.protocol import Protocol
 from tmc2209.motor import TMC2209Motor
@@ -98,9 +98,9 @@ TRACK_DWELL_S = 3.0
 GOTO_LOWSPEED_HA = Ha(300)
 GOTO_HIGHSPEED_HA = Ha(1800)
 DEC_GOTO_SLOW_STEPS = 800
-DEC_GOTO_SLOW_SPS = 400
+DEC_GOTO_SLOW_SPS = DecStepsPerSecond(400)
 DEC_GOTO_FAST_STEPS = 6000
-DEC_GOTO_FAST_SPS = 3000
+DEC_GOTO_FAST_SPS = DecStepsPerSecond(3000)
 DEC_ACCEL_SPS2 = 1000
 # Time to let an axis actually leave standstill before it is sampled or waited
 # on; both controllers report "not moving" for the first instants after `run`.
@@ -271,13 +271,13 @@ def _dec_inquire(line: SerialLine, command: str) -> dict[str, Any]:
 # --------------------------------------------------------------------------- #
 
 
-def _status_row(session: Session, status: MotorStatus) -> dict[str, Any]:
+def _status_row(session: Session, status: MotorStatus[Any]) -> dict[str, Any]:
     return {
         "at_s": session.clock.monotonic(),
         "steps": status.steps,
         "motion_mode": str(status.motion_mode),
         "direction": str(status.direction),
-        "speed_sps": status.speed_sps,
+        "speed_sps": int(status.speed_sps),
         "target": status.target,
     }
 
@@ -292,11 +292,11 @@ def _sample(session: Session, motor: SkyWatcherMotor | TMC2209Motor) -> dict[str
     return _status_row(session, motor.status())
 
 
-def _ra_sidereal_sps(session: Session) -> int:
-    return max(1, session.ra_motor.convert_speed_to_steps_per_second(STELLAR_SPEED))
+def _ra_sidereal_sps(session: Session) -> HaStepsPerSecond:
+    return max(HaStepsPerSecond(1), session.ra_motor.convert_speed_to_steps_per_second(STELLAR_SPEED))
 
 
-def _ra_enter_tracking(session: Session) -> int:
+def _ra_enter_tracking(session: Session) -> HaStepsPerSecond:
     """The motor-level form of "the axis is tracking".
 
     Idempotent on purpose — every step that needs tracking calls it, including
@@ -339,7 +339,7 @@ def _ra_goto(session: Session, label: str, offset: Ha) -> None:
     )
 
 
-def _dec_goto(session: Session, label: str, delta_steps: int, speed_sps: int) -> None:
+def _dec_goto(session: Session, label: str, delta_steps: int, speed_sps: StepsPerSecond[DecPerSecond]) -> None:
     motor = session.dec_motor
     motor.wait_till_stop(do_stop=True, timeout_s=STOP_TIMEOUT_S)
     start = _sample(session, motor)
@@ -359,7 +359,7 @@ def _dec_goto(session: Session, label: str, delta_steps: int, speed_sps: int) ->
             "axis": "dec",
             "label": label,
             "delta_steps": delta_steps,
-            "speed_sps": speed_sps,
+            "speed_sps": int(speed_sps),
             "start": start,
             "moving": moving,
             "end": _sample(session, motor),
@@ -419,8 +419,8 @@ def _step_track_sidereal(session: Session) -> None:
         session.clock.sleep(TRACK_DWELL_S)
         samples.append(_sample(session, session.ra_motor))
     session.manifest["tracking"] = {
-        "requested_sps": _ra_sidereal_sps(session),
-        "applied_sps": applied_sps,
+        "requested_sps": int(_ra_sidereal_sps(session)),
+        "applied_sps": int(applied_sps),
         "samples": samples,
     }
 
@@ -491,7 +491,7 @@ def _step_guide_pulses(session: Session) -> None:
     for label, factor in (("ra_west", 1.0 + GUIDE_RATE), ("ra_east", 1.0 - GUIDE_RATE)):
         # A guide pulse in RA is a tracking-rate nudge, not a separate move: the
         # axis keeps running and only its step period changes.
-        applied_sps = motor.set_speed(max(1, round(sidereal_sps * factor)))
+        applied_sps = motor.set_speed(HaStepsPerSecond(max(1, round(float(sidereal_sps) * factor))))
         start = _sample(session, motor)
         session.clock.sleep(GUIDE_PULSE_S)
         end = _sample(session, motor)
@@ -500,14 +500,14 @@ def _step_guide_pulses(session: Session) -> None:
             {
                 "axis": "ra",
                 "label": label,
-                "applied_sps": applied_sps,
+                "applied_sps": int(applied_sps),
                 "start": start,
                 "end": end,
             }
         )
 
     dec = session.dec_motor
-    guide_sps = max(1, dec.convert_speed_to_steps_per_second(DecPerSecond(GUIDE_RATE * SIDEREAL_ARCSEC_PER_S)))
+    guide_sps = max(DecStepsPerSecond(1), dec.convert_speed_to_steps_per_second(DecPerSecond(GUIDE_RATE * SIDEREAL_ARCSEC_PER_S)))
     for label, direction in (("dec_north", MotorDirection.FORWARD), ("dec_south", MotorDirection.BACKWARD)):
         dec.wait_till_stop(do_stop=True, timeout_s=STOP_TIMEOUT_S)
         dec.set_motion_mode(MotionMode.RUN)
@@ -522,7 +522,7 @@ def _step_guide_pulses(session: Session) -> None:
             {
                 "axis": "dec",
                 "label": label,
-                "applied_sps": guide_sps,
+                "applied_sps": int(guide_sps),
                 "start": start,
                 "end": _sample(session, dec),
             }
