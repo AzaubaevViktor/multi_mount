@@ -39,7 +39,23 @@ static const uint8_t TMC_TX_PIN = 9;
 static const uint32_t TMC_BAUD = 9600;
 // Most SilentStepStick-like modules use 0.11 ohm; check your board to be correct.
 static const float R_SENSE = 0.11f;
-// Address depends on MS1/MS2 (CFG pins) strapping; often 0b00 if both low.
+// Address is the MS1/MS2 strapping: ADDR = MS2<<1 | MS1.
+//
+// The chip on this board answers at *no* address: every register reads back zero and
+// every write is ignored (DEC_PROTOCOL.md §12.8, proven mechanically — a written
+// microsteps=32 did not change how far the shaft turned). 0b11 was tried on the bench
+// as well and behaves identically to 0b00, so the address is not the fault and this
+// constant is back to the value it always had.
+//
+// The other two addresses need no flashing to rule out. With the UART dead the chip
+// runs on its pin-selected resolution, and the shaft was measured at 3200 steps per
+// revolution; 0b01 and 0b10 mean 1/2 and 1/4 microstepping, which cannot produce that
+// figure for either a 200- or a 400-step motor. Only 0b00 and 0b11 could, and both are
+// silent.
+//
+// So the fault is physical, not a wrong number here: the single-wire PDN_UART link,
+// its pull-up, or AltSoftSerial on pins 8/9. Until that is fixed, treat every `get`
+// and every `set` in this firmware as talking to a shadow copy, not to the chip.
 static const uint8_t DRIVER_ADDRESS = 0b00;
 
 static const float ADC_INTERNAL_VREF = 1.1f;
@@ -1156,8 +1172,8 @@ static void handleLineV2(char* s) {
   respondErrorV2("unknown_cmd");
 }
 
-static void handleFrameV3(char* s) {
-  const FrameV3 frame = frameParseV3(s);
+static void handleFrameV3(char* s, uint8_t len) {
+  const FrameV3 frame = frameParseV3(s, len);
   frameSeqV3 = frame.seq;
   if (frame.error != FRAME_OK_V3) {
     respondFrameErrorV3(frame.seq, frame.error);
@@ -1330,13 +1346,22 @@ void serviceSerialv2() {
       if (c == '\r') continue;
 
       if (c == '\n') {
-        lineBufV2[lineLenV2] = 0;
+        const uint8_t lineLen = lineLenV2;
+        lineBufV2[lineLen] = 0;
         const uint32_t start = micros();
         // A marker anywhere in the line means a frame: not only at position 0,
         // because the FIFO can leave a stump in front of it. No line command
         // contains '#', so the two dialects cannot be confused for one another.
-        if (strchr(lineBufV2, '#') != nullptr) {
-          handleFrameV3(lineBufV2);
+        //
+        // memchr, not strchr: the line is `lineLen` bytes of arbitrary wire data,
+        // not a C string. A stray 0x00 anywhere in front of the marker used to end
+        // the search early, so the frame behind it was handed to the line parser,
+        // which saw an empty command and answered nothing at all. The v2 branch
+        // below still takes a NUL-terminated buffer, and that is left alone: the
+        // line protocol has no framing to salvage, and its NUL behaviour is
+        // documented (DEC_PROTOCOL.md §5.8).
+        if (memchr(lineBufV2, '#', lineLen) != nullptr) {
+          handleFrameV3(lineBufV2, lineLen);
         } else {
           handleLineV2(lineBufV2);
         }

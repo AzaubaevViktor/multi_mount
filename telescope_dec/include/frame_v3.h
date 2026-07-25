@@ -168,35 +168,48 @@ static inline bool frameHexNibbleV3(char c, uint8_t* value) {
 // itself, which is safe because two characters collapse into one byte, and costs
 // no second buffer on a board with 208 free bytes of RAM.
 //
+// `len` is the number of bytes received, and it is a *length* rather than a NUL
+// terminator on purpose. The line arrives from a wire that can deliver any of the
+// 256 byte values, and an embedded 0x00 used to end the scan early: a frame with a
+// NUL in front of its marker was not recognised as a frame at all and the board
+// answered nothing (measured live: 0 replies out of 10, against 10 out of 10 for
+// the same frame without the NUL). Length-driven parsing sees the whole line, so
+// the NUL becomes what it should always have been — a non-hex character, refused
+// with `bad_frame` like any other damage.
+//
 // On failure `error` says which check refused the frame and `seq` carries the
 // sequence number as received — possibly the damaged byte itself, but answering
 // with it is still right: a host that did not send that number rejects the answer.
-static inline FrameV3 frameParseV3(char* line) {
+static inline FrameV3 frameParseV3(char* line, uint8_t len) {
   FrameV3 frame = {ERR_BAD_FRAME_V3, 0, 0, 0, 0};
 
   // Resynchronise on the newest marker. The 64-byte RX FIFO overflows while the
   // board is busy and leaves half a command in the line buffer; the next write
   // then arrives glued to that stump. The newest frame is the one somebody is
   // still waiting for, so the stump is dropped rather than parsed.
-  char* body = line;
-  for (char* p = line; *p; p++) {
-    if (*p == '#') body = p + 1;
+  uint8_t start = 0;
+  for (uint8_t i = 0; i < len; i++) {
+    if (line[i] == '#') start = (uint8_t)(i + 1);
   }
+
+  char* body = line + start;
+  const uint8_t bodyLen = (uint8_t)(len - start);
 
   uint8_t* raw = (uint8_t*)body;
   uint8_t count = 0;
-  const char* p = body;
-  while (*p) {
+  for (uint8_t i = 0; i + 1 < bodyLen; i += 2) {
     uint8_t hi = 0;
     uint8_t lo = 0;
-    if (!frameHexNibbleV3(p[0], &hi) || !p[1] || !frameHexNibbleV3(p[1], &lo)) {
-      // An odd character count or a non-hex character means bytes were lost or
-      // altered on the way in — which is the point of sending hex at all.
+    if (!frameHexNibbleV3(body[i], &hi) || !frameHexNibbleV3(body[i + 1], &lo)) {
+      // A non-hex character means bytes were lost or altered on the way in —
+      // which is the point of sending hex at all.
       return frame;
     }
     raw[count++] = (uint8_t)((hi << 4) | lo);
-    p += 2;
   }
+  // An odd character count is the other half of that check: a lost byte shifts
+  // every following nibble, and the leftover character is what gives it away.
+  if (bodyLen & 1) return frame;
 
   if (count < FRAME_OVERHEAD_V3) return frame;
 

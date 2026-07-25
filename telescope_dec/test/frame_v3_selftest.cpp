@@ -79,33 +79,49 @@ int main() {
 
   // 4. The receive path: a good frame, and every way of damaging it.
   char good[] = "#041107000003E8218D";
-  FrameV3 parsed = frameParseV3(good);
+  FrameV3 parsed = frameParseV3(good, sizeof(good) - 1);
   check(parsed.error == FRAME_OK_V3 && parsed.op == OP_SPEED_V3 && parsed.seq == 7 && parsed.len == 4,
         "a well formed frame parses");
   check(framePayloadI32V3(parsed.payload) == 1000, "its payload reads back as 1000");
 
   char corrupted[] = "#041107000003E9218D";  // one hex digit changed
-  check(frameParseV3(corrupted).error == ERR_BAD_CRC_V3, "an altered byte fails the CRC");
+  check(frameParseV3(corrupted, sizeof(corrupted) - 1).error == ERR_BAD_CRC_V3, "an altered byte fails the CRC");
 
   char shortened[] = "#041107000003E8218";  // one character lost
-  check(frameParseV3(shortened).error == ERR_BAD_FRAME_V3, "an odd hex count is refused");
+  check(frameParseV3(shortened, sizeof(shortened) - 1).error == ERR_BAD_FRAME_V3, "an odd hex count is refused");
 
   // Declares nine payload bytes, carries four — and its CRC is *correct*, which is
   // the only way to prove the length is checked in its own right. Without that
   // check the dispatcher would go on to read nine bytes out of a four-byte payload.
   char mislabelled[] = "#091107000003E8CB87";
-  check(frameParseV3(mislabelled).error == ERR_BAD_FRAME_V3, "a wrong declared length is refused on its own");
+  check(frameParseV3(mislabelled, sizeof(mislabelled) - 1).error == ERR_BAD_FRAME_V3, "a wrong declared length is refused on its own");
 
   char junk[] = "#04110ZZZ0003E8218D";
-  check(frameParseV3(junk).error == ERR_BAD_FRAME_V3, "a non-hex character is refused");
+  check(frameParseV3(junk, sizeof(junk) - 1).error == ERR_BAD_FRAME_V3, "a non-hex character is refused");
 
   // The RX FIFO cut a command in half and the next one arrived glued to the stump.
   char glued[] = "#0411#041107000003E8218D";
-  FrameV3 resynced = frameParseV3(glued);
+  FrameV3 resynced = frameParseV3(glued, sizeof(glued) - 1);
   check(resynced.error == FRAME_OK_V3 && resynced.seq == 7, "the board resynchronises on the newest marker");
 
   char empty[] = "#";
-  check(frameParseV3(empty).error == ERR_BAD_FRAME_V3, "an empty frame body is refused");
+  check(frameParseV3(empty, sizeof(empty) - 1).error == ERR_BAD_FRAME_V3, "an empty frame body is refused");
+
+  // A NUL in front of the marker. On the board this used to be invisible: the
+  // dialect was chosen with strchr() over a C string, so the scan stopped at the
+  // NUL, no marker was found, and the frame went to the line parser which answered
+  // nothing at all (0 replies out of 10, measured live). Parsing by length instead
+  // sees the whole line, and the frame behind the NUL is answered normally.
+  char nulPrefixed[] = "\0#041107000003E8218D";
+  FrameV3 behindNul = frameParseV3(nulPrefixed, sizeof(nulPrefixed) - 1);
+  check(behindNul.error == FRAME_OK_V3 && behindNul.seq == 7,
+        "a frame behind a NUL is still parsed");
+
+  // The mirror case: a NUL *inside* the hex is damage like any other, and the
+  // length-driven scan must refuse it rather than stop early and call it a frame.
+  char nulInside[] = "#04110700\0003E8218D";
+  check(frameParseV3(nulInside, sizeof(nulInside) - 1).error == ERR_BAD_FRAME_V3,
+        "a NUL inside the payload is refused as damage");
 
   // 5. Fixed point: the host divides by 100 and must get the string the line
   //    protocol used to print, so the rounding has to match dtostrf's, not C's cast.
