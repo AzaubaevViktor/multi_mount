@@ -43,10 +43,18 @@ from ra_conformance.model import (
 # nothing: `:r1` (Inquire Register Value) and `:f`-family channel probes, which
 # are covered by the exact-payload set below. No write command is here: not
 # `:W1`, not `:N1`, not `:R1`, not `:A1`, not `:Q1`.
+#
+# And one **removal** from §1.1: `:E1` (Set Axis Position). Writing the axis
+# position register is a mechanically destructive action on some mounts and the
+# owner has forbidden it on this one, so it is off the wire everywhere — the
+# driver does not send it (`skywatcher/session.py` keeps a software offset
+# instead) and neither does this set. The cases that exercise `:E1` are still
+# here, still checked, and now run against the simulator only: the behaviour is
+# part of the protocol even though this project will never use it.
 HARDWARE_COMMAND_PREFIXES: tuple[str, ...] = (
     ":e1", ":a1", ":b1", ":c1", ":d1", ":D1", ":f1", ":f2", ":f3", ":g1",
     ":h1", ":i1", ":j1", ":m1", ":s1", ":r1", ":q1", ":C1", ":n1",
-    ":E1", ":G1", ":H1", ":I1", ":J1", ":K1", ":M1", ":F1",
+    ":G1", ":H1", ":I1", ":J1", ":K1", ":M1", ":F1",
 )
 
 # Deliberately malformed input the document exercised on the live board (§7, §8)

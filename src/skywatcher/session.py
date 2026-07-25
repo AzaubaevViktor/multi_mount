@@ -8,9 +8,15 @@ Everything this layer does is a consequence of something written down in
   :meth:`SkyWatcherSession.transact`;
 * §7 `:J1` latches its target when it *arrives*, so it is the one command that
   may not be blindly re-sent after a lost answer;
-* §11 `:E` sent while the axis moves is accepted with `=` and clears the
-  initialization flag a few hundred milliseconds later — the guard and the
-  repair both have to live on the host;
+* `:E` (Set Axis Position) is **never sent**. Not "not while moving", not
+  "carefully": writing the axis counter is a mechanically destructive action on
+  some mounts, and the owner has ruled it out on this one. The driver therefore
+  never tells the board where it is — it *recomputes* where the board is, by
+  keeping a software offset between the board's own counter and the logical
+  coordinate. A sync moves the offset; a reboot moves the offset; the board's
+  register is read and never written. Everything §11 says about the `:E` quirk
+  is consequently moot here, and the quirk is only kept in the simulator and in
+  the conformance set, where nothing turns an axis;
 * §10.3 `:K1` starts a braking ramp, so "stopped" is a fact to be waited for,
   not an acknowledgement to be trusted;
 * §12 a rebooted board is indistinguishable from a legal sync unless the driver
@@ -76,6 +82,11 @@ class SkyWatcherSession:
 
     _POSITION_CACHE_TTL_S = 0.25
 
+    # How far from its power-up value the board's counter may sit and still
+    # count as "this board has just restarted". Derived and defended in
+    # :meth:`_near_power_up_counter`.
+    _REBOOT_POSITION_WINDOW_TICKS = 3_200
+
     # One reading is eight commands (`:C1` + `:n1` per byte, two bytes per channel,
     # two channels), and the dashboard asks on every tick. A supply that sags fast
     # enough to matter (§12: motor load -> brownout -> reboot) still sags over
@@ -92,13 +103,18 @@ class SkyWatcherSession:
         self._board: SkyWatcherBoard | None = None
 
         self._last_status: Status | None = None
-        self._position_ticks: int | None = None
+        # The board's own counter, as last read, in counts around its power-up
+        # value of 0x800000. Never written.
+        self._raw_ticks: int | None = None
         self._position_updated = NEVER
+        # logical position = (board counter + this) mod CPR. The only thing a
+        # sync changes, and the only thing a reboot recovery changes.
+        self._offset_ticks = 0
 
-        # §12.4: what the driver itself put on the board. Without this the sign
-        # "position is exactly 0x800000" is uninterpretable, and a reboot cannot
-        # be told apart from a legal `:E1000080`.
-        self._expected_position_ticks: int | None = None
+        # §12.4: what the driver last saw on the board. Without this the sign
+        # "the counter is back at its power-up value" is uninterpretable — a
+        # board that has simply never moved reads the same.
+        self._expected_raw_ticks: int | None = None
         self._expected_period: int | None = None
         self._expected_initialized = False
         self._reboot_check_busy = False
@@ -167,11 +183,12 @@ class SkyWatcherSession:
 
     def _forget_expectations(self) -> None:
         self._last_status = None
-        self._position_ticks = None
+        self._raw_ticks = None
         self._position_updated = NEVER
-        self._expected_position_ticks = None
+        self._expected_raw_ticks = None
         self._expected_period = None
         self._expected_initialized = False
+        self._offset_ticks = 0
 
     # ------------------------------------------------------------------
     # transport
@@ -267,22 +284,34 @@ class SkyWatcherSession:
         return status
 
     def position_ticks(self, fresh: bool = False) -> int:
-        """Axis counter in board counts, zero at the logical zero of §12.1."""
-        cpr = self.require_board().cpr
-        if not fresh and self._position_ticks is not None and self._clock.monotonic() - self._position_updated <= self._POSITION_CACHE_TTL_S:
-            return self._position_ticks
-        ticks = (SkyWatcherCodec.decode_revu24(self.transact(Command.INQUIRE_POSITION)) - POSITION_OFFSET) % cpr
-        if self._observe_position(ticks):
-            # A reboot was found and undone: the counter read above belongs to the
-            # board that no longer exists, so the restored position is the answer.
-            return self._position_ticks if self._position_ticks is not None else ticks
-        self._remember_position(ticks)
-        return ticks
+        """Where the axis is in the driver's own frame, in board counts.
 
-    def _remember_position(self, ticks: int) -> None:
-        self._position_ticks = ticks
+        This is *not* the board's register. It is that register plus the offset
+        the driver keeps (:attr:`_offset_ticks`), because the register is never
+        written — see the module docstring. The two coincide only until the
+        first sync or the first reboot.
+        """
+        cpr = self.require_board().cpr
+        if not fresh and self._raw_ticks is not None and self._clock.monotonic() - self._position_updated <= self._POSITION_CACHE_TTL_S:
+            return (self._raw_ticks + self._offset_ticks) % cpr
+        raw = self._read_raw_ticks()
+        if self._observe_position(raw):
+            # A reboot was found and the offset re-derived: the counter read
+            # above belongs to a board that has just restarted, and the answer
+            # is what the new offset makes of it.
+            raw = self._raw_ticks if self._raw_ticks is not None else raw
+            return (raw + self._offset_ticks) % cpr
+        self._remember_raw(raw)
+        return (raw + self._offset_ticks) % cpr
+
+    def _read_raw_ticks(self) -> int:
+        cpr = self.require_board().cpr
+        return (SkyWatcherCodec.decode_revu24(self.transact(Command.INQUIRE_POSITION)) - POSITION_OFFSET) % cpr
+
+    def _remember_raw(self, raw: int) -> None:
+        self._raw_ticks = raw
         self._position_updated = self._clock.monotonic()
-        self._expected_position_ticks = ticks
+        self._expected_raw_ticks = raw
 
     def read_period(self) -> int:
         return SkyWatcherCodec.decode_revu24(self.transact(Command.INQUIRE_STEP_PERIOD))
@@ -296,38 +325,28 @@ class SkyWatcherSession:
         self._expected_initialized = True
 
     def set_position_ticks(self, ticks: int) -> None:
-        """`:E` with the whole §11 protocol around it.
+        """Sync: move the driver's offset, leave the board's counter alone.
 
-        The guard is the point: the board accepts `:E` on the move with `=` (the
-        spec's `!2` never comes) and then clears the initialization flag
-        asynchronously, 5 runs out of 5. The board offers no protection, so this
-        host-side check is the whole of it.
+        **`:E` is not sent, here or anywhere else.** Writing the axis position
+        register is a mechanically destructive operation on some mounts and the
+        owner has forbidden it on this one, so a sync cannot be "tell the board
+        it is at X". It is "remember that the board's X reads as ours" — one
+        subtraction, no command on the wire, and nothing for §11's quirk to
+        happen to.
+
+        Whoever reads this next: do not "restore" the `:E`. It is not missing,
+        it is removed, and the offset below is the whole replacement.
         """
         cpr = self.require_board().cpr
         if self.status().running:
+            # Not a protocol rule any more — an arithmetic one. The offset is
+            # derived from a counter read, and a counter read of a moving axis
+            # is stale by the round trip, so the sync would be wrong by however
+            # far the axis travelled meanwhile.
             raise MotorStopRequire("cannot change steps while motor is moving")
-        self.transact(Command.SET_AXIS_POSITION, SkyWatcherCodec.encode_revu24((ticks + POSITION_OFFSET) % cpr))
-        self._remember_position(ticks % cpr)
-        # §11 again: from here until the flag has been re-read, a cleared flag is
-        # this command's doing and not a sign of a reboot.
-        self._expected_initialized = False
-        self._restore_initialization_after_set_position()
-
-    def _restore_initialization_after_set_position(self) -> None:
-        # §11 requirements 3 and 4: after *any* `:E` re-read `:f1` and re-initialize if the
-        # flag went down — and do the re-read late, because the flag drops hundreds of
-        # milliseconds after the command was acknowledged. An immediate check would pass
-        # while the flag is still up and miss the very thing it is there to catch.
-        self._clock.sleep(self._INIT_FLAG_SETTLE_S)
-        if self.status().initialized:
-            self._expected_initialized = True
-            return
-        self._logger.warning(
-            "Initialization flag went down after SET_AXIS_POSITION (RA_PROTOCOL.md §11), re-initializing the axis"
-        )
-        self.initialize()
-        if not self.status().initialized:
-            raise SkyWatcherMotorProtocolError("axis stays uninitialized after re-sending INITIALIZE")
+        raw = self._read_raw_ticks()
+        self._remember_raw(raw)
+        self._offset_ticks = (ticks - raw) % cpr
 
     # ------------------------------------------------------------------
     # stopping
@@ -367,24 +386,27 @@ class SkyWatcherSession:
             and not self._reboot_check_busy
             and self._expected_initialized
             and not status.initialized
-            # §12.1: a board that has just rebooted is stopped. A moving axis with a
-            # dropped flag is the §11 quirk, and restoring a position there would be
-            # the very thing §11 forbids.
+            # §12.1: a board that has just rebooted is stopped. A moving axis
+            # with a dropped flag has some other explanation, and an offset
+            # derived from a counter read taken mid-motion would be wrong by
+            # however far the axis moved during the round trip.
             and not status.running
         )
 
-    def _handle_suspected_reboot(self, position_ticks: int | None = None) -> bool:
+    def _handle_suspected_reboot(self, raw_ticks: int | None = None) -> bool:
         self._reboot_check_busy = True
         try:
-            if not self._confirms_reboot(position_ticks):
+            if not self._confirms_reboot(raw_ticks):
                 return False
             self.reboots_detected += 1
             self._logger.error(
-                "RA board rebooted (RA_PROTOCOL.md §12.2): position back at 0x%06X, initialization flag down, "
-                "step period back at %d. Restoring position %s and period %s.",
+                "RA board rebooted (RA_PROTOCOL.md §12.2): counter back within %d counts of 0x%06X, "
+                "initialization flag down, step period back at %d. Re-deriving the position offset so the "
+                "logical position stays %s, and putting the period %s back.",
+                self._REBOOT_POSITION_WINDOW_TICKS,
                 POSITION_OFFSET,
                 self.require_board().power_up_period,
-                self._expected_position_ticks,
+                self._logical_ticks(),
                 self._expected_period,
             )
             self._recover_from_reboot()
@@ -392,7 +414,44 @@ class SkyWatcherSession:
         finally:
             self._reboot_check_busy = False
 
-    def _confirms_reboot(self, position_ticks: int | None) -> bool:
+    def _logical_ticks(self) -> int | None:
+        if self._expected_raw_ticks is None:
+            return None
+        return (self._expected_raw_ticks + self._offset_ticks) % self.require_board().cpr
+
+    def _near_power_up_counter(self, raw_ticks: int) -> bool:
+        """Is the board's counter back where a restart leaves it (§26)?
+
+        Not "exactly at the power-up value" — that rule missed every real
+        reboot there is. Six measured restarts put the counter at 0, -7, +216,
+        +448, +645 and -1241 counts of its power-up value: the axis keeps
+        coasting while the controller is down, and the faster it was going the
+        further it gets.
+
+        The window is the coast the board's own numbers allow. Its speed
+        ceiling is 9 000 steps/s (§2.6) and its measured brake ramp is
+        13 000 steps/s², so a free stop from the fastest the board can go is
+        9 000^2/(2*13 000) = 3 115 counts. Rounded to 3 200, that is an upper
+        bound by construction: an axis that is not being driven cannot stop
+        *later* than its own driven ramp would, and indeed every measured coast
+        came in well under it — the worst, 1 241, by a factor of 2.6.
+
+        What it costs: a false "the board rebooted" is now possible anywhere
+        within 3 200 counts (5.5 arcminutes of axis rotation, 22 s of hour
+        angle) of the power-up value, where before it took an exact hit. What
+        that false positive can do is bounded, and deliberately so — the
+        recovery no longer writes anything to the board (see
+        :meth:`set_position_ticks`), it only re-derives the offset, and the
+        offset is re-derived from the very reading that triggered the
+        suspicion. Six points is not many; §26 says what to measure to do
+        better, and the honest summary is that the *shape* of the rule is
+        established and its width is an upper bound rather than a fit.
+        """
+        cpr = self.require_board().cpr
+        distance = min(raw_ticks % cpr, (-raw_ticks) % cpr)
+        return distance <= self._REBOOT_POSITION_WINDOW_TICKS
+
+    def _confirms_reboot(self, raw_ticks: int | None) -> bool:
         """The other two signs of §12.2, and the memory that makes them readable.
 
         Every sign has a legal explanation on its own (§12.2 lists them), so all
@@ -402,20 +461,20 @@ class SkyWatcherSession:
         is more use than a guess.
         """
         board = self.require_board()
-        if self._expected_position_ticks is None or self._expected_period is None:
+        if self._expected_raw_ticks is None or self._expected_period is None:
             self._logger.warning(
                 "Initialization flag is down and there is nothing to compare the board's state with "
-                "(RA_PROTOCOL.md §12.4): position=%s period=%s",
-                self._expected_position_ticks, self._expected_period,
+                "(RA_PROTOCOL.md §12.4): counter=%s period=%s",
+                self._expected_raw_ticks, self._expected_period,
             )
             return False
-        if self._expected_position_ticks == 0:
-            # The driver believes the axis is at the logical zero anyway, so the
-            # position sign carries no information at all.
+        if self._near_power_up_counter(self._expected_raw_ticks):
+            # The board's counter was already inside the window, so finding it
+            # there now says nothing at all.
             return False
-        if position_ticks is None:
-            position_ticks = (SkyWatcherCodec.decode_revu24(self.transact(Command.INQUIRE_POSITION)) - POSITION_OFFSET) % board.cpr
-        if position_ticks != 0:
+        if raw_ticks is None:
+            raw_ticks = self._read_raw_ticks()
+        if not self._near_power_up_counter(raw_ticks):
             return False
         if self._expected_period == board.power_up_period:
             # Same reasoning as above for the period: the driver put the board on
@@ -424,45 +483,57 @@ class SkyWatcherSession:
         return self.read_period() == board.power_up_period
 
     def _recover_from_reboot(self) -> None:
-        """§12.4.2: `:F1` again, position back at a *stopped* axis, period again.
+        """§12.4.2, without writing a thing to the axis: `:F1`, offset, period.
 
-        Verified against the simulator only (``SkyWatcherSim.reboot()``): the
-        board was disconnected when this was written, so the live-hardware half of
-        it is stage Э5 of ``docs/RA_REWRITE_PLAN.md``, not a checked fact.
+        The board's counter has restarted from its own zero, so the driver's
+        logical coordinate is preserved by **moving the offset**, not by telling
+        the board where it was. The new offset is the last logical position the
+        driver knew, which makes the counter the board is now keeping — the
+        coast it did while the controller was down, and everything after it —
+        add on top of that position instead of being thrown away. `:E` would
+        have thrown it away, and `:E` is forbidden regardless.
+
+        Verified against the simulator only (``SkyWatcherSim.reboot()`` and its
+        ``reboot_on_goto_arrival`` mode): the live half is still stage Э5 of
+        ``docs/RA_REWRITE_PLAN.md``.
         """
-        expected_position = self._expected_position_ticks
+        logical = self._logical_ticks()
         expected_period = self._expected_period
         status = SkyWatcherCodec.parse_status(self.transact(Command.INQUIRE_STATUS))
         self._last_status = status
         if status.running:
-            # Not a state a rebooted board can be in (§12.1), and `:E` on a moving
-            # axis is exactly the quirk of §11. Report and leave the board alone.
+            # Not a state a rebooted board can be in (§12.1). Report and leave
+            # the board alone rather than re-deriving an offset from a counter
+            # that is moving under the read.
             self._logger.error("RA board looks rebooted but reports a running axis; not restoring anything")
             return
 
         self.initialize()
-        if expected_position is not None:
-            self.set_position_ticks(expected_position)
+        if logical is not None:
+            self._offset_ticks = logical % self.require_board().cpr
+            self._remember_raw(self._read_raw_ticks())
         if expected_period is not None:
             self.set_period(expected_period)
         self._last_status = SkyWatcherCodec.parse_status(self.transact(Command.INQUIRE_STATUS))
 
-    def _observe_position(self, ticks: int) -> bool:
+    def _observe_position(self, raw_ticks: int) -> bool:
         """Second entry point into §12.2, for a position read that came first.
 
-        A reboot parks the counter at the logical zero, and a caller that asks for
-        the position before it asks for the status would otherwise overwrite the
-        one memory that makes the zero readable.
+        A reboot parks the counter near its power-up value, and a caller that
+        asks for the position before it asks for the status would otherwise
+        overwrite the one memory that makes that reading interpretable.
         """
         if self._reboot_check_busy or self._board is None:
             return False
-        if ticks != 0 or not self._expected_position_ticks:
+        if not self._near_power_up_counter(raw_ticks):
+            return False
+        if self._expected_raw_ticks is None or self._near_power_up_counter(self._expected_raw_ticks):
             return False
         status = SkyWatcherCodec.parse_status(self.transact(Command.INQUIRE_STATUS))
         self._last_status = status
         if not self._suspects_reboot(status):
             return False
-        return self._handle_suspected_reboot(position_ticks=ticks)
+        return self._handle_suspected_reboot(raw_ticks=raw_ticks)
 
     # ------------------------------------------------------------------
     # §6.8: the supply voltage window

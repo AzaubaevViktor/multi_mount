@@ -6,7 +6,10 @@ session had no brownout (§12: "в этой сессии броунаут не �
 *signs* are fully observable, and every one of them has a legal explanation on
 its own (§12.2):
 
-* the position is exactly `0x800000` — so is any correct `:E1000080`;
+* the board's counter is back near its power-up value — and it is *near*, not
+  *at* it: six measured restarts left it at 0, -7, +216, +448, +645 and -1241
+  counts, because the axis keeps coasting while the controller is down
+  (`RA_PROTOCOL_STEP_2.md` §26);
 * the initialization flag is down — the `:E`-on-the-move quirk of §11 drops it
   without any reboot;
 * the step period is back at the 1x tracking value — so it is after the
@@ -17,10 +20,11 @@ reboot. That last clause is why the session has to remember what it wrote
 (§12.4.4), and it is what these tests pin: the same board state is a reboot or
 a normal state of affairs depending on what the driver did before.
 
-The recovery path (`:F1`, position back at a stopped axis, period again) is
-exercised here against ``SkyWatcherSim.reboot()`` and **only** there: the board
-was disconnected while this was written, so the live-hardware half of it is
-stage Э5 of ``docs/RA_REWRITE_PLAN.md``.
+The recovery writes **nothing** to the axis. `:E` is forbidden on this mount —
+setting the position register is mechanically destructive on some — so what a
+reboot moves is the driver's own offset between the board's counter and the
+logical coordinate. The board comes back counting from its own zero; the
+logical position the axis above sees does not move at all.
 """
 
 import pytest
@@ -87,9 +91,9 @@ def test_a_reboot_is_detected_and_the_board_is_put_back(caplog: pytest.LogCaptur
 
     assert motor.protocol_monitor()["reboots"] == 1
     assert sim.initialized is True, "the rebooted board was left uninitialized"
-    assert sim.position == pytest.approx(position_before), "the position the driver knew was not restored"
+    assert sim.position == 0.0, "the driver wrote the board's position register"
     assert sim.step_period == period_before, "the step period was not put back"
-    assert status.steps == pytest.approx(position_before)
+    assert status.steps == pytest.approx(position_before), "the logical position was not preserved"
     assert any("rebooted" in record.message.lower() for record in caplog.records), (
         "a reboot was handled without a word in the log"
     )
@@ -142,16 +146,16 @@ def test_a_reboot_between_the_status_and_the_start_stops_the_start() -> None:
     assert sim.running is False
 
 
-def test_a_position_of_zero_the_driver_asked_for_is_not_a_reboot() -> None:
-    """§12.2 line 1: `:E1000080` leaves exactly the same counter behind.
+def test_a_counter_that_was_already_near_zero_is_not_a_reboot() -> None:
+    """§12.2 line 1: an axis parked near the board's power-up value proves nothing.
 
-    The driver has just put the axis at the logical zero, so the position sign
-    carries no information — and acting on the other two would mean re-syncing
-    a healthy board to a position it already has, and re-initializing it for no
-    reason.
+    A counter inside the window is only evidence if it was outside it a moment
+    ago. Acting on the other two signs alone would mean re-initializing a
+    healthy board and shifting the frame of an axis that never moved.
     """
     clock, sim, motor = _tracking_motor()
-    motor.set_steps(0)
+    sim.position = 100.0
+    motor._session.position_ticks(fresh=True)  # the driver now knows the axis is parked there
     period_before = sim.step_period
 
     # The flag goes down for some other reason: the board is at the logical zero
@@ -243,3 +247,81 @@ def test_the_axis_keeps_reporting_the_right_position_after_a_reboot() -> None:
 
     assert motor.status().steps > position_before
     assert motor.status().steps == pytest.approx(2 * position_before, rel=0.05)
+
+
+def test_a_reboot_under_load_is_caught_although_the_counter_is_not_at_zero() -> None:
+    """§26, the whole reason the exact-zero rule had to go.
+
+    Every reboot ever recorded on this board happened with the axis moving, and
+    the axis kept coasting while the controller was down: the counter came back
+    at -7, +216, +448, +645 and -1241 counts of its power-up value, never once
+    at 0. A driver that insists on 0 misses all five — silently, because every
+    command still answers normally (§12.3).
+    """
+    for coast in (-1241, -7, 216, 448, 645):
+        clock, sim, motor = _tracking_motor()
+        position_before = motor.status().steps
+
+        sim.reboot()
+        sim.position = float(coast)  # the axis carried on while the board was down
+
+        motor.status()
+
+        assert motor.protocol_monitor()["reboots"] == 1, f"a reboot that coasted {coast} counts was missed"
+        # The coast is real travel and is kept: the counter the board is now
+        # keeping rides on top of the offset, so the axis is reported where it
+        # actually is rather than where it was when the board died.
+        assert motor.status().steps == pytest.approx(position_before + coast, abs=2)
+
+
+def test_a_reboot_at_the_end_of_a_goto_is_caught_and_the_frame_survives_it() -> None:
+    """The failure of §24, end to end — and the first real test of the recovery.
+
+    Until the simulator could kill the board on arrival there was nothing to
+    exercise §12.4.2 against except a hand-called ``reboot()``. This drives the
+    real thing: a GOTO the driver is *not* allowed to steer (the plan is dropped
+    on purpose), the board dying where it always dies, and the axis above
+    keeping a position that is still true afterwards.
+    """
+    clock = Clock()
+    sim = SkyWatcherSim(clock, reboot_on_goto_arrival=True)
+    line = SimSerialLine(sim, clock, port="sim://ra", timeout_s=0, name="sim-ra", terminator="\r")
+    motor = SkyWatcherMotor(line, clock)
+    motor.connect()
+
+    motor.set_steps(500_000)  # a frame where the counter and the position differ
+    delta_steps = motor.convert_position_to_steps(Ha(1800))
+    motor.set_delta(delta_steps)
+    motor.run()
+    motor._plan = None  # the safety net is taken away on purpose: let it arrive
+
+    deaths: list[float] = []
+    original_reboot = sim.reboot
+
+    def _count_reboot() -> None:
+        deaths.append(sim.position)
+        original_reboot()
+
+    sim.reboot = _count_reboot  # type: ignore[method-assign]
+
+    for _ in range(200):
+        clock.advance(0.5)
+        # The simulated board integrates on commands, so something has to keep
+        # talking to it — and it has to be the *whole* poll the axis does, status
+        # and position both. Without the position read the driver never learns
+        # that the counter was far from zero before the reboot, and the reading
+        # afterwards means nothing (§12.4.4).
+        motor.status()
+        if not sim.running:
+            break
+
+    assert deaths, "the simulated board did not die on arrival"
+    position_after = motor.status().steps
+
+    assert motor.protocol_monitor()["reboots"] == 1
+    assert sim.initialized is True, "the rebooted board was left uninitialized"
+    # The board's counter is the coast and nothing else; the driver's frame has
+    # absorbed the rest, so the axis above still reads a position on the far
+    # side of the move rather than jumping back to a false zero.
+    assert abs(sim.position) < 3_200
+    assert position_after == pytest.approx(500_000 + delta_steps, abs=3_200)

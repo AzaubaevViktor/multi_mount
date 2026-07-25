@@ -54,13 +54,17 @@ LOGICAL_ZERO = b"000080"  # 0x800000, the logical zero of §12.1
 BRAKE_STEPS = 16_980  # `:c1` -> `=544200`
 POSITION_OFFSET = 0x800000
 
-# Restores the board to §12.1 after anything that touched the period, the mode
-# or the position. Sent with replies ignored, so it is safe to repeat.
+# Restores the board to §12.1 after anything that touched the period or the
+# mode. Sent with replies ignored, so it is safe to repeat.
+#
+# The position is **not** restored, and cannot be: `:E1` is off the wire (see
+# `HARDWARE_COMMAND_PREFIXES`). Whatever a motion case leaves the counter at is
+# where it stays, which is why no case may depend on the counter's absolute
+# value — step 2 §2.1 already showed it dithers by a count anyway.
 _RESTORE_IDLE: tuple[bytes, ...] = (
     b":K1\r",
     b":I1" + PERIOD_1X + b"\r",
     b":G110\r",
-    b":E1" + LOGICAL_ZERO + b"\r",
 )
 
 _HEX_BYTE = "=[0-9A-F]{2}\r"
@@ -301,7 +305,7 @@ def _tele_position_is_a_constant_case() -> Case:
     return Case(
         name="d1_does_not_follow_the_position",
         section="§3, шаг 2 §2.3",
-        safety=Safety.WRITE,
+        safety=Safety.NEVER,  # «ни на одном пути»: `:E1` (Set Axis Position) снят с белого списка железа — запись регистра позиции механически разрушительна для осей, и владелец её запретил. Кейс остаётся и проверяется, но только против симулятора; драйвер вместо `:E1` ведёт программное смещение (skywatcher/session.py)
         steps=(
             Exchange(b":E1452381\r", exact(b"=\r")),
             Exchange(b":j1\r", exact(b"=452381\r")),
@@ -658,7 +662,7 @@ def _status_bits_cases() -> list[Case]:
         Case(
             name="E_at_rest_keeps_init_flag",
             section="§11",
-            safety=Safety.WRITE,
+            safety=Safety.NEVER,  # «ни на одном пути»: `:E1` (Set Axis Position) снят с белого списка железа — запись регистра позиции механически разрушительна для осей, и владелец её запретил. Кейс остаётся и проверяется, но только против симулятора; драйвер вместо `:E1` ведёт программное смещение (skywatcher/session.py)
             steps=(
                 Exchange(b":F1\r", exact(b"=\r")),
                 Exchange(b":E1" + LOGICAL_ZERO + b"\r", exact(b"=\r")),
@@ -793,7 +797,7 @@ def _motion_cases() -> list[Case]:
         Case(
             name="E_while_running_is_accepted",
             section="§11, §13 #7",
-            safety=Safety.MOTION,
+            safety=Safety.NEVER,  # «ни на одном пути»: `:E1` (Set Axis Position) снят с белого списка железа — запись регистра позиции механически разрушительна для осей, и владелец её запретил. Кейс остаётся и проверяется, но только против симулятора; драйвер вместо `:E1` ведёт программное смещение (skywatcher/session.py)
             steps=(
                 Exchange(b":F1\r", exact(b"=\r")),
                 Exchange(b":I1" + PERIOD_16X + b"\r", exact(b"=\r")),
@@ -808,7 +812,7 @@ def _motion_cases() -> list[Case]:
         Case(
             name="E_while_running_may_clear_init_flag",
             section="§11, шаг 2 §2.5",
-            safety=Safety.MOTION,
+            safety=Safety.NEVER,  # «ни на одном пути»: `:E1` (Set Axis Position) снят с белого списка железа — запись регистра позиции механически разрушительна для осей, и владелец её запретил. Кейс остаётся и проверяется, но только против симулятора; драйвер вместо `:E1` ведёт программное смещение (skywatcher/session.py)
             steps=(
                 Exchange(b":F1\r", exact(b"=\r")),
                 Exchange(b":I1" + PERIOD_16X + b"\r", exact(b"=\r")),
@@ -848,7 +852,7 @@ def _motion_cases() -> list[Case]:
         Case(
             name="J_without_F_has_no_error_4",
             section="§7 код 4, §13 #9",
-            safety=Safety.MOTION,
+            safety=Safety.NEVER,  # «ни на одном пути»: `:E1` (Set Axis Position) снят с белого списка железа — запись регистра позиции механически разрушительна для осей, и владелец её запретил. Кейс остаётся и проверяется, но только против симулятора; драйвер вместо `:E1` ведёт программное смещение (skywatcher/session.py)
             steps=(
                 # Снять флаг инициализации нечем, кроме самого квирка §11: `:E`
                 # на ходу. Поэтому кейс сначала воспроизводит его, а уже потом
@@ -867,6 +871,13 @@ def _motion_cases() -> list[Case]:
                 Exchange(b":f1\r", one_of(b"=100\r", b"=101\r")),
                 Exchange(b":J1\r", exact(b"=\r")),
                 Exchange(b":K1\r", exact(b"=\r")),
+                # `:K1` — рампа (§10.3), и её надо додержать внутри кейса.
+                # Раньше это сходило с рук: teardown кончался `:E1`, который
+                # ставил позицию, а следующий кейс проверял её и падал бы
+                # заметно. Теперь `:E1` с провода снят, и единственный, кто
+                # может дать рампе кончиться, — сам кейс.
+                Pause(2.0),
+                Exchange(b":f1\r", one_of(b"=100\r", b"=101\r")),
             ),
             note="флаг инициализации у этой платы — индикатор, а не защита; `!4` не воспроизводится в принципе",
             teardown=_RESTORE_IDLE,
@@ -898,7 +909,7 @@ def _motion_cases() -> list[Case]:
         Case(
             name="restore_logical_zero",
             section="§10.6, §12.1",
-            safety=Safety.MOTION,
+            safety=Safety.NEVER,  # «ни на одном пути»: `:E1` (Set Axis Position) снят с белого списка железа — запись регистра позиции механически разрушительна для осей, и владелец её запретил. Кейс остаётся и проверяется, но только против симулятора; драйвер вместо `:E1` ведёт программное смещение (skywatcher/session.py)
             steps=(
                 Exchange(b":K1\r", exact(b"=\r")),
                 Pause(2.0),

@@ -14,6 +14,7 @@ import pytest
 
 from ra_conformance import (
     CASES,
+    HARDWARE_COMMAND_PREFIXES,
     SIMULATOR_SAFETY,
     Case,
     HardwareWire,
@@ -159,7 +160,10 @@ def test_never_cases_are_skipped_on_hardware() -> None:
             assert is_allowed_on_hardware(chunk), f"на порт ушло {chunk!r}"
     # No forbidden command letter on channel 1. `:` + 60 `A` (§8.2) is not one of
     # them: the board answers `!1` to it, which is precisely the claim it pins.
-    forbidden = {f":{letter}1" for letter in "WNRQABOPTUVSLz"}
+    # `E` is in this list and belongs in it: writing the axis position register
+    # is mechanically destructive on some mounts and the owner has forbidden it
+    # on this one, so it is off the wire in the driver *and* here.
+    forbidden = {f":{letter}1" for letter in "WNRQABOPTUVSLzE"}
     for payload in written:
         assert payload[:3] not in forbidden, payload
 
@@ -177,3 +181,25 @@ def test_every_payload_of_a_hardware_case_is_whitelisted() -> None:
 def test_forbidden_commands_are_not_whitelisted() -> None:
     for payload in (b":W1000009", b":W10D8004", b":R100", b":N100", b":Q155AA", b":A100", b":z1", b":L1"):
         assert not is_allowed_on_hardware(payload)
+
+
+def test_the_axis_position_register_is_never_written_on_hardware() -> None:
+    """`:E1` is off the wire on every path, and this is the tripwire.
+
+    Not a protocol claim — a rule from the owner of the mount: setting the axis
+    position register is sometimes destructive for the axes, so the position is
+    *recomputed* and never written. The driver keeps a software offset instead
+    (``skywatcher/session.py``), and this set may not be the loophole that puts
+    the command back on the live board.
+
+    The cases that exercise `:E1` are still here and still checked; they are
+    classed `NEVER`, which means the simulator runs them and the hardware wire
+    refuses them twice over — once by class, once by payload.
+    """
+    assert not is_allowed_on_hardware(b":E1000080")
+    assert ":E1" not in HARDWARE_COMMAND_PREFIXES
+
+    exercising = [case for case in CASES if b":E1" in b"".join((*case.sent, *case.teardown))]
+    assert exercising, "the `:E1` cases have gone missing instead of being classed NEVER"
+    for case in exercising:
+        assert case.safety is Safety.NEVER, f"{case.name} would send `:E1` to the board"

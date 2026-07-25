@@ -62,6 +62,13 @@ class Command(StrEnum):
     INQUIRE_MEMORY_BYTE = "n"
     SET_GOTO_TARGET_INCREMENT = "H"
     SET_BREAK_POINT_INCREMENT = "M"
+    # Declared because this module describes the **board's protocol**, and the
+    # board does have this command. It is deliberately never sent: writing the
+    # axis position register is mechanically destructive on some mounts, so this
+    # project recomputes the position instead of setting it (`FRAME.md` §2.1,
+    # and `skywatcher.session.SkyWatcherSession.set_position_ticks` for the
+    # software offset that replaces it). Keeping the letter here and the ban one
+    # layer up is the point: the codec is a description, the ban is our rule.
     SET_AXIS_POSITION = "E"
     SET_MOTION_MODE = "G"
     START_MOTION = "J"

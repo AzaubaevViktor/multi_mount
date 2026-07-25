@@ -228,30 +228,50 @@ def test_set_steps_refuses_to_send_set_position_while_the_axis_moves() -> None:
     assert sim.initialized is True
 
 
-def test_set_steps_reinitializes_the_axis_when_the_flag_drops_after_set_position() -> None:
-    """§11.3/§11.4: re-read `:f1` after `:E` — late enough to see the drop — and re-send `:F1`."""
-    clock = Clock()
-    serial = _FlagDroppingSerial(clock)
-    motor = SkyWatcherMotor(serial, clock)  # type: ignore[arg-type]
-    motor._session._board = SkyWatcherBoard(cpr=12_492_146, timer_freq=16_000_000, highspeed_ratio=1)
+def test_a_sync_never_writes_the_axis_position_register() -> None:
+    """The hard rule: `:E` does not go out. Ever, on any path.
+
+    Writing the axis position register is a mechanically destructive action on
+    some mounts, and the owner has ruled it out on this one. A sync is therefore
+    a change to the driver's own offset, not a command — the board's counter is
+    read and left exactly where it was, and the position reported upwards moves
+    all the same.
+
+    This is the test that stops the `:E` coming back: it fails on the bytes, not
+    on the behaviour, so re-adding the command cannot be made to look harmless.
+    """
+    clock, sim, motor = _make_ra()
+    motor.connect()
+    counter_before = sim.position
 
     assert motor.set_steps(1000) is True
 
-    commands = [payload for _, payload in serial.payloads]
-    set_position_at = next(i for i, payload in enumerate(commands) if payload.startswith(":E"))
-    tail = commands[set_position_at:]
+    assert motor.status().steps == 1000, "the sync did not reach the position reported upwards"
+    assert sim.position == counter_before, "the board's own counter was written"
+    assert sim.initialized is True, "a sync that sends nothing cannot have disturbed the flag"
 
-    assert tail[1].startswith(":f"), f"the flag was not re-read right after `:E`: {tail}"
-    assert ":F1\r" in tail, f"the dropped initialization flag was never restored: {tail}"
-    assert tail.index(":F1\r") > 1, "`:F1` was sent without looking at the flag first"
 
-    set_position_time = serial.payloads[set_position_at][0]
-    re_read_time = serial.payloads[set_position_at + 1][0]
-    assert re_read_time - set_position_time >= _FlagDroppingSerial.DROP_DELAY_S, (
-        f"the flag was re-read {re_read_time - set_position_time:.3f}s after `:E`, before the board "
-        f"had a chance to drop it — the check would always pass"
-    )
-    assert serial.initialized is True
+def test_a_sync_only_shifts_the_frame_and_the_axis_keeps_moving_in_it() -> None:
+    """The offset is a frame, not a one-off correction.
+
+    After a sync the board's counter keeps counting from wherever it was; what
+    the driver reports has to keep following it, shifted. Getting this wrong is
+    invisible at the moment of the sync and wrong for ever afterwards.
+    """
+    clock, sim, motor = _make_ra()
+    motor.connect()
+    motor.set_steps(1000)
+
+    speed_sps = motor.set_speed(motor.convert_speed_to_steps_per_second(STELLAR_SPEED * 64))
+    motor.set_direction(MotorDirection.FORWARD)
+    motor.set_motion_mode(MotionMode.RUN)
+    motor.run()
+    clock.advance(2.0)
+    motor.stop()
+
+    travelled = sim.position
+    assert travelled > 0
+    assert motor.status().steps == pytest.approx(1000 + travelled, abs=speed_sps * 0.3)
 
 
 def test_set_steps_leaves_a_healthy_board_alone() -> None:

@@ -509,12 +509,17 @@ class SkyWatcherSim:
             # behind is reached the long way round, exactly as a counter that
             # wraps at CPR would.
             remaining = (sign * (self.goto_target - self.position)) % self.cpr
-            if self.reboot_on_goto_arrival and remaining <= _GOTO_FINAL_TICKS:
+            travel = self._ramp_commanded(self._goto_commanded_sps(remaining), dt)
+            if self.reboot_on_goto_arrival and travel >= remaining - _GOTO_FINAL_TICKS:
                 # The board never gets to make the step down onto the final
                 # crawl: this is the instant all five recorded crashes happened.
+                # Tested against the *crossing*, not against the position at the
+                # top of the step — a caller that polls once a second would
+                # otherwise step straight over the window and the board would
+                # look immortal.
+                self.position += sign * max(0.0, remaining - _GOTO_FINAL_TICKS)
                 self._reboot_on_arrival(sign, min(self._commanded_sps, _SPEED_CEILING_SPS))
                 return
-            travel = self._ramp_commanded(self._goto_commanded_sps(remaining), dt)
             if travel >= remaining:
                 self.position = self.goto_target
                 self.goto_target = None
@@ -604,7 +609,20 @@ class SkyWatcherSim:
         self._tx.extend(self.faults.apply(line, b"\r", command))
 
     def _raw_position(self, steps: float) -> int:
-        return (int(round(steps)) % self.cpr + _POSITION_OFFSET) % 0x1000000
+        """The 24-bit counter, the way the live board reports it.
+
+        The reduction is *centred* on purpose: a position a little below the
+        logical zero has to read a little below `0x800000`, because that is what
+        the board did. After the reboot of §3.3 it answered `=F9FF7F`, i.e.
+        `0x7FFFF9` = zero minus 7, and after the one in §26 `0x8000D8` = zero
+        plus 216. Folding into `0..cpr` first instead would turn that -7 into
+        12 492 139 and put the counter on the far side of the axis — which is
+        exactly the reading the reboot detection has to recognize.
+        """
+        steps_i = int(round(steps)) % self.cpr
+        if steps_i > self.cpr // 2:
+            steps_i -= self.cpr
+        return (steps_i + _POSITION_OFFSET) % 0x1000000
 
     def _position_body(self, steps: float) -> str:
         return encode_revu24(self._raw_position(steps))

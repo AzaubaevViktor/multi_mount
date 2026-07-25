@@ -25,6 +25,7 @@ from ra_conformance.model import (
     silence,
 )
 from ra_conformance.runner import (
+    HARDWARE_COMMAND_PREFIXES,
     HARDWARE_DEFAULT_SAFETY,
     SIMULATOR_SAFETY,
     HardwareWire,
@@ -42,6 +43,7 @@ from ra_conformance.runner import (
 )
 
 __all__ = [
+    "HARDWARE_COMMAND_PREFIXES",
     "CASES",
     "HARDWARE_DEFAULT_SAFETY",
     "SIMULATOR_SAFETY",
