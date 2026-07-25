@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 from enum import IntEnum, StrEnum
 import re
 from typing import Self, Sequence, overload, Any
-import time
+
+from clock import REAL_CLOCK, Clock
 
 
 """ 
@@ -117,6 +118,9 @@ class Second(_BasicAriphmetic):
     UNIT_NAME = "s"
     MILLISECONDS_PER_SECOND = 1000
 
+    CLOCK: Clock = REAL_CLOCK
+    """Time source behind :meth:`monotonic`; swap it with :func:`set_clock`."""
+
     def __init__(self, seconds: float):
         self.seconds = float(seconds)
     
@@ -129,13 +133,32 @@ class Second(_BasicAriphmetic):
     
     @classmethod
     def monotonic(cls) -> Self:
-        return cls(time.monotonic())
-    
+        return cls(cls.CLOCK.monotonic())
+
     def __float__(self) -> float:
         return self.seconds
 
     def __str__(self) -> str:
         return f"{self.seconds:.3f}s"
+
+
+def set_clock(clock: Clock) -> Clock:
+    """Install the process-wide time source read by :meth:`Second.monotonic`.
+
+    ``Axis`` and ``PolarCompensator`` are built by ``Combiner`` deep inside the
+    stack and measure elapsed time through ``Second.monotonic()``; they take no
+    clock of their own. This module-level setter is the single seam that puts
+    them on the simulator's virtual clock (``src/sim/clock.py``) -- the same
+    instance the drivers and ``SerialLine`` already accept in their
+    constructors, so the whole stack can run on one clock.
+
+    Production never calls it: the default stays :data:`clock.REAL_CLOCK`.
+    Tests use the ``virtual_clock`` fixture (``src/tests/conftest.py``), which
+    restores the previous clock returned here when the test ends.
+    """
+    previous = Second.CLOCK
+    Second.CLOCK = clock
+    return previous
 
 
 class AxisPos(_BasicAriphmetic):

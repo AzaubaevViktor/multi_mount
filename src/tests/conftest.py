@@ -1,9 +1,29 @@
 import logging
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 import pytest
+
+from sim.clock import Clock as VirtualClock
+from sky.physics import set_clock
+
+
+@pytest.fixture
+def virtual_clock() -> Iterator[VirtualClock]:
+    """Put ``Second.monotonic()`` -- i.e. Axis and PolarCompensator -- on virtual time.
+
+    The same instance also satisfies the ``clock.Clock`` protocol taken by
+    ``SerialLine`` and the motor drivers, so a test can hand it to them and run
+    the whole stack on one clock. The previous clock is restored on teardown,
+    so the next test sees real time again even if this one failed.
+    """
+    clock = VirtualClock()
+    previous = set_clock(clock)
+    try:
+        yield clock
+    finally:
+        set_clock(previous)
 
 
 @pytest.hookimpl(tryfirst=True)
