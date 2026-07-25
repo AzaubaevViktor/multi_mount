@@ -464,7 +464,13 @@ def _step_sync_while_tracking(session: Session) -> None:
     before = _sample(session, motor)
 
     motor.wait_till_stop(do_stop=True, timeout_s=STOP_TIMEOUT_S)
-    motor.set_steps(0)
+    # No position write here, deliberately: FRAME.md §2.1 forbids `:E` on RA on every
+    # path, because setting the position is sometimes destructive for the axes. A sync
+    # moves the *software* offset between the board's counter and the sky coordinate,
+    # which is invisible at motor level — so what is left to reproduce is exactly the
+    # historical bug: stop, resume, and check that the axis really went back to
+    # tracking instead of being left in `idle`. Dropping the write costs the step
+    # nothing and keeps the tool from doing to live hardware what the driver may not.
     _ra_enter_tracking(session)
     session.clock.sleep(SYNC_DWELL_S)
     after_status = motor.status()
