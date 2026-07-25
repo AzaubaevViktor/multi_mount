@@ -203,3 +203,54 @@ def test_stopping_cancels_the_plan_instead_of_letting_it_creep_on() -> None:
     assert sim.running is False
     assert sim.position == pytest.approx(position_after_stop, abs=2)
     assert motor.status().motion_mode != MotionMode.TARGET
+
+
+def test_a_backward_goto_creeps_backwards() -> None:
+    """The bug this test exists for: the creep went the wrong way on every
+    backward move.
+
+    "How far to the target" was being measured in the frame of the leg that had
+    just finished — positive meaning "ahead of us" — and then used to pick the
+    direction of the next leg as if positive meant "towards higher counts". On a
+    forward move the two agree and everything looks fine. On a backward one the
+    driver sent the axis off in the opposite direction, ran out its whole
+    approach deadline, and only got back on the second creep pass: a -20 000
+    count GOTO crept +24 000 first and took 24 s instead of 4.
+
+    So this asserts on the shape of the move, not just on where it ended: one
+    creep pass, and the axis never on the wrong side of its target.
+    """
+    clock, sim, motor = _make_ra()
+    motor.connect()
+    delta_steps = motor.convert_position_to_steps(_LONG)
+
+    # Forward first, so the backward leg has somewhere to go.
+    _goto(clock, motor, _LONG)
+    forward_end = sim.position
+
+    directions: list[bool] = []
+    original_feed = sim.feed
+
+    def _watch(data: bytes) -> None:
+        text = data.decode("ascii", errors="replace")
+        if text.startswith(":G1"):
+            directions.append(text[4] == "1")
+        original_feed(data)
+
+    sim.feed = _watch  # type: ignore[method-assign]
+    furthest = [sim.position]
+    original_status = motor._session.status
+
+    def _watch_status() -> Any:
+        furthest.append(sim.position)
+        return original_status()
+
+    motor._session.status = _watch_status  # type: ignore[method-assign]
+
+    _goto(clock, motor, -_LONG)
+
+    assert all(directions), f"a backward GOTO armed a forward leg: {directions}"
+    assert max(furthest) <= forward_end + SkyWatcherMotor._GOTO_TOLERANCE_TICKS, (
+        "the axis went further away from the target before coming back"
+    )
+    assert sim.position == pytest.approx(forward_end - delta_steps, abs=SkyWatcherMotor._GOTO_TOLERANCE_TICKS)

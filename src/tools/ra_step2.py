@@ -1194,6 +1194,106 @@ def _stamp() -> str:
     return datetime.datetime.now(datetime.UTC).strftime("%Y%m%dT%H%M%SZ")
 
 
+# (counts, label). Both signs of every size, and the sizes chosen around the
+# one number that changes the driver's behaviour: `:c1` = 16 980, under which a
+# GOTO's own brake point falls behind its start and the driver refuses to hand
+# the move to the board at all (`RA_PROTOCOL_STEP_2.md` §11, §27).
+_GOTOERR_LEGS: tuple[int, ...] = (
+    500, -500, 2_000, -2_000, 8_000, -8_000, 16_000, -16_000,
+    20_000, -20_000, 60_000, -60_000, 200_000, -200_000,
+)
+
+
+def _run_gotoerr(port: str | None, baud: int, timeout_s: float, trace: Path, sim: bool) -> list[dict[str, Any]]:
+    """Fourteen GOTOs through the **driver**, and how far each one landed off.
+
+    Every other phase in this file talks to the board by hand. This one does
+    not: it drives `SkyWatcherMotor` exactly as `sky/axis.py` does — `set_delta`,
+    `run`, then poll `status()` — because what is being measured is the driver's
+    safe GOTO (§27), not the board's.
+
+    What comes out of it: the arrival error of each leg, in counts and in
+    seconds of hour angle; how long each took; and whether the board survived.
+    The axis is unloaded on the table, so the errors below are the driver's and
+    the board's, not the mount's.
+    """
+    from sky.motor import MotionMode
+    from skywatcher.motor import SkyWatcherMotor
+
+    recorder = JsonlRecorder(trace)
+    clock: Any = REAL_CLOCK
+    line: Any
+    if sim:
+        from sim import Clock as VirtualClock
+        from sim import SimSerialLine, SkyWatcherSim
+        clock = VirtualClock()
+        board_sim = SkyWatcherSim(clock)
+        line = SimSerialLine(board_sim, clock, port="sim://ra", timeout_s=0, name="ra", terminator="\r", recorder=recorder)
+    else:
+        if port is None:
+            raise SystemExit("живому прогону нужен --port (или --sim)")
+        line = SerialLine(
+            port=port, baud=baud, timeout_s=timeout_s, name="ra", terminator="\r", clock=REAL_CLOCK, recorder=recorder
+        )
+
+    motor = SkyWatcherMotor(line, clock)
+    rows: list[dict[str, Any]] = []
+    try:
+        motor.connect()
+        cpr = motor.steps_per_revolution
+        for delta in _GOTOERR_LEGS:
+            reboots_before = motor.protocol_monitor()["reboots"]
+            before = motor.status().steps
+            started = clock.monotonic()
+            motor.set_delta(delta)
+            motor.run()
+            deadline = started + 120.0
+            while clock.monotonic() < deadline:
+                if motor.status().motion_mode != MotionMode.TARGET:
+                    break
+                clock.sleep(0.2)
+            elapsed = clock.monotonic() - started
+            after = motor.status().steps
+            travelled = (after - before) % cpr
+            if travelled > cpr // 2:
+                travelled -= cpr
+            row = {
+                "delta": delta,
+                "travelled": travelled,
+                "error": travelled - delta,
+                "error_ha_s": round((travelled - delta) / cpr * 86400, 2),
+                "elapsed_s": round(elapsed, 2),
+                "board_goto": abs(delta) >= motor.board.brake_steps if motor.board else None,
+                "reboots": motor.protocol_monitor()["reboots"],
+                "rebooted_here": motor.protocol_monitor()["reboots"] != reboots_before,
+                "status": motor.status().motion_mode.value,
+            }
+            rows.append(row)
+            LOGGER.info(
+                "%+8d: прошло %+8d, ошибка %+5d отсчётов (%+.2f с ЧУ) за %5.1f с, %s%s",
+                delta, travelled, row["error"], row["error_ha_s"], row["elapsed_s"],
+                "GOTO платы + доползание" if row["board_goto"] else "только доползание",
+                "  ПЕРЕЗАГРУЗКА" if row["rebooted_here"] else "",
+            )
+            if row["rebooted_here"]:
+                LOGGER.critical("плата перезагрузилась на плече %+d — останавливаюсь", delta)
+                break
+        errors = [abs(r["error"]) for r in rows]
+        if errors:
+            LOGGER.critical(
+                "итог: %d плеч, ошибка макс %d отсчётов (%.2f с ЧУ), средняя %.0f, перезагрузок %d",
+                len(rows), max(errors), max(errors) / cpr * 86400, sum(errors) / len(errors),
+                motor.protocol_monitor()["reboots"],
+            )
+    finally:
+        try:
+            motor.stop()
+        except Exception:  # noqa: BLE001 - a tidy-up must not mask the run
+            LOGGER.exception("не удалось остановить ось")
+        motor.disconnect()
+    return rows
+
+
 def _run_clamp(port: str, baud: int, timeout_s: float, trace: Path) -> list[dict[str, Any]]:
     """The driver's own minimum-period measurement, on the live board.
 
@@ -1236,7 +1336,7 @@ def _run_clamp(port: str, baud: int, timeout_s: float, trace: Path) -> list[dict
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="tools.ra_step2", description="Сценарные эксперименты шага 2 по плате RA.")
-    parser.add_argument("phase", choices=[*PHASES, "clamp"])
+    parser.add_argument("phase", choices=[*PHASES, "clamp", "gotoerr"])
     parser.add_argument("--port", default=None)
     parser.add_argument(
         "--sim",
@@ -1259,6 +1359,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     out = Path(args.out) if args.out else Path("logs/protocol") / f"ra_step2_{args.phase}_{stamp}.json"
 
     rows: list[dict[str, Any]] = []
+    if args.phase == "gotoerr":
+        rows = _run_gotoerr(args.port, int(args.baud), float(args.timeout), trace, sim=bool(args.sim))
+        out.write_text(json.dumps(rows, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+        LOGGER.info("результаты: %s, трасса: %s", out, trace)
+        return 0
+
     if args.phase == "clamp":
         if args.port is None:
             raise SystemExit("фазе clamp нужен --port")

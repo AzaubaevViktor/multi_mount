@@ -594,15 +594,16 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
 
     def _start_creep_leg(self, plan: _GotoPlan, status: Status) -> None:
         """One more slow leg towards the target, in whichever direction it is now."""
-        signed = self._signed_error_ticks(plan)
+        signed = self._absolute_error_ticks(plan)
         forward = signed > 0
+        reversing = forward != plan.forward
         plan.phase = _GotoPhase.CREEP
         plan.passes += 1
         plan.forward = forward
         self._last_direction = MotorDirection.FORWARD if forward else MotorDirection.BACKWARD
         self._logger.info(
             "GOTO creep pass %d: %d counts to go%s",
-            plan.passes, abs(signed), "" if forward else " (backwards, the leg overshot)",
+            plan.passes, abs(signed), " (reversing, the leg overshot)" if reversing else "",
         )
         self._arm_creep_leg(status, forward)
         # The target stays the absolute count `run()` worked out, so an overshoot
@@ -618,13 +619,26 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         """Where the target is relative to the axis, signed by *travel* direction.
 
         Positive means "still ahead in the direction this plan is going".
+        """
+        error = self._absolute_error_ticks(plan, fresh=fresh)
+        return error if plan.forward else -error
+
+    def _absolute_error_ticks(self, plan: _GotoPlan, fresh: bool = False) -> int:
+        """Where the target is, signed by the *counter*: + means higher counts.
+
+        Kept separate from the direction-relative version on purpose. Deciding
+        which way the next creep leg should go from the relative number is a bug
+        that hides perfectly: on a forward move the two agree, and only a
+        backward move sends the axis off the wrong way — which is exactly what
+        happened here before the split (a -20 000 GOTO crept +24 000 and then
+        had to come all the way back).
+
         Reduced around the short way, because the axis counter wraps at CPR and
         a target one count behind must not read as a full revolution ahead.
         """
         cpr = self._board().cpr
         position = self._session.position_ticks(fresh=fresh)
-        sign = 1 if plan.forward else -1
-        error = (sign * (plan.target_ticks - position)) % cpr
+        error = (plan.target_ticks - position) % cpr
         if error > cpr // 2:
             error -= cpr
         return error
