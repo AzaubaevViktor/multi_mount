@@ -384,3 +384,43 @@ def test_disconnect_forgets_the_voltage_of_the_board_that_is_gone() -> None:
     motor.disconnect()
 
     assert motor.get_power_v() is None
+
+
+# ---------------------------------------------------------------------------
+# 5. A setting that does not reach the chip is not a setting
+# ---------------------------------------------------------------------------
+
+
+def test_a_microsteps_write_that_never_reaches_the_chip_is_refused_not_believed() -> None:
+    """FRAME.md §3.6: an interface that does not work is marked as not working.
+
+    The UART between the Arduino and the TMC2209 is electrically broken — measured,
+    not inferred (`tools.dec_wirescan`: one wire in the air, the other on ground).
+    The firmware still accepts `set microsteps=N` and still answers, so the old code
+    logged the disagreement and carried on, updating its own field. That is the worst
+    of the three options: every angle from `_steps_per_arcsecond()` would then be off
+    by exactly the ratio of the lie, silently.
+    """
+    clock = Clock()
+    sim = TMC2209Sim(clock, uart_to_driver_dead=True)
+    motor = _make(clock, sim, _Dialect.AUTO)
+    motor.connect()
+    before = motor._microsteps
+
+    with pytest.raises(TMC2209MotorEchoMismatchError):
+        motor.set_microsteps(32)
+
+    assert motor._microsteps == before, "the driver believed a write the chip never got"
+    assert sim.microsteps == before, "the simulated chip is supposed to keep its strapped value"
+
+
+def test_a_microsteps_write_that_does_reach_the_chip_is_accepted() -> None:
+    """The other side of the same coin: a working line must not be refused."""
+    clock = Clock()
+    sim = TMC2209Sim(clock)
+    motor = _make(clock, sim, _Dialect.AUTO)
+    motor.connect()
+
+    assert motor.set_microsteps(32) is True
+    assert motor._microsteps == 32
+    assert sim.microsteps == 32

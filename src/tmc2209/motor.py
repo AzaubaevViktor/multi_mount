@@ -315,11 +315,21 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
             raise ValueError(f"microsteps not allowed: {microsteps}")
         echoed = self._transact("set", [f"microsteps={microsteps}"]).values.get("microsteps")
         if echoed != str(microsteps):
-            # Deliberately not an error: with the TMC2209 unpowered the board reads
-            # MRES out of a CHOPCONF that answers zero and reports 256 whatever was
-            # written (DEC_PROTOCOL.md §4). The request is what the step maths must
-            # use; the disagreement is worth a line in the log, not an exception.
-            self._logger.warning("TMC2209 acknowledged microsteps=%s for a written %d", echoed, microsteps)
+            # The old code logged this and carried on, updating `self._microsteps`
+            # anyway — which is the worst of the three options. The write does not
+            # reach the chip at all: the UART between the Arduino and the TMC2209 is
+            # electrically broken (measured, not inferred — `tools.dec_wirescan`;
+            # DEC_PROTOCOL.md §4, §8, §9.1), so the strapped 1/16 keeps running while
+            # the caller is told it got what it asked for. Believing the request would
+            # then corrupt `_steps_per_arcsecond()` and every angle derived from it,
+            # silently and by exactly the ratio of the lie.
+            #
+            # FRAME.md §3.6: an interface that does not work is marked as not working.
+            raise TMC2209MotorEchoMismatchError(
+                f"microsteps stayed at {echoed} after writing {microsteps}: the UART to the driver chip "
+                f"is not functional, so the strapped value is the only one in effect. "
+                f"See DEC_PROTOCOL.md §4 and run `python -m tools.dec_wirescan` to check the wiring."
+            )
         self._microsteps = microsteps
         return True
 

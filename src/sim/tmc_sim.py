@@ -160,7 +160,15 @@ class TMC2209Sim:
         tx_ring_capacity: int | None = None,
         tx_overflow_truncates: bool = False,
         rx_capacity: int | None = None,
+        uart_to_driver_dead: bool = False,
     ) -> None:
+        # The board this models: the UART between the Arduino and the TMC2209 is
+        # electrically broken, measured with `tools.dec_wirescan` (one wire in the
+        # air, the other on ground). The firmware still accepts `set microsteps=N`
+        # and still answers — it just talks to nothing, so the strapped value keeps
+        # running. Modelling it is the only way to test that the driver refuses to
+        # believe a write it cannot confirm (DEC_PROTOCOL.md §4, FRAME.md §3.6).
+        self.uart_to_driver_dead = uart_to_driver_dead
         self._clock = clock
         self.faults = FaultScript()
         self.power_v = power_v
@@ -603,7 +611,8 @@ class TMC2209Sim:
                     return _Reply.failure(ErrorCode.RANGE)
                 if arg not in MICROSTEPS_ALLOWED:
                     return _Reply.failure(ErrorCode.INVALID_MICROSTEPS)
-                self.microsteps = arg
+                if not self.uart_to_driver_dead:
+                    self.microsteps = arg
             return _Reply([("microsteps", str(self.microsteps))], self.microsteps.to_bytes(2, "big"))
 
         return _Reply.failure(ErrorCode.UNKNOWN_CMD)
