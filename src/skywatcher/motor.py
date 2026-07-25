@@ -146,6 +146,10 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     _HIGHSPEED_SPEED = STELLAR_SPEED * 800
     _CONNECT_ATTEMPTS = 3
     _CONNECT_RETRY_DELAY_S = 0.25
+    # The measured brake ramp is 0.6s at the fastest the board goes (§10.3); the timeout
+    # is an order of magnitude above it, so it only fires when the axis is really stuck.
+    _STOP_TIMEOUT_S = 10.0
+    _STOP_POLL_S = 0.05
 
     def __init__(self, serial: SerialLine, clock: Clock = REAL_CLOCK) -> None:
         self._serial = serial
@@ -405,19 +409,31 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         return True
 
     def stop(self) -> bool:
-        self._transact(_Command.STOP_MOTION)
-        self._last_target = None
-        self._zero_target_pending = False
+        # §10.3: `K` starts a braking *ramp*. The board answers `=` immediately, but at
+        # the top speed it allows the axis keeps running for another 0.6s and coasts
+        # ~1148 counts. Returning True on the `=` alone made `Axis.disconnect` (reset ->
+        # stop -> disconnect) close the port on a physically moving axis, so the caller
+        # gets control back only once the Running bit is really down.
+        self._request_stop()
+        self._wait_till_running_clears(self._STOP_TIMEOUT_S)
         return True
 
     def wait_till_stop(self, do_stop: bool = True, timeout_s: float | None = None) -> None:
         if do_stop:
-            self.stop()
+            self._request_stop()
+        self._wait_till_running_clears(timeout_s)
+
+    def _request_stop(self) -> None:
+        self._transact(_Command.STOP_MOTION)
+        self._last_target = None
+        self._zero_target_pending = False
+
+    def _wait_till_running_clears(self, timeout_s: float | None) -> None:
         deadline = None if timeout_s is None else self._clock.monotonic() + timeout_s
         while self._get_status().running:
             if deadline is not None and self._clock.monotonic() > deadline:
                 raise SkyWatcherMotorTimeoutError(f"motor did not stop within {timeout_s}s")
-            self._clock.sleep(0.2)
+            self._clock.sleep(self._STOP_POLL_S)
 
     def reset(self) -> None:
         self.stop()
