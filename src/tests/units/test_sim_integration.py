@@ -6,7 +6,7 @@ from sim import Clock, FaultKind, SimSerialLine, SkyWatcherSim, TMC2209Sim
 from sky.constants import STELLAR_DAY, STELLAR_SPEED
 from sky.motor import MotionMode, MotorDirection
 from sky.physics import DecStepsPerSecond, Ha
-from skywatcher.board import BOARD_SPEED_CEILING_SPS
+from skywatcher.board import BOARD_SPEED_CEILING_SPS, TimerPeriod
 from skywatcher.motor import SkyWatcherMotor, SkyWatcherMotorProtocolError
 from tmc2209.motor import TMC2209Motor
 
@@ -44,7 +44,7 @@ def test_skywatcher_connect_reads_valid_mount_config() -> None:
     # so `G '3'` changes nothing. The minimum period is the board's own clamp,
     # 1103 = 100x sidereal (§10.5), asked of the board and not guessed.
     assert board.highspeed_ratio == 1
-    assert board.min_period == sim.min_period == 1103
+    assert board.min_period == TimerPeriod(sim.min_period) == TimerPeriod(1103)
 
     status = motor.status()
     assert status.is_connected is True
@@ -72,7 +72,7 @@ def test_skywatcher_min_period_comes_from_the_board_not_from_the_mount_code(moun
     board = motor.board
     assert board is not None
     assert board.mount_code == mount_code
-    assert board.min_period == sim.min_period
+    assert board.min_period == TimerPeriod(sim.min_period)
 
 
 def test_skywatcher_min_period_probe_follows_a_board_with_another_clamp() -> None:
@@ -89,7 +89,7 @@ def test_skywatcher_min_period_probe_follows_a_board_with_another_clamp() -> Non
 
     board = motor.board
     assert board is not None
-    assert board.min_period == 100
+    assert board.min_period == TimerPeriod(100)
 
 
 def test_skywatcher_min_period_probe_puts_back_the_period_it_found() -> None:

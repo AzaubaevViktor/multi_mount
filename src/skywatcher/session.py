@@ -33,7 +33,7 @@ import logging
 from clock import NEVER, REAL_CLOCK, Clock
 from serial_wrapper.wrapper import SerialLine
 from sky.motor import MotorStopRequire
-from skywatcher.board import SkyWatcherBoard, probe_board
+from skywatcher.board import SkyWatcherBoard, TimerPeriod, probe_board
 from skywatcher.codec import (
     Command,
     SkyWatcherCodec,
@@ -115,7 +115,7 @@ class SkyWatcherSession:
         # "the counter is back at its power-up value" is uninterpretable — a
         # board that has simply never moved reads the same.
         self._expected_raw_ticks: int | None = None
-        self._expected_period: int | None = None
+        self._expected_period: TimerPeriod | None = None
         self._expected_initialized = False
         self._reboot_check_busy = False
         self.reboots_detected = 0
@@ -313,11 +313,11 @@ class SkyWatcherSession:
         self._position_updated = self._clock.monotonic()
         self._expected_raw_ticks = raw
 
-    def read_period(self) -> int:
-        return SkyWatcherCodec.decode_revu24(self.transact(Command.INQUIRE_STEP_PERIOD))
+    def read_period(self) -> TimerPeriod:
+        return TimerPeriod(SkyWatcherCodec.decode_revu24(self.transact(Command.INQUIRE_STEP_PERIOD)))
 
-    def set_period(self, period: int) -> None:
-        self.transact(Command.SET_STEP_PERIOD, SkyWatcherCodec.encode_revu24(period))
+    def set_period(self, period: TimerPeriod) -> None:
+        self.transact(Command.SET_STEP_PERIOD, SkyWatcherCodec.encode_revu24(int(period)))
         self._expected_period = period
 
     def initialize(self) -> None:
@@ -401,7 +401,7 @@ class SkyWatcherSession:
             self.reboots_detected += 1
             self._logger.error(
                 "RA board rebooted (RA_PROTOCOL.md §12.2): counter back within %d counts of 0x%06X, "
-                "initialization flag down, step period back at %d. Re-deriving the position offset so the "
+                "initialization flag down, step period back at %s. Re-deriving the position offset so the "
                 "logical position stays %s, and putting the period %s back.",
                 self._REBOOT_POSITION_WINDOW_TICKS,
                 POSITION_OFFSET,

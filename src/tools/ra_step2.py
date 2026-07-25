@@ -1318,7 +1318,7 @@ def _run_clamp(port: str, baud: int, timeout_s: float, trace: Path) -> list[dict
         rows.append(
             {
                 "period_before_connect": before,
-                "min_period_measured": board.min_period,
+                "min_period_measured": int(board.min_period),
                 "period_after_connect": after,
                 "restored": before == after,
                 "board": dataclasses.asdict(board),

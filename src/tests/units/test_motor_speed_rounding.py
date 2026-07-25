@@ -4,7 +4,7 @@ import pytest
 from sky.constants import STELLAR_DAY, STELLAR_SPEED
 from sky.motor import MotorDirection
 from sky.physics import Dec, DecStepsPerSecond, HaStepsPerSecond
-from skywatcher.board import SkyWatcherBoard
+from skywatcher.board import SkyWatcherBoard, TimerPeriod
 from skywatcher.codec import Command, Direction, MotionStatus, SkyWatcherCodec, SlewMode, SpeedMode, Status
 from skywatcher.motor import SkyWatcherMotor
 from tmc2209.motor import TMC2209Motor, _Mode, _Phase, _Response, _Status as _TmcStatus
@@ -121,7 +121,7 @@ def test_skywatcher_highspeed_period_uses_lowspeed_threshold_not_ratio() -> None
 
     period = motor._period_from_speed_sps(speed_sps)
     rate = float(speed_sps) * (24 * 60 * 60) / board.cpr / float(STELLAR_SPEED)
-    expected = int(float(STELLAR_DAY) * board.timer_freq / board.cpr / (rate / board.highspeed_ratio))
+    expected = TimerPeriod(int(float(STELLAR_DAY) * board.timer_freq / board.cpr / (rate / board.highspeed_ratio)))
 
     assert period == expected
 
@@ -130,7 +130,7 @@ def test_skywatcher_set_speed_clamps_period_to_mount_minimum(monkeypatch: pytest
     motor = _motor_on_board(SkyWatcherBoard(cpr=12_489_074, timer_freq=15_400_960, highspeed_ratio=11))
     speed_sps = motor.convert_speed_to_steps_per_second(motor._HIGHSPEED_SPEED)
     unclamped_period = motor._period_from_speed_sps(speed_sps)
-    min_period = unclamped_period + 123
+    min_period = TimerPeriod(int(unclamped_period) + 123)
     motor = _motor_on_board(
         SkyWatcherBoard(cpr=12_489_074, timer_freq=15_400_960, highspeed_ratio=11, min_period=min_period)
     )
@@ -143,11 +143,11 @@ def test_skywatcher_set_speed_clamps_period_to_mount_minimum(monkeypatch: pytest
     assert actual_speed == board.speed_sps_from_period(min_period, SpeedMode.HIGHSPEED)
     assert motor._last_speed_sps == actual_speed
     assert written_commands[1][0].name == "SET_STEP_PERIOD"
-    assert written_commands[1][1] == SkyWatcherCodec.encode_revu24(min_period)
+    assert written_commands[1][1] == SkyWatcherCodec.encode_revu24(int(min_period))
 
 
 def test_skywatcher_set_speed_clamps_lowspeed_period_to_mount_minimum(monkeypatch: pytest.MonkeyPatch) -> None:
-    min_period = 0x0600
+    min_period = TimerPeriod(0x0600)
     motor = _motor_on_board(
         SkyWatcherBoard(cpr=12_489_074, timer_freq=15_400_960, highspeed_ratio=1, min_period=min_period)
     )
@@ -161,7 +161,7 @@ def test_skywatcher_set_speed_clamps_lowspeed_period_to_mount_minimum(monkeypatc
     assert board is not None
     assert actual_speed == board.speed_sps_from_period(min_period, SpeedMode.LOWSPEED)
     assert written_commands[1][0].name == "SET_STEP_PERIOD"
-    assert written_commands[1][1] == SkyWatcherCodec.encode_revu24(min_period)
+    assert written_commands[1][1] == SkyWatcherCodec.encode_revu24(int(min_period))
 
 
 def test_skywatcher_set_direction_preserves_highspeed_mode_from_last_speed(monkeypatch: pytest.MonkeyPatch) -> None:

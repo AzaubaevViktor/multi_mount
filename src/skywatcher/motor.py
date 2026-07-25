@@ -26,7 +26,7 @@ from serial_wrapper.wrapper import SerialLine
 from sky.constants import STELLAR_SPEED
 from sky.motor import MotionMode, Motor, MotorDirection, MotorStateError, MotorStatus, MotorStopRequire
 from sky.physics import Ha, HaPerSecond, HaStepsPerSecond, StepsPerSecond
-from skywatcher.board import SkyWatcherBoard
+from skywatcher.board import SkyWatcherBoard, TimerPeriod
 from skywatcher.codec import (
     Command,
     Direction,
@@ -716,7 +716,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         speed_mode = self._get_speed_mode_for_speed_sps(speed_sps)
         return board.speed_sps_from_period(board.clamp_period(self._period_from_speed_sps(speed_sps)), speed_mode)
 
-    def _period_from_speed_sps(self, speed_sps: StepsPerSecond[HaPerSecond]) -> int:
+    def _period_from_speed_sps(self, speed_sps: StepsPerSecond[HaPerSecond]) -> TimerPeriod:
         return self._board().period_from_speed_sps(speed_sps, self._get_speed_mode_for_speed_sps(speed_sps))
 
     def _get_speed_mode_for_speed_sps(self, speed_sps: StepsPerSecond[HaPerSecond]) -> SpeedMode:

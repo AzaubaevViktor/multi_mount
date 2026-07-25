@@ -24,15 +24,54 @@ from skywatcher.codec import (
     SpeedMode,
 )
 
+
+@dataclasses.dataclass(frozen=True, order=True, slots=True)
+class TimerPeriod:
+    """How many ticks of the board's own timer one motor step lasts (`:I1`/`:i1`).
+
+    The conjugate of :class:`sky.physics.StepsPerSecond`, and the reason that
+    class exists: the two are reciprocal, both integral and both, until now,
+    plain ``int``. Confusing them is not a small error — it is the difference
+    between 800x sidereal and 71.8x, which is what the driver actually asked for
+    once (`RA_PROTOCOL_STEP_2.md` §11).
+
+    Deliberately *not* a number:
+
+    * no arithmetic. A period is only ever compared (``clamp_period``), written
+      to the board or divided into the timer frequency, and every one of those
+      needs ``int(period)`` spelled out, which is where a reader can see what is
+      happening;
+    * no ``__index__``. It would let a period slide into ``encode_revu24`` and
+      every other ``int`` slot unnoticed, which is exactly the class of mistake
+      this type is here to stop;
+    * no conversion methods. Turning a period into a step rate needs the board's
+      timer frequency and counts per revolution, so it belongs to
+      :class:`SkyWatcherBoard` and nowhere else.
+
+    Not parameterised by axis, unlike ``StepsPerSecond``: only the SkyWatcher RA
+    controller has a step-period register at all. The DEC controller is told a
+    rate directly, and if it ever grows a timer of its own, its period will be
+    counted in a different timer's ticks and will want its own type anyway.
+    """
+
+    ticks: int
+
+    def __int__(self) -> int:
+        return self.ticks
+
+    def __str__(self) -> str:
+        return str(self.ticks)
+
+
 # Fallback for a board whose own clamp could not be measured: the value the INDI
 # reference uses for every mount it does not recognize. It clamps nothing the
 # board does not clamp itself, so the axis still runs — only the speed reported
 # upwards may be optimistic, which is what the log says when this is used.
-DEFAULT_MIN_PERIOD = 6
+DEFAULT_MIN_PERIOD = TimerPeriod(6)
 
 # Written during the probe: below every plausible clamp, and harmless — the board
 # answers `=` and stores its own minimum instead, even for 0 (§10.5).
-MIN_PERIOD_PROBE = 1
+MIN_PERIOD_PROBE = TimerPeriod(1)
 
 # §5/§2: Status EX. One read, kept in the snapshot because it is a board
 # capability word and belongs with the rest of them.
@@ -65,12 +104,12 @@ class SkyWatcherBoard:
     cpr: int
     timer_freq: int
     highspeed_ratio: int
-    min_period: int = DEFAULT_MIN_PERIOD
+    min_period: TimerPeriod = DEFAULT_MIN_PERIOD
     firmware_version: int = 0
     mount_code: int = 0
-    # `:D1`, the 1x tracking period the board powers up with (§12.1). Zero means
+    # `:D1`, the 1x tracking period the board powers up with (§12.1). None means
     # the board would not say, and :attr:`power_up_period` computes it instead.
-    tracking_period_1x: int = 0
+    tracking_period_1x: TimerPeriod | None = None
     status_ex: int | None = None
     # `:c1`, the braking distance the board hard-wires into every GOTO. Not a
     # setting: `:M1` is accepted at any value and changes nothing, and `:m1` is
@@ -89,21 +128,21 @@ class SkyWatcherBoard:
             )
 
     @property
-    def power_up_period(self) -> int:
+    def power_up_period(self) -> TimerPeriod:
         """Step period a freshly booted board reports (§12.1: `:i1` = `:D1`).
 
         One of the three signs of a reboot, so it may not be a guess when the
         board answers `:D1` — and when it does not, the computed 1x tracking
         period reproduces the board's own answer to within a count.
         """
-        if self.tracking_period_1x > 0:
+        if self.tracking_period_1x is not None:
             return self.tracking_period_1x
-        return max(1, int(round(float(STELLAR_DAY) * self.timer_freq / self.cpr)))
+        return TimerPeriod(max(1, round(float(STELLAR_DAY) * self.timer_freq / self.cpr)))
 
-    def times_sidereal(self, period: int) -> float:
-        return float(STELLAR_DAY) * self.timer_freq / self.cpr / period
+    def times_sidereal(self, period: TimerPeriod) -> float:
+        return float(STELLAR_DAY) * self.timer_freq / self.cpr / int(period)
 
-    def clamp_period(self, period: int) -> int:
+    def clamp_period(self, period: TimerPeriod) -> TimerPeriod:
         """What the board will store for a requested period.
 
         The board takes `:I1` with any value and keeps `max(value, its own
@@ -113,7 +152,7 @@ class SkyWatcherBoard:
         """
         return max(period, self.min_period)
 
-    def period_from_speed_sps(self, speed_sps: StepsPerSecond[HaPerSecond], speed_mode: SpeedMode) -> int:
+    def period_from_speed_sps(self, speed_sps: StepsPerSecond[HaPerSecond], speed_mode: SpeedMode) -> TimerPeriod:
         """Timer period to load for a step rate. The inverse of :meth:`speed_sps_from_period`.
 
         The two are reciprocal, both integral and both "just a number", which is
@@ -126,11 +165,11 @@ class SkyWatcherBoard:
         rate = float(speed_sps) * (24 * 60 * 60) / self.cpr / float(STELLAR_SPEED)
         if speed_mode == SpeedMode.HIGHSPEED:
             rate /= self.highspeed_ratio
-        return int(STELLAR_DAY * self.timer_freq / self.cpr / rate)
+        return TimerPeriod(int(STELLAR_DAY * self.timer_freq / self.cpr / rate))
 
-    def speed_sps_from_period(self, period: int, speed_mode: SpeedMode) -> HaStepsPerSecond:
+    def speed_sps_from_period(self, period: TimerPeriod, speed_mode: SpeedMode) -> HaStepsPerSecond:
         """Steps per second the axis will really run at with this period."""
-        if period <= 0:
+        if int(period) <= 0:
             raise MotorStateError("period must be positive")
         rate = self.times_sidereal(period)
         if speed_mode == SpeedMode.HIGHSPEED:
@@ -139,7 +178,7 @@ class SkyWatcherBoard:
         return min(asked, BOARD_SPEED_CEILING_SPS)
 
 
-def probe_board(transact: Transactor, logger: logging.Logger) -> tuple[SkyWatcherBoard, int | None]:
+def probe_board(transact: Transactor, logger: logging.Logger) -> tuple[SkyWatcherBoard, TimerPeriod | None]:
     """Read the snapshot off a board that has already answered the handshake.
 
     Returns the snapshot and the step period the board is left holding — the
@@ -166,7 +205,7 @@ def probe_board(transact: Transactor, logger: logging.Logger) -> tuple[SkyWatche
     )
     board = dataclasses.replace(
         board,
-        tracking_period_1x=_optional_value(transact, Command.INQUIRE_TRACKING_PERIOD, None, logger) or 0,
+        tracking_period_1x=_optional_period(transact, Command.INQUIRE_TRACKING_PERIOD, logger),
         brake_steps=_optional_value(transact, Command.INQUIRE_BRAKE_STEPS, None, logger) or board.brake_steps,
         status_ex=_optional_value(transact, Command.INQUIRE_EXTENDED, STATUS_EX_ID, logger),
     )
@@ -188,9 +227,14 @@ def _optional_value(transact: Transactor, command: Command, arg: str | None, log
         return None
 
 
+def _optional_period(transact: Transactor, command: Command, logger: logging.Logger) -> TimerPeriod | None:
+    ticks = _optional_value(transact, command, None, logger)
+    return None if ticks is None else TimerPeriod(ticks)
+
+
 def _measure_min_period(
     transact: Transactor, board: SkyWatcherBoard, logger: logging.Logger
-) -> tuple[int, int | None]:
+) -> tuple[TimerPeriod, TimerPeriod | None]:
     """Ask the board itself how fast it is willing to go (§10.5).
 
     The board takes `:I1` with any value, answers `=`, and stores
@@ -204,22 +248,22 @@ def _measure_min_period(
     if SkyWatcherCodec.parse_status(transact(Command.INQUIRE_STATUS, None)).running:
         logger.warning(
             "Axis is running at connect, cannot probe the board's minimum step period; "
-            "falling back to %d, so reported speeds may be optimistic",
+            "falling back to %s, so reported speeds may be optimistic",
             DEFAULT_MIN_PERIOD,
         )
         return DEFAULT_MIN_PERIOD, None
     try:
-        saved_period = SkyWatcherCodec.decode_revu24(transact(Command.INQUIRE_STEP_PERIOD, None))
+        saved_period = TimerPeriod(SkyWatcherCodec.decode_revu24(transact(Command.INQUIRE_STEP_PERIOD, None)))
     except SkyWatcherMotorError as error:
-        logger.warning("Could not read the step period back, falling back to %d: %s", DEFAULT_MIN_PERIOD, error)
+        logger.warning("Could not read the step period back, falling back to %s: %s", DEFAULT_MIN_PERIOD, error)
         return DEFAULT_MIN_PERIOD, None
 
-    loaded_period: int | None = None
+    loaded_period: TimerPeriod | None = None
     try:
-        transact(Command.SET_STEP_PERIOD, SkyWatcherCodec.encode_revu24(MIN_PERIOD_PROBE))
-        measured = SkyWatcherCodec.decode_revu24(transact(Command.INQUIRE_STEP_PERIOD, None))
+        transact(Command.SET_STEP_PERIOD, SkyWatcherCodec.encode_revu24(int(MIN_PERIOD_PROBE)))
+        measured = TimerPeriod(SkyWatcherCodec.decode_revu24(transact(Command.INQUIRE_STEP_PERIOD, None)))
     except SkyWatcherMotorError as error:
-        logger.warning("Could not probe the board's minimum step period, falling back to %d: %s", DEFAULT_MIN_PERIOD, error)
+        logger.warning("Could not probe the board's minimum step period, falling back to %s: %s", DEFAULT_MIN_PERIOD, error)
         measured = DEFAULT_MIN_PERIOD
     finally:
         # The probe leaves the fastest period the board has loaded. Whatever happened
@@ -227,11 +271,11 @@ def _measure_min_period(
         # a manual session) would otherwise start the axis at the board's top speed
         # instead of at the tracking period the board powers up with (§12.1).
         try:
-            transact(Command.SET_STEP_PERIOD, SkyWatcherCodec.encode_revu24(saved_period))
+            transact(Command.SET_STEP_PERIOD, SkyWatcherCodec.encode_revu24(int(saved_period)))
             loaded_period = saved_period
         except SkyWatcherMotorError as error:
-            logger.warning("Could not restore the step period %d after the probe: %s", saved_period, error)
+            logger.warning("Could not restore the step period %s after the probe: %s", saved_period, error)
 
     min_period = max(measured, DEFAULT_MIN_PERIOD)
-    logger.info("Board clamps the step period at %d (%.1fx sidereal at most)", min_period, board.times_sidereal(min_period))
+    logger.info("Board clamps the step period at %s (%.1fx sidereal at most)", min_period, board.times_sidereal(min_period))
     return min_period, loaded_period

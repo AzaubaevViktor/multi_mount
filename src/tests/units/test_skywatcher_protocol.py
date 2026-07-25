@@ -1,7 +1,7 @@
 import pytest
 
 from serial_wrapper.wrapper import SerialLine
-from skywatcher.board import DEFAULT_MIN_PERIOD, SkyWatcherBoard
+from skywatcher.board import DEFAULT_MIN_PERIOD, SkyWatcherBoard, TimerPeriod
 from skywatcher.codec import (
     Command,
     Direction,
@@ -180,7 +180,7 @@ def test_skywatcher_connect_parses_mcversion_with_board_byte_order() -> None:
     assert board is not None
     assert board.mount_code == 0x0A
     assert board.firmware_version == 0x0311
-    assert board.min_period == 1103
+    assert board.min_period == TimerPeriod(1103)
 
 
 def test_skywatcher_connect_probes_the_clamp_with_the_documented_command_pair() -> None:
