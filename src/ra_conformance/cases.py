@@ -626,6 +626,36 @@ def _status_bits_cases() -> list[Case]:
             teardown=(b":G110\r",),
         ),
         Case(
+            name="K_after_a_real_goto_run_returns_to_tracking",
+            section="§10.3, шаг 2 §14",
+            safety=Safety.MOTION,
+            steps=(
+                Exchange(b":F1\r", exact(b"=\r")),
+                Exchange(b":G120\r", exact(b"=\r")),
+                Exchange(b":I1" + PERIOD_64X + b"\r", exact(b"=\r")),
+                # 200 000 отсчётов: на измеренных ~8 600 шаг/с это 23 с, то есть
+                # доехать до цели за время кейса плата физически не может. Это
+                # не запас, а условие безопасности: собственное прибытие в цель
+                # её роняет (шаг 2 §14), а `:K1` — нет.
+                Exchange(b":H1" + b"400D03" + b"\r", exact(b"=\r")),
+                Exchange(b":J1\r", exact(b"=\r")),
+                Pause(1.0),
+                Exchange(
+                    b":f1\r",
+                    matching("=[04]11\r", "=011 или =411 — goto, CW, идёт, инициализирована"),
+                ),
+                Exchange(b":K1\r", exact(b"=\r")),
+                Pause(3.0),
+                Exchange(b":f1\r", exact(b"=101\r")),
+            ),
+            note=(
+                "вторая половина правила §2.4: канал, который в goto реально ХОДИЛ, "
+                "после остановки возвращается в трекинг — примечание *4 спецификации "
+                "верно именно для него. Снято двумя прогонами `ra_step2 gotobrake`"
+            ),
+            teardown=(b":K1\r", b":H1000000\r", b":I1" + PERIOD_1X + b"\r", b":G110\r"),
+        ),
+        Case(
             name="E_at_rest_keeps_init_flag",
             section="§11",
             safety=Safety.WRITE,

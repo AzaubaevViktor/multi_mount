@@ -145,14 +145,38 @@ def test_default_step_period_is_the_sidereal_tracking_preset() -> None:
     assert steps == pytest.approx(3600 * 8_000_000 / float(STELLAR_DAY), rel=0.001)
 
 
-def test_stop_leaves_the_channel_in_goto_mode() -> None:
-    """Step 2 §2.4: `K` does **not** put the channel back into tracking mode.
+def test_stop_on_a_standing_goto_channel_leaves_it_in_goto_mode() -> None:
+    """Step 2 §2.4: `K` on a channel that never ran does **not** change the mode.
 
-    Reference §5.1 note *4 says it does, and §10.3 recorded it as confirmed —
-    but every measurement §10.3 made started in tracking mode, where the bit was
-    already up, so it confirmed nothing. On the live board `:G120` -> `:K1` ->
-    `:f1` answers `=001`, and a GOTO interrupted by `K` keeps the goto bit here
-    too.
+    Reference §5.1 note *4 says the channel is always in tracking mode after a
+    stop, and §10.3 recorded that as confirmed — but every measurement §10.3
+    made started in tracking mode, where the bit was already up, so it confirmed
+    nothing. On the live board `:G120` -> `:K1` -> `:f1` answers `=001`: no run,
+    nothing to come back from.
+    """
+    clock = Clock()
+    sim = SkyWatcherSim(clock, cpr=8_000_000, timer_freq=1000)
+
+    assert _exchange(sim, b":F1\r") == b"=\r"
+    assert _exchange(sim, b":G120\r") == b"=\r"
+    assert _exchange(sim, b":f1\r") == b"=001\r"
+
+    assert _exchange(sim, b":K1\r") == b"=\r"
+    assert _exchange(sim, b":f1\r") == b"=001\r"
+
+
+def test_stop_after_a_real_goto_run_returns_the_channel_to_tracking() -> None:
+    """Step 2 §14: a goto that actually moved comes back in tracking mode.
+
+    Measured by the two runs of `tools.ra_step2 gotobrake`, which pulled `:K1`
+    at 12 000 and at 28 000 counts of a 30 000-count arm — the only two GOTOs
+    this board has ever survived — and both ended `:f1` = `=101`. That is
+    reference note *4 after all; §2.4 above is the other half of the rule, not
+    a contradiction of it.
+
+    The flip happens when the braking ramp ends, not when `K` is accepted:
+    while the axis is still winding down the mode nibble is unchanged, which is
+    what the driver polls through.
 
     The Fast bit stays down throughout even though `G` asked for `0` (goto,
     highspeed): period 2 out of a 1x period of 11 is nowhere near 32x sidereal,
@@ -172,11 +196,11 @@ def test_stop_leaves_the_channel_in_goto_mode() -> None:
     clock.advance(1)
     assert _exchange(sim, b":K1\r") == b"=\r"
 
-    # Braking mid-flight, and the mode nibble still says goto (bit0 clear) with
-    # the Running bit up: `K` winds the motion down and touches nothing else.
+    # Still braking: the mode nibble has not moved yet.
     assert _exchange(sim, b":f1\r") == b"=011\r"
     clock.advance(1)
-    assert _exchange(sim, b":f1\r") == b"=001\r"
+    # Stopped, and back in tracking mode (bit0 set).
+    assert _exchange(sim, b":f1\r") == b"=101\r"
     position_after_stop = _exchange(sim, b":j1\r")
     clock.advance(10)
     assert _exchange(sim, b":j1\r") == position_after_stop

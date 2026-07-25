@@ -448,6 +448,13 @@ class SkyWatcherSim:
                 self._commanded_sps = 0.0
                 self.braking = False
                 self.running = False
+                # A channel that actually *moved* in goto comes back in tracking
+                # mode, exactly as the reference's note *4 says (step 2 §14: two
+                # GOTO runs cut short by `:K1` both ended `:f1` = `=101`). §2.4
+                # is not contradicted — it stopped a goto channel that had never
+                # been started, and such a channel has no run to come back from,
+                # which is why the flip lives here and not in the `K` handler.
+                self.tracking_mode = True
             return
 
         travel = self._ramp_commanded(self.requested_sps(), dt)
@@ -727,11 +734,11 @@ class SkyWatcherSim:
             if self.running and not self.braking:
                 self.braking = True
             self.goto_target = None
-            # `K` does NOT change the mode (step 2 §2.4). §10.3 took the
-            # reference's note *4 ("after `K` the channel is always in tracking
-            # mode") for confirmed, but every measurement it made started from
-            # tracking mode, where the bit was already up. On the live board
-            # `:G120` -> `:K1` -> `:f1` answers `=001`: the goto mode stays.
+            # `K` by itself does NOT change the mode (step 2 §2.4): on a goto
+            # channel that was never started, `:G120` -> `:K1` -> `:f1` answers
+            # `=001`. The mode comes back to tracking only when a channel that
+            # was *running* comes to a stop, which `_advance` does at the end of
+            # the ramp — see the note there and step 2 §14.
             self._reply(cmd)
         else:
             self._handle_board_wide(cmd, data)
