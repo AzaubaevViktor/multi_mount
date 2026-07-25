@@ -2,7 +2,7 @@ import logging
 import socket
 import threading
 
-from lx200.base import LX200Answer, LX200Handler
+from lx200.base import LX200Answer, LX200BadCommandError, LX200Handler, LX200SlewResult
 from lx200.protocol import AlignmentMode, Protocol
 
 
@@ -29,6 +29,13 @@ class LX200SimpleServer:
         self._running = False
         self._state_lock = threading.RLock()
         self.last_error: Exception | None = None
+        # One mount, one conversation. The handler keeps per-conversation state
+        # (target RA/DEC from `Sr`/`Sd`, the active manual-move directions behind
+        # `Qe`/`Qw`), so two clients on one handler silently overwrite each other's
+        # target and halt each other's axes. A second client is refused, loudly,
+        # instead of being let in to corrupt the first one's session.
+        self._client_slot = threading.Lock()
+        self.refused_clients = 0
         
     def serve_forever(self) -> None:
         with self._state_lock:
@@ -104,72 +111,109 @@ class LX200SimpleServer:
             return self._running
     
     def _handle_client(self, conn: socket.socket) -> None:
-        # Current limitation: multiple clients can talk to the same LX200 handler concurrently.
-        # EOF only stops this client thread; there is no connection-level disconnect hook yet.
         with conn:
-            self._connection_id += 1
+            if not self._client_slot.acquire(blocking=False):
+                with self._state_lock:
+                    self.refused_clients += 1
+                self.log.warning("Refusing %r: an LX200 client is already connected to this mount", conn)
+                return
 
-            log = logging.getLogger(f"{self.log.name}.{self._connection_id}")
-            log.info("Connected: %r", conn)
+            try:
+                with self._state_lock:
+                    self._connection_id += 1
+                    connection_id = self._connection_id
 
-            buf = bytearray()
+                log = logging.getLogger(f"{self.log.name}.{connection_id}")
+                log.info("Connected: %r", conn)
+                self.lx200.begin_client_session(repr(conn))
+
+                self._serve_connection(conn, log)
+            finally:
+                self._client_slot.release()
+                self.log.info("Client %s disconnected", connection_id)
+
+    def _serve_connection(self, conn: socket.socket, log: logging.Logger) -> None:
+        buf = bytearray()
+
+        while True:
+            data = conn.recv(self.buffer_size)
+            if not data:
+                return
+
+            idx = data.find(Protocol.ALIGNMENT_QUERY_BYTE)
+
+            if idx >= 0:
+                while idx >= 0:
+                    if idx:
+                        buf.extend(data[:idx])
+
+                    alignment_mode = self.handle_alignment(bytes(buf))
+
+                    self.log.info("Client asks about alignment mode, responce with %s", alignment_mode)
+                    conn.sendall(alignment_mode.value.encode(self.encoding))
+                    data = data[idx + 1 :]
+                    idx = data.find(Protocol.ALIGNMENT_QUERY_BYTE)
+                if data:
+                    buf.extend(data)
+            else:
+                buf.extend(data)
 
             while True:
-                data = conn.recv(self.buffer_size)
-                if not data:
-                    return
+                idx = buf.find(self._terminator_byte)
+                if idx < 0:
+                    break
+                raw = bytes(buf[: idx + 1])
+                del buf[: idx + 1]
 
-                idx = data.find(Protocol.ALIGNMENT_QUERY_BYTE)
+                log.debug("Receive %s", raw)
 
-                if idx >= 0:
-                    while idx >= 0:
-                        if idx:
-                            buf.extend(data[:idx])
-                        
-                        alignment_mode = self.handle_alignment(bytes(buf))
+                message = raw.decode(self.encoding)
 
-                        self.log.info("Client asks about alignment mode, responce with %s", alignment_mode)
-                        conn.sendall(alignment_mode.value.encode(self.encoding))
-                        data = data[idx + 1 :]
-                        idx = data.find(Protocol.ALIGNMENT_QUERY_BYTE)
-                    if data:
-                        buf.extend(data)
-                else:
-                    buf.extend(data)
+                if not message.startswith(Protocol.COMMAND_PREFIX):
+                    # `continue`, not `break`: whatever follows a garbled frame in the
+                    # buffer is a perfectly good command whose client is waiting for an
+                    # answer, and breaking here strands it until more bytes arrive.
+                    self.log.warning("Wrong command (prefix): %s", message)
+                    continue
 
-                while True:
-                    idx = buf.find(self._terminator_byte)
-                    if idx < 0:
-                        break
-                    raw = bytes(buf[: idx + 1])
-                    del buf[: idx + 1]
-                    
-                    self.log.debug("Receive %s", raw)
+                cmd = message.removeprefix(Protocol.COMMAND_PREFIX).removesuffix(Protocol.TERMINATOR)
 
-                    message = raw.decode(self.encoding)
+                response = self._handle_or_report(cmd, log)
+                str_response = self._to_wire(response)
 
-                    if not message.startswith(Protocol.COMMAND_PREFIX):
-                        self.log.warning("Wrong command (prefix): %s", message)
-                        break
+                log.debug("Convert %r -> %r", response, str_response)
 
-                    cmd = message.removeprefix(Protocol.COMMAND_PREFIX).removesuffix(Protocol.TERMINATOR)
+                if str_response is not None:
+                    log.debug("Send %s", str_response)
+                    conn.sendall(str_response.encode(self.encoding))
 
-                    response = self.handle(cmd)
+    def _handle_or_report(self, cmd: str, log: logging.Logger) -> LX200Answer:
+        """Run one command. A client never loses its connection over a bad command.
 
-                    if response is None:
-                        str_response = None
-                    elif isinstance(response, bool):
-                        str_response = str(int(response))
-                    else:
-                        str_response = str(response) + Protocol.TERMINATOR
+        `Mg` with a short payload used to raise IndexError, an unknown command a
+        RuntimeError, a malformed `Sr` an HaFormatError -- all of them straight out
+        of the socket loop, killing the connection thread mid-session (PLAN.md #30).
+        """
+        try:
+            return self.handle(cmd)
+        except LX200BadCommandError as error:
+            log.warning("Rejecting %r: %s", cmd, error)
+            return error.answer
+        except Exception:
+            log.exception("Command %r failed", cmd)
+            return None
 
-                    self.log.debug("Convert %r -> %r", response, str_response)
-
-                    if str_response is not None:
-                        self.log.debug("Send %s", str_response)
-
-                        conn.sendall(str_response.encode(self.encoding))
-                    
+    @staticmethod
+    def _to_wire(response: LX200Answer) -> str | None:
+        if response is None:
+            return None
+        if isinstance(response, LX200SlewResult):
+            # `MS` brings its own framing: a bare `0` when accepted, `<code><reason>#`
+            # when not. It is not a 0/1 acknowledgement and must not be encoded as one.
+            return response.to_wire()
+        if isinstance(response, bool):
+            return str(int(response))
+        return str(response) + Protocol.TERMINATOR
 
     def handle_alignment(self, data: bytes) -> AlignmentMode:
         return self.lx200.handle_alignment(data)
