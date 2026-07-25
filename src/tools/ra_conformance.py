@@ -140,7 +140,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     setup_logging(logs_root=args.logs_root)
 
     if args.list:
-        LOGGER.info("Кейсы RA-conformance (%d):\n%s", len(CASES), describe_cases(CASES))
+        # Written out rather than logged: the log formatter escapes newlines, and
+        # a 104-row table is only readable as a file.
+        out = Path(args.out) if args.out else Path("logs/protocol/ra_conformance_cases.md")
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(f"# Кейсы RA-conformance ({len(CASES)})\n\n{describe_cases(CASES)}", encoding="utf-8")
+        LOGGER.info("список кейсов (%d): %s", len(CASES), out)
         return 0
 
     mode = "sim" if args.sim else "hw"
