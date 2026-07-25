@@ -35,7 +35,12 @@ Repository = "https://github.com/AzaubaevViktor/multi_mount"
 # holding this file), which src/tests/base/conftest.py relies on for `relpath` logging
 # and for the logs/ session directory.
 [tool.pytest.ini_options]
-testpaths = ["src/tests"]
+# Units only. `src/tests/hw` needs a physically attached mount and fails *collection*
+# without one, so a bare `pytest` on a fresh clone used to end in 302 errors before a
+# single assertion ran. CI, pre-commit and the mypy file set already pin the unit suite
+# explicitly; this makes the default agree with them instead of trapping newcomers.
+# The hardware suite stays one explicit argument away: `pytest src/tests/hw`.
+testpaths = ["src/tests/units"]
 pythonpath = ["src"]
 log_cli = true
 log_cli_level = "INFO"
