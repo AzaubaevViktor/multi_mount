@@ -17,7 +17,9 @@ the expected state and every firmware quirk to
 :class:`skywatcher.session.SkyWatcherSession`.
 """
 
+import dataclasses
 import logging
+from enum import StrEnum
 
 from clock import REAL_CLOCK, Clock
 from serial_wrapper.wrapper import SerialLine
@@ -53,6 +55,33 @@ __all__ = [
 ]
 
 
+class _GotoPhase(StrEnum):
+    """Which leg of a safe GOTO is on the wire right now."""
+
+    BOARD = "board"
+    CREEP = "creep"
+
+
+@dataclasses.dataclass
+class _GotoPlan:
+    """One `goto_to` from the axis, as the driver has to carry it out.
+
+    The board cannot be given the job whole (see
+    :meth:`SkyWatcherMotor._start_board_leg`), so a GOTO here is a small state
+    machine: one board leg that is cut short by our own `:K1`, then one or more
+    creep legs in tracking mode that close the rest by hand.
+    """
+
+    target_ticks: int
+    forward: bool
+    phase: _GotoPhase
+    passes: int = 0
+    # False between `set_delta` and `run`: a plan that has not been started is
+    # not a move in progress, and must not lock out the very `run()` that is
+    # about to start it.
+    started: bool = False
+
+
 class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     FORWARD_POSITION_SIGN = -1
 
@@ -65,18 +94,104 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     # board goes (§10.3), so this is an order of magnitude above it and only
     # fires when the axis is really stuck. The waiting itself is the session's.
     _STOP_TIMEOUT_S = 10.0
+
+    # ------------------------------------------------------------------
+    # The safe GOTO of `RA_PROTOCOL_STEP_2.md` §27, and where every number
+    # in it comes from.
+    #
+    # The board kills itself finishing a GOTO. Five recorded crashes, all in
+    # the same place: 110…225 counts before the target the controller steps
+    # its rate down from the ~4 650 steps/s plateau it holds all the way in
+    # to whatever `:I1` asks for — 4 550 -> 145 steps/s in one control
+    # period on the run that survived it (§24.1), and on that same step the
+    # axis was seen kicking 27 counts backwards (§24.3). Nothing we send
+    # changes it: `:I1` is not obeyed on the cruise (§11), `:M1` is inert at
+    # every value (§2.2, §11), and `:m1` is always "target - `:c1`", so a
+    # GOTO shorter than 16 980 counts has its brake point behind its own
+    # start and there is no command that moves it (§11).
+    #
+    # So the driver never lets the board arrive. It runs the board's GOTO
+    # while that is the cheap way to cover ground, takes the axis off it
+    # with **our** `:K1` — a ramp, and a stop the board survives, twice out
+    # of twice at 8 700 and ~4 600 steps/s (§14) — and closes the rest by
+    # hand at a rate low enough to stop inside one poll.
+    # ------------------------------------------------------------------
+
+    # How far from the target `:K1` goes. Three costs have to fit under it:
+    #   * the coast after `:K1` — 4 650^2/(2*13 000) = 831 counts, from the
+    #     plateau rate (§24) and the measured brake ramp (§2.6);
+    #   * one poll of blindness — 4 650 · 0.05 s = 233 counts;
+    #   * one round trip — the board answers in 1.8…4.7 ms (§9), 28 counts.
+    # That is 1 092. Doubling it leaves 2 000, which also clears the danger
+    # window (110…225 counts, §24.2) by a factor of nine and stays well
+    # inside the plateau, which starts ~10 000 counts out — so the rate at
+    # the moment of braking is the known 4 650 and not something faster.
+    # The one measurement that exists agrees: §14 run 1 braked a real GOTO
+    # 1 742 counts short of its target and the board came through it.
+    _GOTO_BRAKE_MARGIN_TICKS = 2_000
+
+    # When to stop relying on the caller's polling and watch the approach
+    # ourselves. `Axis` polls every 0.5 s and the board cruises at up to
+    # ~9 900 steps/s (§24), i.e. ~5 000 counts of blindness per caller poll;
+    # the margin above needs 2 000 more. 12 000 is that sum with the same
+    # factor of two, and it costs at most ~2.5 s of tight polling at the end
+    # of a move — the same order as the `:K1` ramp the driver already waits
+    # out in `stop()`.
+    _GOTO_WATCH_TICKS = 12_000
+    # Same idea for a creep leg, at the creep rate: 2 320 · 0.5 s = 1 160
+    # counts per caller poll plus the 250-count lead below.
+    _CREEP_WATCH_TICKS = 3_000
+    _APPROACH_POLL_S = 0.05
+
+    # Below this the board's own GOTO is not used at all. `:c1` = 16 980 is
+    # the board's own number and it marks the degenerate geometry of §11 —
+    # under it the brake point lies behind the start. It is also the length
+    # at which the braking above is trustworthy: it puts the `:K1` at least
+    # 14 980 counts after the start, i.e. long past the acceleration, on the
+    # plateau where the rate is known.
+    _MIN_BOARD_GOTO_MULTIPLE = 1
+
+    # The creep. 16x sidereal is the fastest rate the board was *measured*
+    # to run without a ramp: at period 6897 the first 66 ms sample already
+    # reads the full 2 320 steps/s and a `:K1` stops the axis inside one
+    # 50 ms poll (§2.6). The Fast bit — and with it the ramp — appears
+    # somewhere between 16x and 64x, and 16x is the side of that bracket
+    # that is a fact rather than an assumption.
+    _CREEP_MULTIPLE = 16
+
+    # How far ahead of the target the creep is stopped: one poll of
+    # blindness (2 320 · 0.05 = 116) plus a stop that fits inside one poll
+    # (≤116) plus a round trip (14). 250 rounds that 246 up.
+    _CREEP_STOP_LEAD_TICKS = 250
+    # Close enough to call the GOTO done. It has to be above what a creep
+    # leg can miss by (the 250 above) and far below what the axis itself
+    # calls close enough — `Axis._GOTO_SECONDS_TOLERANCE` is 10 s of hour
+    # angle, i.e. 1 446 counts on this board. 500 counts is 3.5 s of hour
+    # angle, 41 arcseconds of axis rotation.
+    _GOTO_TOLERANCE_TICKS = 500
+    # A creep leg ends within 250 counts of the target, i.e. inside the
+    # tolerance, so one pass is the normal case and the other two exist for
+    # a leg that was cut short by something else. Past that the driver stops
+    # trying rather than shuttling the axis back and forth.
+    _MAX_CREEP_PASSES = 3
+    # A hard stop on the service loop below, so that no arrangement of
+    # stalls can turn one `status()` into an unbounded conversation.
+    _MAX_SERVICE_STEPS = 8
     # One transaction's retry budget. Pinned here because `connect()` has to
     # out-retry it: an app-level retry that gives up sooner adds nothing.
     REPEATS = SkyWatcherSession.REPEATS
 
     def __init__(self, serial: SerialLine, clock: Clock = REAL_CLOCK) -> None:
         self._session = SkyWatcherSession(serial, clock)
+        self._clock = clock
         self._logger = logging.getLogger(type(self).__name__)
         self._is_connected = False
         self._last_speed_sps = 0
         self._last_direction = MotorDirection.STOP
         self._last_target: int | None = None
         self._zero_target_pending = False
+        self._plan: _GotoPlan | None = None
+        self._plan_distance = 0
 
     # ------------------------------------------------------------------
     # connection
@@ -110,12 +225,29 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
 
     def status(self) -> MotorStatus:
         status = self._session.status()
+        if self._plan is not None and self._plan.started:
+            # The one place the safe GOTO is driven from. `status()` is what the
+            # axis calls on every turn of its loop, so it is the only hook that
+            # exists — and the servicing below blocks only for the last couple
+            # of seconds of a leg, never for the leg itself.
+            status = self._service_goto(status)
+        if self._plan is not None:
+            # A GOTO is in progress even while the creep leg has the board in
+            # tracking mode. Reporting the board's raw mode here would tell the
+            # axis "the motor stopped before the target" in the middle of the
+            # approach, and the axis would answer with a `wait_till_stop` that
+            # cuts the creep short (`sky/axis.py`, the GOTO branch).
+            return self._motor_status(status, MotionMode.TARGET, self._last_target)
         if status.running and status.slew_mode == SlewMode.GOTO:
             motion_mode = MotionMode.TARGET
         elif status.running:
             motion_mode = MotionMode.RUN
         else:
             motion_mode = MotionMode.IDLE
+        target = self._last_target if status.slew_mode == SlewMode.GOTO else None
+        return self._motor_status(status, motion_mode, target)
+
+    def _motor_status(self, status: Status, motion_mode: MotionMode, target: int | None) -> MotorStatus:
         if not status.running:
             direction = MotorDirection.STOP
         elif status.direction == Direction.FORWARD:
@@ -130,7 +262,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
             speed_sps=self._last_speed_sps,
             accel_sps=None,
             direction=direction,
-            target=self._last_target if status.slew_mode == SlewMode.GOTO else None,
+            target=target,
             microsteps=None,
             # Whatever the last poll brought, never a poll of its own: `status()` is
             # called far more often than the voltage changes, and it must not turn
@@ -236,12 +368,44 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
             return True
         self._zero_target_pending = False
         speed = self._get_goto_speed(delta)
-        requested_speed_sps = self.convert_speed_to_steps_per_second(abs(speed))
+        forward = speed > HaPerSecond(0)
+        self._last_target = abs(delta_steps) % board.cpr
+        self._plan_distance = self._last_target
+        self._last_direction = MotorDirection.FORWARD if forward else MotorDirection.BACKWARD
+
+        if self._plan_distance >= board.brake_steps * self._MIN_BOARD_GOTO_MULTIPLE:
+            self._arm_board_leg(status, forward, abs(speed), self._plan_distance)
+            self._plan = _GotoPlan(target_ticks=0, forward=forward, phase=_GotoPhase.BOARD)
+        else:
+            # Degenerate geometry (§11): the brake point of a move this short
+            # lies behind its own start, and `:M1` cannot move it. The board's
+            # GOTO is not used at all — the whole distance is crept.
+            self._logger.info(
+                "GOTO of %d counts is shorter than the board's brake distance %d "
+                "(RA_PROTOCOL_STEP_2.md §11), creeping the whole of it",
+                self._plan_distance, board.brake_steps,
+            )
+            self._arm_creep_leg(status, forward)
+            self._plan = _GotoPlan(target_ticks=0, forward=forward, phase=_GotoPhase.CREEP)
+        return True
+
+    def _arm_board_leg(self, status: Status, forward: bool, speed: HaPerSecond, distance: int) -> None:
+        """`:G12x` + `:I1` + `:H1` + `:M1`: the board's own GOTO, as before.
+
+        Nothing here has changed and nothing here can help: the board picks its
+        own cruise rate whatever `:I1` says (§11) and ignores `:M1` outright
+        (§2.2). The commands are still sent because they are what the vendor
+        sends and because `:I1` *is* obeyed on the final crawl (§24.1) — which
+        this driver never reaches, but a board left armed by us should not be
+        left armed with something wilder than a tracking period.
+        """
+        board = self._board()
+        requested_speed_sps = self.convert_speed_to_steps_per_second(speed)
         target_speed_mode = self._get_speed_mode_for_speed_sps(requested_speed_sps)
         self._set_motion(
             MotionStatus(
                 slew_mode=SlewMode.GOTO,
-                direction=Direction.FORWARD if speed > HaPerSecond(0) else Direction.BACKWARD,
+                direction=Direction.FORWARD if forward else Direction.BACKWARD,
                 speed_mode=target_speed_mode,
             ),
             status,
@@ -249,11 +413,31 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         period = board.clamp_period(self._period_from_speed_sps(requested_speed_sps))
         self._last_speed_sps = board.speed_sps_from_period(period, target_speed_mode)
         self._session.set_period(period)
-        self._last_target = abs(delta_steps) % board.cpr
-        self._session.transact(Command.SET_GOTO_TARGET_INCREMENT, SkyWatcherCodec.encode_revu24(self._last_target))
-        self._session.transact(Command.SET_BREAK_POINT_INCREMENT, SkyWatcherCodec.encode_revu24(min(200, self._last_target)))
-        self._last_direction = MotorDirection.FORWARD if speed > HaPerSecond(0) else MotorDirection.BACKWARD
-        return True
+        self._session.transact(Command.SET_GOTO_TARGET_INCREMENT, SkyWatcherCodec.encode_revu24(distance))
+        self._session.transact(Command.SET_BREAK_POINT_INCREMENT, SkyWatcherCodec.encode_revu24(min(200, distance)))
+
+    def _arm_creep_leg(self, status: Status, forward: bool) -> None:
+        """Tracking mode at 16x sidereal: a leg with no target to arrive at.
+
+        This is the half of the scheme that makes it safe. The board only
+        commits suicide when it finishes a GOTO of its own, so the last stretch
+        is run as an ordinary slew, which has no end of its own, and is stopped
+        by the driver on position.
+        """
+        creep_sps = self.convert_speed_to_steps_per_second(STELLAR_SPEED * self._CREEP_MULTIPLE)
+        speed_mode = self._get_speed_mode_for_speed_sps(creep_sps)
+        self._set_motion(
+            MotionStatus(
+                slew_mode=SlewMode.SLEW,
+                direction=Direction.FORWARD if forward else Direction.BACKWARD,
+                speed_mode=speed_mode,
+            ),
+            status,
+        )
+        board = self._board()
+        period = board.clamp_period(self._period_from_speed_sps(creep_sps))
+        self._session.set_period(period)
+        self._last_speed_sps = board.speed_sps_from_period(period, speed_mode)
 
     def set_motion_mode(self, motion_mode: MotionMode) -> bool:
         status = self._session.status()
@@ -310,10 +494,145 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         if self._zero_target_pending:
             self._zero_target_pending = False
             return True
-        if self._last_target is not None and status.slew_mode != SlewMode.GOTO:
+        plan = self._plan
+        if plan is not None and plan.phase == _GotoPhase.BOARD and status.slew_mode != SlewMode.GOTO:
             raise MotorStateError("cannot run before motor motion mode is switched")
+        if self._last_target is not None and plan is None and status.slew_mode != SlewMode.GOTO:
+            raise MotorStateError("cannot run before motor motion mode is switched")
+        if plan is None:
+            self._session.transact(Command.START_MOTION)
+            return True
+        # The target has to be an absolute count before `:J1`, not after: the
+        # board latches `position + increment` at the moment it receives the
+        # command (§7), and every decision the approach makes is "how far is the
+        # axis from *there*".
+        position_before = self._session.position_ticks(fresh=True)
+        if self._session.reboots_detected != reboots_before:
+            # The same window `transact` guards, only one read earlier: this
+            # read is the first thing that touches the board after `run()`
+            # looked at the status, so it is where a reboot in that gap shows
+            # up. Raised rather than returned, exactly as `transact` would have
+            # done — nothing has been sent, and the caller has to know that the
+            # board it armed is gone.
+            self._finish_plan()
+            raise SkyWatcherMotorRebootError(
+                "RA board rebooted before START_MOTION; state restored, motion not started"
+            )
         self._session.transact(Command.START_MOTION)
+        sign = 1 if plan.forward else -1
+        plan.target_ticks = (position_before + sign * self._plan_distance) % self._board().cpr
+        plan.started = True
         return True
+
+    # ------------------------------------------------------------------
+    # the safe GOTO state machine
+    # ------------------------------------------------------------------
+
+    def _service_goto(self, status: Status) -> Status:
+        """Carry the plan of §27 one step further, and return a fresh status.
+
+        Called from :meth:`status` on every poll while a plan is live. Most of
+        those calls do nothing at all: while the axis is further from the target
+        than the watch window, the caller's own polling is fine and this returns
+        straight away. Only inside the window does it take the wheel, and then
+        for a bounded couple of seconds.
+        """
+        for _ in range(self._MAX_SERVICE_STEPS):
+            plan = self._plan
+            if plan is None or not plan.started:
+                return status
+            if status.running:
+                remaining = self._remaining_ticks(plan)
+                watch = self._GOTO_WATCH_TICKS if plan.phase == _GotoPhase.BOARD else self._CREEP_WATCH_TICKS
+                if remaining > watch:
+                    return status
+                self._approach_and_brake(plan)
+                status = self._session.status()
+                continue
+            # The axis is standing: this leg is over, one way or another.
+            remaining = self._remaining_ticks(plan, fresh=True)
+            if remaining <= self._GOTO_TOLERANCE_TICKS:
+                self._logger.info("GOTO finished %d counts from the target after %d creep pass(es)", remaining, plan.passes)
+                self._finish_plan()
+                return status
+            if plan.passes >= self._MAX_CREEP_PASSES:
+                self._logger.warning(
+                    "GOTO gave up %d counts from the target after %d creep passes; "
+                    "the axis above will decide whether to ask again",
+                    remaining, plan.passes,
+                )
+                self._finish_plan()
+                return status
+            self._start_creep_leg(plan, status)
+            status = self._session.status()
+        self._logger.error("GOTO service loop hit its step limit, abandoning the plan")
+        self._finish_plan()
+        return status
+
+    def _approach_and_brake(self, plan: _GotoPlan) -> None:
+        """Poll the last stretch closely and take the axis off it with `:K1`.
+
+        The whole point of the driver is in these few lines: the `:K1` goes out
+        while the axis is still :data:`_GOTO_BRAKE_MARGIN_TICKS` from the
+        target, so the board never reaches the rate step that kills it (§24.2).
+        """
+        lead = self._GOTO_BRAKE_MARGIN_TICKS if plan.phase == _GotoPhase.BOARD else self._CREEP_STOP_LEAD_TICKS
+        deadline = self._clock.monotonic() + self._STOP_TIMEOUT_S
+        while True:
+            remaining = self._remaining_ticks(plan, fresh=True)
+            if remaining <= lead:
+                break
+            if not self._session.status().running:
+                # Something else stopped the leg. Nothing to brake.
+                return
+            if self._clock.monotonic() > deadline:
+                self._logger.warning("approach to the GOTO target stalled %d counts out, braking anyway", remaining)
+                break
+            self._clock.sleep(self._APPROACH_POLL_S)
+        self._session.request_stop()
+        self._session.wait_till_running_clears(self._STOP_TIMEOUT_S)
+
+    def _start_creep_leg(self, plan: _GotoPlan, status: Status) -> None:
+        """One more slow leg towards the target, in whichever direction it is now."""
+        signed = self._signed_error_ticks(plan)
+        forward = signed > 0
+        plan.phase = _GotoPhase.CREEP
+        plan.passes += 1
+        plan.forward = forward
+        self._last_direction = MotorDirection.FORWARD if forward else MotorDirection.BACKWARD
+        self._logger.info(
+            "GOTO creep pass %d: %d counts to go%s",
+            plan.passes, abs(signed), "" if forward else " (backwards, the leg overshot)",
+        )
+        self._arm_creep_leg(status, forward)
+        # The target stays the absolute count `run()` worked out, so an overshoot
+        # is closed by reversing towards the same number rather than by measuring
+        # a fresh increment from wherever the axis landed.
+        self._session.transact(Command.START_MOTION)
+
+    def _remaining_ticks(self, plan: _GotoPlan, fresh: bool = False) -> int:
+        """Counts still to go, never negative: an overshoot reads as zero."""
+        return abs(self._signed_error_ticks(plan, fresh=fresh))
+
+    def _signed_error_ticks(self, plan: _GotoPlan, fresh: bool = False) -> int:
+        """Where the target is relative to the axis, signed by *travel* direction.
+
+        Positive means "still ahead in the direction this plan is going".
+        Reduced around the short way, because the axis counter wraps at CPR and
+        a target one count behind must not read as a full revolution ahead.
+        """
+        cpr = self._board().cpr
+        position = self._session.position_ticks(fresh=fresh)
+        sign = 1 if plan.forward else -1
+        error = (sign * (plan.target_ticks - position)) % cpr
+        if error > cpr // 2:
+            error -= cpr
+        return error
+
+    def _finish_plan(self) -> None:
+        self._plan = None
+        self._last_target = None
+        self._plan_distance = 0
 
     def stop(self) -> bool:
         # §10.3: `K` starts a braking *ramp*. The board answers `=` immediately, but at
@@ -331,12 +650,19 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._session.wait_till_running_clears(timeout_s)
 
     def _request_stop(self) -> None:
+        # The plan goes first: `request_stop` can only be a `:K1`, and a plan
+        # still standing would start a creep leg on the next `status()` and undo
+        # the very stop the caller asked for.
+        self._plan = None
+        self._plan_distance = 0
         self._session.request_stop()
         self._last_target = None
         self._zero_target_pending = False
 
     def reset(self) -> None:
         self.stop()
+        self._plan = None
+        self._plan_distance = 0
         self._last_speed_sps = 0
         self._last_direction = MotorDirection.STOP
         self._last_target = None
@@ -408,5 +734,9 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._session.transact(Command.SET_MOTION_MODE, target.to_command())
 
     def _ensure_not_goto(self, status: Status, message: str) -> None:
-        if status.running and status.slew_mode == SlewMode.GOTO:
+        # A live plan counts as a GOTO in progress even when the board is in
+        # tracking mode for a creep leg (§27): from outside, the move is not
+        # over, and letting a caller re-aim the axis mid-approach would leave
+        # the plan chasing a target nobody holds any more.
+        if (self._plan is not None and self._plan.started) or (status.running and status.slew_mode == SlewMode.GOTO):
             raise MotorStopRequire(message)

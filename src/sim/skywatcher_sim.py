@@ -123,6 +123,41 @@ _INIT_FLAG_RESET_DELAY_S = 0.3
 # the real limit — the limit is lower and is not expressible as a period.
 _SPEED_CEILING_SPS = 9_000.0
 
+# Step 2 §11, §13, §15: **GOTO ignores the step period.** `:I1` is accepted in
+# goto mode, reads back unchanged and is not obeyed — the controller picks the
+# rate itself, exactly as the specification §3.3 says it does ("for GOTO mode,
+# the motor controller handles this automatically"). Measured: a 20 000-count
+# run commanded with `:I1` = 110 359 (145 steps/s) accelerated over ~1.1 s to
+# ~8 600 steps/s, i.e. to the board's own ceiling, and a 1 000-count run
+# commanded the same way peaked at ~7 300 steps/s. So the goto target rate is
+# the ceiling, whatever period is loaded.
+_GOTO_CRUISE_SPS = _SPEED_CEILING_SPS
+
+# ...and the board slows down by itself on the approach, without being asked and
+# without regard to `:m1`/`:M1`: the rate comes off the cruise about 10 000…16 000
+# counts before the target and settles on a ~4 650 steps/s plateau it then holds
+# all the way in (§13: 4 640 measured; §16: 4 611…4 667 on a 1 000-count run;
+# §23: 4 547…4 824 over the last 4 000 counts of a 200 000-count run).
+_GOTO_APPROACH_SPS = 4_650.0
+_GOTO_APPROACH_TICKS = 10_000
+
+# And then, in the last ~200 counts, it drops off that plateau **in one step** to
+# the rate of the period that was loaded with `:I1` — 4 547 -> 145 steps/s
+# between 121 and 100 counts remaining, and 145 steps/s is exactly
+# `timer_freq / 110 359`, the period that run had written (step 2 §23). So `:I1`
+# is not ignored after all: it is ignored for the cruise and obeyed for the
+# final approach, which is what the specification's "the motor controller
+# handles this automatically" (§3.3) turns out to mean in practice.
+#
+# **This step is where the board dies.** All five recorded crashes happened
+# there: 150, 208 and 223 counts short of the target, at 4 600…5 200 steps/s,
+# on a rate change of ~4 500 steps/s taken in one control period. The one run
+# that got through the step to the crawl arrived cleanly (§23).
+#
+# 200 is the middle of the measured window: the transition was seen at ~110
+# counts on the surviving run and at 147…223 on the crashes.
+_GOTO_FINAL_TICKS = 200
+
 # §10.2: the Fast bit of `:f1` follows the *loaded period*, not the `G` letter.
 # Measured bracket: at period 6897 (16x sidereal) the bit stays down even while
 # running, at 1724 (64x) it goes up — including when `G` asked for slow. The
@@ -251,9 +286,14 @@ class SkyWatcherSim:
         battery_volt_hundredths: int = RA_BATTERY_VOLT_HUNDREDTHS,
         usb_volt_hundredths: int = RA_USB_VOLT_HUNDREDTHS,
         brake_steps: int = RA_BRAKE_STEPS,
+        reboot_on_goto_arrival: bool = False,
     ) -> None:
         self._clock = clock
         self.faults = FaultScript()
+        # Off by default, because it is not something *every* SkyWatcher board
+        # does — it is what **this** controller did four times out of four
+        # (step 2 §13, §16). See :meth:`_reboot_on_arrival`.
+        self.reboot_on_goto_arrival = reboot_on_goto_arrival
 
         self.cpr = cpr
         self.timer_freq = timer_freq
@@ -383,13 +423,20 @@ class SkyWatcherSim:
         return min(self.requested_sps(), _SPEED_CEILING_SPS)
 
     def ramps(self) -> bool:
-        """Whether this speed is ramped at all (step 2 §2.6).
+        """Whether this speed is ramped at all (step 2 §2.6, §13).
 
-        The same threshold as the Fast bit, and for the same reason: on the live
-        board 6897 starts and stops instantly, 1724 and 1103 do not. Using one
-        predicate for both keeps the simulator from claiming a combination that
-        was never seen — a ramped run with the Fast bit down.
+        In *tracking* mode the threshold is the Fast bit's, and for the same
+        reason: on the live board 6897 starts and stops instantly, 1724 and 1103
+        do not. Using one predicate for both keeps the simulator from claiming a
+        combination that was never seen — a ramped run with the Fast bit down.
+
+        In *goto* mode there is no threshold, because there is no period to take
+        it from: the board ignores `:I1` and drives to its own rate (§11), and
+        the one fully sampled goto took ~1.1 s to get there from a standstill
+        (§13) even though the loaded period asked for 145 steps/s.
         """
+        if not self.tracking_mode:
+            return True
         return self.step_period * _FAST_SPEED_MULTIPLE <= self.tracking_period_1x
 
     def fast_bit(self) -> bool:
@@ -457,12 +504,17 @@ class SkyWatcherSim:
                 self.tracking_mode = True
             return
 
-        travel = self._ramp_commanded(self.requested_sps(), dt)
         if not self.tracking_mode and self.goto_target is not None:
             # Distance left *in the direction of travel*: a target that lies
             # behind is reached the long way round, exactly as a counter that
             # wraps at CPR would.
             remaining = (sign * (self.goto_target - self.position)) % self.cpr
+            if self.reboot_on_goto_arrival and remaining <= _GOTO_FINAL_TICKS:
+                # The board never gets to make the step down onto the final
+                # crawl: this is the instant all five recorded crashes happened.
+                self._reboot_on_arrival(sign, min(self._commanded_sps, _SPEED_CEILING_SPS))
+                return
+            travel = self._ramp_commanded(self._goto_commanded_sps(remaining), dt)
             if travel >= remaining:
                 self.position = self.goto_target
                 self.goto_target = None
@@ -474,7 +526,50 @@ class SkyWatcherSim:
                 # Auto-return to tracking (speed) mode after the motor stops.
                 self.tracking_mode = True
                 return
-        self.position += sign * travel
+            self.position += sign * travel
+            return
+
+        self.position += sign * self._ramp_commanded(self.requested_sps(), dt)
+
+    def _goto_commanded_sps(self, remaining: float) -> float:
+        """Rate a goto run is heading for, given how far it still has to go.
+
+        Neither half of this comes from the host: `:I1` is ignored in goto mode
+        (§11) and `:m1`/`:M1` have no effect on the deceleration (§2.2, §11).
+        The board cruises at its own ceiling and comes off it on its own about
+        :data:`_GOTO_APPROACH_TICKS` before the target.
+        """
+        if remaining <= _GOTO_APPROACH_TICKS:
+            return _GOTO_APPROACH_SPS
+        return _GOTO_CRUISE_SPS
+
+    def _reboot_on_arrival(self, sign: float, arrival_sps: float) -> None:
+        """The failure of step 2 §13/§16, reproduced: the board dies on arrival.
+
+        Four crashes out of four landed within 150…208 counts of the target,
+        after seconds of healthy running, with the axis going at a steady
+        ~4 650 steps/s — no ramp, no acceleration, no sag on either supply
+        channel. What the board does at that instant is a reset, and the
+        counter comes back at the logical zero **plus the distance the axis
+        coasted while the controller was down**: +645, -1241, +448 and +216
+        were measured at 4 600…8 700 steps/s, and -7 at 145 steps/s (§3.3,
+        §18, §26).
+
+        That coast is modelled as a free stop under the board's own measured
+        brake ramp, 13 000 steps/s² (§2.6): from 4 650 steps/s it gives 831
+        counts, which sits inside the measured 448…1 241 band. The mechanism
+        behind the reset is *not* modelled and is not known — the supply spike
+        the owner suspects lasts milliseconds and the `:C`/`:n` window updates
+        once a second, so it could not have been caught (§16).
+
+        Not modelled either: the ~0.5 s of silence the live board goes through
+        before it answers again. The simulator comes back instantly, so a driver
+        that relies on the timeout to notice a reset would pass here and fail on
+        hardware — which is why the detection keys on state, not on timing.
+        """
+        coast = arrival_sps ** 2 / (2 * _RAMP_SPS_PER_S)
+        self.reboot()
+        self.position = sign * coast
 
     def _ramp_commanded(self, target_sps: float, dt: float) -> float:
         """Move the commanded rate towards ``target_sps`` and return the travel.

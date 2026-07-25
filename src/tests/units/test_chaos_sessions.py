@@ -37,7 +37,9 @@ from sim import Chaos, ChaosProfile, Clock, FaultKind, SimSerialLine, SkyWatcher
 from sky.constants import STELLAR_SPEED
 from sky.motor import MotionMode, MotorDirection, MotorStateError, MotorStopRequire
 from sky.physics import Ha
+from skywatcher.codec import Command, SkyWatcherCodec
 from skywatcher.motor import SkyWatcherMotor, SkyWatcherMotorError
+from skywatcher.session import SkyWatcherSession
 from tmc2209.motor import TMC2209Motor, TMC2209MotorError
 
 _RA_CPR = 8_000_000
@@ -503,6 +505,22 @@ def test_ra_truncated_position_is_rejected_instead_of_zero_extended() -> None:
 # ---------------------------------------------------------------------------
 
 
+def _finish_goto(clock: Clock, motor: SkyWatcherMotor, budget_s: float = 300.0) -> None:
+    """Poll a safe GOTO to the end the way ``Axis`` does.
+
+    The driver only steers the last stretch of a move, and it steers it from
+    ``status()`` — so a test that advances the clock without polling leaves the
+    creep leg running for ever. This is the caller `sky/axis.py` really is.
+    """
+    elapsed = 0.0
+    while elapsed < budget_s:
+        if motor.status().motion_mode != MotionMode.TARGET:
+            return
+        clock.advance(0.5)
+        elapsed += 0.5
+    raise AssertionError("the safe GOTO did not finish inside its budget")
+
+
 def _ra_start_motion_rig(drop_first_start: bool = False) -> tuple[Clock, SkyWatcherSim, SkyWatcherMotor, list[bytes]]:
     """A connected RA motor plus the log of every ``:J1`` that reached the board.
 
@@ -553,32 +571,60 @@ def test_ra_start_motion_is_not_re_sent_while_the_axis_is_running() -> None:
     assert motor.run() is True
 
     assert starts == [b":J1\r"], "the board was told to start a second time while it was already running"
-    clock.advance(delta_steps)  # 2 steps/s, so a second per two steps
+    clock.advance(1.0)
     _settle(sim, b":f1\r")
-    assert sim.position - started_at == pytest.approx(delta_steps, abs=2)
+    # Where the axis *ends up* is no longer decided here: with the safe GOTO of
+    # `RA_PROTOCOL_STEP_2.md` §27 the leg is a slew that the driver stops on
+    # position, so a test that never polls has nothing to stop it. What this one
+    # is about is unchanged, and it is the two lines above: one `:J1` on the
+    # wire, and an axis that really did start.
+    assert sim.running, "the axis was not left running by the one start that reached the board"
+    assert sim.position - started_at > 0
 
 
 def test_ra_start_motion_is_not_re_sent_after_a_goto_that_already_finished() -> None:
     """The distance travelled: the run is over before the driver gets to ask.
 
-    A GOTO of half a minute of hour angle takes a quarter of a second, and the
-    retry handler drains the line for half a second before it looks. ``:f1`` then
-    says "stopped, tracking" — exactly what it says about a start that never
-    happened. The distance is the only difference, and without it the driver
-    re-runs the whole move.
+    A short board GOTO finishes inside the half second the retry handler spends
+    draining the line, and ``:f1`` then says "stopped, tracking" — exactly what
+    it says about a start that never happened. The distance is the only
+    difference, and without it the driver re-runs the whole move.
+
+    Driven through the **session**, not through `SkyWatcherMotor`: the safe GOTO
+    of `RA_PROTOCOL_STEP_2.md` §27 never arms a board leg short enough to end
+    inside that window (it refuses anything under `:c1` = 16 980 counts, which
+    takes ~1.9 s at the board's own rate). The ambiguity the session guards
+    against is therefore no longer reachable from the layer above — which is a
+    reason to pin it here, where it still is, and not a reason to drop it.
     """
-    clock, sim, motor, starts = _ra_start_motion_rig()
-    delta_steps = motor.convert_position_to_steps(Ha(30))
-    motor.set_delta(delta_steps)
+    clock = Clock()
+    sim = SkyWatcherSim(clock, cpr=_RA_CPR, timer_freq=_RA_TIMER_FREQ, highspeed_ratio=_RA_HIGHSPEED_RATIO)
+    starts: list[bytes] = []
+
+    def watch_starts(data: bytes) -> bytes:
+        if data == b":J1\r":
+            starts.append(data)
+        return data
+
+    line = SimSerialLine(
+        sim, clock, transport=Transport(on_write=watch_starts), port="sim://ra", timeout_s=0,
+        name="chaos-ra", terminator="\r",
+    )
+    session = SkyWatcherSession(line, clock)
+    session.open()
+    # Armed by hand, the way the vendor does it: goto, forward, a target the
+    # board reaches in well under the 0.5 s drain.
+    session.transact(Command.SET_MOTION_MODE, "20")
+    session.transact(Command.SET_GOTO_TARGET_INCREMENT, SkyWatcherCodec.encode_revu24(400))
     started_at = sim.position
     sim.faults.push(FaultKind.EMPTY, command="J")
 
-    assert motor.run() is True
+    session.transact(Command.START_MOTION)
 
     assert starts == [b":J1\r"], "a finished GOTO was mistaken for a start that never happened"
     clock.advance(60)
     _settle(sim, b":f1\r")
-    assert sim.position - started_at == pytest.approx(delta_steps, abs=2)
+    assert sim.position - started_at == pytest.approx(400, abs=2)
 
 
 def test_ra_start_motion_that_never_reached_the_board_is_re_sent() -> None:
@@ -742,10 +788,14 @@ def test_ra_retried_start_motion_does_not_extend_the_goto_target() -> None:
     sim.faults.push(FaultKind.EMPTY, command="J")  # the board starts, only its answer is lost
 
     motor.run()
-    clock.advance(60)
-    _settle(sim, b":f1\r")
+    _finish_goto(clock, motor)
 
-    assert sim.position - started_at == pytest.approx(delta_steps, abs=2)
+    # The tolerance is the driver's own (§27): the safe GOTO stops the board leg
+    # short on purpose and closes the rest by creeping, so "did not overshoot by
+    # a retry's worth of travel" is now "landed inside the tolerance" — and a
+    # re-sent `:J1` would have moved the target by tens of thousands of counts,
+    # which is three orders of magnitude outside it.
+    assert sim.position - started_at == pytest.approx(delta_steps, abs=SkyWatcherMotor._GOTO_TOLERANCE_TICKS)
 
 
 def test_dec_only_raises_its_own_error_types() -> None:

@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 
 from sim import Clock, FaultKind, SimSerialLine, SkyWatcherSim, TMC2209Sim
@@ -15,7 +17,7 @@ _RA_CPR = 12_492_146
 _RA_TIMER_FREQ = 16_000_000
 
 
-def _make_ra(**config: int) -> tuple[Clock, SkyWatcherSim, SkyWatcherMotor]:
+def _make_ra(**config: Any) -> tuple[Clock, SkyWatcherSim, SkyWatcherMotor]:
     clock = Clock()
     sim = SkyWatcherSim(clock, **config)
     line = SimSerialLine(sim, clock, port="sim://ra", timeout_s=0, name="sim-ra", terminator="\r")
@@ -136,17 +138,32 @@ def test_skywatcher_goto_reports_the_speed_the_board_will_really_run() -> None:
     motor.set_delta(delta_steps)
     motor.run()
 
-    elapsed_s = 0.0
-    while motor.status().motion_mode != MotionMode.IDLE and elapsed_s < 10 * predicted_eta_s:
+    # Measured off the clock, not off the loop counter: the driver does its own
+    # waiting inside `status()` while it steers the approach, and that time is
+    # real to the axis even though this loop never counted it.
+    started_at_s = clock.monotonic()
+    while motor.status().motion_mode == MotionMode.TARGET and clock.monotonic() - started_at_s < 10 * predicted_eta_s:
         clock.advance(0.1)
-        elapsed_s += 0.1
+    elapsed_s = clock.monotonic() - started_at_s
     # Past the position cache TTL: the loop leaves on a *status* read, and the
     # position that comes with it may be up to 0.25s old — 2 250 counts at the
     # speed this test runs at.
     clock.advance(0.3)
 
-    assert motor.status().steps == delta_steps
-    assert elapsed_s == pytest.approx(predicted_eta_s, rel=0.02)
+    assert motor.status().steps == pytest.approx(delta_steps, abs=SkyWatcherMotor._GOTO_TOLERANCE_TICKS)
+    # One speed cannot express the whole move and is not meant to: the ETA is
+    # the cruise, and on top of it the board spends its own approach — the last
+    # ~10 000 counts at ~4 650 steps/s instead of 9 000 (step 2 §24) — and the
+    # driver spends a creep leg closing the 2 000 counts it braked short of the
+    # target (§27). Those two are ~1.1 s and ~0.9 s here, on a 29 s move; what
+    # the assertion forbids is the failure this number exists for, an ETA that
+    # is out by the factor of eight the period clamp used to hide.
+    approach_penalty_s = 10_000 / 4_650 - 10_000 / reported_sps
+    creep_penalty_s = SkyWatcherMotor._GOTO_BRAKE_MARGIN_TICKS / motor.convert_speed_to_steps_per_second(
+        STELLAR_SPEED * SkyWatcherMotor._CREEP_MULTIPLE
+    )
+    assert predicted_eta_s < elapsed_s
+    assert elapsed_s == pytest.approx(predicted_eta_s + approach_penalty_s + creep_penalty_s, rel=0.15)
 
 
 def test_skywatcher_tracking_drifts_at_sidereal_rate() -> None:

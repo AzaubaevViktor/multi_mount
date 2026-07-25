@@ -71,6 +71,14 @@ class SkyWatcherBoard:
     # the board would not say, and :attr:`power_up_period` computes it instead.
     tracking_period_1x: int = 0
     status_ex: int | None = None
+    # `:c1`, the braking distance the board hard-wires into every GOTO. Not a
+    # setting: `:M1` is accepted at any value and changes nothing, and `:m1` is
+    # always "target - this" (`RA_PROTOCOL_STEP_2.md` §2.2, §11). The driver
+    # needs it because it is the length below which a GOTO's own brake point
+    # falls behind its start — the degenerate geometry the safe GOTO refuses to
+    # hand the board. 16 980 on this controller; the default is the same number
+    # only so that a board which will not answer `:c1` still has a sane bound.
+    brake_steps: int = 16_980
 
     def __post_init__(self) -> None:
         if self.cpr <= 0 or self.timer_freq <= 0 or self.highspeed_ratio <= 0:
@@ -151,6 +159,7 @@ def probe_board(transact: Transactor, logger: logging.Logger) -> tuple[SkyWatche
     board = dataclasses.replace(
         board,
         tracking_period_1x=_optional_value(transact, Command.INQUIRE_TRACKING_PERIOD, None, logger) or 0,
+        brake_steps=_optional_value(transact, Command.INQUIRE_BRAKE_STEPS, None, logger) or board.brake_steps,
         status_ex=_optional_value(transact, Command.INQUIRE_EXTENDED, STATUS_EX_ID, logger),
     )
     min_period, loaded_period = _measure_min_period(transact, board, logger)

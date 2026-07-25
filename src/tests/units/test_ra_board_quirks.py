@@ -9,6 +9,8 @@ driver: the numbers on the board may differ, the behaviour must not.
   flag a few hundred milliseconds later.
 """
 
+from typing import Any
+
 import pytest
 
 from sim import Clock, SimSerialLine, SkyWatcherSim
@@ -19,7 +21,7 @@ from skywatcher.board import SkyWatcherBoard
 from skywatcher.motor import SkyWatcherMotor, SkyWatcherMotorTimeoutError
 
 
-def _make_ra(**config: int) -> tuple[Clock, SkyWatcherSim, SkyWatcherMotor]:
+def _make_ra(**config: Any) -> tuple[Clock, SkyWatcherSim, SkyWatcherMotor]:
     clock = Clock()
     sim = SkyWatcherSim(clock, **config)
     line = SimSerialLine(sim, clock, port="sim://ra", timeout_s=0, name="sim-ra", terminator="\r")
