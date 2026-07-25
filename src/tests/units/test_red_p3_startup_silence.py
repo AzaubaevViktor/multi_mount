@@ -15,6 +15,7 @@ Desired contract for ``connect()`` against a permanently silent mount:
 
 import pytest
 
+from serial_wrapper.wrapper import SerialLine
 from skywatcher.motor import SkyWatcherMotor, SkyWatcherMotorError
 from skywatcher.protocol import Protocol
 
@@ -49,6 +50,11 @@ class _SilentMount:
 
     def close(self) -> None:
         pass
+
+    # The post-error drain is the transport's, not the driver's: the double borrows the
+    # real implementation instead of pretending to be one.
+    _DRAIN_TIMEOUT_S = SerialLine._DRAIN_TIMEOUT_S
+    drain_after_error = SerialLine.drain_after_error
 
 
 def test_connect_error_names_mount_unavailability_and_port() -> None:

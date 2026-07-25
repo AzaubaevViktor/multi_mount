@@ -360,6 +360,38 @@ class SerialLine:
 
         return lines
 
+    # How long a post-error drain waits for a device that may still be talking. Half a
+    # second is what both drivers used, and it is above the slowest answer either board
+    # was measured giving (RA: 4.7 ms, §9; DEC: one 255-byte TX ring at 115 200 baud).
+    _DRAIN_TIMEOUT_S = 0.5
+
+    def drain_after_error(self, logger: logging.Logger, reason: str) -> None:
+        """Read whatever is left on the line, log it, and only then drop the buffers.
+
+        The order is the whole point, and it belongs here rather than in the
+        drivers: it is a property of the transport, and both drivers had their
+        own copy of it. The wrong order -- `drop_buffers()` and then a read that
+        can only come back empty -- is what produced the 20 601 records of `['']`
+        in the March sessions: the bytes that confused the parser were thrown
+        away before anyone looked at them, and the read that followed could only
+        wait half a second for a board that had already said everything. It was
+        found and fixed in the RA driver, and the copy in the DEC driver kept it
+        for months afterwards, long after the two protocols had stopped having
+        anything else in common. One copy cannot drift from the other.
+
+        The caller's logger is passed in on purpose: the line that comes out
+        names the driver that hit the error, not the port that carried it.
+
+        Not decorated with :func:`_disconnect_when_error`: the two calls below
+        carry their own decorators, and their difference is deliberate -- a
+        closed line makes the read a logged no-op, while ``drop_buffers``
+        re-raises, which is the answer a retry loop needs.
+        """
+        data = self.read_all_data(timeout=self._DRAIN_TIMEOUT_S)
+        if data:
+            logger.info("Discarding %d leftover byte-groups after %s: %s", len(data), reason, data)
+        self.drop_buffers()
+
     @property
     def state(self) -> SerialLineState:
         return self._state

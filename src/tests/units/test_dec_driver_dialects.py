@@ -15,6 +15,7 @@ this much machinery — an error is recoverable, a wrong position is not.
 """
 
 import pytest
+from serial_wrapper.wrapper import SerialLine
 from sim import Chaos, ChaosProfile, Clock, SimSerialLine, TMC2209Sim, Transport
 from sky.motor import MotionMode
 from sky.physics import DecStepsPerSecond
@@ -304,6 +305,11 @@ class _OrderRecordingLine:
     def read_all_data(self, timeout: float | None = None) -> list[str] | None:
         self.events.append("read_all_data")
         return ["leftover"]
+
+    # Not a stub: the ordering under test lives in `SerialLine` now, and this double
+    # runs that very implementation against its own recording methods.
+    _DRAIN_TIMEOUT_S = SerialLine._DRAIN_TIMEOUT_S
+    drain_after_error = SerialLine.drain_after_error
 
 
 def test_a_retry_reads_the_leftovers_before_it_throws_them_away() -> None:

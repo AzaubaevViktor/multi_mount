@@ -225,14 +225,7 @@ class SkyWatcherSession:
                 self._logger.debug(
                     "While quering %s(%s) `%s` -> `%s`, %d last", command.name, arg, payload, response, count, exc_info=True
                 )
-                # Read the leftovers *before* dropping them. The old order was the reverse —
-                # `drop_buffers()` and then a read that could only come back empty — which is
-                # why the March logs hold 20 601 records of `['']` and not one byte of the
-                # garbage that actually confused the parser.
-                data = self._serial.read_all_data(timeout=.5)
-                if data:
-                    self._logger.info("Discarding %d leftover byte-groups after a protocol error: %s", len(data), data)
-                self._serial.drop_buffers()
+                self._serial.drain_after_error(self._logger, "a protocol error")
                 # The line has had the same recovery an ordinary retry gives it; only then
                 # is the board asked what happened. A command that must not be repeated is
                 # repeated only after the board has been shown *not* to have executed it —

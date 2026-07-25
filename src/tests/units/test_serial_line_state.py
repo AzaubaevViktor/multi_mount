@@ -1,3 +1,5 @@
+import logging
+
 from serial.serialutil import SerialException
 
 import pytest
@@ -143,3 +145,44 @@ def test_read_all_data_without_timeout_stays_non_blocking(virtual_clock) -> None
     assert lines == [""]
     assert fake.poll_count == 1
     assert virtual_clock.monotonic() == started
+
+
+class _OrderRecordingSerial(_FakeSerial):
+    """Records the order in which the line touches the port, and what it read."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.events: list[str] = []
+        self._pending = [b"garbage\r", b""]
+
+    def read_all(self) -> bytes:
+        self.events.append("read_all")
+        return self._pending.pop(0) if self._pending else b""
+
+    def reset_input_buffer(self) -> None:
+        self.events.append("reset_input_buffer")
+
+    def reset_output_buffer(self) -> None:
+        self.events.append("reset_output_buffer")
+
+
+def test_drain_after_error_reads_the_leftovers_before_dropping_them(virtual_clock, caplog) -> None:
+    """The March defect, now in one place instead of two.
+
+    Both drivers used to carry their own copy of this, and the DEC copy kept the
+    wrong order for months after the RA one was fixed. The order is the whole
+    content of the method: bytes that are dropped first can never be logged.
+    """
+    line = SerialLine("/dev/null", 9600, 0.25, "drain-order", terminator="\r", clock=virtual_clock)
+    port = _OrderRecordingSerial()
+    line.serial = port
+
+    with caplog.at_level("INFO"):
+        line.drain_after_error(logging.getLogger("driver-under-test"), "a protocol error")
+
+    assert port.events[0] == "read_all"
+    assert port.events[-2:] == ["reset_input_buffer", "reset_output_buffer"]
+    assert any(
+        record.name == "driver-under-test" and "garbage" in record.getMessage() and "a protocol error" in record.getMessage()
+        for record in caplog.records
+    ), "the leftovers were dropped before anyone looked at them"
