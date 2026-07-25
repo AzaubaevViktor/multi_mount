@@ -14,11 +14,14 @@ one per line:
   2 decimals — byte for byte what ``docs/protocol/DEC_PROTOCOL.md`` recorded from
   the board.
 
-The firmware parses a **NUL-terminated buffer**: ``strchr(lineBufV2, '#')``,
-``strtok`` and the frame parser all stop at the first NUL, so anything behind one
-is invisible to the board. A frame preceded by a NUL is therefore not answered at
-all (§12.8, measured live), and that is modelled here rather than glossed over —
-it is the one input that defeats the framed dialect's resynchronisation.
+The two dialects differ in how they treat a **NUL** in the line, and the difference
+is deliberate. The frame path is driven by the received *length* (``memchr``, and a
+parser that is handed ``lineLenV2``), so a NUL is just another non-hex byte: a frame
+behind one is answered normally, a NUL inside the hex is refused as damage. The line
+path still runs on a C string, so a leading NUL empties the command and the board
+stays silent (§5.8). Before the length-driven parse landed, the frame path behaved
+like the line path and a frame behind a NUL was lost without a trace — 0 replies out
+of 10 on the bench, against 10 out of 10 after (§12.8).
 
 ``tx_overflow`` is reported in **both** dialects, but only by the reflashed board:
 ``framed=False`` models the firmware still in the field, which has neither the
@@ -358,19 +361,23 @@ class TMC2209Sim:
     def _handle(self, line: str) -> None:
         self._integrate()
 
-        # Everything the firmware does with the line goes through the C string in
-        # `lineBufV2`, so the first NUL ends it: `strchr` finds no marker behind
-        # one and `strtok` finds no command. A frame with a NUL in front of it is
-        # answered with silence, and a NUL before the marker but after some text
-        # turns the frame into an unknown v2 command -- both measured on the board.
-        line = line.split("\x00", 1)[0]
-
-        # A marker anywhere selects the framed dialect. The board that has not been
-        # reflashed has no such rule at all: the frame falls through to the line
-        # parser below, where it is simply a word nobody knows.
+        # A marker anywhere selects the framed dialect, and the search runs over the
+        # whole line: the firmware uses `memchr` with the received length, not
+        # `strchr`, so an embedded NUL no longer ends it early. That distinction was
+        # not free -- with `strchr` a frame behind a NUL was invisible and answered
+        # with silence (0 replies out of 10 on the bench; 10 out of 10 after the fix).
+        #
+        # The board that has not been reflashed has no marker rule at all: the frame
+        # falls through to the line parser below, where it is a word nobody knows.
         if self.framed and FRAME_START in line:
             self._handle_frame(line)
             return
+
+        # The v2 branch still takes a C string, and that is left as it is: the line
+        # protocol has no framing to salvage and its NUL behaviour is documented
+        # (DEC_PROTOCOL.md 5.8) -- a leading NUL empties the command and the board
+        # answers nothing at all.
+        line = line.split("\x00", 1)[0]
 
         tokens = line.split()
         if not tokens:

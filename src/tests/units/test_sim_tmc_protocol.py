@@ -455,36 +455,59 @@ def test_a_frame_behind_a_stump_is_still_a_frame() -> None:
         assert response_values(decode_response(answer, op=Op.STATUS, seq=9))["position"] == "0", prefix
 
 
-def test_a_nul_before_the_marker_makes_the_board_silent() -> None:
-    """The one input that defeats the framed dialect, and it does so quietly.
+def test_a_frame_behind_a_nul_is_answered_normally() -> None:
+    """The regression the length-driven parse exists for, measured both ways.
 
-    `lineBufV2` is a C string: `strchr` stops at the first NUL, so a frame behind
-    one is never recognised as a frame, and the line parser it falls through to
-    sees an empty command and returns without answering. Measured live: 0 replies
-    out of 10, against 10 out of 10 for the same frame without the NUL.
-
-    The host still notices — a missing reply is a timeout, not a wrong value — but
-    the resynchronisation the marker exists for does not happen.
+    The firmware used to pick the dialect with `strchr` over a C string, so a NUL
+    in front of the marker ended the search, the frame was handed to the line
+    parser, and the board answered nothing at all: 0 replies out of 10 on the
+    bench. With `memchr` over the received length it is 10 out of 10, for a bare
+    NUL and for a NUL followed by junk and a stump alike.
     """
     sim = _make_sim()
 
-    sim.feed(b"\x00" + encode_frame(Op.STATUS, 11).encode("ascii"))
+    for prefix in (b"\x00", b"\x00garbage#00FF", b"garbage\x00#00FF"):
+        sim.feed(prefix + encode_frame(Op.STATUS, 11).encode("ascii"))
+        answer = sim.drain().decode("ascii")
 
-    assert sim.drain() == b"", "a NUL in front of the marker swallows the frame whole"
+        assert response_values(decode_response(answer, op=Op.STATUS, seq=11))["position"] == "0", prefix
 
 
-def test_a_nul_after_text_turns_the_frame_into_an_unknown_line_command() -> None:
-    """Same C string, one byte later: the board answers, but in the wrong dialect.
+def test_a_nul_inside_the_hex_is_refused_as_damage() -> None:
+    """The other half: seeing the whole line must not mean accepting a broken one.
 
-    Live, `garbage\\x00#00FF#<frame>` came back as `0;error=unknown_cmd;` — a v2
-    line where a frame was expected, which is what `TMC2209MotorLegacyResponseError`
-    is for.
+    A NUL among the hex digits is a byte that was altered on the way in, and the
+    parser says so rather than stopping at it and calling what came before a frame.
+
+    The damage here lands on the sequence number itself, so the error comes back
+    with `seq=0` -- the parser never got far enough to read one. The board answered
+    exactly this, byte for byte: `#0100000C33F8` for a `seq=12` request
+    (logs/protocol/dec_nul_inside_hex-*.jsonl). A host that sent 12 rejects that
+    reply as stale, which is the safe outcome: no answer beats a wrong one.
+    """
+    sim = _make_sim()
+    frame = encode_frame(Op.STATUS, 12)
+    damaged = (frame[:6] + "\x00" + frame[7:]).encode("ascii")
+
+    sim.feed(damaged)
+    answer = sim.drain().decode("ascii")
+
+    assert answer == "#0100000C33F8\n"
+    assert response_values(decode_response(answer, op=Op.STATUS, seq=0)) == {"error": "bad_frame"}
+
+
+def test_a_leading_nul_still_silences_a_line_command() -> None:
+    """The line dialect keeps its C string, and with it the behaviour of 5.8.
+
+    Nothing was fixed here on purpose: the line protocol has no marker and no
+    length, so there is no framing to salvage -- and the driver that speaks it is
+    the one on boards that were never reflashed.
     """
     sim = _make_sim()
 
-    sim.feed(b"garbage\x00" + encode_frame(Op.STATUS, 12).encode("ascii"))
+    sim.feed(b"\x00status\n")
 
-    assert sim.drain() == b"0;error=unknown_cmd;\n"
+    assert sim.drain() == b""
 
 
 def test_the_board_in_the_field_treats_a_frame_as_one_more_unknown_word() -> None:
