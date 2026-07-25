@@ -23,6 +23,11 @@ so ``bytes.fromhex(row["data"])`` is a lossless inverse by construction.
 Events are not only about bytes: ``open`` / ``close`` / ``reset`` /
 ``drop_buffers`` / ``error`` mark where the session was interrupted, which is
 exactly what makes a replay reproduce a *failed* run and not just a happy one.
+
+``mark`` carries no bytes at all and is written by the *caller*, not by
+``SerialLine``: a recorded scenario (``src/tools/hw_session.py``) needs the
+reader to be able to say which step a given frame belongs to, and byte
+boundaries alone cannot answer that — the same ``:f1\\r`` appears in every step.
 """
 
 import json
@@ -42,6 +47,7 @@ class TraceKind(StrEnum):
     RESET = "reset"
     DROP_BUFFERS = "drop_buffers"
     ERROR = "error"
+    MARK = "mark"
 
 
 @dataclass(frozen=True)
