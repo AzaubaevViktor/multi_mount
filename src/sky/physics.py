@@ -248,6 +248,69 @@ class AxisSpeed(_BasicAriphmetic):
         return super().__truediv__(other)
 
 
+class StepsPerSecond[SPEED_CLS: AxisSpeed](_BasicAriphmetic):
+    """How fast a motor is stepping, on the axis whose sky speed is ``SPEED_CLS``.
+
+    This is the most dangerous number in the project and it was the only one that
+    travelled as a bare ``int``. Three confusions it exists to make impossible:
+
+    * **with the board's timer period.** Speed and period are reciprocal, both
+      integral, both "just a number", and mixing them once cost a factor of
+      800 / 71.8 (``docs/protocol/RA_PROTOCOL_STEP_2.md`` §11). The period is
+      :class:`skywatcher.board.TimerPeriod`, a different class with no
+      arithmetic in common: neither can be passed where the other is expected,
+      and neither can be built from the other by accident. The one legal bridge
+      is :meth:`skywatcher.board.SkyWatcherBoard.period_from_speed_sps` and its
+      inverse, which need the board's own timer frequency to do the job.
+    * **with an angular speed.** ``HaPerSecond`` and ``DecPerSecond`` are
+      :class:`AxisSpeed`; this is not, on purpose — ``AxisSpeed * Second`` is a
+      position, and steps per second times seconds is a step count, which is a
+      different quantity in a different unit. Converting between the two needs
+      the axis geometry (counts per revolution), so it only happens inside a
+      driver, through ``convert_speed_to_steps_per_second`` /
+      ``get_speed_by_speed_sps``, and never through arithmetic here.
+    * **between the axes.** RA and DEC have different counts per revolution, so
+      one axis' steps/s means nothing on the other. That is what the type
+      parameter is for: ``StepsPerSecond[HaPerSecond]`` and
+      ``StepsPerSecond[DecPerSecond]`` are unrelated types to a type checker,
+      and ``Motor``/``Axis`` already carry the axis' ``SPEED_CLS``, so nothing
+      needed a new type parameter to say which axis a rate belongs to.
+
+    The parameter is a phantom: nothing in the body uses it, and that is
+    deliberate — a rate is a rate, the axis is a *label* on it. The label is
+    checked statically; the two concrete subclasses below (:class:`HaStepsPerSecond`,
+    :class:`DecStepsPerSecond`) give the same check at runtime wherever the code
+    is concrete enough to name an axis.
+    """
+
+    UNIT_NAME = "steps/s"
+
+    def __init__(self, steps_per_second: float) -> None:
+        self._steps_per_second = float(steps_per_second)
+
+    def __float__(self) -> float:
+        return self._steps_per_second
+
+    # `*` and `/` are the operators that can change a unit (see the note on
+    # _BasicAriphmetic.__mul__), and here they may not: steps/s times seconds is a
+    # step count, a quantity this project keeps as a plain `int` and never derives
+    # from a rate by multiplication. So both stay unit-preserving and narrow.
+    def __mul__(self, other: float | int) -> Self:
+        return self._scaled(other)
+
+    @overload
+    def __truediv__(self, other: Self) -> float: ...
+
+    @overload
+    def __truediv__(self, other: float | int) -> Self: ...
+
+    def __truediv__(self, other: Any) -> Any:
+        return super().__truediv__(other)
+
+    def __str__(self) -> str:
+        return f"{self._steps_per_second:.0f} steps/s"
+
+
 class HaFormatError(ValueError):
     pass
 
@@ -528,6 +591,14 @@ class DecPerSecond(AxisSpeed):
     def __truediv__(self, other: Any) -> Any:
         return super().__truediv__(other)
 
+class HaStepsPerSecond(StepsPerSecond[HaPerSecond]):
+    """Steps per second on the RA axis. `HaPerSecond` only through the board's CPR."""
+
+
+class DecStepsPerSecond(StepsPerSecond[DecPerSecond]):
+    """Steps per second on the DEC axis. `DecPerSecond` only through the DEC gear train."""
+
+
 class SkyDirection(StrEnum):
     EAST = "east"
     NORTH = "north"
@@ -547,5 +618,3 @@ class Direction(IntEnum):
     FORWARD = 1
     BACKWARD = -1
     STOP = 0
-
-# TODO: Add dedicated step-based unit types such as StepsPerSecond and per-axis step ratios.
