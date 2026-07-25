@@ -1,0 +1,884 @@
+"""The RA conformance case list — one table, read straight off the live board.
+
+Source of every case: ``docs/protocol/RA_PROTOCOL.md``. The section column of a
+case is the claim it pins; if the document and this file disagree, the document
+wins and this file is the bug.
+
+Safety split (see :class:`ra_conformance.model.Safety`):
+
+``READ``    pure inquiries and deliberately malformed input the board rejects
+            before it does anything. Safe on the live board at any moment.
+``WRITE``   changes board state with the axis standing still (step period,
+            motion mode, window address, position, initialization flag). Every
+            such case restores what it changed in its teardown.
+``MOTION``  the axis actually turns. Only ever a short run at a documented
+            period, always followed by ``:K1`` and a wait for the Running bit.
+``NEVER``   must not reach the live board. Two different reasons, spelled out
+            in each case's note:
+            * destructive or irreversible — ``:W1`` (including the UART speed
+              change ``:W10D8004``), ``:R1xx``, ``:N1xx``, ``:Q155AA``;
+            * documented as harmless in §3 but outside the hardware whitelist
+              of ``RA_PROTOCOL_STEP_2.md`` §1.1 — the setters ``A B O P T U V
+              S L`` and ``:z1``. §3 saw them answer ``=``; step 2 dropped them
+              from the whitelist, and this file follows step 2.
+
+Ordering is meaningful only in the sense that hardware runs the list as one
+session. Each case is written to start from and return to the power-on state of
+§12.1 (position ``0x800000``, period 110 359, tracking mode, direction CW), so
+the simulator suite can also run every case against a freshly booted board.
+"""
+
+from ra_conformance.model import (
+    Case,
+    Exchange,
+    Pause,
+    Safety,
+    Step,
+    exact,
+    matching,
+    one_of,
+    silence,
+)
+
+# --------------------------------------------------------------------------- #
+# wire constants, §2 and §10.5
+# --------------------------------------------------------------------------- #
+
+# Revu24 (byte-reversed hex) payloads of the step periods the document names.
+PERIOD_1X = b"17AF01"  # 110 359, the board's own `:D1`
+PERIOD_16X = b"F11A00"  # 6 897, Fast bit still down (§10.2)
+PERIOD_64X = b"BC0600"  # 1 724, Fast bit up (§10.2)
+PERIOD_100X = b"4F0400"  # 1 103, the board's own floor (§10.5)
+LOGICAL_ZERO = b"000080"  # 0x800000, the logical zero of §12.1
+
+BRAKE_STEPS = 16_980  # `:c1` -> `=544200`
+POSITION_OFFSET = 0x800000
+
+# Restores the board to §12.1 after anything that touched the period, the mode
+# or the position. Sent with replies ignored, so it is safe to repeat.
+_RESTORE_IDLE: tuple[bytes, ...] = (
+    b":K1\r",
+    b":I1" + PERIOD_1X + b"\r",
+    b":G110\r",
+    b":E1" + LOGICAL_ZERO + b"\r",
+)
+
+_HEX_BYTE = "=[0-9A-F]{2}\r"
+_HEX_WORD = "=[0-9A-F]{6}\r"
+
+
+def _decode_revu24(reply: bytes) -> int:
+    """``=17AF01\\r`` -> 110359. Deliberately not importing the driver's codec."""
+    body = reply[1:-1].decode("ascii")
+    return int(body[4:6] + body[2:4] + body[0:2], 16)
+
+
+# --------------------------------------------------------------------------- #
+# §2, §3 — constants and inquiries with verbatim answers
+# --------------------------------------------------------------------------- #
+
+# command, verbatim answer, section, what the number means
+_VERBATIM_INQUIRIES: tuple[tuple[bytes, bytes, str, str], ...] = (
+    (b":e1\r", b"=03110A\r", "§2, §3", "прошивка 0x0311, mount code 0x0A"),
+    (b":a1\r", b"=729DBE\r", "§2, §3", "CPR = 12 492 146"),
+    (b":b1\r", b"=0024F4\r", "§2, §3", "TMR_Freq = 16 000 000 Гц"),
+    (b":g1\r", b"=01\r", "§2.1, §13 #3", "highspeed ratio = 1, ответ ровно 2 символа"),
+    (b":D1\r", b"=17AF01\r", "§2, §3", "период 1× трекинга = 110 359"),
+    (b":c1\r", b"=544200\r", "§2, §3", "brake steps = 16 980"),
+    (b":s1\r", b"=000000\r", "§2, §3", "PEC period = 0, PEC у платы нет"),
+    (b":h1\r", b"=000080\r", "§2, §3", "goto target = логический ноль"),
+    (b":d1\r", b"=000080\r", "§2, §3", "Tele. Axis Position"),
+    (b":j1\r", b"=000080\r", "§3, §12.1", "позиция после включения"),
+    (b":i1\r", b"=17AF01\r", "§3, §12.1", "период шага после включения"),
+    (b":n1\r", b"=00\r", "§3", "окно `:C`/`:n` после включения стоит на адресе 0x00"),
+    (b":r1\r", b"=00\r", "§3, §13 #23", "регистровый файл `:A`/`:r` — заглушка"),
+    (b":q1010000\r", b"=008000\r", "§3, §5.1", "Status EX: поднят только Byte2 B3"),
+    (b":q1020000\r", b"=100000\r", "§5", "недокументированный ID 2 = 16"),
+    (b":q1040000\r", b"=A3C9CA\r", "§5", "недокументированный ID 4, константа"),
+    (b":q1050000\r", b"=49DB48\r", "§5", "недокументированный ID 5, константа"),
+)
+
+# §3.2 — every hex character is accepted as a channel; only channel 1 is an axis
+_PHANTOM_CHANNELS: tuple[tuple[bytes, bytes, str], ...] = (
+    (b":e2\r", b"=03110A\r", "константа платы, а не оси"),
+    (b":a2\r", b"=729DBE\r", "константа платы, а не оси"),
+    (b":j2\r", b"=000080\r", "позиция несуществующей оси"),
+    (b":f2\r", b"=000\r", "статус несуществующей оси"),
+    (b":f3\r", b"=000\r", "канал 3 «Both» особым образом не обрабатывается"),
+    (b":f0\r", b"=000\r", "канал 0"),
+    (b":f4\r", b"=000\r", "канал 4"),
+    (b":f9\r", b"=000\r", "канал 9"),
+)
+
+# §7 — which malformed input produces which error code
+_ERROR_CODES: tuple[tuple[str, bytes, bytes, str], ...] = (
+    ("err_unknown_letter", b":X1\r", b"!0\r", "неизвестная буква команды"),
+    ("err_k_not_implemented", b":k10\r", b"!0\r", "§4: документированная, но не реализованная"),
+    ("err_extended_id_0", b":q1000000\r", b"!0\r", "§4: индексатора home-позиции нет"),
+    ("err_extended_id_6", b":q1060000\r", b"!0\r", "§5: ID выше 5 не поддержаны"),
+    ("err_extended_id_ff", b":q1FF0000\r", b"!0\r", "§5: ID выше 5 не поддержаны"),
+    ("err_extended_id_middle_byte", b":q1000100\r", b"!0\r", "§5: перебор среднего байта ID — все `!0`"),
+    ("err_extended_id_high_byte", b":q1000001\r", b"!0\r", "§5: перебор старшего байта ID — все `!0`"),
+    ("err_no_channel", b":f\r", b"!0\r", "§8.2: слишком короткий пакет — не команда"),
+    ("err_empty_command", b":\r", b"!0\r", "пустая команда"),
+    ("err_setter_no_argument", b":I1\r", b"!1\r", "сеттер без аргумента"),
+    ("err_argument_too_short", b":I112\r", b"!1\r", "2 hex вместо 6"),
+    ("err_argument_too_long", b":I100000000\r", b"!1\r", "8 hex вместо 6"),
+    ("err_g_no_argument", b":G1\r", b"!1\r", "неверная длина аргумента G"),
+    ("err_g_argument_too_long", b":G1123456\r", b"!1\r", "неверная длина аргумента G"),
+    ("err_argument_on_inquiry", b":j1000000\r", b"!1\r", "аргумент у запроса, который его не принимает"),
+    ("err_one_extra_char", b":f11\r", b"!1\r", "один лишний символ"),
+    ("err_huge_argument", b":I1" + b"0" * 40 + b"\r", b"!1\r", "сверхдлинный аргумент"),
+    ("err_greedy_length", b":" + b"A" * 60 + b"\r", b"!1\r", "§8.2: буква распознаётся раньше длины"),
+    ("err_non_hex_channel_question", b":f?\r", b"!3\r", "не-hex символ канала"),
+    ("err_non_hex_channel_letter", b":fL\r", b"!3\r", "§6.1: `L` на месте канала"),
+    ("err_non_hex_argument", b":I1ZZZZZZ\r", b"!3\r", "не-hex аргумент"),
+    ("err_non_hex_channel_and_arg", b":IZZZZZZ\r", b"!3\r", "не-hex и канал, и аргумент"),
+    ("err_lowercase_hex", b":I1abcdef\r", b"!3\r", "§13 #17: нижний регистр запрещён"),
+    ("err_minus_in_argument", b":I1-00000\r", b"!3\r", "минус в аргументе"),
+    ("err_space_in_argument", b":I1 00000\r", b"!3\r", "пробел в аргументе"),
+)
+
+# §4 — the full sweep of unused command letters, every one of them `!0`
+_UNUSED_LETTERS = b"XYZloptuvwxy"
+
+# §8 — framing: what is silence and what is not
+_SILENT_INPUT: tuple[tuple[str, bytes, str, str], ...] = (
+    ("frame_bare_cr", b"\r", "§8", "без ведущего `:` реакции нет"),
+    ("frame_garbage", b"garbage\r", "§8", "мусор без двоеточия"),
+    ("frame_no_colon", b"f1\r", "§8", "команда без двоеточия"),
+    ("frame_hash_terminator_fl", b":fL#", "§6.1, §8", "`#` не терминатор: та самая выдуманная `:fL#`"),
+    ("frame_hash_terminator_f1", b":f1#", "§6.1", "`#` не терминатор даже для валидной команды"),
+    ("frame_hash_terminator_e1", b":e1#", "§6.1", "`#` не терминатор даже для валидной команды"),
+)
+
+
+def _verbatim_cases() -> list[Case]:
+    cases: list[Case] = []
+    for send, reply, section, note in _VERBATIM_INQUIRIES:
+        cases.append(
+            Case(
+                name=send.rstrip(b"\r").decode("ascii"),
+                section=section,
+                safety=Safety.READ,
+                steps=(Exchange(send, exact(reply)),),
+                note=note,
+            )
+        )
+    for send, reply, note in _PHANTOM_CHANNELS:
+        cases.append(
+            Case(
+                name=f"phantom {send.rstrip(b'\r').decode('ascii')}",
+                section="§3.2, §13 #16",
+                safety=Safety.READ,
+                steps=(Exchange(send, exact(reply)),),
+                note=note,
+            )
+        )
+    for name, send, reply, note in _ERROR_CODES:
+        cases.append(
+            Case(
+                name=name,
+                section="§7, §8.2",
+                safety=Safety.READ,
+                steps=(Exchange(send, exact(reply)),),
+                note=note,
+            )
+        )
+    for name, send, section, note in _SILENT_INPUT:
+        cases.append(
+            Case(
+                name=name,
+                section=section,
+                safety=Safety.READ,
+                steps=(Exchange(send, silence()),),
+                note=note,
+            )
+        )
+    return cases
+
+
+def _unused_letters_case() -> Case:
+    steps: tuple[Step, ...] = tuple(
+        Exchange(b":" + bytes([letter]) + b"1\r", exact(b"!0\r")) for letter in _UNUSED_LETTERS
+    )
+    return Case(
+        name="unused_command_letters",
+        section="§4",
+        safety=Safety.READ,
+        steps=steps,
+        note="перебор `X Y Z l o p t u v w x y` — недокументированных однобуквенных команд нет",
+    )
+
+
+def _status_case() -> Case:
+    return Case(
+        name=":f1",
+        section="§3, §10.1",
+        safety=Safety.READ,
+        steps=(Exchange(b":f1\r", one_of(b"=100\r", b"=101\r")),),
+        note="стоит, CW, режим трекинга; флаг инициализации зависит от истории сессии",
+    )
+
+
+def _brake_point_case() -> Case:
+    def check(replies: tuple[bytes, ...]) -> str | None:
+        brake_point = _decode_revu24(replies[0])
+        position = _decode_revu24(replies[1])
+        delta = (brake_point - position) % 0x1000000
+        if delta not in (BRAKE_STEPS, 0x1000000 - BRAKE_STEPS):
+            return f"|:m1 - :j1| = {min(delta, 0x1000000 - delta)}, а `:c1` обещает {BRAKE_STEPS}"
+        return None
+
+    return Case(
+        name=":m1 = позиция ± brake steps",
+        section="§3.1",
+        safety=Safety.READ,
+        steps=(
+            Exchange(b":m1\r", matching(_HEX_WORD, "24-битное значение")),
+            Exchange(b":j1\r", matching(_HEX_WORD, "24-битное значение")),
+        ),
+        note="производная величина, а не константа: знак берётся от последнего направления",
+        check=check,
+    )
+
+
+def _drifting_extended_id_case() -> Case:
+    return Case(
+        name=":q1030000",
+        section="§5, §6.8",
+        safety=Safety.READ,
+        steps=(Exchange(b":q1030000\r", matching("=[0-9A-F]{2}0102\r", "=XX0102, дрейфует младший байт")),),
+        note="старшие два байта всегда 0x0201; полное число вольтами не является (§6.7)",
+    )
+
+
+# --------------------------------------------------------------------------- #
+# §8 — framing sequences that need more than one exchange
+# --------------------------------------------------------------------------- #
+
+
+def _framing_cases() -> list[Case]:
+    return [
+        Case(
+            name="frame_cr_completes_command",
+            section="§8",
+            safety=Safety.READ,
+            steps=(
+                Exchange(b":f1", silence()),
+                Exchange(b"\r", one_of(b"=100\r", b"=101\r")),
+            ),
+            note="ответа нет, пока не придёт CR; одиночный CR довершает команду",
+        ),
+        Case(
+            name="frame_second_colon_resets",
+            section="§8, §4.1 спецификации",
+            safety=Safety.READ,
+            steps=(
+                Exchange(b":f", silence()),
+                Exchange(b":j1\r", exact(b"=000080\r")),
+            ),
+            note="второе `:` отбрасывает недобранную команду",
+        ),
+        Case(
+            name="frame_second_command_is_lost",
+            section="§8.1, §13 #18",
+            safety=Safety.READ,
+            steps=(
+                Exchange(b":f1\r:j1\r", one_of(b"=100\r", b"=101\r")),
+                Exchange(None, silence()),
+            ),
+            note="две команды одной записью дают один ответ: плата не буферизует",
+        ),
+        Case(
+            name="frame_pause_delivers_both",
+            section="§8.1",
+            safety=Safety.READ,
+            steps=(
+                Exchange(b":f1\r", one_of(b"=100\r", b"=101\r")),
+                Pause(0.02),
+                Exchange(b":j1\r", exact(b"=000080\r")),
+            ),
+            note="те же две команды с паузой 20 мс дают оба ответа",
+        ),
+    ]
+
+
+# --------------------------------------------------------------------------- #
+# §6.8 — the `:C`/`:n` window: both supply voltages and their quirks
+# --------------------------------------------------------------------------- #
+
+
+def _window_int16(replies: tuple[bytes, ...], low_index: int, high_index: int) -> int:
+    return (int(replies[high_index][1:3], 16) << 8) | int(replies[low_index][1:3], 16)
+
+
+def _voltage_case(name: str, low_address: bytes, high_address: bytes, lo_v: float, hi_v: float, note: str) -> Case:
+    def check(replies: tuple[bytes, ...]) -> str | None:
+        hundredths = _window_int16(replies, 1, 3)
+        if not lo_v * 100 <= hundredths <= hi_v * 100:
+            return f"{hundredths / 100:.2f} В вне диапазона {lo_v:.2f}..{hi_v:.2f} В"
+        return None
+
+    return Case(
+        name=name,
+        section="§6.8",
+        safety=Safety.WRITE,
+        steps=(
+            Exchange(b":C1" + low_address + b"\r", exact(b"=\r")),
+            Exchange(b":n1\r", matching(_HEX_BYTE, "один байт, ровно 2 hex-символа")),
+            Exchange(b":C1" + high_address + b"\r", exact(b"=\r")),
+            Exchange(b":n1\r", matching(_HEX_BYTE, "один байт, ровно 2 hex-символа")),
+        ),
+        note=note,
+        check=check,
+        teardown=(b":C10000\r",),
+    )
+
+
+def _window_cases() -> list[Case]:
+    def no_autoincrement(replies: tuple[bytes, ...]) -> str | None:
+        if replies[1] != replies[2]:
+            return f"адрес уехал сам: {replies[1]!r} затем {replies[2]!r}"
+        return None
+
+    def q3_mirrors_window(replies: tuple[bytes, ...]) -> str | None:
+        if replies[2][1:3] != replies[1][1:3]:
+            return f"`:q1030000` даёт {replies[2]!r}, а окно 0x1C — {replies[1]!r}"
+        return None
+
+    return [
+        _voltage_case(
+            name="volt_battery",
+            low_address=b"0400",
+            high_address=b"0500",
+            lo_v=3.0,
+            hi_v=9.0,
+            note="напряжение батарей: 0x04 младший, 0x05 старший, int16 LE, /100 → вольты",
+        ),
+        _voltage_case(
+            name="volt_usb",
+            low_address=b"1C00",
+            high_address=b"1D00",
+            lo_v=1.0,
+            hi_v=9.0,
+            note="напряжение USB: 0x1C младший, 0x1D старший, тот же формат",
+        ),
+        Case(
+            name="window_has_no_autoincrement",
+            section="§6.8",
+            safety=Safety.WRITE,
+            steps=(
+                Exchange(b":C10500\r", exact(b"=\r")),
+                Exchange(b":n1\r", matching(_HEX_BYTE, "один байт")),
+                Exchange(b":n1\r", matching(_HEX_BYTE, "тот же байт")),
+            ),
+            note="адрес приходится переустанавливать перед каждым чтением; 0x05 — старший байт батареи, стабилен",
+            check=no_autoincrement,
+            teardown=(b":C10000\r",),
+        ),
+        Case(
+            name="q1030000_mirrors_window_1C",
+            section="§6.8, §6.3",
+            safety=Safety.WRITE,
+            steps=(
+                Exchange(b":C11C00\r", exact(b"=\r")),
+                Exchange(b":n1\r", matching(_HEX_BYTE, "младший байт USB-канала")),
+                Exchange(b":q1030000\r", matching("=[0-9A-F]{2}0102\r", "=XX0102 с тем же XX")),
+            ),
+            note="младшие 16 бит `:q1030000` побайтово равны 0x1C/0x1D",
+            check=q3_mirrors_window,
+            teardown=(b":C10000\r",),
+        ),
+    ]
+
+
+# --------------------------------------------------------------------------- #
+# §10.5 — the board clamps the step period at 100x sidereal, whatever is written
+# --------------------------------------------------------------------------- #
+
+
+def _clamp_cases() -> list[Case]:
+    return [
+        Case(
+            name="period_stored_verbatim_above_floor",
+            section="§10.5",
+            safety=Safety.WRITE,
+            steps=(
+                Exchange(b":I1" + PERIOD_16X + b"\r", exact(b"=\r")),
+                Exchange(b":i1\r", exact(b"=" + PERIOD_16X + b"\r")),
+                Exchange(b":I1" + PERIOD_100X + b"\r", exact(b"=\r")),
+                Exchange(b":i1\r", exact(b"=" + PERIOD_100X + b"\r")),
+            ),
+            note="выше предела плата хранит ровно записанное (6 897 и 1 103)",
+            teardown=(b":I1" + PERIOD_1X + b"\r",),
+        ),
+        Case(
+            name="period_clamped_at_1103",
+            section="§10.5, §13 #5",
+            safety=Safety.WRITE,
+            steps=(
+                Exchange(b":I1010000\r", exact(b"=\r")),
+                Exchange(b":i1\r", exact(b"=" + PERIOD_100X + b"\r")),
+                Exchange(b":I1000000\r", exact(b"=\r")),
+                Exchange(b":i1\r", exact(b"=" + PERIOD_100X + b"\r")),
+            ),
+            note="плата принимает `:I1` с любым значением, но хранит max(значение, 1103); ноль тоже 1103",
+            teardown=(b":I1" + PERIOD_1X + b"\r",),
+        ),
+    ]
+
+
+# --------------------------------------------------------------------------- #
+# §10.1, §10.2 — the status byte at rest, and the Fast bit the board owns
+# --------------------------------------------------------------------------- #
+
+
+def _status_bits_cases() -> list[Case]:
+    return [
+        Case(
+            name="goto_mode_returns_to_tracking_after_K",
+            section="§10.3, §13 #19",
+            safety=Safety.WRITE,
+            steps=(
+                Exchange(b":F1\r", exact(b"=\r")),
+                Exchange(b":G120\r", exact(b"=\r")),
+                Exchange(b":f1\r", exact(b"=001\r")),
+                Exchange(b":K1\r", exact(b"=\r")),
+                Exchange(b":f1\r", exact(b"=101\r")),
+            ),
+            note="примечание *4 спецификации: после `K` канал всегда в режиме трекинга (B0 первого символа = 1)",
+            teardown=(b":G110\r",),
+        ),
+        Case(
+            name="E_at_rest_keeps_init_flag",
+            section="§11",
+            safety=Safety.WRITE,
+            steps=(
+                Exchange(b":F1\r", exact(b"=\r")),
+                Exchange(b":E1" + LOGICAL_ZERO + b"\r", exact(b"=\r")),
+                Pause(1.0),
+                Exchange(b":f1\r", exact(b"=101\r")),
+            ),
+            note="контроль к квирку §11: на стоящей оси ни один сеттер флаг не сбрасывает",
+            teardown=(b":E1" + LOGICAL_ZERO + b"\r",),
+        ),
+        Case(
+            name="H_and_M_are_accepted",
+            section="§3",
+            safety=Safety.WRITE,
+            steps=(
+                Exchange(b":H1000000\r", exact(b"=\r")),
+                Exchange(b":M1000000\r", exact(b"=\r")),
+                Exchange(b":h1\r", exact(b"=000080\r")),
+            ),
+            note="сеттеры цели и точки торможения принимаются с `=`; нулевой инкремент оставляет цель на месте",
+            teardown=(b":H1000000\r",),
+        ),
+        Case(
+            name="status_direction_bit",
+            section="§10.1",
+            safety=Safety.WRITE,
+            steps=(
+                Exchange(b":F1\r", exact(b"=\r")),
+                Exchange(b":G111\r", exact(b"=\r")),
+                Exchange(b":f1\r", exact(b"=301\r")),
+                Exchange(b":G110\r", exact(b"=\r")),
+                Exchange(b":f1\r", exact(b"=101\r")),
+            ),
+            note="B1 первого символа: 1 = CCW, 0 = CW",
+            teardown=(b":G110\r",),
+        ),
+        Case(
+            name="fast_bit_is_not_raised_by_G3",
+            section="§10.2, §13 #15",
+            safety=Safety.WRITE,
+            steps=(
+                Exchange(b":F1\r", exact(b"=\r")),
+                Exchange(b":I1" + PERIOD_64X + b"\r", exact(b"=\r")),
+                Exchange(b":G130\r", exact(b"=\r")),
+                Exchange(b":f1\r", exact(b"=101\r")),
+            ),
+            note="запрошен быстрый режим и загружен «быстрый» период 1 724 — в покое бит Fast всё равно сброшен",
+            teardown=(b":I1" + PERIOD_1X + b"\r", b":G110\r"),
+        ),
+    ]
+
+
+# --------------------------------------------------------------------------- #
+# motion: everything that needs the axis to actually turn
+# --------------------------------------------------------------------------- #
+
+
+def _motion_cases() -> list[Case]:
+    return [
+        Case(
+            name="track_16x_fast_bit_down",
+            section="§10.1, §10.2",
+            safety=Safety.MOTION,
+            steps=(
+                Exchange(b":F1\r", exact(b"=\r")),
+                Exchange(b":I1" + PERIOD_16X + b"\r", exact(b"=\r")),
+                Exchange(b":G110\r", exact(b"=\r")),
+                Exchange(b":J1\r", exact(b"=\r")),
+                Exchange(b":f1\r", exact(b"=111\r")),
+                Exchange(b":K1\r", exact(b"=\r")),
+                Pause(2.0),
+                Exchange(b":f1\r", exact(b"=101\r")),
+            ),
+            note="16× сидерических: идёт, CW, бит Fast сброшен",
+            teardown=_RESTORE_IDLE,
+        ),
+        Case(
+            name="track_64x_fast_bit_up",
+            section="§10.2",
+            safety=Safety.MOTION,
+            steps=(
+                Exchange(b":F1\r", exact(b"=\r")),
+                Exchange(b":I1" + PERIOD_64X + b"\r", exact(b"=\r")),
+                Exchange(b":G110\r", exact(b"=\r")),
+                Exchange(b":J1\r", exact(b"=\r")),
+                Exchange(b":f1\r", exact(b"=511\r")),
+                Exchange(b":K1\r", exact(b"=\r")),
+                Pause(2.0),
+                Exchange(b":f1\r", exact(b"=101\r")),
+            ),
+            note="тот же `:G110`, но период 1 724 — плата сама поднимает бит Fast и гасит его при остановке",
+            teardown=_RESTORE_IDLE,
+        ),
+        Case(
+            name="G_while_running_is_rejected",
+            section="§7 код 2",
+            safety=Safety.MOTION,
+            steps=(
+                Exchange(b":F1\r", exact(b"=\r")),
+                Exchange(b":I1" + PERIOD_16X + b"\r", exact(b"=\r")),
+                Exchange(b":G110\r", exact(b"=\r")),
+                Exchange(b":J1\r", exact(b"=\r")),
+                Exchange(b":G111\r", exact(b"!2\r")),
+                Exchange(b":K1\r", exact(b"=\r")),
+            ),
+            note="единственный воспроизведённый `!2 Motor not Stopped`",
+            teardown=_RESTORE_IDLE,
+        ),
+        Case(
+            name="K_is_a_ramp_not_a_switch",
+            section="§10.3, §13 #19",
+            safety=Safety.MOTION,
+            steps=(
+                Exchange(b":F1\r", exact(b"=\r")),
+                Exchange(b":I1" + PERIOD_100X + b"\r", exact(b"=\r")),
+                Exchange(b":G110\r", exact(b"=\r")),
+                Exchange(b":J1\r", exact(b"=\r")),
+                Pause(0.5),
+                Exchange(b":K1\r", exact(b"=\r")),
+                Pause(0.5),
+                Exchange(b":f1\r", exact(b"=511\r")),
+                Pause(2.0),
+                Exchange(b":f1\r", exact(b"=101\r")),
+            ),
+            note="на 100× через полсекунды после `:K1` ось всё ещё Running; направление сохраняется, Fast гаснет",
+            teardown=_RESTORE_IDLE,
+        ),
+        Case(
+            name="E_while_running_is_accepted",
+            section="§11, §13 #7",
+            safety=Safety.MOTION,
+            steps=(
+                Exchange(b":F1\r", exact(b"=\r")),
+                Exchange(b":I1" + PERIOD_16X + b"\r", exact(b"=\r")),
+                Exchange(b":G110\r", exact(b"=\r")),
+                Exchange(b":J1\r", exact(b"=\r")),
+                Exchange(b":E1" + LOGICAL_ZERO + b"\r", exact(b"=\r")),
+                Exchange(b":K1\r", exact(b"=\r")),
+            ),
+            note="спецификация требует остановленный мотор, плата принимает с `=` — защита обязана быть на хосте",
+            teardown=_RESTORE_IDLE,
+        ),
+        Case(
+            name="E_while_running_clears_init_flag",
+            section="§11",
+            safety=Safety.MOTION,
+            steps=(
+                Exchange(b":F1\r", exact(b"=\r")),
+                Exchange(b":I1" + PERIOD_16X + b"\r", exact(b"=\r")),
+                Exchange(b":G110\r", exact(b"=\r")),
+                Exchange(b":J1\r", exact(b"=\r")),
+                Exchange(b":f1\r", exact(b"=111\r")),
+                Exchange(b":E1" + LOGICAL_ZERO + b"\r", exact(b"=\r")),
+                Pause(1.0),
+                Exchange(b":f1\r", exact(b"=110\r")),
+                Exchange(b":K1\r", exact(b"=\r")),
+            ),
+            note="флаг сбрасывается асинхронно, через сотни миллисекунд; между `:E` и паузой запросов нет (§11, бисекция)",
+            teardown=_RESTORE_IDLE,
+        ),
+        Case(
+            name="S_while_running_is_accepted",
+            section="§13 #8",
+            safety=Safety.NEVER,
+            steps=(
+                Exchange(b":F1\r", exact(b"=\r")),
+                Exchange(b":I1" + PERIOD_16X + b"\r", exact(b"=\r")),
+                Exchange(b":G110\r", exact(b"=\r")),
+                Exchange(b":J1\r", exact(b"=\r")),
+                Exchange(b":S1" + LOGICAL_ZERO + b"\r", exact(b"=\r")),
+                Exchange(b":K1\r", exact(b"=\r")),
+            ),
+            note="`:S1` вне белого списка RA_PROTOCOL_STEP_2 §1.1 — на железо не шлём, проверяем только на симуляторе",
+            teardown=_RESTORE_IDLE,
+        ),
+        Case(
+            name="J_without_F_has_no_error_4",
+            section="§7 код 4, §13 #9",
+            safety=Safety.MOTION,
+            steps=(
+                # Снять флаг инициализации нечем, кроме самого квирка §11: `:E`
+                # на ходу. Поэтому кейс сначала воспроизводит его, а уже потом
+                # проверяет утверждение «`:J1` без `:F1` принимается».
+                Exchange(b":F1\r", exact(b"=\r")),
+                Exchange(b":I1" + PERIOD_16X + b"\r", exact(b"=\r")),
+                Exchange(b":G110\r", exact(b"=\r")),
+                Exchange(b":J1\r", exact(b"=\r")),
+                Exchange(b":E1" + LOGICAL_ZERO + b"\r", exact(b"=\r")),
+                Pause(1.0),
+                Exchange(b":K1\r", exact(b"=\r")),
+                Pause(2.0),
+                Exchange(b":f1\r", exact(b"=100\r")),
+                Exchange(b":J1\r", exact(b"=\r")),
+                Exchange(b":K1\r", exact(b"=\r")),
+            ),
+            note="флаг инициализации у этой платы — индикатор, а не защита; `!4` не воспроизводится в принципе",
+            teardown=_RESTORE_IDLE,
+        ),
+        Case(
+            name="brake_point_follows_direction",
+            section="§3.1",
+            safety=Safety.MOTION,
+            steps=(
+                Exchange(b":F1\r", exact(b"=\r")),
+                Exchange(b":I1" + PERIOD_16X + b"\r", exact(b"=\r")),
+                Exchange(b":G111\r", exact(b"=\r")),
+                Exchange(b":J1\r", exact(b"=\r")),
+                Pause(0.5),
+                Exchange(b":K1\r", exact(b"=\r")),
+                Pause(2.0),
+                Exchange(b":f1\r", exact(b"=301\r")),
+                Exchange(b":m1\r", matching(_HEX_WORD, "24-битное значение")),
+                Exchange(b":j1\r", matching(_HEX_WORD, "24-битное значение")),
+            ),
+            note="после хода CCW статус `=301`, а brake point уходит на `+ brake steps` от позиции",
+            check=_brake_point_after_ccw,
+            teardown=_RESTORE_IDLE,
+        ),
+        _speed_case("speed_at_64x_slow_mode", b":G110\r", "режим `G '1'` (медленный)"),
+        _speed_case("speed_at_64x_highspeed_mode", b":G130\r", "режим `G '3'` (быстрый)"),
+        Case(
+            name="restore_logical_zero",
+            section="§10.6, §12.1",
+            safety=Safety.MOTION,
+            steps=(
+                Exchange(b":K1\r", exact(b"=\r")),
+                Pause(2.0),
+                Exchange(b":f1\r", one_of(b"=100\r", b"=101\r", b"=300\r", b"=301\r")),
+                Exchange(b":E1" + LOGICAL_ZERO + b"\r", exact(b"=\r")),
+                Exchange(b":j1\r", exact(b"=000080\r")),
+                Exchange(b":I1" + PERIOD_1X + b"\r", exact(b"=\r")),
+                Exchange(b":i1\r", exact(b"=17AF01\r")),
+                Exchange(b":F1\r", exact(b"=\r")),
+            ),
+            note="финал сессии: ось стоит, позиция и период возвращены к §12.1",
+            teardown=_RESTORE_IDLE,
+        ),
+    ]
+
+
+# §10.4: speed obeys `steps/s = TMR_Freq / period` and nothing else. The board's
+# own measurement came out 2.1% above the formula (9478 against 9280.7), so the
+# window is wide enough for that and for the ~2 ms each exchange spends on the
+# wire, and still far too narrow to survive a stray highspeed multiplier.
+_SPEED_RUN_S = 3.0
+_SPEED_TOLERANCE = 0.10
+_TIMER_FREQ = 16_000_000
+_SPEED_PERIOD = 1_724
+
+
+def _speed_case(name: str, mode_command: bytes, mode_note: str) -> Case:
+    expected = _TIMER_FREQ / _SPEED_PERIOD * _SPEED_RUN_S
+
+    def check(replies: tuple[bytes, ...]) -> str | None:
+        # Индексы — по обменам кейса: 3 — `:j1` до старта, 5 — `:j1` на ходу.
+        travelled = (_decode_revu24(replies[5]) - _decode_revu24(replies[3])) % 0x1000000
+        if abs(travelled - expected) > expected * _SPEED_TOLERANCE:
+            return (
+                f"за {_SPEED_RUN_S} с ось прошла {travelled} отсчётов, "
+                f"а TMR_Freq/период даёт {expected:.0f} ±{_SPEED_TOLERANCE:.0%}"
+            )
+        return None
+
+    return Case(
+        name=name,
+        section="§10.4",
+        safety=Safety.MOTION,
+        steps=(
+            Exchange(b":F1\r", exact(b"=\r")),
+            Exchange(b":I1" + PERIOD_64X + b"\r", exact(b"=\r")),
+            Exchange(mode_command, exact(b"=\r")),
+            Exchange(b":j1\r", matching(_HEX_WORD, "позиция до старта")),
+            Exchange(b":J1\r", exact(b"=\r")),
+            Pause(_SPEED_RUN_S),
+            Exchange(b":j1\r", matching(_HEX_WORD, "позиция на ходу, до торможения")),
+            Exchange(b":K1\r", exact(b"=\r")),
+        ),
+        note=f"{mode_note}: скорость = TMR_Freq / период, множителя highspeed на этой плате нет",
+        check=check,
+        teardown=_RESTORE_IDLE,
+    )
+
+
+def _brake_point_after_ccw(replies: tuple[bytes, ...]) -> str | None:
+    brake_point = _decode_revu24(replies[-2])
+    position = _decode_revu24(replies[-1])
+    if (brake_point - position) % 0x1000000 != BRAKE_STEPS:
+        return f"`:m1 - :j1` = {(brake_point - position) % 0x1000000}, а после хода CCW ожидается +{BRAKE_STEPS}"
+    return None
+
+
+# --------------------------------------------------------------------------- #
+# NEVER — what must not reach the live board
+# --------------------------------------------------------------------------- #
+
+# name, payload, what the simulator answers, why it never goes to hardware
+_NEVER_CASES: tuple[tuple[str, bytes, bytes, str, str], ...] = (
+    (
+        "never_W_extended_setting",
+        b":W1000009\r",
+        b"!0\r",
+        "§14, план §5",
+        "Extended Setting, включая «write flash buffer to flash ROM» — необратимо",
+    ),
+    (
+        "never_W_uart_speed",
+        b":W10D8004\r",
+        b"!0\r",
+        "§13 #1, план §5",
+        "смена скорости UART: ошибка оставляет плату на скорости, к которой не подключиться",
+    ),
+    (
+        "never_R_set_register",
+        b":R100\r",
+        b"!0\r",
+        "§14",
+        "запись в регистры, назначение которых неизвестно",
+    ),
+    (
+        "never_N_set_eeprom",
+        b":N100\r",
+        b"!0\r",
+        "§14",
+        "запись в окно ОЗУ, где лежат оба живых напряжения",
+    ),
+    (
+        "never_Q_bootloader",
+        b":Q155AA\r",
+        b"!0\r",
+        "§14",
+        "перевод в загрузчик, откуда плата не отвечает по обычному протоколу",
+    ),
+    (
+        "never_A_set_register_address",
+        b":A100\r",
+        b"=\r",
+        "§3",
+        "§3 видел `=`, но `:A1` вне белого списка RA_PROTOCOL_STEP_2 §1.1",
+    ),
+    (
+        "never_B_sleep",
+        b":B11\r",
+        b"=\r",
+        "§3, §7 код 5",
+        "принимается с `=`, статус не меняется; вне белого списка шага 2",
+    ),
+    (
+        "never_O_set_polar_led",
+        b":O10\r",
+        b"=\r",
+        "§3",
+        "вне белого списка шага 2",
+    ),
+    (
+        "never_P_set_autoguide",
+        b":P10\r",
+        b"=\r",
+        "§3",
+        "вне белого списка шага 2",
+    ),
+    (
+        "never_T_set_break_point",
+        b":T1000000\r",
+        b"=\r",
+        "§3",
+        "вне белого списка шага 2",
+    ),
+    (
+        "never_U_set_break_step",
+        b":U1000000\r",
+        b"=\r",
+        "§3",
+        "вне белого списка шага 2",
+    ),
+    (
+        "never_V_set_led_brightness",
+        b":V100\r",
+        b"=\r",
+        "§3",
+        "вне белого списка шага 2",
+    ),
+    (
+        "never_L_instant_stop",
+        b":L1\r",
+        b"=\r",
+        "§3",
+        "Instant Stop: рампа не измерена, вне белого списка шага 2",
+    ),
+    (
+        "never_z_debug_flag",
+        b":z1\r",
+        b"=\r",
+        "§3",
+        "Set Debug Flag: отвечает `=`, наблюдаемого эффекта нет; вне белого списка шага 2",
+    ),
+)
+
+
+def _never_cases() -> list[Case]:
+    return [
+        Case(
+            name=name,
+            section=section,
+            safety=Safety.NEVER,
+            steps=(Exchange(send, exact(reply)),),
+            note=note,
+        )
+        for name, send, reply, section, note in _NEVER_CASES
+    ]
+
+
+def build_cases() -> tuple[Case, ...]:
+    """The whole list, in the order a hardware session executes it."""
+    cases: list[Case] = []
+    cases.extend(_verbatim_cases())
+    cases.append(_status_case())
+    cases.append(_brake_point_case())
+    cases.append(_drifting_extended_id_case())
+    cases.append(_unused_letters_case())
+    cases.extend(_framing_cases())
+    cases.extend(_window_cases())
+    cases.extend(_clamp_cases())
+    cases.extend(_status_bits_cases())
+    cases.extend(_motion_cases())
+    cases.extend(_never_cases())
+    return tuple(cases)
+
+
+CASES: tuple[Case, ...] = build_cases()

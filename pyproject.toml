@@ -150,6 +150,15 @@ ignore = [
 # src/__main__.py mutates sys.path before importing project modules — that is the
 # documented entry-point bootstrap, not an accident.
 "src/__main__.py" = ["E402"]
+# The RA conformance suite quotes docs/protocol/RA_PROTOCOL.md — a Russian
+# document — in every case note, and renders a Russian report table meant to be
+# pasted back into it. So Cyrillic sits next to ASCII command names in the same
+# string, and RUF001/RUF003 fire on the homoglyphs (`у`, `с`, `×`). That mixture
+# is the point of these files, not a confusable-character attack.
+"src/ra_conformance/*.py" = ["RUF001", "RUF003"]
+"src/tests/units/test_ra_conformance.py" = ["RUF001", "RUF003"]
+"src/tests/hw/test_ra_conformance_hw.py" = ["RUF001", "RUF003"]
+"src/tools/ra_conformance.py" = ["RUF001", "RUF003"]
 
 # -- BASELINE (file-scoped, so these rules stay enforced everywhere else) ----------------
 # src/stdout_dashboard.py renders internal axis/combiner state (27 hits). That is the
