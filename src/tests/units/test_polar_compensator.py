@@ -307,6 +307,78 @@ class TestWithinToleranceBoundary:
         assert comp.stable_guide_ra_pulses_count == 0
 
 
+class TestPercentDeltaIsDimensionless:
+    """PLAN.md #32: the stability check's `percent_delta` must be a percentage.
+
+    It used to divide the speed difference by `prev_speed` when that was
+    non-zero and by a bare `1` when both speeds were zero. Dividing a speed by a
+    plain number keeps the unit, so in that last branch the "percentage" came
+    back as a `DecPerSecond`/`HaPerSecond` — a rate masquerading as a ratio,
+    then compared against `*_SPEED_TOLERANCE_PERCENT` and printed as `%.3f%%`.
+    """
+
+    @pytest.mark.parametrize(
+        "speed,prev_speed",
+        [
+            (DecPerSecond(0), DecPerSecond(0)),  # the reachable one: first DEC pulse of width 0
+            (DecPerSecond(0.02), DecPerSecond(0)),
+            (DecPerSecond(0), DecPerSecond(0.02)),
+            (DecPerSecond(-1.0), DecPerSecond(1.0)),
+            (HaPerSecond(0), HaPerSecond(0)),
+            (STELLAR_SPEED, STELLAR_SPEED),
+            (STELLAR_SPEED * 1.05, STELLAR_SPEED),
+        ],
+    )
+    def test_every_branch_returns_a_plain_number(self, speed, prev_speed):
+        delta = PolarCompensator._percent_delta(speed, prev_speed)
+
+        assert type(delta) is float
+
+    @pytest.mark.parametrize(
+        "speed,prev_speed,expected",
+        [
+            (STELLAR_SPEED * 1.05, STELLAR_SPEED, 5.0),
+            (STELLAR_SPEED * 0.9, STELLAR_SPEED, -10.0),
+            (DecPerSecond(0), DecPerSecond(0), 0.0),
+            # A speed leaving a standstill has no meaningful relative size; a full
+            # 100% keeps it above every tolerance, which is what "not stable" means.
+            (DecPerSecond(0.02), DecPerSecond(0), 100.0),
+            (DecPerSecond(-0.02), DecPerSecond(0), 100.0),
+        ],
+    )
+    def test_the_percentage_itself_is_unchanged(self, speed, prev_speed, expected):
+        assert PolarCompensator._percent_delta(speed, prev_speed) == pytest.approx(expected, abs=1e-9)
+
+    def test_first_zero_width_dec_pulse_reports_a_number_not_a_rate(self, virtual_clock: VirtualClock):
+        """`Combiner.guide(SOUTH, ms=0)` yields exactly `DecPerSecond(0)` on a fresh axis."""
+        comp = _make_compensator(virtual_clock)
+
+        _at(virtual_clock, 1.0)
+        comp.guide_dec(DecPerSecond(0))
+
+        assert type(comp.last_dec_percent_delta) is float
+        assert comp.last_dec_percent_delta == pytest.approx(0.0, abs=1e-9)
+
+    def test_ra_pulse_reports_the_percentage_it_measured(self, virtual_clock: VirtualClock):
+        comp = _make_compensator(virtual_clock)
+
+        _send_pulse_pair(virtual_clock, comp, STELLAR_SPEED, DecPerSecond(0), t=1.0)
+        _send_pulse_pair(virtual_clock, comp, STELLAR_SPEED * 1.05, DecPerSecond(0), t=2.0)
+
+        assert type(comp.last_ra_percent_delta) is float
+        assert comp.last_ra_percent_delta == pytest.approx(5.0, abs=1e-9)
+
+    def test_reset_clears_the_reported_deltas(self, virtual_clock: VirtualClock):
+        comp = _make_compensator(virtual_clock)
+        _send_pulse_pair(virtual_clock, comp, STELLAR_SPEED, DecPerSecond(0), t=1.0)
+        _send_pulse_pair(virtual_clock, comp, STELLAR_SPEED * 1.05, DecPerSecond(0.02), t=2.0)
+
+        comp.reset()
+
+        assert comp.last_ra_percent_delta == 0.0
+        assert comp.last_dec_percent_delta == 0.0
+
+
 class TestAverageGuideSpeeds:
     def test_keeps_requested_guide_speeds_in_average(self, virtual_clock: VirtualClock):
         comp = _make_compensator(virtual_clock)

@@ -43,6 +43,9 @@ class PolarCompensator:
         self.eps_E: Ha | None
         self.eps_N: Dec | None
         self.is_guiding: bool
+        self.last_ra_percent_delta: float
+        self.last_dec_percent_delta: float
+        """Relative change the last guide pulse brought, in percent. Diagnostics only."""
 
         self.reset(last_guide_pulse=Second.monotonic())
 
@@ -58,6 +61,8 @@ class PolarCompensator:
 
         self.stable_guide_ra_pulses_count = 0
         self.stable_guide_dec_pulses_count = 0
+        self.last_ra_percent_delta = 0.0
+        self.last_dec_percent_delta = 0.0
 
         self.last_guide_pulse = last_guide_pulse
         self.last_ra_guide_pulse = last_guide_pulse
@@ -94,7 +99,33 @@ class PolarCompensator:
     def _clean[SPEED_CLS: AxisSpeed](values: Sequence[SPEED_CLS]) -> SPEED_CLS:
         """Average of a same-unit window, in that same unit."""
         return type(values[0])(sum(float(x) for x in values) / len(values))
-    
+
+    @staticmethod
+    def _percent_delta(speed: AxisSpeed, prev_speed: AxisSpeed) -> float:
+        """How far ``speed`` is from ``prev_speed``, in percent. Always a plain number.
+
+        Dividing one speed by another of the same unit cancels the unit, so the
+        result is dimensionless -- which is what both consumers need: it is
+        compared against ``*_SPEED_TOLERANCE_PERCENT`` (a percentage) and printed
+        with ``%.3f%%``.
+
+        The previous expression only got that right by accident. It divided by
+        ``prev_speed`` when that was non-zero, and by a bare ``1`` when both
+        speeds were zero -- and dividing a speed by a number keeps the unit, so
+        the "percentage" came back as a ``DecPerSecond``. That branch is reached
+        by the very first DEC guide pulse of width 0 (``DEC_GUIDE_SPEED.default``
+        is ``DecPerSecond(0)`` and the axis starts at 0), i.e. on the first guide
+        pulse of a session.
+
+        A change away from a standstill has no meaningful relative size, so it is
+        reported as a full 100% -- above any tolerance, which is the intent: a
+        speed that just left zero is not stable.
+        """
+        reference = float(prev_speed) or float(speed)
+        if reference == 0:
+            return 0.0
+        return (float(speed) - float(prev_speed)) / reference * 100
+
     def guide_ra(self, speed: HaPerSecond) -> None:
         prev_speed = self._ra_speeds[-1]
         prev_average_speed = self.ra_speed
@@ -106,18 +137,12 @@ class PolarCompensator:
         self.last_guide_pulse = now
         self.last_ra_guide_pulse = now
 
-        # Dimensionally inconsistent by construction: dividing by a same-unit value
-        # yields a plain ratio, but the `else 1` fallback divides by a bare number and
-        # so keeps the speed unit. Both branches are only ever compared against a
-        # percentage and formatted with %f, which works either way. The explicit
-        # float() below is the tolerance check saying it wants a magnitude, not a rate.
-        percent_delta: float | HaPerSecond = (
-            (speed - prev_speed) / (prev_speed if prev_speed != 0 else (speed if speed != 0 else 1)) * 100
-        )
+        percent_delta = self._percent_delta(speed, prev_speed)
+        self.last_ra_percent_delta = percent_delta
 
         if self.stable_guide_ra_pulses_count == 0 and prev_speed == STELLAR_SPEED:
             self.stable_guide_ra_pulses_count = 1
-        elif abs(float(percent_delta)) < self.RA_SPEED_TOLERANCE_PERCENT:
+        elif abs(percent_delta) < self.RA_SPEED_TOLERANCE_PERCENT:
             self.stable_guide_ra_pulses_count += 1
         else:
             self.stable_guide_ra_pulses_count = 0
@@ -137,14 +162,12 @@ class PolarCompensator:
         self.last_guide_pulse = now
         self.last_dec_guide_pulse = now
 
-        # See the note in guide_ra about the unit of this value.
-        percent_delta: float | DecPerSecond = (
-            (speed - prev_speed) / (prev_speed if prev_speed != 0 else (speed if speed != 0 else 1)) * 100
-        )
+        percent_delta = self._percent_delta(speed, prev_speed)
+        self.last_dec_percent_delta = percent_delta
 
         if self.stable_guide_dec_pulses_count == 0 and prev_speed == DecPerSecond(0):
             self.stable_guide_dec_pulses_count = 1
-        elif abs(float(percent_delta)) < self.DEC_SPEED_TOLERANCE_PERCENT:
+        elif abs(percent_delta) < self.DEC_SPEED_TOLERANCE_PERCENT:
             self.stable_guide_dec_pulses_count += 1
         else:
             self.stable_guide_dec_pulses_count = 0
