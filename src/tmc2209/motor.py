@@ -1,8 +1,8 @@
 import dataclasses
 import logging
-import time
 from enum import StrEnum
 
+from clock import NEVER, REAL_CLOCK, Clock
 from serial_wrapper.wrapper import SerialLine
 from sky.motor import MotionMode, Motor, MotorDirection, MotorStateError, MotorStatus, MotorStopRequire
 from sky.physics import Dec, DecPerSecond
@@ -31,6 +31,18 @@ class TMC2209MotorCommandError(TMC2209MotorError):
     pass
 
 
+class TMC2209MotorTimeoutError(TMC2209MotorProtocolError):
+    """Nothing came back at all: the controller is silent or the port is gone."""
+
+
+class TMC2209MotorTruncatedResponseError(TMC2209MotorProtocolError):
+    """A response arrived cut off - the controller dropped bytes or the read timed out mid-line."""
+
+
+class TMC2209MotorConcatenatedResponseError(TMC2209MotorProtocolError):
+    """Two responses arrived glued together, the first one having lost its terminator."""
+
+
 class _Phase(StrEnum):
     IDLE = "idle"
     HOLD = "hold"
@@ -53,13 +65,21 @@ class _Response:
     @classmethod
     def from_line(cls, line: str) -> "_Response":
         cleaned = line.strip()
+        if not cleaned:
+            raise TMC2209MotorTimeoutError("no response: controller sent nothing before the read timed out")
         tokens = [token for token in cleaned.split(RESPONSE_DELIMITER) if token]
         if not tokens or tokens[0] not in {"0", "1"}:
-            raise TMC2209MotorProtocolError(f"invalid response: {line!r}")
+            raise TMC2209MotorProtocolError(f"unrecognised response, no `0;`/`1;` status prefix: {line!r}")
+        # A bare status prefix inside the line means the previous response lost its
+        # terminator and the next one was appended to it.
+        if any(token in {"0", "1"} for token in tokens[1:]):
+            raise TMC2209MotorConcatenatedResponseError(f"two responses glued into one line: {line!r}")
+        if not cleaned.endswith(RESPONSE_DELIMITER):
+            raise TMC2209MotorTruncatedResponseError(f"response cut off before its terminator: {line!r}")
         values: dict[str, str] = {}
         for token in tokens[1:]:
             if KEY_VALUE_SEPARATOR not in token:
-                raise TMC2209MotorProtocolError(f"missing separator in token: {token!r}")
+                raise TMC2209MotorTruncatedResponseError(f"response cut off inside token {token!r}: {line!r}")
             key, value = token.split(KEY_VALUE_SEPARATOR, 1)
             if not key or value == "":
                 raise TMC2209MotorProtocolError(f"invalid key-value token: {token!r}")
@@ -81,6 +101,8 @@ class _Status:
     actual_speed_sps: float
     accel_steps_per_s: float
     power_v: float | None = None
+    # Firmware older than the TX-ring fix does not report it; None means "unknown", not zero.
+    tx_overflow: int | None = None
 
     @classmethod
     def from_response(cls, response: _Response) -> "_Status":
@@ -96,6 +118,7 @@ class _Status:
             actual_speed_sps=float(response.values["actual_speed"]),
             accel_steps_per_s=float(response.values["accel_per_s"]),
             power_v=float(response.values["power_v"]) if "power_v" in response.values else None,
+            tx_overflow=int(response.values["tx_overflow"]) if "tx_overflow" in response.values else None,
         )
 
 
@@ -105,14 +128,16 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
     _READY_TIMEOUT_S = 10.0
     _POWER_CACHE_TTL_S = 2.0
 
-    def __init__(self, serial: SerialLine) -> None:
+    def __init__(self, serial: SerialLine, clock: Clock = REAL_CLOCK) -> None:
         self._serial = serial
+        self._clock = clock
         self._logger = logging.getLogger(type(self).__name__)
         self._microsteps = 16
         self._is_connected = False
         self._direction = MotorDirection.STOP
         self._last_power_v: float | None = None
-        self._last_power_v_updated = 0.0
+        self._last_power_v_updated = NEVER
+        self._last_tx_overflow: int | None = None
 
     def connect(self):
         ready = ""
@@ -121,8 +146,8 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
             self._serial.reset()
             self._serial.read_all_data()
 
-            deadline = time.monotonic() + self._READY_TIMEOUT_S
-            while time.monotonic() < deadline:
+            deadline = self._clock.monotonic() + self._READY_TIMEOUT_S
+            while self._clock.monotonic() < deadline:
                 ready = self._serial.query(None, timeout=1)
                 if ready and ready.strip() == "ready":
                     self._is_connected = True
@@ -130,14 +155,14 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
 
             self._serial.close()
             if attempt < self._READY_RETRIES - 1:
-                time.sleep(0.5)
+                self._clock.sleep(0.5)
 
         raise TMC2209MotorProtocolError(f"device not ready: {ready!r}")
 
     def disconnect(self) -> bool:
         self._is_connected = False
         self._last_power_v = None
-        self._last_power_v_updated = 0.0
+        self._last_power_v_updated = NEVER
         self._serial.close()
         return True
 
@@ -173,7 +198,7 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
 
     def get_power_v(self) -> float | None:
         power_v = self._last_power_v
-        now = time.monotonic()
+        now = self._clock.monotonic()
         if self._is_connected and now - self._last_power_v_updated >= self._POWER_CACHE_TTL_S:
             try:
                 power_v = self._status().power_v
@@ -275,19 +300,19 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
     def wait_till_stop(self, do_stop: bool = True, timeout_s: float | None = None) -> None:
         if do_stop:
             self.stop()
-        deadline = None if timeout_s is None else time.monotonic() + timeout_s
+        deadline = None if timeout_s is None else self._clock.monotonic() + timeout_s
         while True:
             status = self._status()
             if status.phase in (_Phase.IDLE, _Phase.HOLD):
                 return
-            if deadline is not None and time.monotonic() > deadline:
+            if deadline is not None and self._clock.monotonic() > deadline:
                 raise TimeoutError(f"motor did not stop within {timeout_s}s")
-            time.sleep(0.05)
+            self._clock.sleep(0.05)
 
     def reset(self) -> None:
         self.wait_till_stop(do_stop=True)
         self._last_power_v = None
-        self._last_power_v_updated = 0.0
+        self._last_power_v_updated = NEVER
 
     def convert_steps_to_speed(self, speed_sps: int | float) -> DecPerSecond:
         return DecPerSecond(float(speed_sps) / self._steps_per_arcsecond())
@@ -300,7 +325,17 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
             raise MotorStopRequire(message)
 
     def _status(self) -> _Status:
-        return _Status.from_response(self._transact("status"))
+        status = _Status.from_response(self._transact("status"))
+        if status.tx_overflow:
+            lost = status.tx_overflow - (self._last_tx_overflow or 0)
+            if lost > 0:
+                self._logger.warning(
+                    "TMC2209 dropped %d response(s) to TX ring overflow, %d since controller boot",
+                    lost,
+                    status.tx_overflow,
+                )
+        self._last_tx_overflow = status.tx_overflow
+        return status
 
     def _transact(self, command: str, args: list[str] | None = None) -> _Response:
         payload = command if not args else f"{command} {' '.join(args)}"
@@ -321,4 +356,4 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
                 data = self._serial.read_all_data(timeout=.5)
                 if data is not None:
                     self._logger.info("Received data: %s", data)
-                time.sleep(0.1)
+                self._clock.sleep(0.1)

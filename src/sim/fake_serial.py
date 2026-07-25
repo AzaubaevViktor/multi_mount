@@ -13,20 +13,42 @@ implemented. That surface is:
 
 The port owns two byte buffers (host->device input, device->host output) and a
 :class:`Device`. Every command the host writes is fed to the device, which
-synchronously appends its reply to the output buffer, so reads never block and
-the real timeouts inside ``wrapper.py`` never fire (time is virtual).
+synchronously appends its reply to the output buffer, so reads never block in
+real time. A read that cannot be satisfied instead spends the port ``timeout``
+on the virtual :class:`~sim.clock.Clock`, which is what keeps the timeout-driven
+wait loops in ``SerialLine`` and in the drivers terminating.
+
+Failure fidelity
+----------------
+The whole degradation path of the project keys off the exceptions a real port
+raises (``EXCEPTIONS_TO_CLOSE`` -> ``SerialLine._disconnect_when_error`` ->
+``SerialLine.close()``), so the fake reproduces them exactly:
+
+- every I/O on a closed port raises ``PortNotOpenError`` ("Attempting to use a
+  port that is not open"), like ``serial.serialposix.Serial``;
+- assigning ``dtr`` on a closed port is *not* an error in pyserial (the level is
+  only cached and applied on open), so the fake caches it too and, crucially,
+  does not deliver the edge to the device;
+- :meth:`FakeSerial.unplug` models the USB-serial device vanishing mid-session
+  (PLAN.md §1 П2): ``is_open`` stays true — the host cannot notice until the
+  next syscall — and from then on every I/O raises
+  ``OSError(ENXIO, "Device not configured")``, the error that ended both real
+  sessions.
 
 Chaos seam
 ----------
 All host<->device byte flow passes through :class:`Transport`, whose ``on_write``
 and ``on_read`` hooks are the injection points for the future chaos stage
-(connection drop mid-response, partial writes, byte loss). They default to
-identity. Cheap scripted faults required *now* by the red P1/P3 tests live on
-the device via :class:`FaultScript`, not here.
+(partial writes, byte loss). They default to identity, and combining them with
+:meth:`FakeSerial.unplug` gives "connection drop mid-response". Cheap scripted
+faults required *now* by the red P1/P3 tests live on the device via
+:class:`FaultScript`, not here.
 """
 
+import errno
 from typing import Callable, Protocol
 
+from serial.serialutil import PortNotOpenError
 from serial_wrapper.wrapper import SerialLine, SerialLineState
 
 from sim.clock import Clock
@@ -89,6 +111,7 @@ class FakeSerial:
         self.timeout: float | None = 0
         self._dtr = True
         self._out_buffer = bytearray()
+        self._unplugged = False
 
     @property
     def dtr(self) -> bool:
@@ -98,36 +121,73 @@ class FakeSerial:
     def dtr(self, value: bool) -> None:
         previous = self._dtr
         self._dtr = bool(value)
+        if not self.is_open:
+            # pyserial caches the level while the port is closed and drives the
+            # line on open, so the device sees no edge here.
+            return
+        if self._unplugged:
+            raise OSError(errno.ENXIO, "Device not configured")
         if self._dtr != previous:
             self._device.on_dtr(self._dtr)
 
+    def unplug(self) -> None:
+        """Make the device vanish from the OS the way a yanked USB cable does.
+
+        ``is_open`` deliberately stays true: the host learns about the unplug
+        only from the next failing syscall, which is what the drivers and
+        ``SerialLine`` have to survive.
+        """
+        self._unplugged = True
+
+    @property
+    def is_unplugged(self) -> bool:
+        """Whether the device behind this port is gone (no pyserial counterpart).
+
+        A real port cannot answer this — that is the whole point of the failure
+        mode — but a test needs it to state the half-open invariant: a line whose
+        state is OPEN must never be holding a port that is already dead.
+        """
+        return self._unplugged
+
     def close(self) -> None:
+        # Closing is the one operation that must stay silent even on a dead
+        # device: it is exactly what SerialLine runs while handling the error.
         self.is_open = False
 
     def reset_input_buffer(self) -> None:
+        self._require_usable()
         self._pull_from_device()
         self._out_buffer.clear()
 
     def reset_output_buffer(self) -> None:
         # Host->device direction has no queue: writes are delivered synchronously.
-        return None
+        self._require_usable()
 
     def write(self, data: bytes) -> int:
+        self._require_usable()
         payload = self._transport.on_write(bytes(data))
         self._device.feed(payload)
-        return len(data)
+        # pyserial reports how many bytes actually went out, so a partial-write
+        # hook shows up here rather than being silently rounded up to len(data).
+        return len(payload)
 
     def flush(self) -> None:
-        return None
+        self._require_usable()
 
     def read(self, size: int = 1) -> bytes:
+        self._require_usable()
         self._pull_from_device()
+        if len(self._out_buffer) < size:
+            self._wait_out_timeout()
         chunk = bytes(self._out_buffer[:size])
         del self._out_buffer[:size]
         return self._transport.on_read(chunk)
 
     def read_until(self, expected: bytes = b"\n", size: int = 1024) -> bytes:
+        self._require_usable()
         self._pull_from_device()
+        if self._out_buffer.find(expected) < 0:
+            self._wait_out_timeout()
         index = self._out_buffer.find(expected)
         if index >= 0:
             end = min(index + len(expected), size)
@@ -138,13 +198,28 @@ class FakeSerial:
         return self._transport.on_read(chunk)
 
     def read_all(self) -> bytes:
+        self._require_usable()
         self._pull_from_device()
         chunk = bytes(self._out_buffer)
         self._out_buffer.clear()
         return self._transport.on_read(chunk)
 
+    def _require_usable(self) -> None:
+        if not self.is_open:
+            raise PortNotOpenError()
+        if self._unplugged:
+            raise OSError(errno.ENXIO, "Device not configured")
+
     def _pull_from_device(self) -> None:
         self._out_buffer.extend(self._device.drain())
+
+    def _wait_out_timeout(self) -> None:
+        # A real port returns a short read only after it has blocked for the
+        # whole timeout, and that elapsed time is exactly what makes the wait
+        # loops in the drivers terminate. Burn it on the virtual clock, then
+        # look again: the device may have produced something meanwhile.
+        self._clock.advance(self.timeout or 0.0)
+        self._pull_from_device()
 
 
 class SimSerialLine(SerialLine):
@@ -170,7 +245,7 @@ class SimSerialLine(SerialLine):
         terminator: str = "\r",
         encoding: str = "ascii",
     ) -> None:
-        super().__init__(port, baud, timeout_s, name, terminator=terminator, encoding=encoding)
+        super().__init__(port, baud, timeout_s, name, terminator=terminator, encoding=encoding, clock=clock)
         self._sim_device = device
         self._sim_clock = clock
         self._sim_transport = transport

@@ -1,8 +1,12 @@
 import dataclasses
 import logging
-import time
+# Every wait in this driver goes through `self._clock`; `time` stays imported only
+# because the P1 red test keeps itself off real time via
+# `monkeypatch.setattr(skywatcher.motor.time, "sleep", ...)`.
+import time  # noqa: F401
 from enum import IntEnum, StrEnum
 
+from clock import NEVER, REAL_CLOCK, Clock
 from serial_wrapper.wrapper import SerialLine
 from sky.constants import STELLAR_DAY, STELLAR_SPEED
 from sky.motor import MotionMode, Motor, MotorDirection, MotorStateError, MotorStatus, MotorStopRequire
@@ -76,9 +80,12 @@ class _Status:
 
     @classmethod
     def from_bytes(cls, data: bytes) -> "_Status":
-        b1 = data[0] if len(data) > 0 else 0
-        b2 = data[1] if len(data) > 1 else 0
-        b3 = data[2] if len(data) > 2 else 0
+        # A short body is a damaged frame, not a status with the missing flags cleared:
+        # zero-padding `=41` reports "stopped, not initialized" for a slewing axis, and
+        # `wait_till_stop` would then return while the mount keeps moving.
+        if len(data) != 3:
+            raise SkyWatcherMotorProtocolError(f"expected 3 status chars, got {data!r}")
+        b1, b2, b3 = data
         raw = b2 | (b1 << 8) | (b3 << 16)
         return cls(
             raw=raw,
@@ -107,11 +114,16 @@ class _MotionStatus:
 
 class _Revu24:
     @staticmethod
-    def from_mount(data: str) -> int:
-        if len(data) == 2:
-            data = f"{data}0000"
-        if len(data) < 6:
-            raise SkyWatcherMotorProtocolError(f"expected at least 6 hex chars, got {len(data)}")
+    def from_mount(data: str, hex_chars: int = 6) -> int:
+        # `hex_chars` is the width the queried value really has (reference §4.5: 24-bit -> 6
+        # hex chars, 8-bit -> 2), and only that narrower answer may be zero-extended. Doing
+        # it for every command instead — as this did — turns a damaged frame into a
+        # plausible number: a position answer that lost four of its six digits would decode
+        # as a valid position on the other side of the axis.
+        if len(data) == hex_chars < 6:
+            data = f"{data}{'0' * (6 - hex_chars)}"
+        if len(data) != 6:
+            raise SkyWatcherMotorProtocolError(f"expected {hex_chars} hex chars, got {data!r}")
         reordered = data[4:6] + data[2:4] + data[0:2]
         try:
             return int(reordered, 16)
@@ -142,8 +154,9 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     _CONNECT_ATTEMPTS = 3
     _CONNECT_RETRY_DELAY_S = 0.25
 
-    def __init__(self, serial: SerialLine) -> None:
+    def __init__(self, serial: SerialLine, clock: Clock = REAL_CLOCK) -> None:
         self._serial = serial
+        self._clock = clock
         self._logger = logging.getLogger(type(self).__name__)
         self._is_connected = False
         self._steps_360 = 0
@@ -157,10 +170,10 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._last_target: int | None = None
         self._zero_target_pending = False
         self._mount_position_cache = Ha(0)
-        self._mount_position_cache_updated = 0.0
+        self._mount_position_cache_updated = NEVER
         self._last_power_v: float | None = None
-        self._last_power_v_updated = 0.0
-        self._power_v_retry_at = 0.0
+        self._last_power_v_updated = NEVER
+        self._power_v_retry_at = NEVER
 
     def connect(self):
         if self._serial.terminator != Protocol.ANSWER_END_BYTE:
@@ -182,7 +195,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
                     ) from error
 
                 self._logger.warning("Mount is not responding on %s, attempt %d/%d: %s", self._serial.port, attempt + 1, self._CONNECT_ATTEMPTS, error)
-                time.sleep(self._CONNECT_RETRY_DELAY_S * 2 ** attempt)
+                self._clock.sleep(self._CONNECT_RETRY_DELAY_S * 2 ** attempt)
 
         mount_version = _Revu24.from_mount(self._transact(_Command.INQUIRE_MOTOR_BOARD_VERSION))
         mount_version = ((mount_version & 0xFF) << 16) | (mount_version & 0xFF00) | ((mount_version & 0xFF0000) >> 16)
@@ -190,7 +203,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._min_period = self._MOUNT_CODE_MIN_PERIODS.get(self._mount_code, self._DEFAULT_MIN_PERIOD)
         self._steps_360 = _Revu24.from_mount(self._transact(_Command.INQUIRE_CPR))
         self._steps_worm = _Revu24.from_mount(self._transact(_Command.INQUIRE_TIMER_FREQ))
-        self._highspeed_ratio = _Revu24.from_mount(self._transact(_Command.INQUIRE_HIGHSPEED_RATIO))
+        self._highspeed_ratio = _Revu24.from_mount(self._transact(_Command.INQUIRE_HIGHSPEED_RATIO), hex_chars=2)
         if self._steps_360 <= 0 or self._steps_worm <= 0 or self._highspeed_ratio <= 0:
             raise SkyWatcherMotorProtocolError(
                 f"invalid mount config: steps_360={self._steps_360} steps_worm={self._steps_worm} highspeed_ratio={self._highspeed_ratio}"
@@ -200,8 +213,8 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     def disconnect(self) -> bool:
         self._is_connected = False
         self._last_power_v = None
-        self._last_power_v_updated = 0.0
-        self._power_v_retry_at = 0.0
+        self._last_power_v_updated = NEVER
+        self._power_v_retry_at = NEVER
         self._serial.close()
         return True
 
@@ -234,7 +247,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
 
     def get_power_v(self) -> float | None:
         power_v = self._last_power_v
-        now = time.monotonic()
+        now = self._clock.monotonic()
         if self._is_connected and now >= self._power_v_retry_at and now - self._last_power_v_updated >= self._POWER_CACHE_TTL_S:
             try:
                 encoded_voltage = self._transact(_Command.INQUIRE_VOLTAGE).strip()
@@ -244,7 +257,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
                 power_v = int(encoded_voltage, 16) / 10.0
                 self._last_power_v = power_v
                 self._last_power_v_updated = now
-                self._power_v_retry_at = 0.0
+                self._power_v_retry_at = NEVER
             except (SkyWatcherMotorError, ValueError) as error:
                 # Many boards simply do not implement `:fL#` and answer nothing. Back off instead of
                 # re-probing (and re-logging a traceback) on every dashboard tick; a board that starts
@@ -272,7 +285,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
             raise MotorStopRequire("cannot change steps while motor is moving")
         self._transact(_Command.SET_AXIS_POSITION, _Revu24.from_int((steps + self._POSITION_OFFSET) % self._steps_360))
         self._mount_position_cache = self.convert_steps_to_position(steps)
-        self._mount_position_cache_updated = time.monotonic()
+        self._mount_position_cache_updated = self._clock.monotonic()
         return True
 
     def set_speed(self, steps_per_second: int) -> int:
@@ -420,11 +433,11 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     def wait_till_stop(self, do_stop: bool = True, timeout_s: float | None = None) -> None:
         if do_stop:
             self.stop()
-        deadline = None if timeout_s is None else time.monotonic() + timeout_s
+        deadline = None if timeout_s is None else self._clock.monotonic() + timeout_s
         while self._get_status().running:
-            if deadline is not None and time.monotonic() > deadline:
+            if deadline is not None and self._clock.monotonic() > deadline:
                 raise SkyWatcherMotorTimeoutError(f"motor did not stop within {timeout_s}s")
-            time.sleep(0.2)
+            self._clock.sleep(0.2)
 
     def reset(self) -> None:
         self.stop()
@@ -433,8 +446,8 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._last_target = None
         self._zero_target_pending = False
         self._last_power_v = None
-        self._last_power_v_updated = 0.0
-        self._power_v_retry_at = 0.0
+        self._last_power_v_updated = NEVER
+        self._power_v_retry_at = NEVER
 
     def _get_status(self) -> _Status:
         self._last_status = _Status.from_bytes(self._transact(_Command.INQUIRE_STATUS).encode("ascii"))
@@ -442,11 +455,11 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
 
     def _get_position(self) -> Ha:
         self._ensure_geometry_ready()
-        if time.monotonic() - self._mount_position_cache_updated <= 0.25:
+        if self._clock.monotonic() - self._mount_position_cache_updated <= 0.25:
             return self._mount_position_cache
         ticks = (_Revu24.from_mount(self._transact(_Command.INQUIRE_POSITION)) - self._POSITION_OFFSET) % self._steps_360
         self._mount_position_cache = self.convert_steps_to_position(ticks).wrap()
-        self._mount_position_cache_updated = time.monotonic()
+        self._mount_position_cache_updated = self._clock.monotonic()
         return self._mount_position_cache
 
     def _set_motion(self, target: _MotionStatus, current: _Status) -> None:
@@ -466,7 +479,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         return _SpeedMode.HIGHSPEED if speed_sps > self.convert_speed_to_steps_per_second(self._LOWSPEED_SPEED) else _SpeedMode.LOWSPEED
 
     def _period_from_speed_sps(self, speed_sps: int) -> int:
-        self._ensure_geometry_ready()
+        self._ensure_timing_ready()
         if speed_sps <= 0:
             raise MotorStateError("speed must be positive")
         rate = speed_sps * (24 * 60 * 60) / self._steps_360 / float(STELLAR_SPEED)
@@ -480,7 +493,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         return period
 
     def _speed_sps_from_period(self, period: int, speed_mode: _SpeedMode) -> int:
-        self._ensure_geometry_ready()
+        self._ensure_timing_ready()
         if period <= 0:
             raise MotorStateError("period must be positive")
         rate = float(STELLAR_DAY) * self._steps_worm / self._steps_360 / period
@@ -495,6 +508,18 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     def _ensure_geometry_ready(self) -> None:
         if self._steps_360 <= 0:
             raise SkyWatcherMotorProtocolError("motor geometry is not initialized")
+
+    def _ensure_timing_ready(self) -> None:
+        # The timer frequency and the high-speed ratio are read after the CPR, so a
+        # handshake that died in between leaves them at 0 while the axis conversions
+        # already work. Dividing by them then is worse than a ZeroDivisionError: a zero
+        # `_steps_worm` makes `_period_from_speed_sps` return 0, the period clamps to the
+        # board minimum, and the axis silently slews at the fastest rate the board has.
+        self._ensure_geometry_ready()
+        if self._steps_worm <= 0 or self._highspeed_ratio <= 0:
+            raise SkyWatcherMotorProtocolError(
+                f"motor timing is not initialized: steps_worm={self._steps_worm} highspeed_ratio={self._highspeed_ratio}"
+            )
 
     REPEATS = 3
     def _transact(self, command: _Command, arg: str | None = None) -> str:
@@ -540,5 +565,5 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
                 count -= 1
                 if count == 0:
                     raise
-                time.sleep(0.1)
+                self._clock.sleep(0.1)
         raise SkyWatcherMotorProtocolError(f"failed to execute command {command} with payload {payload}")

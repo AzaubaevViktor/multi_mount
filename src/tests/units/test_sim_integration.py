@@ -14,14 +14,14 @@ def _make_ra(**config) -> tuple[Clock, SkyWatcherSim, SkyWatcherMotor]:
     clock = Clock()
     sim = SkyWatcherSim(clock, cpr=_RA_CPR, **config)
     line = SimSerialLine(sim, clock, port="sim://ra", timeout_s=0, name="sim-ra", terminator="\r")
-    return clock, sim, SkyWatcherMotor(line)
+    return clock, sim, SkyWatcherMotor(line, clock)
 
 
 def _make_dec() -> tuple[Clock, TMC2209Sim, TMC2209Motor]:
     clock = Clock()
     sim = TMC2209Sim(clock)
     line = SimSerialLine(sim, clock, port="sim://dec", timeout_s=2, name="sim-dec", terminator="\n")
-    return clock, sim, TMC2209Motor(line)
+    return clock, sim, TMC2209Motor(line, clock)
 
 
 def test_skywatcher_connect_reads_valid_mount_config() -> None:
@@ -69,8 +69,12 @@ def test_skywatcher_tracking_drifts_at_sidereal_rate() -> None:
     assert status.direction == MotorDirection.FORWARD
 
     # 1.002738x sidereal: the axis makes one turn (CPR steps) per stellar day.
+    # The tolerance is the quantization budget only: the driver rounds the
+    # requested steps/s and truncates the step period, which together bias the
+    # axis ~0.20% fast. It has to stay below the 0.273% gap between a stellar
+    # and a solar day, otherwise "tracking on solar time" passes unnoticed.
     expected_steps = 60 * _RA_CPR / float(STELLAR_DAY)
-    assert status.steps == pytest.approx(expected_steps, rel=0.005)
+    assert status.steps == pytest.approx(expected_steps, rel=0.003)
 
 
 def test_skywatcher_goto_highspeed_reaches_target() -> None:
@@ -88,7 +92,6 @@ def test_skywatcher_goto_highspeed_reaches_target() -> None:
 
     clock.advance(10)
 
-    motor._mount_position_cache_updated = 0.0
     status = motor.status()
     assert status.steps == delta_steps
     assert status.motion_mode == MotionMode.IDLE

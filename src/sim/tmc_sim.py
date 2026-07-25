@@ -2,9 +2,10 @@
 
 Ground truth is the firmware ``telescope_dec/src/main.cpp`` (the Python driver
 ``src/tmc2209/motor.py`` is its client): line-based protocol terminated by
-``\\n`` (``\\r`` ignored), replies ``1;key=value;...\\n`` / ``0;error=...;\\n``,
-floats formatted with 2 decimals, and a single ``ready`` line printed at the
-end of ``setup()`` after the board resets (host DTR toggle).
+``\\n`` (``\\r`` ignored), replies ``1;key=value;...\\n`` / ``0;error=...;\\n``
+(``outFlushLineV2`` appends a bare LF), floats formatted with 2 decimals, and a
+single ``ready\\r\\n`` line printed by ``Serial.println(F("ready"))`` at the end
+of ``setup()`` after the board resets (host DTR toggle).
 
 Motion model mirrors ``updateMotionStateV2``/``serviceStepperv2``:
 
@@ -68,7 +69,10 @@ class TMC2209Sim:
 
         self._integrated_at = self._clock.now
         if self.ready_on_reset:
-            self._tx.extend(b"ready\n")
+            # `Serial.println(F("ready"))` (main.cpp:452) — Arduino's println
+            # appends CR LF, unlike the plain LF of `outFlushLineV2` used by
+            # every command reply.
+            self._tx.extend(b"ready\r\n")
 
     def feed(self, data: bytes) -> None:
         for byte in data:

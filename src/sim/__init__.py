@@ -7,6 +7,7 @@ above run unchanged (PLAN.md §2). Time is fully virtual: tests drive it with
 package touches real time.
 """
 
+from sim.chaos import Chaos, ChaosProfile, ChaosStats
 from sim.clock import Clock
 from sim.fake_serial import Device, FakeSerial, SimSerialLine, Transport
 from sim.faults import FaultKind, FaultScript
@@ -14,6 +15,9 @@ from sim.skywatcher_sim import SkyWatcherSim, decode_revu24, encode_revu24
 from sim.tmc_sim import TMC2209Sim
 
 __all__ = [
+    "Chaos",
+    "ChaosProfile",
+    "ChaosStats",
     "Clock",
     "Device",
     "FakeSerial",

@@ -3,7 +3,6 @@ import logging
 import os
 import re
 import threading
-import time
 import sys
 import traceback
 from dataclasses import dataclass
@@ -13,6 +12,7 @@ from typing import Any, Callable, TypeVar
 import serial
 from serial.serialutil import SerialException
 
+from clock import REAL_CLOCK, Clock
 from utils.method_call_chain import format_stack_frame, log_method_call_chain
 
 
@@ -64,7 +64,7 @@ EXCEPTIONS_TO_CLOSE = (SerialException, SerialLineError, OSError)
 T = TypeVar("T")
 
 
-def _disconnect_when_error(default: T) -> Callable[[Callable[..., T]], Callable[..., T]]:
+def _disconnect_when_error(default: T, reraise_closed: bool = False) -> Callable[[Callable[..., T]], Callable[..., T]]:
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @functools.wraps(func)
         def wrapper(self: "SerialLine", *args: Any, **kwargs: Any) -> T:
@@ -72,6 +72,11 @@ def _disconnect_when_error(default: T) -> Callable[[Callable[..., T]], Callable[
             try:
                 return func(self, *args, **kwargs)
             except SerialLineClosedError as exc:
+                if reraise_closed:
+                    # Buffer draining is only ever called from a caller's own error path,
+                    # where "the line is already closed" is the answer it needs, not a
+                    # silent no-op that sends it into another retry round.
+                    raise
                 self.logger.debug("Serial connection is closed, skip %s: %s", func.__name__, exc)
                 return default
             except EXCEPTIONS_TO_CLOSE as exc:
@@ -90,13 +95,14 @@ def _disconnect_when_error(default: T) -> Callable[[Callable[..., T]], Callable[
 
 
 class SerialLine:
-    def __init__(self, port: str, baud: int, timeout_s: float, name: str, terminator: str = "\r", encoding: str ='ascii') -> None:
+    def __init__(self, port: str, baud: int, timeout_s: float, name: str, terminator: str = "\r", encoding: str ='ascii', clock: Clock = REAL_CLOCK) -> None:
         self.logger = logging.getLogger(f"serial.{name}")
         self.port = port
         self.baud = baud
         self.timeout_s = timeout_s
         self.encoding = encoding
         self.terminator = terminator.encode(self.encoding)
+        self._clock = clock
 
         self._lock = threading.RLock()
 
@@ -137,11 +143,16 @@ class SerialLine:
         with self._lock:
             serial_obj = self._require_open_serial()
             serial_obj.dtr = False
-            time.sleep(0.1)
+            self._clock.sleep(0.1)
             self.drop_buffers()
             serial_obj.dtr = True
-            time.sleep(0.5)
+            self._clock.sleep(0.5)
     
+    # Without the decorator this was the one I/O path that could leave the line half-open:
+    # an unplug landing on a buffer drain (both drivers call it from their retry handlers)
+    # raised a bare OSError past the caller while `state` stayed OPEN — the same defect as
+    # `d04b9b8`, one method further down.
+    @_disconnect_when_error(default=None, reraise_closed=True)
     def drop_buffers(self):
         with self._lock:
             serial_obj = self._require_open_serial()
@@ -295,13 +306,20 @@ class SerialLine:
                 caller_frame=caller_frame,
                 error_type=type(error).__name__ if error is not None else None,
                 error_message=str(error) if error is not None else None,
-                at_monotonic_s=time.monotonic(),
+                at_monotonic_s=self._clock.monotonic(),
             )
 
             serial_obj = self.serial
             if serial_obj is not None and getattr(serial_obj, "is_open", False):
                 self.logger.debug("Close serial connection")
-                serial_obj.close()
+                try:
+                    serial_obj.close()
+                except EXCEPTIONS_TO_CLOSE:
+                    # close() is what every error path runs, and the port object is being
+                    # dropped anyway: raising from here would replace the failure that
+                    # caused the close *and* leave the line half-open, which is the one
+                    # state this class exists to prevent.
+                    self.logger.exception("Error while closing the port, dropping it anyway")
 
             self.serial = None
             self._state = SerialLineState.CLOSED

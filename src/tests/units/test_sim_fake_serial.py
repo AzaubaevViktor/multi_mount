@@ -61,7 +61,9 @@ def test_transport_seam_intercepts_write_and_read() -> None:
     transport = Transport(on_write=lambda data: data[:-1], on_read=lambda data: data.lower())
     port = FakeSerial(device, Clock(), transport)
 
-    port.write(b"ab!")
+    # A truncating `on_write` is a partial write, and `write` reports the byte
+    # count that actually reached the device, exactly as pyserial does.
+    assert port.write(b"ab!") == 2
 
     assert bytes(device.received) == b"ab"
     assert port.read_all() == b"ab"
