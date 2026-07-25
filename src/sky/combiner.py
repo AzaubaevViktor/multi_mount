@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import threading
-from sky.axis import AxisMotionMode, AxisRA, AxisDEC, PointCoordinates
+from sky.axis import AxisMotionMode, AxisMotorReadiness, AxisRA, AxisDEC, PointCoordinates
 from sky.constants import STELLAR_SPEED
 from sky.physics import AxisSpeed, DecPerSecond, HaPerSecond, Second, SkyDirection
 from sky.polar_compensator import PolarCompensator
@@ -75,6 +75,10 @@ class Combiner:
 
     def is_connected(self) -> bool:
         return self.ra.is_connected() and self.dec.is_connected()
+
+    def motors_readiness(self) -> tuple[AxisMotorReadiness, AxisMotorReadiness]:
+        """RA and DEC readiness, in that order — the startup probe's whole input."""
+        return (self.ra.motor_readiness(), self.dec.motor_readiness())
 
     def disconnect(self) -> None:
         self.ra.disconnect()

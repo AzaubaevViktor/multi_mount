@@ -49,6 +49,42 @@ class AxisCommandMonitor(TypedDict):
     processed: list[tuple[Second, str]]
 
 
+class MotorReadinessState(StrEnum):
+    """Three-way answer of :meth:`Axis.motor_readiness`.
+
+    ``UNKNOWN`` is the state the startup probe used to be unable to express: it
+    caught every exception from ``status()`` and returned "not connected", so a
+    mount whose serial line was broken looked exactly like a mount that was
+    never plugged in, and the runtime silently dropped into the manual console
+    instead of naming the failure.
+    """
+
+    READY = 'ready'
+    NOT_CONNECTED = 'not_connected'
+    UNKNOWN = 'unknown'
+
+
+@dataclass(frozen=True)
+class AxisMotorReadiness:
+    axis: AxisName
+    state: MotorReadinessState
+    error: BaseException | None = None
+    """The exception ``status()`` raised, present exactly when state is UNKNOWN."""
+
+    @property
+    def is_ready(self) -> bool:
+        return self.state is MotorReadinessState.READY
+
+    def describe(self) -> str:
+        match self.state:
+            case MotorReadinessState.READY:
+                return f"{self.axis.value}: motor connected"
+            case MotorReadinessState.NOT_CONNECTED:
+                return f"{self.axis.value}: motor reports itself as not connected"
+            case MotorReadinessState.UNKNOWN:
+                return f"{self.axis.value}: motor status failed ({type(self.error).__name__}: {self.error})"
+
+
 @dataclass
 class PointCoordinates:
     ra: Ha
@@ -123,6 +159,7 @@ class Axis[_POS_CLS: AxisPos[Any], _SPEED_CLS: AxisSpeed]:
         self._last_motor_position: _POS_CLS = self.POS_CLS(0)
         self._last_motor_position_update_s: Second = Second.monotonic()
         self._processed_commands: deque[tuple[Second, str]] = deque(maxlen=8)
+        self._last_readiness_failure: str | None = None
 
     @_raise_if_thread_failed
     def connect(self) -> None:
@@ -608,6 +645,37 @@ class Axis[_POS_CLS: AxisPos[Any], _SPEED_CLS: AxisSpeed]:
     @_raise_if_thread_failed
     def is_moving_to(self) -> bool:
         return self._mode == AxisMotionMode.GOTO
+
+    def motor_readiness(self) -> AxisMotorReadiness:
+        """Is this axis' motor usable right now, and if not, why not.
+
+        The startup probe in ``src/__main__.py`` used to answer this by reaching
+        into ``axis._motor`` behind a bare ``except Exception: return False``.
+        This is the public, typed replacement: a failing ``status()`` comes back
+        as ``UNKNOWN`` carrying the exception, never as "not connected".
+
+        Never raises: it is a diagnostic, and a probe that blows up at startup
+        tells the operator less than one that reports what it saw. The exception
+        is both logged and returned, so nothing is swallowed.
+        """
+        try:
+            with self._motor_lock:
+                status = self._motor.status()
+        except Exception as error:  # noqa: BLE001 - classified below, logged and returned
+            failure = f"{type(error).__name__}: {error}"
+            # A readiness poll runs many times a second; only a *new* failure is
+            # worth a WARNING, otherwise a dead port writes thousands of identical
+            # lines (PLAN.md P1).
+            if failure != self._last_readiness_failure:
+                self._last_readiness_failure = failure
+                self.logger.warning("%s motor status failed, readiness is unknown: %s", self.axis.value, failure, exc_info=True)
+            else:
+                self.logger.debug("%s motor status still failing: %s", self.axis.value, failure)
+            return AxisMotorReadiness(self.axis, MotorReadinessState.UNKNOWN, error)
+
+        self._last_readiness_failure = None
+        state = MotorReadinessState.READY if status.is_connected else MotorReadinessState.NOT_CONNECTED
+        return AxisMotorReadiness(self.axis, state)
 
     @_raise_if_thread_failed
     def command_monitor(self) -> AxisCommandMonitor:

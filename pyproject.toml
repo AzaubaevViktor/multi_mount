@@ -149,13 +149,14 @@ ignore = [
 ]
 # src/__main__.py mutates sys.path before importing project modules — that is the
 # documented entry-point bootstrap, not an accident.
-"src/__main__.py" = ["E402", "SLF001"]  # SLF001 is BASELINE, see below
+"src/__main__.py" = ["E402"]
 
 # -- BASELINE (file-scoped, so these rules stay enforced everywhere else) ----------------
-# src/stdout_dashboard.py renders internal axis/combiner state (27 hits) and
-# src/__main__.py probes `axis._motor` for the startup readiness check (1 hit).
-# Both are the "reaching into lower-level internals" that AGENTS.md rule 3 forbids;
-# the fix is to widen the axis/combiner monitor API, which is a design task.
+# src/stdout_dashboard.py renders internal axis/combiner state (27 hits). That is the
+# "reaching into lower-level internals" that AGENTS.md rule 3 forbids; the fix is to
+# widen the axis/combiner monitor API, which is a design task.
+# (src/__main__.py used to be here too, for its `axis._motor` startup probe; that probe
+# is now `Axis.motor_readiness()` / `Combiner.motors_readiness()`.)
 "src/stdout_dashboard.py" = ["SLF001"]
 "src/lx200/base.py" = ["TID252"]           # 1 relative import left
 "polar_align.py" = ["E402"]                # 1 import after a `sys.path` tweak

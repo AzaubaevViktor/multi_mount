@@ -1,5 +1,4 @@
 import logging
-from collections.abc import Mapping
 from pathlib import Path
 import sys
 import time
@@ -14,7 +13,7 @@ from logging_setup import setup_logging
 from lx200.base_server import LX200SimpleServer
 from manual_control import ManualControlConsole
 from serial_wrapper.wrapper import SerialLine, SerialLineSearchError
-from sky.axis import AxisDEC, AxisRA
+from sky.axis import AxisDEC, AxisRA, MotorReadinessState
 from sky.combiner import Combiner
 from sky.lx200 import SkyLX200
 from sky.physics import Dec, DecPerSecond, Ha, HaPerSecond
@@ -28,17 +27,6 @@ setup_logging(stream_level=None)
     
 
 if __name__ == "__main__":
-    def _axis_motor_connected(axis: AxisRA | AxisDEC) -> bool:
-        # Read as a plain mapping: this probe also accepts a `motor_connected`
-        # key, which the current `AxisCommandMonitor` TypedDict does not declare.
-        monitor: Mapping[str, object] = axis.command_monitor()
-        if "motor_connected" in monitor:
-            return bool(monitor["motor_connected"])
-        try:
-            return bool(axis._motor.status().is_connected)
-        except Exception:
-            return False
-
     logger = logging.getLogger("startup")
     ra_search_missing = False
     dec_search_missing = False
@@ -85,16 +73,22 @@ if __name__ == "__main__":
         startup_timeout_s = 0.0 if ra_search_missing or dec_search_missing else 12.0
         deadline = time.monotonic() + startup_timeout_s
         while time.monotonic() < deadline:
-            ra_connected = _axis_motor_connected(axis_ra)
-            dec_connected = _axis_motor_connected(axis_dec)
-            if ra_connected and dec_connected:
+            if all(readiness.is_ready for readiness in combiner.motors_readiness()):
                 break
             time.sleep(0.1)
 
-        ra_connected = _axis_motor_connected(axis_ra)
-        dec_connected = _axis_motor_connected(axis_dec)
+        readiness = combiner.motors_readiness()
 
-        if ra_connected and dec_connected:
+        # A motor whose `status()` raises is a broken axis, not a missing one. Say
+        # so out loud before falling back to the manual console, instead of the old
+        # `except Exception: return False`, which made the two indistinguishable.
+        for axis_readiness in readiness:
+            if axis_readiness.state is MotorReadinessState.UNKNOWN:
+                logger.error("Startup readiness check failed: %s", axis_readiness.describe())
+            elif not axis_readiness.is_ready:
+                logger.warning("Startup readiness check: %s", axis_readiness.describe())
+
+        if all(axis_readiness.is_ready for axis_readiness in readiness):
             dashboard = StdoutDashboard(combiner, sky_lx200)
             dashboard.start()
             try:
@@ -106,8 +100,8 @@ if __name__ == "__main__":
                 sky_lx200,
                 server,
                 lambda: {
-                    "ra": _axis_motor_connected(axis_ra),
-                    "dec": _axis_motor_connected(axis_dec),
+                    axis_readiness.axis.value: axis_readiness.is_ready
+                    for axis_readiness in combiner.motors_readiness()
                 },
             )
             console.run()
