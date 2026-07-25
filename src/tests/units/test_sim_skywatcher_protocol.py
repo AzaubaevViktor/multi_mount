@@ -150,6 +150,10 @@ def test_stop_returns_the_channel_to_tracking_mode() -> None:
 
     A GOTO interrupted by `K` is the case that distinguishes it: the mode bit
     has to flip back to tracking even though the run never reached its target.
+
+    The Fast bit stays down throughout even though `G` asked for `0` (goto,
+    highspeed): period 2 out of a 1x period of 11 is nowhere near 32x sidereal,
+    and the board reports the speed it is stepping at, not the request (§10.2).
     """
     clock = Clock()
     sim = SkyWatcherSim(clock, cpr=8_000_000, timer_freq=1000)
@@ -159,8 +163,8 @@ def test_stop_returns_the_channel_to_tracking_mode() -> None:
     assert _exchange(sim, b":I1" + encode_revu24(2).encode() + b"\r") == b"=\r"
     assert _exchange(sim, b":H1" + encode_revu24(100000).encode() + b"\r") == b"=\r"
     assert _exchange(sim, b":J1\r") == b"=\r"
-    # Goto mode (bit0 clear), highspeed, running, initialized.
-    assert _exchange(sim, b":f1\r") == b"=411\r"
+    # Goto mode (bit0 clear), running, initialized.
+    assert _exchange(sim, b":f1\r") == b"=011\r"
 
     clock.advance(1)
     assert _exchange(sim, b":K1\r") == b"=\r"
@@ -168,9 +172,9 @@ def test_stop_returns_the_channel_to_tracking_mode() -> None:
     # Braking mid-flight, yet the mode nibble is back to tracking (bit0 set)
     # while the Running bit is still up: the channel changes mode at once, the
     # motion only winds down.
-    assert _exchange(sim, b":f1\r") == b"=511\r"
+    assert _exchange(sim, b":f1\r") == b"=111\r"
     clock.advance(1)
-    assert _exchange(sim, b":f1\r") == b"=501\r"
+    assert _exchange(sim, b":f1\r") == b"=101\r"
     position_after_stop = _exchange(sim, b":j1\r")
     clock.advance(10)
     assert _exchange(sim, b":j1\r") == position_after_stop
@@ -207,13 +211,16 @@ def test_goto_reaches_target_and_returns_to_tracking_mode() -> None:
     assert _exchange(sim, b":H1" + encode_revu24(1000).encode() + b"\r") == b"=\r"
     assert _exchange(sim, b":M1" + encode_revu24(200).encode() + b"\r") == b"=\r"
     assert _exchange(sim, b":J1\r") == b"=\r"
+    # Goto mode, and the Fast bit is up because period 13 out of a 1x period of
+    # 699 is past 32x sidereal — the board's own verdict, §10.2.
     assert _exchange(sim, b":f1\r") == b"=411\r"
 
     clock.advance(0.1)
 
     assert _exchange(sim, b":j1\r") == b"=" + encode_revu24(_OFFSET + 1000).encode() + b"\r"
-    # Auto-return to tracking mode after stop; the speed-mode bit is retained.
-    assert _exchange(sim, b":f1\r") == b"=501\r"
+    # Auto-return to tracking mode after stop, and the Fast bit goes down with
+    # the axis: §10.3 saw `=101`/`=301` after every stop, never `=5xx`.
+    assert _exchange(sim, b":f1\r") == b"=101\r"
 
 
 def test_error_codes() -> None:
@@ -526,3 +533,211 @@ def test_fault_dead_motor_and_revive() -> None:
 
     sim.faults.revive()
     assert _exchange(sim, b":f1\r") == b"=101\r"
+
+
+# --------------------------------------------------------------------------- #
+# behaviours taken from the live board on 2026-07-25 that the simulator used to
+# get wrong (RA_PROTOCOL_STEP_2.md §3)
+# --------------------------------------------------------------------------- #
+
+
+def test_fast_bit_is_the_boards_verdict_on_the_period_not_an_echo_of_g() -> None:
+    """§10.2, the most surprising status finding on the live board.
+
+    Three measurements, all on the real RA constants:
+
+    * `:G110` (slow requested) with period 1724 -> `=101` at rest, `=511` moving;
+    * `:G110` with period 6897 -> `=111` both at rest and moving;
+    * `:G130` (fast requested) with period 1724 -> `=101` at rest.
+
+    So the bit is not what `G` asked for: it reports the step mode the board
+    picked from the period, and it is only up while the axis actually runs.
+    """
+    clock = Clock()
+    sim = SkyWatcherSim(clock)
+
+    assert _exchange(sim, b":F1\r") == b"=\r"
+    assert _exchange(sim, b":I1" + encode_revu24(1724).encode() + b"\r") == b"=\r"
+    # Fast requested, axis stopped: the bit stays down.
+    assert _exchange(sim, b":G130\r") == b"=\r"
+    assert _exchange(sim, b":f1\r") == b"=101\r"
+    # Slow requested, same period: as soon as it runs, the board says Fast.
+    assert _exchange(sim, b":G110\r") == b"=\r"
+    assert _exchange(sim, b":f1\r") == b"=101\r"
+    assert _exchange(sim, b":J1\r") == b"=\r"
+    assert _exchange(sim, b":f1\r") == b"=511\r"
+
+    assert _exchange(sim, b":K1\r") == b"=\r"
+    clock.advance(2)
+    assert _exchange(sim, b":f1\r") == b"=101\r"
+
+    # 16x sidereal: slow at rest and slow on the move.
+    assert _exchange(sim, b":I1" + encode_revu24(6897).encode() + b"\r") == b"=\r"
+    assert _exchange(sim, b":f1\r") == b"=101\r"
+    assert _exchange(sim, b":J1\r") == b"=\r"
+    assert _exchange(sim, b":f1\r") == b"=111\r"
+
+
+def test_every_hex_channel_answers_and_only_channel_one_is_an_axis() -> None:
+    """§3.2: mistyping the channel is silent, which is why the driver pins it.
+
+    Verbatim from the live board: `:f2`, `:f3`, `:f0`, `:f4`, `:f9` all answer
+    `=000`, `:j2` answers `=000080`, `:e2` and `:a2` answer exactly what channel
+    1 answers, and only a *non-hex* channel is an error (`:f?`, `:fL` -> `!3`).
+    Channel `3` ("Both" in the spec) gets no special treatment either.
+    """
+    clock = Clock()
+    sim = SkyWatcherSim(clock)
+
+    assert _exchange(sim, b":F1\r") == b"=\r"
+    for channel in (b"0", b"2", b"3", b"4", b"9", b"A", b"F"):
+        assert _exchange(sim, b":f" + channel + b"\r") == b"=000\r"
+    assert _exchange(sim, b":e2\r") == b"=03110A\r"
+    assert _exchange(sim, b":a2\r") == b"=729DBE\r"
+    assert _exchange(sim, b":j2\r") == b"=000080\r"
+
+    assert _exchange(sim, b":f?\r") == b"!3\r"
+    assert _exchange(sim, b":fL\r") == b"!3\r"
+
+    # And the phantom axis is inert: starting it moves nothing.
+    assert _exchange(sim, b":J2\r") == b"=\r"
+    clock.advance(60)
+    assert _exchange(sim, b":f1\r") == b"=101\r"
+    assert _exchange(sim, b":j1\r") == b"=000080\r"
+
+
+def test_error_codes_on_malformed_input_are_the_ones_the_board_returns() -> None:
+    """§7 and §8.2, every line of the table that needs no write command.
+
+    The parser recognizes the letter first and checks the argument second: a
+    packet too short to hold a channel is "unknown command", a known letter with
+    a wrong argument length is "command length", and a bad character — lower
+    case hex included — is "invalid character".
+    """
+    sim = SkyWatcherSim(Clock())
+
+    for command, answer in (
+        (b":\r", b"!0\r"),                     # empty command
+        (b":f\r", b"!0\r"),                    # no channel byte
+        (b":X1\r", b"!0\r"),                   # unknown letter
+        (b":k10\r", b"!0\r"),                  # documented but not implemented
+        (b":q1FF0000\r", b"!0\r"),             # unsupported extended id
+        (b":I1\r", b"!1\r"),                   # setter without an argument
+        (b":I112\r", b"!1\r"),                 # 2 hex chars instead of 6
+        (b":I100000000\r", b"!1\r"),           # 8 hex chars instead of 6
+        (b":I1" + b"0" * 40 + b"\r", b"!1\r"),  # oversized argument
+        (b":" + b"A" * 60 + b"\r", b"!1\r"),   # 60 chars of junk after a real letter
+        (b":G1\r", b"!1\r"),
+        (b":G1123456\r", b"!1\r"),
+        (b":j1000000\r", b"!1\r"),             # argument on a query that takes none
+        (b":f11\r", b"!1\r"),                  # one char too many
+        (b":I1ZZZZZZ\r", b"!3\r"),
+        (b":I1abcdef\r", b"!3\r"),             # lower case hex is refused
+        (b":I1-00000\r", b"!3\r"),
+        (b":I1 00000\r", b"!3\r"),
+    ):
+        assert _exchange(sim, command) == answer, command
+
+    # None of that moved the step period off its power-on value.
+    assert _exchange(sim, b":i1\r") == b"=17AF01\r"
+
+
+def test_second_command_of_a_single_write_is_lost() -> None:
+    """§8.1, reproduced four times on hardware.
+
+    Two complete commands in one `write()` produce one answer: the board is not
+    buffering while it replies, so everything that arrives in that window is
+    dropped. The same two commands sent as two writes answer twice. Any attempt
+    to pipeline requests on this board fails silently, which is why this is
+    modelled rather than left to the driver's good manners.
+    """
+    sim = SkyWatcherSim(Clock())
+
+    assert _exchange(sim, b":f1\r:j1\r") == b"=100\r"
+    assert _exchange(sim, b":f1\r") == b"=100\r"
+    assert _exchange(sim, b":j1\r") == b"=000080\r"
+
+    # A command left half-written behind the first one is lost too, so the next
+    # write starts from a clean parser.
+    assert _exchange(sim, b":f1\r:j") == b"=100\r"
+    assert _exchange(sim, b"1\r") == b""
+    assert _exchange(sim, b":j1\r") == b"=000080\r"
+
+
+def test_goto_runs_to_an_absolute_target_set_with_s() -> None:
+    """`:S` writes the same target register `:H` does, only absolutely.
+
+    The simulator used to record the target and never move to it, so a driver
+    that used the absolute form saw an axis that ran forever. `:h1` reads the
+    register back, and whichever of `:S`/`:H` came last is the one that counts.
+    """
+    clock = Clock()
+    sim = SkyWatcherSim(clock, cpr=8_000_000, timer_freq=1000)
+
+    assert _exchange(sim, b":h1\r") == b"=000080\r"
+    assert _exchange(sim, b":F1\r") == b"=\r"
+    assert _exchange(sim, b":G120\r") == b"=\r"
+    assert _exchange(sim, b":I1" + encode_revu24(2).encode() + b"\r") == b"=\r"
+    assert _exchange(sim, b":S1" + encode_revu24(_OFFSET + 1500).encode() + b"\r") == b"=\r"
+    assert _exchange(sim, b":h1\r") == b"=" + encode_revu24(_OFFSET + 1500).encode() + b"\r"
+    assert _exchange(sim, b":J1\r") == b"=\r"
+
+    # 500 steps/s, so 1500 steps take 3 s; ten more seconds change nothing.
+    clock.advance(3)
+    assert _exchange(sim, b":j1\r") == b"=" + encode_revu24(_OFFSET + 1500).encode() + b"\r"
+    assert _exchange(sim, b":f1\r") == b"=101\r"
+    clock.advance(10)
+    assert _exchange(sim, b":j1\r") == b"=" + encode_revu24(_OFFSET + 1500).encode() + b"\r"
+
+    # `:H` after `:S` takes the register over: relative to where the axis is now.
+    assert _exchange(sim, b":G120\r") == b"=\r"
+    assert _exchange(sim, b":H1" + encode_revu24(500).encode() + b"\r") == b"=\r"
+    assert _exchange(sim, b":h1\r") == b"=" + encode_revu24(_OFFSET + 2000).encode() + b"\r"
+    assert _exchange(sim, b":J1\r") == b"=\r"
+    clock.advance(1)
+    assert _exchange(sim, b":j1\r") == b"=" + encode_revu24(_OFFSET + 2000).encode() + b"\r"
+
+
+def test_inquiries_the_board_answers_but_the_simulator_used_to_reject() -> None:
+    """§2 and §3: the whole query table of the live RA board, verbatim.
+
+    Every one of these answered `!0` in the simulator while the board answers
+    with data, which made the simulator useless for testing anything that reads
+    the board's own idea of brake steps, goto target or extended status.
+    """
+    sim = SkyWatcherSim(Clock())
+
+    assert _exchange(sim, b":c1\r") == b"=544200\r"      # brake steps 16980
+    assert _exchange(sim, b":d1\r") == b"=000080\r"      # tele. axis position
+    assert _exchange(sim, b":h1\r") == b"=000080\r"      # goto target
+    assert _exchange(sim, b":s1\r") == b"=000000\r"      # PEC period, no PEC
+    assert _exchange(sim, b":D1\r") == b"=17AF01\r"      # 1x tracking period
+    assert _exchange(sim, b":r1\r") == b"=00\r"          # register file is a stub
+    assert _exchange(sim, b":z1\r") == b"=\r"            # set debug flag
+
+    # §3.1: the brake point is a derived value — position offset by exactly the
+    # brake steps `:c1` reports, on the side the axis is facing.
+    assert _exchange(sim, b":m1\r") == b"=" + encode_revu24(_OFFSET - 16980).encode() + b"\r"
+    assert _exchange(sim, b":G111\r") == b"=\r"
+    assert _exchange(sim, b":m1\r") == b"=" + encode_revu24(_OFFSET + 16980).encode() + b"\r"
+
+    # §5: only extended ids 1..5 exist, and id 3 is the USB rail of the `:C`/`:n`
+    # window with a constant high byte — an identity checked byte by byte on the
+    # wire, so the two must not be able to drift apart in the simulator.
+    assert _exchange(sim, b":q1010000\r") == b"=008000\r"
+    assert _exchange(sim, b":q1020000\r") == b"=100000\r"
+    assert _exchange(sim, b":q1030000\r") == b"=D60102\r"
+    assert _exchange(sim, b":q1040000\r") == b"=A3C9CA\r"
+    assert _exchange(sim, b":q1050000\r") == b"=49DB48\r"
+    assert _exchange(sim, b":q1000000\r") == b"!0\r"
+
+
+def test_extended_inquire_three_follows_the_usb_rail() -> None:
+    """§6.3/§6.8: `:q1030000` and window bytes 0x1C/0x1D are the same number."""
+    sim = SkyWatcherSim(Clock(), usb_volt_hundredths=0x01A6)
+
+    assert _exchange(sim, b":q1030000\r") == b"=A60102\r"
+    assert _exchange(sim, b":C11C00\r") == b"=\r"
+    assert _exchange(sim, b":n1\r") == b"=A6\r"
+    assert _exchange(sim, b":C11D00\r") == b"=\r"
+    assert _exchange(sim, b":n1\r") == b"=01\r"

@@ -209,12 +209,21 @@ def test_baud_is_a_cli_knob_and_reaches_both_the_manifest_and_the_trace(tmp_path
 
 
 def test_scenario_covers_both_speed_modes_and_both_directions_on_both_axes(tmp_path) -> None:
-    manifest, _ = _run_main(tmp_path)
+    manifest, events = _run_main(tmp_path)
 
     moves = {move["label"]: move for move in manifest["goto"]}
     assert {"ra_lowspeed_forward", "ra_lowspeed_backward", "ra_highspeed_forward", "ra_highspeed_backward"} <= set(moves)
     assert {"dec_slow_forward", "dec_slow_backward", "dec_fast_forward", "dec_fast_backward"} <= set(moves)
-    assert "lowspeed" in moves["ra_lowspeed_forward"]["speed_mode"]
+    # The two RA gotos differ in what the driver *asks* for, and that is only
+    # visible on the wire: `:G120` is a slow goto, `:G100` a fast one.
+    sent = [event.data for event in events if event.kind is TraceKind.TX and event.name == "ra"]
+    assert b":G120\r" in sent and b":G100\r" in sent
+    # What comes back says highspeed for both, and that is not a bug: the board
+    # clamps every period at 1103 (RA_PROTOCOL.md §10.5, 100x sidereal) and then
+    # raises the Fast bit from the period it is actually stepping with, not from
+    # the letter it was given (§10.2). A test that expected `lowspeed` here was
+    # reading the old simulator, not the board.
+    assert "highspeed" in moves["ra_lowspeed_forward"]["speed_mode"]
     assert "highspeed" in moves["ra_highspeed_forward"]["speed_mode"]
     for label, move in moves.items():
         travelled = move["end"]["steps"] - move["start"]["steps"]
