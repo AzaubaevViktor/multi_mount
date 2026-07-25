@@ -57,7 +57,13 @@ BAUD = 115200
 SAY_BINARY = "/usr/bin/say"
 VOICE = "Milena"
 SPEAKER = "Агент ДЕК."
-CALM_INTERVAL_S = 25.0
+# The LEDs on the board now carry the live state, so the voice no longer has to prove
+# the process is alive. It stays quiet unless the situation genuinely improves.
+CALM_INTERVAL_S = 0.0
+# Rounds a state must survive before it is worth saying out loud. A hand resting on a
+# wire makes the reading flap several times a second; without this the voice chases
+# every twitch, which is precisely what made the first version unusable.
+STABLE_ROUNDS = 4
 LOG_DIR = Path(__file__).resolve().parents[2] / "logs" / "protocol"
 
 # A healthy TMC2209 reports this in the top byte of IOIN.
@@ -73,6 +79,7 @@ class Side:
     raw: int
     version: int
     ifcnt: int
+    state: int
 
     @property
     def replied(self) -> bool:
@@ -95,16 +102,14 @@ class Round:
     b: Side
 
     @property
-    def key(self) -> tuple[Any, ...]:
-        """What counts as "the situation changed" for the purpose of speaking.
+    def rank(self) -> int:
+        """Best of the two orientations, on the board's own 0..3 scale.
 
-        Deliberately coarser than the raw numbers: `raw` wobbling between 8 and 12
-        while a hand rests on the wires is not news, but gaining or losing a reply is.
+        Speaking is driven by this single number rather than by the full reading:
+        which orientation is which, and whether `raw` is 8 or 12, is what the LEDs
+        are for. The voice only reports that things got better or worse.
         """
-        return (
-            self.a.linked, self.a.replied, self.a.version, self.a.stuck_low,
-            self.b.linked, self.b.replied, self.b.version, self.b.stuck_low,
-        )
+        return max(self.a.state, self.b.state)
 
 
 def parse_round(line: str) -> Round | None:
@@ -119,10 +124,10 @@ def parse_round(line: str) -> Round | None:
             return None
     try:
         return Round(
-            a=Side(bool(values["a_link"]), bool(values["a_idle"]),
-                   values["a_raw"], values["a_ver"], values["a_ifcnt"]),
-            b=Side(bool(values["b_link"]), bool(values["b_idle"]),
-                   values["b_raw"], values["b_ver"], values["b_ifcnt"]),
+            a=Side(bool(values["a_link"]), bool(values["a_idle"]), values["a_raw"],
+                   values["a_ver"], values["a_ifcnt"], values["a_state"]),
+            b=Side(bool(values["b_link"]), bool(values["b_idle"]), values["b_raw"],
+                   values["b_ver"], values["b_ifcnt"], values["b_state"]),
         )
     except KeyError:
         return None
@@ -195,11 +200,13 @@ def main(argv: list[str] | None = None) -> int:
             say(text)
 
     LOGGER.info("trace: %s", trace)
-    announce("Слушаю линию. Меняй провода, я скажу, когда что-то изменится.")
+    announce("Слушаю линию. Состояние на светодиодах, говорить буду только по делу.")
 
     port: serial.Serial | None = None
-    spoken_key: tuple[Any, ...] | None = None
+    spoken_key: int | None = None
     spoken_at = 0.0
+    pending_rank = -1
+    pending_rounds = 0
     was_connected = False
 
     try:
@@ -211,6 +218,7 @@ def main(argv: list[str] | None = None) -> int:
                         announce("Плата отключилась от USB.")
                         was_connected = False
                         spoken_key = None
+                        pending_rank = -1
                     time.sleep(1.0)
                     continue
                 try:
@@ -220,9 +228,10 @@ def main(argv: list[str] | None = None) -> int:
                     continue
                 record(TraceKind.OPEN, baud=BAUD, resolved_port=name)
                 if not was_connected:
-                    announce("Плата на связи.")
+                    announce("Плата на связи. Смотри на светодиоды.")
                     was_connected = True
                     spoken_key = None
+                    pending_rank = -1
                 continue
 
             try:
@@ -248,11 +257,17 @@ def main(argv: list[str] | None = None) -> int:
             )
 
             now = time.monotonic()
-            changed = state.key != spoken_key
-            stale = now - spoken_at >= args.calm_interval
-            if changed or stale:
+            if state.rank == pending_rank:
+                pending_rounds += 1
+            else:
+                pending_rank = state.rank
+                pending_rounds = 1
+
+            settled = pending_rounds == STABLE_ROUNDS and pending_rank != spoken_key
+            stale = args.calm_interval > 0 and now - spoken_at >= args.calm_interval
+            if settled or stale:
                 announce(describe(state))
-                spoken_key = state.key
+                spoken_key = pending_rank
                 spoken_at = now
     except KeyboardInterrupt:
         LOGGER.info("stopped by the operator")

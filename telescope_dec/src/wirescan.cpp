@@ -37,6 +37,22 @@
 static const uint8_t PIN_A = 8;
 static const uint8_t PIN_B = 9;
 
+// The board carries two RGB LEDs and one single LED, which happens to be exactly what
+// two orientations plus a sign of life need. Talking through them beats talking out
+// loud: the state changes several times a second while somebody wiggles a wire, and
+// no voice can keep up with that without becoming unbearable.
+//
+// Active high, same as the main firmware's clearStatusLedsV2().
+static const uint8_t LED_A_R = 6;    // the RGB that cycles colour per step normally
+static const uint8_t LED_A_G = 5;
+static const uint8_t LED_A_B = 3;
+static const uint8_t LED_B_R = A3;   // the mode LED
+static const uint8_t LED_B_G = A2;
+static const uint8_t LED_B_B = A5;
+static const uint8_t LED_ALIVE = 11; // power LED, toggled every round
+
+static const uint8_t TMC2209_VERSION = 0x21;
+
 static const uint8_t TMC_ADDRESS = 0b00;
 static const uint8_t REG_IFCNT = 0x02;
 static const uint8_t REG_IOIN = 0x06;
@@ -175,6 +191,15 @@ static void tmcWrite(uint8_t rxPin, uint8_t txPin, uint8_t reg, uint32_t value) 
   delay(2);
 }
 
+// What the colour means. Ordered worst to best, and the order is used: the host is
+// told only when the *best* of the two orientations changes rank.
+enum LinkState : uint8_t {
+  STATE_DEAD = 0,      // dark   -- line idles high and nothing is attached
+  STATE_GROUNDED = 1,  // red    -- line is held low, a wire is sitting on ground
+  STATE_LINKED = 2,    // blue   -- the two pins share copper, but the chip is silent
+  STATE_TALKING = 3    // green  -- the TMC2209 answered, this is the orientation
+};
+
 struct Orientation {
   bool linked;
   // Level of the receive pin while nothing is being sent. A UART line idles HIGH, so
@@ -215,6 +240,37 @@ static Orientation probe(uint8_t rxPin, uint8_t txPin) {
   return out;
 }
 
+static LinkState classify(const Orientation& o) {
+  if (o.replied && o.version == TMC2209_VERSION) return STATE_TALKING;
+  if (o.linked) return STATE_LINKED;
+  if (!o.idleHigh) return STATE_GROUNDED;
+  return STATE_DEAD;
+}
+
+static void showState(uint8_t r, uint8_t g, uint8_t b, LinkState state) {
+  digitalWrite(r, state == STATE_GROUNDED ? HIGH : LOW);
+  digitalWrite(g, state == STATE_TALKING ? HIGH : LOW);
+  digitalWrite(b, state == STATE_LINKED ? HIGH : LOW);
+}
+
+// Which LED is which is not obvious by looking, so the board says so once at boot:
+// three green blinks on the first orientation's LED, then three on the second.
+static void identifyLeds() {
+  for (uint8_t i = 0; i < 3; i++) {
+    digitalWrite(LED_A_G, HIGH);
+    delay(150);
+    digitalWrite(LED_A_G, LOW);
+    delay(150);
+  }
+  delay(400);
+  for (uint8_t i = 0; i < 3; i++) {
+    digitalWrite(LED_B_G, HIGH);
+    delay(150);
+    digitalWrite(LED_B_G, LOW);
+    delay(150);
+  }
+}
+
 static void report(const char* tag, const Orientation& o) {
   Serial.print(tag);
   Serial.print(F("_link="));
@@ -236,18 +292,33 @@ static void report(const char* tag, const Orientation& o) {
   Serial.print(F("_ifcnt="));
   Serial.print(o.ifcntDelta);
   Serial.print(';');
+  Serial.print(tag);
+  Serial.print(F("_state="));
+  Serial.print((uint8_t)classify(o));
+  Serial.print(';');
 }
 
 void setup() {
   Serial.begin(115200);
+  const uint8_t leds[] = {LED_A_R, LED_A_G, LED_A_B, LED_B_R, LED_B_G, LED_B_B, LED_ALIVE};
+  for (uint8_t i = 0; i < sizeof(leds); i++) {
+    pinMode(leds[i], OUTPUT);
+    digitalWrite(leds[i], LOW);
+  }
   delay(50);
   Serial.println(F("ready"));
+  identifyLeds();
 }
 
 void loop() {
   // Orientation A is what the main firmware assumes: pin 8 listens, pin 9 talks.
   const Orientation a = probe(PIN_A, PIN_B);
   const Orientation b = probe(PIN_B, PIN_A);
+
+  showState(LED_A_R, LED_A_G, LED_A_B, classify(a));
+  showState(LED_B_R, LED_B_G, LED_B_B, classify(b));
+  // A pulse per round: the eye can tell a scanner that is running from one that hung.
+  digitalWrite(LED_ALIVE, !digitalRead(LED_ALIVE));
 
   Serial.print(F("1;"));
   report("a", a);
