@@ -145,11 +145,14 @@ def test_default_step_period_is_the_sidereal_tracking_preset() -> None:
     assert steps == pytest.approx(3600 * 8_000_000 / float(STELLAR_DAY), rel=0.001)
 
 
-def test_stop_returns_the_channel_to_tracking_mode() -> None:
-    """Reference §5.1 note *4: after `K` the channel is always in Tracking Mode.
+def test_stop_leaves_the_channel_in_goto_mode() -> None:
+    """Step 2 §2.4: `K` does **not** put the channel back into tracking mode.
 
-    A GOTO interrupted by `K` is the case that distinguishes it: the mode bit
-    has to flip back to tracking even though the run never reached its target.
+    Reference §5.1 note *4 says it does, and §10.3 recorded it as confirmed —
+    but every measurement §10.3 made started in tracking mode, where the bit was
+    already up, so it confirmed nothing. On the live board `:G120` -> `:K1` ->
+    `:f1` answers `=001`, and a GOTO interrupted by `K` keeps the goto bit here
+    too.
 
     The Fast bit stays down throughout even though `G` asked for `0` (goto,
     highspeed): period 2 out of a 1x period of 11 is nowhere near 32x sidereal,
@@ -169,12 +172,11 @@ def test_stop_returns_the_channel_to_tracking_mode() -> None:
     clock.advance(1)
     assert _exchange(sim, b":K1\r") == b"=\r"
 
-    # Braking mid-flight, yet the mode nibble is back to tracking (bit0 set)
-    # while the Running bit is still up: the channel changes mode at once, the
-    # motion only winds down.
-    assert _exchange(sim, b":f1\r") == b"=111\r"
+    # Braking mid-flight, and the mode nibble still says goto (bit0 clear) with
+    # the Running bit up: `K` winds the motion down and touches nothing else.
+    assert _exchange(sim, b":f1\r") == b"=011\r"
     clock.advance(1)
-    assert _exchange(sim, b":f1\r") == b"=101\r"
+    assert _exchange(sim, b":f1\r") == b"=001\r"
     position_after_stop = _exchange(sim, b":j1\r")
     clock.advance(10)
     assert _exchange(sim, b":j1\r") == position_after_stop
@@ -215,11 +217,15 @@ def test_goto_reaches_target_and_returns_to_tracking_mode() -> None:
     # 699 is past 32x sidereal — the board's own verdict, §10.2.
     assert _exchange(sim, b":f1\r") == b"=411\r"
 
-    clock.advance(0.1)
+    # 1000 steps at 4 995 steps/s (period 13 of a 64 935 Hz timer), ramped at
+    # 12 000 steps/s² — a second is plenty for both the ramp and the run.
+    clock.advance(1.0)
 
     assert _exchange(sim, b":j1\r") == b"=" + encode_revu24(_OFFSET + 1000).encode() + b"\r"
-    # Auto-return to tracking mode after stop, and the Fast bit goes down with
-    # the axis: §10.3 saw `=101`/`=301` after every stop, never `=5xx`.
+    # Auto-return to tracking mode on *arrival* (reference §5.1 note *4). Unlike
+    # the `K` case of step 2 §2.4 this one has never been seen on hardware: every
+    # GOTO attempt reset the board before it arrived (step 2 §3), so this branch
+    # is the specification's word, and the simulator says so out loud.
     assert _exchange(sim, b":f1\r") == b"=101\r"
 
 
@@ -429,11 +435,15 @@ def test_step_period_is_clamped_at_a_hundred_times_sidereal() -> None:
         assert _exchange(sim, b":i1\r") == b"=" + encode_revu24(1103).encode() + b"\r"
 
 
-def test_clamped_period_caps_the_axis_at_a_hundred_times_sidereal() -> None:
-    """The clamp is not cosmetic: the axis really refuses to go faster.
+def test_the_axis_tops_out_below_the_clamped_period() -> None:
+    """Step 2 §2.6: the period clamp is not the real speed limit — 9 000 is.
 
-    A period of 1 would mean 16 000 000 steps/s. The board runs 14 506 instead
-    — `timer_freq / 1103` — which is exactly 100x the sidereal rate.
+    A period of 1 is stored as 1103, which `timer_freq / period` reads as 14 506
+    steps/s (100x sidereal). The live axis does not do that: sampled every 50 ms
+    through a five-second run it settles at 9 015 steps/s at period 1103 and
+    8 847 at 1724 — the same number twice, i.e. a ceiling of its own that no
+    period can lift. Two seconds are given here so the ramp (also §2.6) is over
+    and the measurement is of the cruise.
     """
     clock = Clock()
     sim = SkyWatcherSim(clock)
@@ -443,32 +453,38 @@ def test_clamped_period_caps_the_axis_at_a_hundred_times_sidereal() -> None:
     assert _exchange(sim, b":I1" + encode_revu24(1).encode() + b"\r") == b"=\r"
     assert _exchange(sim, b":J1\r") == b"=\r"
 
+    clock.advance(2)
+    reached = decode_revu24(_exchange(sim, b":j1\r")[1:-1].decode("ascii")) - _OFFSET
     clock.advance(1)
+    cruised = decode_revu24(_exchange(sim, b":j1\r")[1:-1].decode("ascii")) - _OFFSET - reached
 
-    answer = _exchange(sim, b":j1\r")
-    steps = decode_revu24(answer[1:-1].decode("ascii")) - _OFFSET
-    assert steps == pytest.approx(16_000_000 / 1103, abs=1)
-    assert steps == pytest.approx(100 * 12_492_146 / float(STELLAR_DAY), rel=0.001)
+    assert sim.step_period == 1103
+    assert cruised == pytest.approx(9_000, rel=0.01)
+    # And decidedly not the 14 506 the period alone would promise.
+    assert cruised < 0.7 * 16_000_000 / 1103
 
 
 def test_stop_brakes_along_a_ramp_instead_of_freezing_the_axis() -> None:
-    """§10.3: `K` answers `=` long before the axis is done moving.
+    """§10.3 with the numbers step 2 §2.6 actually measured.
 
-    Measured on hardware at the board's top speed: 0.6s after `:K1` the status
-    still reads Running, and the axis has overshot ~1148 counts. At 64x
-    sidereal the same 0.6s is enough for the ramp to finish. Both are checked
-    here, because a driver that trusts the `=` from `K` (as `stop()` does)
-    reports a mount as parked while it is still turning.
+    At period 1103 the axis was sampled every 50 ms right through the stop: it
+    was still Running 0.6s after `:K1` and travelled 6 886 counts before the
+    Running bit went down 1.05s later. (§10.3's "≈1148 counts" was taken at 128x
+    sidereal — a speed this board never reaches, since it clamps the period at
+    1103 and tops out at 9 000 steps/s anyway.)
+
+    This matters because a driver that trusts the `=` from `K` (as `stop()`
+    does) reports a mount as parked while it is still turning.
     """
     clock = Clock()
     sim = SkyWatcherSim(clock)
 
     assert _exchange(sim, b":F1\r") == b"=\r"
-    assert _exchange(sim, b":G110\r") == b"=\r"
     # 128x sidereal was requested on hardware; the board clamps it to 1103.
     assert _exchange(sim, b":I1" + encode_revu24(862).encode() + b"\r") == b"=\r"
+    assert _exchange(sim, b":G110\r") == b"=\r"
     assert _exchange(sim, b":J1\r") == b"=\r"
-    clock.advance(1)
+    clock.advance(2)
 
     assert _exchange(sim, b":K1\r") == b"=\r"
     at_stop_command = decode_revu24(_exchange(sim, b":j1\r")[1:-1].decode("ascii"))
@@ -480,27 +496,31 @@ def test_stop_brakes_along_a_ramp_instead_of_freezing_the_axis() -> None:
     clock.advance(1)
     assert _exchange(sim, b":f1\r") == b"=101\r"
     overshoot = decode_revu24(_exchange(sim, b":j1\r")[1:-1].decode("ascii")) - at_stop_command
-    assert overshoot == pytest.approx(1148, rel=0.05)
+    assert overshoot == pytest.approx(6_886, rel=0.10)
 
 
 def test_stop_ramp_is_short_enough_at_sixty_four_times_sidereal() -> None:
-    """The other half of §10.3: at 64x the axis is stopped within 0.6s.
+    """The other half of §10.3, remeasured: at 1724 the stop takes 0.62s.
 
     Without this the "brake ramp" could be a fixed delay long enough to hide a
-    driver that never polls `:f1` after `K`.
+    driver that never polls `:f1` after `K`. The hardware run stopped in 0.62s
+    over 3 101 counts, so 0.6s is deliberately just short of it and 0.8s just
+    past: the shape of the ramp is what is being pinned, not one instant of it.
     """
     clock = Clock()
     sim = SkyWatcherSim(clock)
 
     assert _exchange(sim, b":F1\r") == b"=\r"
-    assert _exchange(sim, b":G110\r") == b"=\r"
     assert _exchange(sim, b":I1" + encode_revu24(1724).encode() + b"\r") == b"=\r"
+    assert _exchange(sim, b":G110\r") == b"=\r"
     assert _exchange(sim, b":J1\r") == b"=\r"
-    clock.advance(1)
+    clock.advance(2)
 
     assert _exchange(sim, b":K1\r") == b"=\r"
-    clock.advance(0.6)
+    clock.advance(0.5)
+    assert _exchange(sim, b":f1\r")[2:3] == b"1"
 
+    clock.advance(0.3)
     assert _exchange(sim, b":f1\r") == b"=101\r"
 
 

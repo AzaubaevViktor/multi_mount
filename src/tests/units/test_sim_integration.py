@@ -4,6 +4,7 @@ from sim import Clock, FaultKind, SimSerialLine, SkyWatcherSim, TMC2209Sim
 from sky.constants import STELLAR_DAY, STELLAR_SPEED
 from sky.motor import MotionMode, MotorDirection
 from sky.physics import Ha
+from skywatcher.board import BOARD_SPEED_CEILING_SPS
 from skywatcher.motor import SkyWatcherMotor, SkyWatcherMotorProtocolError
 from tmc2209.motor import TMC2209Motor
 
@@ -121,10 +122,13 @@ def test_skywatcher_goto_reports_the_speed_the_board_will_really_run() -> None:
     reported_sps = motor.get_speed_sps_by_delta(delta_steps)
     requested_sps = motor.convert_speed_to_steps_per_second(motor._HIGHSPEED_SPEED)
 
-    # The request is 800x sidereal, the board gives 100.05x: the two must not be
-    # confused for each other.
+    # The request is 800x sidereal. The period clamp of §10.5 cuts that to
+    # 100.05x, and the board's own rate ceiling (step 2 §2.6) cuts it again, to
+    # the 9 000 steps/s the axis was measured doing at that period — ~62x. All
+    # three numbers are different and none of them may be mistaken for another.
     assert requested_sps == pytest.approx(_RA_CPR * 800 / float(STELLAR_DAY), rel=1e-3)
-    assert reported_sps == pytest.approx(_RA_CPR * 100.05 / float(STELLAR_DAY), rel=1e-3)
+    assert reported_sps == BOARD_SPEED_CEILING_SPS
+    assert reported_sps < _RA_CPR * 100.05 / float(STELLAR_DAY)
 
     # And the reported speed is the one the axis really moves at: predicted ETA
     # against the arrival measured on the simulated board.
@@ -136,6 +140,10 @@ def test_skywatcher_goto_reports_the_speed_the_board_will_really_run() -> None:
     while motor.status().motion_mode != MotionMode.IDLE and elapsed_s < 10 * predicted_eta_s:
         clock.advance(0.1)
         elapsed_s += 0.1
+    # Past the position cache TTL: the loop leaves on a *status* read, and the
+    # position that comes with it may be up to 0.25s old — 2 250 counts at the
+    # speed this test runs at.
+    clock.advance(0.3)
 
     assert motor.status().steps == delta_steps
     assert elapsed_s == pytest.approx(predicted_eta_s, rel=0.02)
@@ -201,7 +209,10 @@ def test_skywatcher_goto_lowspeed_reaches_target() -> None:
 
     assert sim.highspeed is False
 
-    clock.advance(5)
+    # 43 376 steps at the board's real ceiling of 9 000 steps/s is 4.8 s of
+    # cruising plus ~0.7 s of ramp (step 2 §2.6), so five seconds is no longer
+    # enough — it was, back when the simulator believed the period alone.
+    clock.advance(6)
 
     status = motor.status()
     assert status.steps == delta_steps

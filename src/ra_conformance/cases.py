@@ -73,6 +73,16 @@ def _decode_revu24(reply: bytes) -> int:
     return int(body[4:6] + body[2:4] + body[0:2], 16)
 
 
+def _revu24(value: int) -> bytes:
+    return b"%02X%02X%02X" % (value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF)
+
+
+# Шаг 2 §2.1: на стоящей оси `:j1` дребезжит на один отсчёт — двадцать чтений
+# за десять секунд дали и `N`, и `N−1`. Любое сравнение позиций, которое должно
+# пережить этот дребезг, берёт этот допуск, а не ноль.
+POSITION_JITTER = 2
+
+
 # --------------------------------------------------------------------------- #
 # §2, §3 — constants and inquiries with verbatim answers
 # --------------------------------------------------------------------------- #
@@ -86,9 +96,12 @@ _VERBATIM_INQUIRIES: tuple[tuple[bytes, bytes, str, str], ...] = (
     (b":D1\r", b"=17AF01\r", "§2, §3", "период 1× трекинга = 110 359"),
     (b":c1\r", b"=544200\r", "§2, §3", "brake steps = 16 980"),
     (b":s1\r", b"=000000\r", "§2, §3", "PEC period = 0, PEC у платы нет"),
-    (b":h1\r", b"=000080\r", "§2, §3", "goto target = логический ноль"),
-    (b":d1\r", b"=000080\r", "§2, §3", "Tele. Axis Position"),
-    (b":j1\r", b"=000080\r", "§3, §12.1", "позиция после включения"),
+    (
+        b":d1\r",
+        b"=000080\r",
+        "§3, шаг 2 §2.3",
+        "Tele. Axis Position — константа `0x800000`: не следует ни за движением, ни за `:E1`",
+    ),
     (b":i1\r", b"=17AF01\r", "§3, §12.1", "период шага после включения"),
     (b":n1\r", b"=00\r", "§3", "окно `:C`/`:n` после включения стоит на адресе 0x00"),
     (b":r1\r", b"=00\r", "§3, §13 #23", "регистровый файл `:A`/`:r` — заглушка"),
@@ -221,24 +234,112 @@ def _status_case() -> Case:
     )
 
 
+# §3.1 (переписан по шагу 2), §12.1: позиция, цель, точка торможения и
+# «Tele. Axis Position» — состояние сессии, а не константы платы. Прочитать их
+# дословно можно было только потому, что в первой сессии ось стояла ровно в
+# логическом нуле; на живой плате шага 2 `:j1` был `0x80012F`, а `:d1` при этом
+# оставался `0x800000`. Поэтому здесь проверяется форма ответа, а сами
+# отношения между регистрами — отдельными кейсами ниже.
+_POSITION_FAMILY: tuple[tuple[bytes, str, str], ...] = (
+    (b":j1\r", "§3, §12.1", "позиция: 24 бита; после включения 0x800000, но в сессии — что угодно"),
+    (b":h1\r", "§3", "goto target: 24 бита, задаётся `:H1` от текущей позиции"),
+    (b":m1\r", "§3.1", "brake point: производная от `:h1`, а не от позиции (шаг 2 §2.2)"),
+)
+
+
+def _position_family_cases() -> list[Case]:
+    return [
+        Case(
+            name=send.rstrip(b"\r").decode("ascii"),
+            section=section,
+            safety=Safety.READ,
+            steps=(Exchange(send, matching(_HEX_WORD, "24-битное значение")),),
+            note=note,
+        )
+        for send, section, note in _POSITION_FAMILY
+    ]
+
+
 def _brake_point_case() -> Case:
+    """§3.1 переписан: `:m1` считается от **цели**, а не от позиции.
+
+    Первая сессия читала обе величины при позиции и цели, равных `0x800000`,
+    и не могла их различить. Шаг 2 развёл их: `:H1` на +50 000 сдвинул `:h1` на
+    +50 000 и `:m1` вместе с ним, при неподвижной позиции.
+    """
+
     def check(replies: tuple[bytes, ...]) -> str | None:
-        brake_point = _decode_revu24(replies[0])
-        position = _decode_revu24(replies[1])
-        delta = (brake_point - position) % 0x1000000
-        if delta not in (BRAKE_STEPS, 0x1000000 - BRAKE_STEPS):
-            return f"|:m1 - :j1| = {min(delta, 0x1000000 - delta)}, а `:c1` обещает {BRAKE_STEPS}"
+        target = _decode_revu24(replies[1])
+        brake_point = _decode_revu24(replies[2])
+        expected = (target - BRAKE_STEPS) % 0x1000000
+        if brake_point != expected:
+            return f"`:m1` = 0x{brake_point:06X}, а `:h1` − `:c1` даёт 0x{expected:06X}"
         return None
 
     return Case(
-        name=":m1 = позиция ± brake steps",
-        section="§3.1",
-        safety=Safety.READ,
+        name="m1_follows_target_not_position",
+        section="§3.1, шаг 2 §2.2",
+        safety=Safety.WRITE,
         steps=(
-            Exchange(b":m1\r", matching(_HEX_WORD, "24-битное значение")),
-            Exchange(b":j1\r", matching(_HEX_WORD, "24-битное значение")),
+            Exchange(b":H1" + _revu24(50_000) + b"\r", exact(b"=\r")),
+            Exchange(b":h1\r", matching(_HEX_WORD, "цель = позиция + 50 000")),
+            Exchange(b":m1\r", matching(_HEX_WORD, "точка торможения = цель − brake steps")),
         ),
-        note="производная величина, а не константа: знак берётся от последнего направления",
+        note="направление CW: `:m1` = `:h1` − 16 980; при CCW знак меняется",
+        teardown=(b":H1000000\r",),
+        check=check,
+    )
+
+
+def _tele_position_is_a_constant_case() -> Case:
+    """Шаг 2 §2.3: `:d1` — не вторая копия позиции, а константа `0x800000`.
+
+    §3 читал `:d1` равным `:j1` в каждом замере — но только потому, что ось всю
+    ту сессию стояла в логическом нуле. Кейс разводит их принудительно: пишет
+    позицию `0x812345` и убеждается, что `:d1` не сдвинулся.
+    """
+    return Case(
+        name="d1_does_not_follow_the_position",
+        section="§3, шаг 2 §2.3",
+        safety=Safety.WRITE,
+        steps=(
+            Exchange(b":E1452381\r", exact(b"=\r")),
+            Exchange(b":j1\r", exact(b"=452381\r")),
+            Exchange(b":d1\r", exact(b"=000080\r")),
+            Exchange(b":E1" + LOGICAL_ZERO + b"\r", exact(b"=\r")),
+            Exchange(b":j1\r", exact(b"=" + LOGICAL_ZERO + b"\r")),
+        ),
+        note="`:E1` пишет позицию и только её; `:d1` остаётся `=000080` и после записи, и после сотен тысяч пройденных отсчётов",
+        teardown=(b":E1" + LOGICAL_ZERO + b"\r",),
+    )
+
+
+def _brake_increment_is_ignored_case() -> Case:
+    """Шаг 2 §2.2: `:M1` принимается с `=` и не меняет ровно ничего.
+
+    Вендорское приложение шлёт `:M1AC0D00` (3 500 шагов) перед каждым `:J1`
+    (`RA_SA_CONSOLE_PROTOCOL.md` §6). На этой плате величина торможения жёстко
+    равна `:c1` = 16 980, а инкремент из `:M1` не доходит ни до `:m1`, ни до
+    поведения при подъезде к цели.
+    """
+
+    def check(replies: tuple[bytes, ...]) -> str | None:
+        if replies[1] != replies[3]:
+            return f"`:m1` изменился после `:M1`: {replies[1]!r} -> {replies[3]!r}"
+        return None
+
+    return Case(
+        name="M_break_increment_is_ignored",
+        section="§3, шаг 2 §2.2",
+        safety=Safety.WRITE,
+        steps=(
+            Exchange(b":H1" + _revu24(50_000) + b"\r", exact(b"=\r")),
+            Exchange(b":m1\r", matching(_HEX_WORD, "точка торможения до `:M1`")),
+            Exchange(b":M1AC0D00\r", exact(b"=\r")),
+            Exchange(b":m1\r", matching(_HEX_WORD, "она же после `:M1`")),
+        ),
+        note="вендорские 3 500 шагов торможения плата принимает и выбрасывает",
+        teardown=(b":H1000000\r", b":M1000000\r"),
         check=check,
     )
 
@@ -276,7 +377,11 @@ def _framing_cases() -> list[Case]:
             safety=Safety.READ,
             steps=(
                 Exchange(b":f", silence()),
-                Exchange(b":j1\r", exact(b"=000080\r")),
+                # Дочитывается `:e1`, а не `:j1`: ответ на неё — константа платы,
+                # а позиция в сессии меняется и дребезжит (шаг 2 §2.1), из-за чего
+                # кейс про обрамление краснел бы по причине, к обрамлению не
+                # относящейся.
+                Exchange(b":e1\r", exact(b"=03110A\r")),
             ),
             note="второе `:` отбрасывает недобранную команду",
         ),
@@ -285,7 +390,7 @@ def _framing_cases() -> list[Case]:
             section="§8.1, §13 #18",
             safety=Safety.READ,
             steps=(
-                Exchange(b":f1\r:j1\r", one_of(b"=100\r", b"=101\r")),
+                Exchange(b":f1\r:e1\r", one_of(b"=100\r", b"=101\r")),
                 Exchange(None, silence()),
             ),
             note="две команды одной записью дают один ответ: плата не буферизует",
@@ -297,7 +402,7 @@ def _framing_cases() -> list[Case]:
             steps=(
                 Exchange(b":f1\r", one_of(b"=100\r", b"=101\r")),
                 Pause(0.02),
-                Exchange(b":j1\r", exact(b"=000080\r")),
+                Exchange(b":e1\r", exact(b"=03110A\r")),
             ),
             note="те же две команды с паузой 20 мс дают оба ответа",
         ),
@@ -448,7 +553,7 @@ def _timing_case() -> Case:
     steps: list[Step] = []
     for _ in range(5):
         steps.append(Exchange(b":f1\r", one_of(b"=100\r", b"=101\r")))
-        steps.append(Exchange(b":j1\r", exact(b"=000080\r")))
+        steps.append(Exchange(b":e1\r", exact(b"=03110A\r")))
     return Case(
         name="reply_time_is_milliseconds_not_zero",
         section="§9, §12.3",
@@ -503,17 +608,21 @@ def _clamp_cases() -> list[Case]:
 def _status_bits_cases() -> list[Case]:
     return [
         Case(
-            name="goto_mode_returns_to_tracking_after_K",
-            section="§10.3, §13 #19",
+            name="K_does_not_return_a_standing_axis_to_tracking",
+            section="§10.3, §13 #19, шаг 2 §2.4",
             safety=Safety.WRITE,
             steps=(
                 Exchange(b":F1\r", exact(b"=\r")),
                 Exchange(b":G120\r", exact(b"=\r")),
                 Exchange(b":f1\r", exact(b"=001\r")),
                 Exchange(b":K1\r", exact(b"=\r")),
-                Exchange(b":f1\r", exact(b"=101\r")),
+                Exchange(b":f1\r", exact(b"=001\r")),
             ),
-            note="примечание *4 спецификации: после `K` канал всегда в режиме трекинга (B0 первого символа = 1)",
+            note=(
+                "примечание *4 спецификации («после `K` канал всегда в режиме трекинга») "
+                "на стоящей оси НЕ выполняется: режим остаётся goto. §10.3 считал его "
+                "подтверждённым, но все его замеры шли из режима трекинга, где бит и так стоял"
+            ),
             teardown=(b":G110\r",),
         ),
         Case(
@@ -530,15 +639,17 @@ def _status_bits_cases() -> list[Case]:
             teardown=(b":E1" + LOGICAL_ZERO + b"\r",),
         ),
         Case(
-            name="H_and_M_are_accepted",
-            section="§3",
+            name="H_zero_increment_targets_the_current_position",
+            section="§3, шаг 2 §2.2",
             safety=Safety.WRITE,
             steps=(
                 Exchange(b":H1000000\r", exact(b"=\r")),
                 Exchange(b":M1000000\r", exact(b"=\r")),
-                Exchange(b":h1\r", exact(b"=000080\r")),
+                Exchange(b":h1\r", matching(_HEX_WORD, "цель = позиция")),
+                Exchange(b":j1\r", matching(_HEX_WORD, "она же позиция")),
             ),
-            note="сеттеры цели и точки торможения принимаются с `=`; нулевой инкремент оставляет цель на месте",
+            note="`:H1` — инкремент от текущей позиции, а не абсолютная цель; нулевой оставляет цель на оси",
+            check=_target_equals_position,
             teardown=(b":H1000000\r",),
         ),
         Case(
@@ -629,21 +740,24 @@ def _motion_cases() -> list[Case]:
         ),
         Case(
             name="K_is_a_ramp_not_a_switch",
-            section="§10.3, §13 #19",
+            section="§10.3, §13 #19, шаг 2 §2.6",
             safety=Safety.MOTION,
             steps=(
                 Exchange(b":F1\r", exact(b"=\r")),
                 Exchange(b":I1" + PERIOD_100X + b"\r", exact(b"=\r")),
                 Exchange(b":G110\r", exact(b"=\r")),
                 Exchange(b":J1\r", exact(b"=\r")),
-                Pause(0.5),
+                # Разгон длится ~1.2 с (шаг 2 §2.6). Полсекунды хода, как было
+                # здесь раньше, ось до своей скорости не доводили — и тормозила
+                # она тогда быстрее, чем кейс успевал спросить.
+                Pause(2.5),
                 Exchange(b":K1\r", exact(b"=\r")),
                 Pause(0.5),
                 Exchange(b":f1\r", exact(b"=511\r")),
                 Pause(2.0),
                 Exchange(b":f1\r", exact(b"=101\r")),
             ),
-            note="на 100× через полсекунды после `:K1` ось всё ещё Running; направление сохраняется, Fast гаснет",
+            note="разогнанная ось тормозит ~1 с: через полсекунды после `:K1` всё ещё Running",
             teardown=_RESTORE_IDLE,
         ),
         Case(
@@ -662,8 +776,8 @@ def _motion_cases() -> list[Case]:
             teardown=_RESTORE_IDLE,
         ),
         Case(
-            name="E_while_running_clears_init_flag",
-            section="§11",
+            name="E_while_running_may_clear_init_flag",
+            section="§11, шаг 2 §2.5",
             safety=Safety.MOTION,
             steps=(
                 Exchange(b":F1\r", exact(b"=\r")),
@@ -673,10 +787,17 @@ def _motion_cases() -> list[Case]:
                 Exchange(b":f1\r", exact(b"=111\r")),
                 Exchange(b":E1" + LOGICAL_ZERO + b"\r", exact(b"=\r")),
                 Pause(1.0),
-                Exchange(b":f1\r", exact(b"=110\r")),
+                # `=110` — квирк сработал, `=111` — не сработал. §11 сам пишет,
+                # что одна и та же последовательность в разных заходах даёт
+                # разный результат («Повтор той же комбинации ... флаг
+                # сохранился»), и шаг 2 это увидел на железе. Кейс поэтому
+                # закрепляет то, что детерминировано: ось продолжает идти, `:E`
+                # принята с `=`, а флаг — как повезёт. Требование к драйверу
+                # («не слать `:E` на ходу») от этого только строже.
+                Exchange(b":f1\r", one_of(b"=110\r", b"=111\r")),
                 Exchange(b":K1\r", exact(b"=\r")),
             ),
-            note="флаг сбрасывается асинхронно, через сотни миллисекунд; между `:E` и паузой запросов нет (§11, бисекция)",
+            note="флаг сбрасывается асинхронно и НЕ каждый раз; экспериментально 1 сброс из 2 заходов",
             teardown=_RESTORE_IDLE,
         ),
         Case(
@@ -710,7 +831,10 @@ def _motion_cases() -> list[Case]:
                 Pause(1.0),
                 Exchange(b":K1\r", exact(b"=\r")),
                 Pause(2.0),
-                Exchange(b":f1\r", exact(b"=100\r")),
+                # Сработал квирк или нет — `:J1` всё равно обязана ответить `=`,
+                # а не `!4`. Ждать именно `=100` кейс больше не может: §11
+                # недетерминирован (шаг 2 §2.5).
+                Exchange(b":f1\r", one_of(b"=100\r", b"=101\r")),
                 Exchange(b":J1\r", exact(b"=\r")),
                 Exchange(b":K1\r", exact(b"=\r")),
             ),
@@ -730,15 +854,17 @@ def _motion_cases() -> list[Case]:
                 Exchange(b":K1\r", exact(b"=\r")),
                 Pause(2.0),
                 Exchange(b":f1\r", exact(b"=301\r")),
-                Exchange(b":m1\r", matching(_HEX_WORD, "24-битное значение")),
-                Exchange(b":j1\r", matching(_HEX_WORD, "24-битное значение")),
+                Exchange(b":m1\r", matching(_HEX_WORD, "точка торможения")),
+                Exchange(b":h1\r", matching(_HEX_WORD, "цель")),
             ),
-            note="после хода CCW статус `=301`, а brake point уходит на `+ brake steps` от позиции",
+            note="после хода CCW статус `=301`, а brake point уходит на `+ brake steps` от цели",
             check=_brake_point_after_ccw,
             teardown=_RESTORE_IDLE,
         ),
         _speed_case("speed_at_64x_slow_mode", b":G110\r", "режим `G '1'` (медленный)"),
         _speed_case("speed_at_64x_highspeed_mode", b":G130\r", "режим `G '3'` (быстрый)"),
+        _speed_ceiling_case(),
+        _no_ramp_below_fast_bit_case(),
         Case(
             name="restore_logical_zero",
             section="§10.6, §12.1",
@@ -759,25 +885,37 @@ def _motion_cases() -> list[Case]:
     ]
 
 
-# §10.4: speed obeys `steps/s = TMR_Freq / period` and nothing else. The board's
-# own measurement came out 2.1% above the formula (9478 against 9280.7), so the
-# window is wide enough for that and for the ~2 ms each exchange spends on the
-# wire, and still far too narrow to survive a stray highspeed multiplier.
-_SPEED_RUN_S = 3.0
-_SPEED_TOLERANCE = 0.10
+# §10.4 в редакции шага 2. Формула `шагов/с = TMR_Freq / период` — про
+# **установившуюся** скорость, и только до 64× сидерических. Две поправки,
+# снятые с живой платы (шаг 2 §2.6):
+#
+# 1. выше порога бита Fast плата разгоняется рампой ~1 с, поэтому мерить надо
+#    между двумя точками на ходу, а не от `:J1`. Старая редакция кейса мерила
+#    от старта и обвиняла в разнице формулу;
+# 2. на периоде 1103 (номинальные 100×) ось идёт не 14 506 шаг/с, а те же
+#    ~9 000, что и на 1724. Собственный потолок платы — около 9 000 шаг/с,
+#    то есть ~62× сидерических; зажим периода на 1103 до него просто не
+#    дотягивается.
+_SPEED_RAMP_S = 1.5
+_SPEED_MEASURE_S = 2.5
+_SPEED_TOLERANCE = 0.06
 _TIMER_FREQ = 16_000_000
 _SPEED_PERIOD = 1_724
+# Измерено дважды независимо (фазы `load` и `ramp` шага 2): 8 847 и ~8 600 шаг/с
+# на 1724, 9 015 на 1103. Границы взяты шире разброса и уже, чем расстояние до
+# формульных 14 506.
+_CEILING_SPS = (8_200, 9_800)
 
 
 def _speed_case(name: str, mode_command: bytes, mode_note: str) -> Case:
-    expected = _TIMER_FREQ / _SPEED_PERIOD * _SPEED_RUN_S
+    expected = _TIMER_FREQ / _SPEED_PERIOD * _SPEED_MEASURE_S
 
     def check(replies: tuple[bytes, ...]) -> str | None:
-        # Индексы — по обменам кейса: 3 — `:j1` до старта, 5 — `:j1` на ходу.
-        travelled = (_decode_revu24(replies[5]) - _decode_revu24(replies[3])) % 0x1000000
+        # Индексы — по обменам кейса: 4 — `:j1` после разгона, 5 — после мерного окна.
+        travelled = (_decode_revu24(replies[5]) - _decode_revu24(replies[4])) % 0x1000000
         if abs(travelled - expected) > expected * _SPEED_TOLERANCE:
             return (
-                f"за {_SPEED_RUN_S} с ось прошла {travelled} отсчётов, "
+                f"за {_SPEED_MEASURE_S} с установившегося хода ось прошла {travelled} отсчётов, "
                 f"а TMR_Freq/период даёт {expected:.0f} ±{_SPEED_TOLERANCE:.0%}"
             )
         return None
@@ -790,23 +928,108 @@ def _speed_case(name: str, mode_command: bytes, mode_note: str) -> Case:
             Exchange(b":F1\r", exact(b"=\r")),
             Exchange(b":I1" + PERIOD_64X + b"\r", exact(b"=\r")),
             Exchange(mode_command, exact(b"=\r")),
-            Exchange(b":j1\r", matching(_HEX_WORD, "позиция до старта")),
             Exchange(b":J1\r", exact(b"=\r")),
-            Pause(_SPEED_RUN_S),
-            Exchange(b":j1\r", matching(_HEX_WORD, "позиция на ходу, до торможения")),
+            Pause(_SPEED_RAMP_S),
+            Exchange(b":j1\r", matching(_HEX_WORD, "позиция после разгона")),
+            Pause(_SPEED_MEASURE_S),
+            Exchange(b":j1\r", matching(_HEX_WORD, "позиция в конце мерного окна")),
             Exchange(b":K1\r", exact(b"=\r")),
         ),
-        note=f"{mode_note}: скорость = TMR_Freq / период, множителя highspeed на этой плате нет",
+        note=f"{mode_note}: установившаяся скорость = TMR_Freq / период, множителя highspeed на этой плате нет",
+        check=check,
+        teardown=_RESTORE_IDLE,
+    )
+
+
+def _speed_ceiling_case() -> Case:
+    """Шаг 2 §2.6: период 1103 не даёт 100× — плата упирается в ~9 000 шаг/с."""
+
+    def check(replies: tuple[bytes, ...]) -> str | None:
+        travelled = (_decode_revu24(replies[5]) - _decode_revu24(replies[4])) % 0x1000000
+        rate = travelled / _SPEED_MEASURE_S
+        if not _CEILING_SPS[0] <= rate <= _CEILING_SPS[1]:
+            return (
+                f"на периоде 1103 ось идёт {rate:.0f} шаг/с, а шаг 2 намерил "
+                f"{_CEILING_SPS[0]}..{_CEILING_SPS[1]} (формула обещала бы 14 506)"
+            )
+        return None
+
+    return Case(
+        name="board_speed_ceiling_below_100x",
+        section="§10.5, шаг 2 §2.6",
+        safety=Safety.MOTION,
+        steps=(
+            Exchange(b":F1\r", exact(b"=\r")),
+            Exchange(b":I1" + PERIOD_100X + b"\r", exact(b"=\r")),
+            Exchange(b":G110\r", exact(b"=\r")),
+            Exchange(b":J1\r", exact(b"=\r")),
+            Pause(_SPEED_RAMP_S),
+            Exchange(b":j1\r", matching(_HEX_WORD, "позиция после разгона")),
+            Pause(_SPEED_MEASURE_S),
+            Exchange(b":j1\r", matching(_HEX_WORD, "позиция в конце мерного окна")),
+            Exchange(b":K1\r", exact(b"=\r")),
+        ),
+        note="зажим периода на 1103 обещает 100×, но ось идёт ~62× — потолок у платы свой",
+        check=check,
+        teardown=_RESTORE_IDLE,
+    )
+
+
+def _no_ramp_below_fast_bit_case() -> Case:
+    """Шаг 2 §2.6: ниже порога бита Fast разгона нет вовсе.
+
+    На 6 897 первые же 66 мс хода идут на полной скорости 2 320 шаг/с, и `:K1`
+    останавливает ось за один опрос. Рампа появляется вместе с битом Fast.
+    """
+
+    def check(replies: tuple[bytes, ...]) -> str | None:
+        # Обмены кейса: 3 — `:j1` до старта, 5 — `:j1` через полсекунды хода.
+        travelled = (_decode_revu24(replies[5]) - _decode_revu24(replies[3])) % 0x1000000
+        expected = _TIMER_FREQ / 6_897 * 0.5
+        if abs(travelled - expected) > expected * 0.15:
+            return f"за первые 0.5 с хода на 16× ось прошла {travelled}, а без разгона было бы {expected:.0f}"
+        return None
+
+    return Case(
+        name="no_acceleration_ramp_at_16x",
+        section="§10.2, шаг 2 §2.6",
+        safety=Safety.MOTION,
+        steps=(
+            Exchange(b":F1\r", exact(b"=\r")),
+            Exchange(b":I1" + PERIOD_16X + b"\r", exact(b"=\r")),
+            Exchange(b":G110\r", exact(b"=\r")),
+            Exchange(b":j1\r", matching(_HEX_WORD, "позиция до старта")),
+            Exchange(b":J1\r", exact(b"=\r")),
+            Pause(0.5),
+            Exchange(b":j1\r", matching(_HEX_WORD, "позиция через полсекунды")),
+            Exchange(b":K1\r", exact(b"=\r")),
+        ),
+        note="без бита Fast плата стартует сразу на полной скорости и останавливается без выбега",
         check=check,
         teardown=_RESTORE_IDLE,
     )
 
 
 def _brake_point_after_ccw(replies: tuple[bytes, ...]) -> str | None:
+    """§3.1 в редакции шага 2: точка торможения отсчитывается от цели.
+
+    После хода CCW она уходит на `+ brake steps` от **цели** — сама цель к тому
+    моменту равна позиции, с которой ось стартовала (`:H1` нулевым инкрементом
+    в teardown предыдущего кейса), а не той, где ось встала.
+    """
     brake_point = _decode_revu24(replies[-2])
-    position = _decode_revu24(replies[-1])
-    if (brake_point - position) % 0x1000000 != BRAKE_STEPS:
-        return f"`:m1 - :j1` = {(brake_point - position) % 0x1000000}, а после хода CCW ожидается +{BRAKE_STEPS}"
+    target = _decode_revu24(replies[-1])
+    if (brake_point - target) % 0x1000000 != BRAKE_STEPS:
+        return f"`:m1 - :h1` = {(brake_point - target) % 0x1000000}, а после хода CCW ожидается +{BRAKE_STEPS}"
+    return None
+
+
+def _target_equals_position(replies: tuple[bytes, ...]) -> str | None:
+    target = _decode_revu24(replies[2])
+    position = _decode_revu24(replies[3])
+    delta = (target - position) % 0x1000000
+    if min(delta, 0x1000000 - delta) > POSITION_JITTER:
+        return f"`:h1` = 0x{target:06X}, а позиция 0x{position:06X} — разошлись больше чем на дребезг"
     return None
 
 
@@ -934,8 +1157,11 @@ def build_cases() -> tuple[Case, ...]:
     """The whole list, in the order a hardware session executes it."""
     cases: list[Case] = []
     cases.extend(_verbatim_cases())
+    cases.extend(_position_family_cases())
     cases.append(_status_case())
     cases.append(_brake_point_case())
+    cases.append(_brake_increment_is_ignored_case())
+    cases.append(_tele_position_is_a_constant_case())
     cases.append(_drifting_extended_id_case())
     cases.append(_unused_letters_case())
     cases.append(_extended_inquire_sweep_case())

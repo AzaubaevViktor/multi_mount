@@ -37,6 +37,18 @@ MIN_PERIOD_PROBE = 1
 # capability word and belongs with the rest of them.
 STATUS_EX_ID = "010000"
 
+# The rate this controller actually manages, whatever period is loaded
+# (`RA_PROTOCOL_STEP_2.md` §2.6). The period clamp above says 1103, which the
+# formula reads as 14 506 steps/s; the axis, sampled every 50 ms through a
+# five-second run, settles at 9 015 — the same rate it does at period 1724
+# (8 847). So the clamp is not the limit, and reporting `timer_freq / period`
+# above 9 000 tells `Axis` a GOTO will take 60% less time than it will.
+#
+# Applied to what is *reported*, never to what is written: the period stays the
+# one the board was asked for, because the axis does go as fast as it can and
+# nothing is gained by asking for less.
+BOARD_SPEED_CEILING_SPS = 9_000
+
 Transactor = Callable[[Command, str | None], str]
 
 
@@ -101,12 +113,14 @@ class SkyWatcherBoard:
         return int(STELLAR_DAY * self.timer_freq / self.cpr / rate)
 
     def speed_sps_from_period(self, period: int, speed_mode: SpeedMode) -> int:
+        """Steps per second the axis will really run at with this period."""
         if period <= 0:
             raise MotorStateError("period must be positive")
         rate = self.times_sidereal(period)
         if speed_mode == SpeedMode.HIGHSPEED:
             rate *= self.highspeed_ratio
-        return int(round(rate * float(STELLAR_SPEED) * self.cpr / (24 * 60 * 60)))
+        asked = int(round(rate * float(STELLAR_SPEED) * self.cpr / (24 * 60 * 60)))
+        return min(asked, BOARD_SPEED_CEILING_SPS)
 
 
 def probe_board(transact: Transactor, logger: logging.Logger) -> tuple[SkyWatcherBoard, int | None]:

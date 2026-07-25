@@ -86,13 +86,28 @@ USB_VOLT_ADDRESS = 0x001C
 # board's own `:D1` = 110359 is reproduced by this expression to within 1).
 _STELLAR_DAY_S = 86164.1
 
-# Braking model of `K`, fitted to the two numbers measured in §10.3: at 14506
-# steps/s (the board's own top speed) the axis overshoots ~1148 counts, and
-# 0.6s after `K` the Running bit is still up — while at 64x sidereal (9280
-# steps/s) it is already down. A speed decaying as `v0 * exp(-t / tau)` matches
-# both: total travel is `v0 * tau` = 1148 counts, and the time to fall under
-# `_BRAKE_STOP_SPS` is 0.616s from 14506 steps/s but 0.581s from 9280.
-_BRAKE_TAU_S = 0.0791
+# Acceleration and braking, measured in step 2 §2.6 by sampling `:j1` every
+# 50 ms through a whole 5-second run (`tools.ra_step2 ramp`). The board ramps
+# the *commanded* rate linearly and steps at `min(commanded, ceiling)`:
+#
+#   * 1724 (64x): 2 000 -> ~9 000 steps/s in ~0.7 s, i.e. ~12 000 steps/s²;
+#     after `:K1` the rate falls to zero in 0.62 s over 3 101 counts;
+#   * 1103 (100x): the same ~9 000 steps/s ceiling, but after `:K1` the axis
+#     keeps its rate for ~0.44 s before slowing — exactly the time the
+#     commanded 14 506 needs to fall to the 9 000 the axis was really doing —
+#     and then stops in 0.6 s, 6 886 counts past the `:K1`;
+#   * 6897 (16x): no ramp at all. The first 66 ms sample already reads the full
+#     2 320 steps/s, and `:K1` stops the axis inside one 50 ms poll.
+#
+# So the ramp belongs to the Fast bit, not to motion as such: below the Fast
+# threshold the board starts and stops instantly. §10.3's "≈1148 counts of
+# overshoot" was measured at a speed the board never actually reached.
+# 13 000 steps/s² is the value that reproduces *both* stops: from period 1724
+# it predicts 3 309 counts against the 3 101 measured, and from 1103 — 6 927
+# against 6 886. The acceleration side agrees too (0 -> 9 000 in 0.69 s against
+# the ~0.7 s sampled). Poll granularity of the measurement is ~55 ms, so the
+# remaining few per cent is the measurement, not the model.
+_RAMP_SPS_PER_S = 13_000.0
 _BRAKE_STOP_SPS = 6.0
 
 # Delay of the firmware quirk in §11: `:E` sent while the axis runs clears the
@@ -100,6 +115,13 @@ _BRAKE_STOP_SPS = 6.0
 # why the same command sequence loses the flag in one run and keeps it in the
 # next. A driver that re-reads `:f1` immediately after `:E` sees it still set.
 _INIT_FLAG_RESET_DELAY_S = 0.3
+
+# Step 2 §2.6: the board's own ceiling on step rate. Period 1103 (nominally
+# 100x sidereal, 14 506 steps/s) drives the live axis at the same ~9 000
+# steps/s as period 1724 does: 9 015 measured in the `ramp` phase, ~8 600 in
+# `load`, and 8 847 at 1724. The period clamp of §10.5 therefore never reaches
+# the real limit — the limit is lower and is not expressible as a period.
+_SPEED_CEILING_SPS = 9_000.0
 
 # §10.2: the Fast bit of `:f1` follows the *loaded period*, not the `G` letter.
 # Measured bracket: at period 6897 (16x sidereal) the bit stays down even while
@@ -178,6 +200,29 @@ def decode_revu24(data: str) -> int:
     return int(data[4:6] + data[2:4] + data[0:2], 16)
 
 
+def _capped_area(v_start: float, v_end: float, duration: float) -> float:
+    """Distance covered while the rate slides from ``v_start`` to ``v_end``.
+
+    Everything above :data:`_SPEED_CEILING_SPS` is flattened to the ceiling,
+    because that is what the axis does: the commanded rate keeps rising past
+    9 000 steps/s, the stepping does not. Without the flattening the simulator
+    would credit the axis with distance it never travels — and the visible
+    consequence, the ~0.44 s of unchanged speed after `:K1` from period 1103,
+    would disappear.
+    """
+    if duration <= 0:
+        return 0.0
+    cap = _SPEED_CEILING_SPS
+    low, high = (v_start, v_end) if v_start <= v_end else (v_end, v_start)
+    if high <= cap:
+        return (v_start + v_end) / 2 * duration
+    if low >= cap:
+        return cap * duration
+    # One crossing: a flat stretch at the ceiling plus a trapezoid below it.
+    above = (high - cap) / (high - low) * duration
+    return cap * above + (cap + low) / 2 * (duration - above)
+
+
 class SkyWatcherSim:
     """Simulated SkyWatcher motor board behind a :class:`sim.fake_serial.FakeSerial`.
 
@@ -244,7 +289,7 @@ class SkyWatcherSim:
         self.memory_address = 0
         self.memory: dict[int, int] = {}
 
-        self._brake_speed_sps = 0.0
+        self._commanded_sps = 0.0
         self._init_reset_at: float | None = None
         self._integrated_at = clock.now
         self._rx = bytearray()
@@ -276,7 +321,7 @@ class SkyWatcherSim:
         self.goto_target = None
         self.goto_target_position = 0.0
         self._target_from_increment = False
-        self._brake_speed_sps = 0.0
+        self._commanded_sps = 0.0
         self._init_reset_at = None
         self.memory_address = 0
         # The RX buffer is not carried across a reset either: a command half sent
@@ -316,16 +361,36 @@ class SkyWatcherSim:
         # SkyWatcher boards do not use the DTR line.
         return None
 
-    def speed_sps(self) -> float:
-        """Speed the currently loaded step period asks for, in steps/s.
+    def requested_sps(self) -> float:
+        """Rate the loaded period asks for, before the board's own ceiling.
 
-        This is the commanded speed, not the instantaneous one: while the axis
-        brakes (:attr:`braking`) it decays from here down to zero.
+        This is what the *commanded* velocity ramps towards; what the axis
+        actually steps at is :meth:`speed_sps`.
         """
         sps = self.timer_freq / self.step_period
         if self.highspeed:
             sps *= self.highspeed_ratio
         return sps
+
+    def speed_sps(self) -> float:
+        """Steady-state rate of the loaded period, in steps/s.
+
+        The board's own ceiling (step 2 §2.6) is applied here, so this is what
+        the axis really does once the ramp is over — not what the period asks
+        for. During the ramp the instantaneous rate is lower; while braking it
+        decays from here to zero.
+        """
+        return min(self.requested_sps(), _SPEED_CEILING_SPS)
+
+    def ramps(self) -> bool:
+        """Whether this speed is ramped at all (step 2 §2.6).
+
+        The same threshold as the Fast bit, and for the same reason: on the live
+        board 6897 starts and stops instantly, 1724 and 1103 do not. Using one
+        predicate for both keeps the simulator from claiming a combination that
+        was never seen — a ramped run with the Fast bit down.
+        """
+        return self.step_period * _FAST_SPEED_MULTIPLE <= self.tracking_period_1x
 
     def fast_bit(self) -> bool:
         """Whether `:f1` reports Fast, the way the board decides it (§10.2).
@@ -373,17 +438,19 @@ class SkyWatcherSim:
 
         if self.braking:
             # §10.3: `K` starts a ramp. The board answers `=` at once but the
-            # Running bit stays up and the axis keeps coasting.
-            decay = math.exp(-dt / _BRAKE_TAU_S)
-            self.position += sign * self._brake_speed_sps * _BRAKE_TAU_S * (1.0 - decay)
-            self._brake_speed_sps *= decay
-            if self._brake_speed_sps < _BRAKE_STOP_SPS:
-                self._brake_speed_sps = 0.0
+            # Running bit stays up and the axis keeps coasting. The ramp is
+            # linear in the *commanded* rate and the axis steps at the capped
+            # one, which is why a stop from 1103 begins with almost half a
+            # second at unchanged speed (step 2 §2.6).
+            travelled = self._ramp_commanded(0.0, dt)
+            self.position += sign * travelled
+            if self._commanded_sps < _BRAKE_STOP_SPS:
+                self._commanded_sps = 0.0
                 self.braking = False
                 self.running = False
             return
 
-        travel = self.speed_sps() * dt
+        travel = self._ramp_commanded(self.requested_sps(), dt)
         if not self.tracking_mode and self.goto_target is not None:
             # Distance left *in the direction of travel*: a target that lies
             # behind is reached the long way round, exactly as a counter that
@@ -393,10 +460,39 @@ class SkyWatcherSim:
                 self.position = self.goto_target
                 self.goto_target = None
                 self.running = False
+                # The ramp state has to go with the run: without this the next
+                # `:J1` would start at the rate this one ended on, and the
+                # acceleration of step 2 §2.6 would silently disappear.
+                self._commanded_sps = 0.0
                 # Auto-return to tracking (speed) mode after the motor stops.
                 self.tracking_mode = True
                 return
         self.position += sign * travel
+
+    def _ramp_commanded(self, target_sps: float, dt: float) -> float:
+        """Move the commanded rate towards ``target_sps`` and return the travel.
+
+        Below the Fast threshold the commanded rate jumps: the live board at
+        6897 was already at full speed 66 ms after `:J1` and stopped inside one
+        50 ms poll. Above it the rate slides at :data:`_RAMP_SPS_PER_S`, and the
+        distance is integrated over the *capped* rate, because that is what the
+        axis actually steps at.
+        """
+        if not self.ramps():
+            self._commanded_sps = target_sps
+            return min(target_sps, _SPEED_CEILING_SPS) * dt
+
+        started_at = self._commanded_sps
+        # The ramp may end inside this step. Integrating the whole step as one
+        # trapezoid would then keep "spending" a speed the axis no longer has —
+        # a 1 s poll over a 0.6 s stop overshot by 40% before this split.
+        ramp_s = min(dt, abs(target_sps - started_at) / _RAMP_SPS_PER_S)
+        rate = _RAMP_SPS_PER_S if target_sps > started_at else -_RAMP_SPS_PER_S
+        self._commanded_sps = started_at + rate * ramp_s
+        if ramp_s >= dt:
+            return _capped_area(started_at, self._commanded_sps, ramp_s)
+        self._commanded_sps = target_sps
+        return _capped_area(started_at, target_sps, ramp_s) + min(target_sps, _SPEED_CEILING_SPS) * (dt - ramp_s)
 
     def _reply(self, command: str, body: str = "", error: int | None = None) -> None:
         if error is not None:
@@ -540,17 +636,24 @@ class SkyWatcherSim:
         elif cmd == "j":
             self._reply(cmd, self._position_body(self.position))
         elif cmd == "d":
-            # §3: `:d1` answered exactly what `:j1` did in every reading.
-            self._reply(cmd, self._position_body(self.position))
+            # Step 2 §2.3: `:d1` is not a position. It answers `=000080` with
+            # the axis parked at 0x81A172, after an `:E1` that set something
+            # else, and after hundreds of thousands of counts travelled. §3 read
+            # it equal to `:j1` only because the axis stood at the logical zero.
+            self._reply(cmd, encode_revu24(_POSITION_OFFSET))
         elif cmd == "h":
             self._reply(cmd, self._position_body(self._goto_target_steps()))
         elif cmd == "m":
-            # §3.1: the brake point is `position ± brake steps`, the sign taken
-            # from the direction — a derived value, not a constant. The board
-            # does the subtraction on the raw 24-bit counter (`0x800000 -
-            # 0x7FBDAC = 0x4254` exactly), so it is not reduced modulo CPR.
+            # Step 2 §2.2: the brake point is derived from the **target**
+            # (`:h1`), not from the position, with the sign taken from the
+            # direction. §3.1 could not tell the two apart because position and
+            # target both sat at `0x800000` in that session; step 2 separated
+            # them on the live board — `:H1` of +50 000 moved `:h1` and `:m1`
+            # together while the position never changed.
+            # The subtraction is done on the raw 24-bit counter (`0x800000 -
+            # 0x7FBDAC = 0x4254` exactly), i.e. not reduced modulo CPR.
             sign = 1 if self.backward else -1
-            raw = self._raw_position(self.position)
+            raw = self._raw_position(self._goto_target_steps())
             self._reply(cmd, encode_revu24((raw + sign * self.brake_steps) % 0x1000000))
         elif cmd == "f":
             mode_nibble = (
@@ -569,6 +672,11 @@ class SkyWatcherSim:
             self._target_from_increment = True
             self._reply(cmd)
         elif cmd == "M":
+            # Step 2 §2.2: the increment is stored and used **nowhere** — that
+            # is the board's behaviour, not a simplification. The vendor app
+            # sends `:M1AC0D00` (3 500) before every `:J1` and `:m1` does not
+            # move afterwards: the braking distance on this board is hard-wired
+            # to `:c1` = 16 980.
             self.brake_increment = decode_revu24(data)
             self._reply(cmd)
         elif cmd == "E":
@@ -607,7 +715,6 @@ class SkyWatcherSim:
             # initialization flag is an indicator, not a guard.
             self.running = True
             self.braking = False
-            self._brake_speed_sps = 0.0
             if not self.tracking_mode:
                 self.goto_target = self._goto_target_steps()
             self._reply(cmd)
@@ -619,9 +726,12 @@ class SkyWatcherSim:
             # modelled as `:K`: its ramp, if any, was never measured.
             if self.running and not self.braking:
                 self.braking = True
-                self._brake_speed_sps = self.speed_sps()
             self.goto_target = None
-            self.tracking_mode = True
+            # `K` does NOT change the mode (step 2 §2.4). §10.3 took the
+            # reference's note *4 ("after `K` the channel is always in tracking
+            # mode") for confirmed, but every measurement it made started from
+            # tracking mode, where the bit was already up. On the live board
+            # `:G120` -> `:K1` -> `:f1` answers `=001`: the goto mode stays.
             self._reply(cmd)
         else:
             self._handle_board_wide(cmd, data)
