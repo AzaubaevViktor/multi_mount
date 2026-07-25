@@ -326,7 +326,8 @@ def test_voltage_inquiry_does_not_exist_on_this_board() -> None:
     gets no answer at all — and once a `\\r` arrives, the accumulated `fL` is
     parsed as channel `L`, which is not a hex digit: `!3 Invalid Character`.
     A simulator that answered `<2 hex>#` here taught the driver a protocol no
-    board speaks.
+    board speaks. The voltage is read through the `:C`/`:n` window instead —
+    see below.
     """
     sim = SkyWatcherSim(Clock())
 
@@ -334,6 +335,71 @@ def test_voltage_inquiry_does_not_exist_on_this_board() -> None:
     assert _exchange(sim, b":f1#") == b""
     # The pending bytes are dropped by the next `:`, as on hardware (§8).
     assert _exchange(sim, b":f1\r") == b"=100\r"
+
+
+def test_memory_window_returns_the_two_voltages_byte_by_byte() -> None:
+    """§6.8, verbatim from the wire of 2026-07-25 18:53.
+
+    `:C1<lo><hi>` sets the address low byte first — `:C11C00` is 0x001C, not
+    0x1C00 — and `:n1` answers with exactly four bytes: `=`, two hex digits,
+    `\\r`. Battery 604 = 0x025C -> 6.04 V, USB 470 = 0x01D6 -> 4.70 V.
+    """
+    sim = SkyWatcherSim(Clock())
+
+    assert _exchange(sim, b":C10400\r") == b"=\r"
+    assert _exchange(sim, b":n1\r") == b"=5C\r"
+    assert _exchange(sim, b":C10500\r") == b"=\r"
+    assert _exchange(sim, b":n1\r") == b"=02\r"
+
+    assert _exchange(sim, b":C11C00\r") == b"=\r"
+    assert _exchange(sim, b":n1\r") == b"=D6\r"
+    assert _exchange(sim, b":C11D00\r") == b"=\r"
+    assert _exchange(sim, b":n1\r") == b"=01\r"
+
+
+def test_memory_window_does_not_auto_increment() -> None:
+    """The vendor re-sends `:C` before every `:n`, and this is why.
+
+    A driver that set the address once and read twice would decode the low byte
+    as both halves: 0x5C5C = 23644 -> 236.44 V instead of 6.04 V.
+    """
+    sim = SkyWatcherSim(Clock())
+
+    assert _exchange(sim, b":C10400\r") == b"=\r"
+    assert _exchange(sim, b":n1\r") == b"=5C\r"
+    assert _exchange(sim, b":n1\r") == b"=5C\r"
+    assert _exchange(sim, b":n1\r") == b"=5C\r"
+
+
+def test_memory_window_follows_the_configured_voltages() -> None:
+    sim = SkyWatcherSim(Clock(), battery_volt_hundredths=1234, usb_volt_hundredths=0)
+
+    assert _exchange(sim, b":C10400\r") == b"=\r"
+    assert _exchange(sim, b":n1\r") == b"=D2\r"
+    assert _exchange(sim, b":C10500\r") == b"=\r"
+    assert _exchange(sim, b":n1\r") == b"=04\r"
+
+    assert _exchange(sim, b":C11C00\r") == b"=\r"
+    assert _exchange(sim, b":n1\r") == b"=00\r"
+
+
+def test_memory_window_reads_zero_where_nothing_lives() -> None:
+    """§6.2: the dump of addresses 0x00..0x1F had non-zero bytes only at the
+    two voltages. Everything else in the window answers `=00`, and so does a
+    `:n1` sent before any `:C1` (address 0)."""
+    sim = SkyWatcherSim(Clock())
+
+    assert _exchange(sim, b":n1\r") == b"=00\r"
+    assert _exchange(sim, b":C10800\r") == b"=\r"
+    assert _exchange(sim, b":n1\r") == b"=00\r"
+
+
+def test_memory_window_address_errors_follow_the_board() -> None:
+    sim = SkyWatcherSim(Clock())
+
+    assert _exchange(sim, b":C1\r") == b"!1\r"
+    assert _exchange(sim, b":C104000\r") == b"!1\r"
+    assert _exchange(sim, b":C1ZZZZ\r") == b"!3\r"
 
 
 def test_step_period_is_clamped_at_a_hundred_times_sidereal() -> None:

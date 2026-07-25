@@ -23,7 +23,10 @@ and there is no other way to test that it does (protocol §§7, 10.3, 10.5, 11):
 - ``:I`` is clamped from below at 100x the sidereal period (1103 on this board),
   whatever was written; ``:i`` reads the stored value back;
 - error code ``4 Not Initialized`` does not exist: the board never checks the
-  flag, ``:J1`` without ``:F1`` is accepted.
+  flag, ``:J1`` without ``:F1`` is accepted;
+- ``:C1<lo><hi>`` + ``:n1`` is a byte window into live memory, **without auto
+  increment**: the address has to be set again before every read (§6 of the
+  protocol document, and how the vendor's app does it).
 
 Kinematics are integrated over the injected virtual :class:`sim.clock.Clock`:
 position is the integral of speed, speed in steps/s is
@@ -51,6 +54,17 @@ RA_TIMER_FREQ = 16_000_000
 RA_HIGHSPEED_RATIO = 1
 RA_MOUNT_CODE = 0x0A
 RA_BOARD_VERSION = 0x0311
+
+# Supply voltages as `int16 little-endian, hundredths of a volt` in the `:C`/`:n`
+# window — the format the vendor's app reads (RA_SA_CONSOLE_PROTOCOL.md §2) and
+# the numbers our board answered with on 2026-07-25 (RA_PROTOCOL.md §6.8):
+# battery 604 -> 6.04 V (multimeter 6.08 V at the same moment), USB 470 -> 4.70 V.
+RA_BATTERY_VOLT_HUNDREDTHS = 604
+RA_USB_VOLT_HUNDREDTHS = 470
+
+# Addresses of the two 16-bit values inside that window, low byte first.
+BATTERY_VOLT_ADDRESS = 0x0004
+USB_VOLT_ADDRESS = 0x001C
 
 # A sidereal day in seconds, the divisor of the 1x tracking period (§2: the
 # board's own `:D1` = 110359 is reproduced by this expression to within 1).
@@ -120,6 +134,8 @@ class SkyWatcherSim:
         mount_code: int = RA_MOUNT_CODE,
         board_version: int = RA_BOARD_VERSION,
         position_steps: int = 0,
+        battery_volt_hundredths: int = RA_BATTERY_VOLT_HUNDREDTHS,
+        usb_volt_hundredths: int = RA_USB_VOLT_HUNDREDTHS,
     ) -> None:
         self._clock = clock
         self.faults = FaultScript()
@@ -147,6 +163,14 @@ class SkyWatcherSim:
         self.goto_target_position: float | None = None
         self.position = float(position_steps)
         self.braking = False
+
+        # `:C`/`:n` window. The address survives a read (no auto increment), so a
+        # driver that reads two bytes without setting the address twice gets the
+        # same byte twice — exactly what the live board does.
+        self.battery_volt_hundredths = battery_volt_hundredths
+        self.usb_volt_hundredths = usb_volt_hundredths
+        self.memory_address = 0
+        self.memory: dict[int, int] = {}
 
         self._brake_speed_sps = 0.0
         self._init_reset_at: float | None = None
@@ -191,6 +215,24 @@ class SkyWatcherSim:
         if self.highspeed:
             sps *= self.highspeed_ratio
         return sps
+
+    def _memory_byte(self, address: int) -> int:
+        """One byte of the `:C`/`:n` window.
+
+        The two voltages live there as int16 little-endian in hundredths of a
+        volt, so they are assembled from the current attributes on every read —
+        a test that changes :attr:`battery_volt_hundredths` mid-session sees the
+        new value, as it would on a discharging battery.
+        """
+        for base, value in (
+            (BATTERY_VOLT_ADDRESS, self.battery_volt_hundredths),
+            (USB_VOLT_ADDRESS, self.usb_volt_hundredths),
+        ):
+            if address == base:
+                return value & 0xFF
+            if address == base + 1:
+                return (value >> 8) & 0xFF
+        return self.memory.get(address, 0)
 
     def _integrate(self) -> None:
         now = self._clock.now
@@ -286,6 +328,22 @@ class SkyWatcherSim:
             self._reply(cmd)
         elif cmd == "i":
             self._reply(cmd, encode_revu24(self.step_period))
+        elif cmd == "C":
+            # Set the window address: four hex chars, low byte first — `:C11C00`
+            # is address 0x001C. The reply carries no data (`=\r` on the wire).
+            if len(data) != 4:
+                self._reply(cmd, error=ERR_COMMAND_LENGTH)
+                return
+            try:
+                self.memory_address = int(data[2:4] + data[0:2], 16)
+            except ValueError:
+                self._reply(cmd, error=ERR_INVALID_CHARACTER)
+                return
+            self._reply(cmd)
+        elif cmd == "n":
+            # One byte at the current address, two hex chars, and the address is
+            # left where it was: the vendor re-sends `:C` before every `:n`.
+            self._reply(cmd, f"{self._memory_byte(self.memory_address):02X}")
         elif cmd == "H":
             try:
                 self.target_increment = decode_revu24(data)
