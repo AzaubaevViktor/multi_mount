@@ -76,7 +76,6 @@ Expected runtime behavior:
 - `telescope_dec/src/main.cpp`: AVR firmware for the DEC controller.
 - `src/tests/hw`: active hardware and end-to-end tests.
 - `src/tests/units`: active fast tests.
-- `src/tests/old`: archived tests that are kept for reference and are not collected by default.
 
 ## Current TODO / known gaps
 

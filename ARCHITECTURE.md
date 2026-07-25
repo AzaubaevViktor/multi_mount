@@ -277,8 +277,6 @@ MonitorMixin objects
 - `src/tests/hw` для hardware/integration сценариев;
 - `src/tests/units` для быстрых проверок без железа.
 
-`src/tests/old` содержит архивные тесты и больше не участвует в обычном прогоне.
-
 ## Ограничения и текущие долги
 
 - `LX200Handler._do_handle()` всё ещё смешивает parsing и command orchestration.
