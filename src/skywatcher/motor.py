@@ -724,10 +724,14 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
                 # An in-transaction retry is a recoverable transient: the caller decides whether the
                 # final failure is worth an error record, so keep the per-attempt trace on DEBUG.
                 self._logger.debug("While quering %s(%s) `%s` -> `%s`, %d last", command.name, arg, payload, response, count, exc_info=True)
-                self._serial.drop_buffers()
+                # Read the leftovers *before* dropping them. The old order was the reverse —
+                # `drop_buffers()` and then a read that could only come back empty — which is
+                # why the March logs hold 20 601 records of `['']` and not one byte of the
+                # garbage that actually confused the parser.
                 data = self._serial.read_all_data(timeout=.5)
-                if data is not None:
-                    self._logger.info("Received data: %s", data)
+                if data:
+                    self._logger.info("Discarding %d leftover byte-groups after a protocol error: %s", len(data), data)
+                self._serial.drop_buffers()
                 count -= 1
                 if count == 0:
                     raise

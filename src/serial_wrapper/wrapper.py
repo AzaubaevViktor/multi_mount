@@ -311,21 +311,46 @@ class SerialLine:
 
         return responce
     
+    # How often the drain loop below asks the OS whether more bytes have arrived. Short
+    # enough that a device answering mid-poll is not made to wait noticeably, long enough
+    # that a full-timeout drain is a handful of syscalls rather than a spin.
+    _READ_ALL_POLL_S = 0.01
+
     @_disconnect_when_error(default=None)
     def read_all_data(self, timeout: float | None = None) -> list[str] | None:
+        """Drain the input buffer, optionally waiting up to `timeout` for something to arrive.
+
+        The waiting is done here, by hand, because `pyserial` cannot do it: `read_all()` is
+        literally `read(self.in_waiting)`, so it returns whatever the OS has buffered *at this
+        instant* and never looks at `serial.timeout`. The previous implementation set that
+        attribute and then called a method that ignores it — `read_all_data(timeout=.5)`
+        returned immediately, and when called right after `drop_buffers()` it could only ever
+        return `['']`. That is the source of the 20 601 bare `['']` records in the March
+        sessions (PLAN.md П8): not a device that stayed silent, but a signature that promised
+        a wait nobody implemented.
+
+        `timeout=None` keeps the old non-blocking meaning — a single drain of what is already
+        there, which is what post-connect boot-garbage cleanup wants.
+        """
         with self._lock:
             serial_obj = self._require_open_serial()
-            _timeout = serial_obj.timeout
-            if timeout is not None:
-                serial_obj.timeout = timeout
-            data: bytes | None
-            try:
-                if (data := serial_obj.read_all()) is None:
+            deadline = self._clock.monotonic() + (timeout or 0.0)
+            chunks = bytearray()
+            while True:
+                chunk: bytes | None = serial_obj.read_all()
+                if chunk is None:
                     return None
-            finally:
-                if timeout is not None:
-                    serial_obj.timeout = _timeout
+                if chunk:
+                    chunks.extend(chunk)
+                elif chunks:
+                    # Something arrived and then the line went quiet: the device has finished
+                    # talking, so there is nothing to be gained by holding the lock longer.
+                    break
+                if self._clock.monotonic() >= deadline:
+                    break
+                self._clock.sleep(self._READ_ALL_POLL_S)
 
+            data = bytes(chunks)
             if self._recorder is not None:
                 self._record(TraceKind.RX, data)
 

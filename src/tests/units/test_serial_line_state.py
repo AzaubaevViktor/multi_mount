@@ -77,3 +77,69 @@ def test_query_error_closes_line_with_reason_and_error_meta() -> None:
     assert "test_query_error_closes_line_with_reason_and_error_meta" in line.last_close_meta.caller_frame
     assert line.last_close_meta.error_type == "SerialException"
     assert line.last_close_meta.error_message == "broken serial"
+
+
+class _SlowFakeSerial(_FakeSerial):
+    """A device that answers only after the caller has waited a while.
+
+    ``read_all`` hands out one scripted chunk per poll, so the script doubles as a
+    timeline: ``[b"", b"", b"hi\r"]`` is "silent for two polls, then answers".
+    """
+
+    def __init__(self, script: list[bytes]) -> None:
+        super().__init__()
+        self._script = list(script)
+        self.poll_count = 0
+
+    def read_all(self) -> bytes:
+        self.poll_count += 1
+        return self._script.pop(0) if self._script else b""
+
+
+def test_read_all_data_waits_for_a_device_that_answers_late(virtual_clock) -> None:
+    """`pyserial`'s read_all() is read(in_waiting) — non-blocking. The wait is ours.
+
+    Before this, `read_all_data(timeout=.5)` returned instantly no matter what the
+    signature promised: 20 601 records of `['']` in the March logs came from exactly
+    this. The device here stays quiet for two polls and then speaks.
+    """
+    line = SerialLine("/dev/null", 9600, 0.25, "read-all-wait", terminator="\r", clock=virtual_clock)
+    line.serial = _SlowFakeSerial([b"", b"", b"late\r"])
+
+    started = virtual_clock.monotonic()
+    lines = line.read_all_data(timeout=.5)
+
+    assert lines is not None
+    assert "late" in lines
+    assert virtual_clock.monotonic() > started, "a wait that costs no time is not a wait"
+
+
+def test_read_all_data_returns_as_soon_as_the_device_goes_quiet(virtual_clock) -> None:
+    """Having got an answer, do not sit on the lock until the timeout expires."""
+    line = SerialLine("/dev/null", 9600, 0.25, "read-all-quiet", terminator="\r", clock=virtual_clock)
+    fake = _SlowFakeSerial([b"one\r", b""])
+    line.serial = fake
+
+    started = virtual_clock.monotonic()
+    lines = line.read_all_data(timeout=10.0)
+
+    assert lines is not None
+    assert "one" in lines
+    assert virtual_clock.monotonic() - started < 1.0, "returned only after the full timeout"
+
+
+def test_read_all_data_without_timeout_stays_non_blocking(virtual_clock) -> None:
+    """`timeout=None` keeps the old meaning: drain what is already buffered, once.
+
+    That is what post-connect boot-garbage cleanup wants, and it must not start waiting.
+    """
+    line = SerialLine("/dev/null", 9600, 0.25, "read-all-drain", terminator="\r", clock=virtual_clock)
+    fake = _SlowFakeSerial([b"", b"too late\r"])
+    line.serial = fake
+
+    started = virtual_clock.monotonic()
+    lines = line.read_all_data()
+
+    assert lines == [""]
+    assert fake.poll_count == 1
+    assert virtual_clock.monotonic() == started
