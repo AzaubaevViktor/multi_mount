@@ -70,20 +70,41 @@ Expected runtime behavior:
 
 - `src/lx200`: LX200 protocol parsing and TCP server.
 - `src/sky`: axis state machine, combiner, polar compensation, coordinate math.
-- `src/skywatcher/motor.py`: SkyWatcher/SynScan RA backend.
-- `src/tmc2209/motor.py`: Python backend for the Arduino DEC controller.
+- `src/skywatcher/`: RA backend in four layers — `codec` (pure functions, no I/O),
+  `board` (capabilities read from the board at connect), `session` (state and the
+  board's quirks), `motor` (what `Axis` sees).
+- `src/tmc2209/`: DEC backend — `protocol` (v3 frame: length, opcode, sequence,
+  CRC16) and `motor` (dialect autodetection, echo verification).
+- `src/sim/`: simulators of both boards plus transport chaos, on a virtual clock.
+- `src/ra_conformance/`: protocol cases taken verbatim from the RA protocol
+  document, run by the same code against the simulator and against the live board.
+- `src/serial_wrapper/`: shared serial transport and the byte-level session recorder.
 - `telescope_dec/src/main.cpp`: AVR firmware for the DEC controller.
-- `src/tests/hw`: active hardware and end-to-end tests.
-- `src/tests/units`: active fast tests.
+- `src/tests/units`: fast tests, no hardware.
+- `src/tests/hw`: hardware and end-to-end tests.
+
+## Start here
+
+`FRAME.md` — the goal of the project and the invariants that must not be broken.
+Each of them was paid for with either damaged hardware or lost time. `PLAN.md`
+says where the work stands right now; `OBSERVATORY.md` describes the product this
+layer is the foundation of.
 
 ## Current TODO / known gaps
 
 - Pole crossing is still incomplete: when DEC reflection crosses the pole, RA should be mirrored by `+12h` as well.
-- `LX200SimpleServer` still allows multiple concurrent clients against the same handler and has no connection-level disconnect hook.
-- `MS` still returns a simplified boolean status instead of a full LX200 slew result code.
 - Step-based typed units such as `steps/s` are not modeled explicitly in `sky.physics` yet.
 - RA and DEC backend status contracts are still similar but not fully unified.
+- **The RA board reboots when a GOTO is allowed to reach its target** — reproduced
+  on live hardware. The driver therefore never lets the board arrive on its own.
+- **UART to the TMC2209 does not work in either direction.** Every software
+  explanation has been tested and ruled out; the cause is physical. Until it is
+  fixed, `set` answers success while doing nothing, and StallGuard, driver status
+  and current control are unavailable.
 
 ## Tests
 
-Default `pytest` discovery uses `src/tests/hw` and `src/tests/units`. Hardware suites expect real devices and serial ports; fast checks live under `src/tests/units`. A more detailed overview is kept in `TESTS_PLAN.md`.
+Default `pytest` runs `src/tests/units` only. `src/tests/hw` needs a physically
+attached mount and fails at *collection* without one, so it is deliberately kept
+out of the default run and takes one explicit argument: `pytest src/tests/hw`.
+A more detailed overview is kept in `TESTS_PLAN.md`.
