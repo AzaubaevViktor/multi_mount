@@ -40,6 +40,7 @@ import datetime
 import itertools
 import json
 import logging
+import subprocess
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -1023,6 +1024,137 @@ def phase_gotobrake(board: Board, out: list[dict[str, Any]]) -> None:
     out.append(_snapshot(board, "after_brake_runs"))
 
 
+# --------------------------------------------------------------------------- #
+# gotoarrive: one long GOTO, allowed to arrive, with a human on a probe
+# --------------------------------------------------------------------------- #
+
+# Long enough that the owner has time to get a probe on the rail and watch the
+# whole thing: at the ~8 600 steps/s the board takes for itself in goto (§13,
+# §15) 200 000 counts is ~24 s of running, of which the last ~1.5 s are the
+# ~4 650 steps/s plateau that ends in the crash.
+_ARRIVE_STEPS = 200_000
+# Remaining distances at which the run says out loud where it is. The last two
+# matter: 8 000 is just before the board comes off its cruise (§13 puts that at
+# ~7 000 remaining), 2 000 is inside the plateau, ~0.4 s from arrival.
+_ARRIVE_ANNOUNCE_TICKS = (100_000, 50_000, 20_000, 8_000, 2_000)
+
+
+def _say(text: str) -> None:
+    """One Russian voice, spoken in the background — never blocks the poll loop."""
+    try:
+        subprocess.Popen(  # noqa: S603 - fixed argv, no shell
+            ["/usr/bin/say", "-v", "Milena", text],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except OSError:  # pragma: no cover - a machine without `say`
+        LOGGER.info("голос недоступен: %s", text)
+
+
+def phase_gotoarrive(board: Board, out: list[dict[str, Any]]) -> None:
+    """The one experiment step 2 could not do for itself: watch the arrival.
+
+    Everything else about the crash is already known (§13–§16): it happens on
+    the board's own arrival in the target, at a steady ~4 650 steps/s, with no
+    final ramp — погасить 4 650 шаг/с на 200 отсчётах it needs ≈54 000 steps/s²,
+    four times the sharpest ramp the board shows anywhere else. The owner's
+    reading is back-EMF: a stop that sharp turns the motor into a generator and
+    pushes the rail up. The `:C`/`:n` window cannot see it — it refreshes about
+    once a second and the spike lasts milliseconds (§16) — so the measurement
+    has to come from outside, on the rail the motor is fed from (§17: the USB
+    one, not the batteries).
+
+    This phase does nothing clever. It runs one long GOTO, lets it arrive,
+    announces the remaining distance out loud so the person holding the probe
+    knows when to look, and records both channels and the full position profile
+    on either side of the event. **The expectation is a reboot** — four out of
+    four so far.
+    """
+    board.set(":F1")
+    out.append(_snapshot(board, "before_arrival_run"))
+
+    row: dict[str, Any] = {"step": "arrival_run", "steps": _ARRIVE_STEPS}
+    board.set(":G120")
+    board.set(f":I1{revu24(PERIOD_1X)}")
+    start_position = board.position()
+    board.set(f":H1{revu24(_ARRIVE_STEPS)}")
+    board.set(f":M1{revu24(200)}")
+    row["position_before"] = start_position
+    row["target"] = board.target()
+    row["brake_point"] = board.brake_point()
+    row["voltage_before"] = board.voltages()
+
+    profile: list[dict[str, Any]] = []
+    volts: list[dict[str, Any]] = [_voltage_row(board, 0.0, "before_J")]
+    announced: set[int] = set()
+    _say("Пошёл гоу-ту. Двести тысяч шагов, около двадцати четырёх секунд.")
+    started = board.now()
+    board.set(":J1", Safety.MOTION)
+    outcome = "arrived"
+    silent = False
+    while True:
+        elapsed = board.now() - started
+        try:
+            status = board.status()
+            delta = _signed((board.position() - start_position) % 0x1000000)
+        except BoardSatDown as error:
+            outcome = "silent"
+            silent = True
+            row["silence_at_s"] = round(elapsed, 3)
+            row["silence_error"] = str(error)
+            LOGGER.critical("ПЛАТА ЗАМОЛЧАЛА на %.2f с: %s", elapsed, error)
+            _say("Плата замолчала.")
+            break
+        profile.append({"at_s": round(elapsed, 4), "delta": delta, "f1": status.raw, "running": status.running})
+        remaining = _ARRIVE_STEPS - abs(delta)
+        for mark in _ARRIVE_ANNOUNCE_TICKS:
+            if mark not in announced and remaining <= mark:
+                announced.add(mark)
+                _say(f"Осталось {mark} шагов." if mark > 2_000 else "Две тысячи. Прибытие сейчас.")
+        if len(profile) % 6 == 0:
+            volts.append(_voltage_row(board, elapsed, "moving"))
+        if not status.running and elapsed > 0.5:
+            break
+        if elapsed > 60.0:
+            outcome = "deadline"
+            LOGGER.error("ход не уложился в дедлайн — торможу")
+            board.stop_and_wait()
+            break
+        # Tight near the target, loose while it cruises: the event is the last
+        # few hundred counts, and a 2 ms poll there costs nothing but bytes.
+        board.pause(0.002 if remaining < 6_000 else 0.05)
+
+    row["outcome"] = outcome
+    row["elapsed_s"] = round(board.now() - started, 3)
+    row["profile"] = profile
+    board.pause(0.5)
+    if not silent:
+        volts.append(_voltage_row(board, board.now() - started, "just_after"))
+    board.pause(2.0)
+    row["position_after"] = board.position()
+    row["travelled"] = _signed((row["position_after"] - start_position) % 0x1000000)
+    row["target_after"] = board.target()
+    row["period_after"] = board.period()
+    row["status_after"] = board.status().as_dict()
+    volts.append(_voltage_row(board, board.now() - started, "after"))
+    row["voltages"] = volts
+    # Nothing in this phase sends `:E`, so on this board a cleared flag can only
+    # be a restart (§12 of step 2).
+    row["survived"] = bool(row["status_after"]["init"]) and not silent
+    row["undershoot"] = _ARRIVE_STEPS - abs(row["travelled"])
+    out.append(row)
+    LOGGER.critical(
+        "прибытие: прошло %+d из %d (недобор %+d) за %.2f с, статус %s, цель %s, период %s — %s",
+        row["travelled"], _ARRIVE_STEPS, row["undershoot"], row["elapsed_s"],
+        row["status_after"]["raw"],
+        "цела" if row["target_after"] == row["target"] else "сброшена",
+        row["period_after"],
+        "ПЛАТА ЖИВА" if row["survived"] else "ПЕРЕЗАГРУЗКА",
+    )
+    _say("Плата жива." if row["survived"] else "Перезагрузка. Как и ожидалось.")
+    out.append(_snapshot(board, "after_arrival_run"))
+
+
 PHASES = {
     "probe": phase_probe,
     "goto": phase_goto,
@@ -1032,6 +1164,7 @@ PHASES = {
     "gotoprobe": phase_gotoprobe,
     "gotoladder": phase_gotoladder,
     "gotobrake": phase_gotobrake,
+    "gotoarrive": phase_gotoarrive,
 }
 
 
