@@ -268,3 +268,60 @@ def test_a_damaged_status_never_escapes_as_a_bare_keyerror() -> None:
                     leaked.append(f"seed={seed}: {type(error).__name__}: {error}")
 
         assert not leaked, f"{dialect}: {leaked[:3]}"
+
+
+# ---------------------------------------------------------------------------
+# 4. What a retry does to the line
+# ---------------------------------------------------------------------------
+
+
+class _OrderRecordingLine:
+    """A line that fails once and remembers in which order it was handled."""
+
+    terminator = b"\n"
+
+    def __init__(self) -> None:
+        self.events: list[str] = []
+        self.attempts = 0
+
+    def query(
+        self,
+        payload: str | None,
+        timeout: float | None = None,
+        response_prefixes: tuple[bytes, ...] | None = None,
+        response_terminator: bytes | str | None = None,
+    ) -> str:
+        self.events.append("query")
+        self.attempts += 1
+        if self.attempts == 1:
+            return "0;error=boom;\n"
+        return "1;position=17;\n"
+
+    def drop_buffers(self) -> None:
+        self.events.append("drop_buffers")
+
+    def read_all_data(self, timeout: float | None = None) -> list[str] | None:
+        self.events.append("read_all_data")
+        return ["leftover"]
+
+
+def test_a_retry_reads_the_leftovers_before_it_throws_them_away() -> None:
+    """The March defect, in the copy of the retry loop that still had it.
+
+    `drop_buffers()` and then `read_all_data(timeout=.5)` cannot log anything:
+    the bytes that confused the parser have just been discarded, so the read
+    can only wait half a second for a board that has already said everything.
+    That is where the 20 601 records of `['']` came from. The RA driver was
+    fixed; this one is the second copy of the same loop, and it kept the bug
+    long after the two protocols stopped having anything else in common.
+    """
+    clock = Clock()
+    line = _OrderRecordingLine()
+    motor = TMC2209Motor(line, clock, dialect=_Dialect.LEGACY)  # type: ignore[arg-type]
+
+    response = motor._transact("status")
+
+    assert response.values["position"] == "17"
+    assert line.events == ["query", "read_all_data", "drop_buffers", "query"], (
+        "the leftovers were dropped before anyone looked at them"
+    )

@@ -436,10 +436,15 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
                 if count == 0:
                     raise
                 self._logger.exception("TMC2209 WHILE TRANSACTING: %s(%s) `%s` -> `%s`, %d last", command, args, payload, response, count)
-                self._serial.drop_buffers()
+                # Read the leftovers *before* dropping them. The other order — drop and
+                # then read — is what produced the 20 601 records of `['']` in the March
+                # logs: the bytes that confused the parser were thrown away unlogged, and
+                # the read that followed could only wait half a second for a board that
+                # had nothing more to say. It was fixed in the RA driver and stayed here.
                 data = self._serial.read_all_data(timeout=.5)
-                if data is not None:
-                    self._logger.info("Received data: %s", data)
+                if data:
+                    self._logger.info("Discarding %d leftover byte-groups after a command error: %s", len(data), data)
+                self._serial.drop_buffers()
                 self._clock.sleep(0.1)
         # Unreachable: the retry above re-raises once count hits 0. Mirrors the same
         # guard in SkyWatcherMotor._transact and makes the return type total.
