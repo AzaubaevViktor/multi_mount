@@ -396,3 +396,10 @@ def test_halt_direction_still_reaches_the_right_axis_after_a_guide_pulse() -> No
     assert handler.calls == ["move_north", "halt_north"]
     assert handler.guides == [("south", 500)]
     assert SkyDirection.NORTH not in handler._manual_move_directions
+
+
+def test_the_slew_status_reads_as_words_for_humans_and_as_lx200_on_the_wire() -> None:
+    """The manual console and the log print `str(...)`; only the socket sees `to_wire()`."""
+    assert str(LX200SlewResult.accept()) == "accepted"
+    assert "below horizon" in str(LX200SlewResult.reject("below horizon"))
+    assert LX200SlewResult.reject("below horizon").to_wire() == "1below horizon#"

@@ -118,6 +118,10 @@ class LX200SlewResult:
             return "0"
         return f"{self.code}{self.reason}{Protocol.TERMINATOR}"
 
+    def __str__(self) -> str:
+        # For the log and the manual console; the wire format is `to_wire()`.
+        return "accepted" if self.accepted else f"rejected ({self.code}): {self.reason}"
+
 
 # What a single LX200 command answers with: a coordinate (GR/GD), a ready-made ASCII payload
 # (GT/GM/Gc/...), a 0/1 acknowledgement (Sr/Sd/...), an `MS` slew status, or nothing at all
