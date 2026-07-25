@@ -161,8 +161,11 @@ def test_manifest_carries_what_the_boards_said_about_themselves(tmp_path) -> Non
     assert ra_board["highspeed_ratio"] > 0
     assert ra_board["mount_code"] is not None
     assert ra_board["board_version"].startswith("0x")
-    assert ra_board["voltage_supported"] is True
-    assert ra_board["power_v"] == pytest.approx(12.6)
+    # The RA board has no readable supply voltage (RA_PROTOCOL.md §6): `:fL#`
+    # is a command of ours that no firmware answers. The manifest must record
+    # that honestly instead of carrying a number the board never sent.
+    assert ra_board["voltage_supported"] is False
+    assert ra_board["power_v"] is None
 
     dec_board = manifest["dec_board"]
     assert dec_board["status"]["ok"] is True

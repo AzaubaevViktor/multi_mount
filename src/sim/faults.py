@@ -25,8 +25,8 @@ class FaultKind(Enum):
 class FaultScript:
     """A queue of faults to apply to upcoming replies of a device.
 
-    Each queued fault optionally targets a specific command name (e.g. ``"fL"``
-    for the SkyWatcher voltage inquiry or ``"status"`` for TMC); a fault with
+    Each queued fault optionally targets a specific command name (e.g. ``"j"``
+    for the SkyWatcher position inquiry or ``"status"`` for TMC); a fault with
     ``command=None`` hits the next reply regardless of command. Queued faults
     pop after a single use; :meth:`make_dead` installs a permanent fault for
     every subsequent reply, modelling a mute/dead motor. A device calls
