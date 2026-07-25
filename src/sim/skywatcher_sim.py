@@ -104,9 +104,10 @@ class SkyWatcherSim:
     arithmetic instead of the real 12 492 146 counts per revolution override
     ``cpr``/``timer_freq``/``highspeed_ratio`` explicitly.
 
-    ``mount_code`` feeds the driver's min-period table (0x0A -> 0x0600, 0xF0 ->
-    12, else 6). Scripted faults (empty/truncated reply, dead motor) go through
-    :attr:`faults`.
+    ``mount_code`` is reported by ``:e1`` and nothing else: the driver no longer
+    keeps a min-period table keyed by it — it measures the clamp with
+    ``:I1``/``:i1`` instead (§10.5). Scripted faults (empty/truncated reply,
+    dead motor) go through :attr:`faults`.
     """
 
     def __init__(

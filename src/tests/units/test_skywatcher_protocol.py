@@ -10,6 +10,7 @@ from skywatcher.motor import (
     SkyWatcherMotorProtocolError,
     _Command,
     _Direction,
+    _Revu24,
     _SlewMode,
     _SpeedMode,
     _Status,
@@ -125,24 +126,53 @@ def test_skywatcher_connect_rejects_wrong_serial_terminator() -> None:
         motor.connect()
 
 
+class _ConnectSerial(_FakeSkyWatcherSerial):
+    """The handshake of the live board, including the step-period clamp of §10.5.
+
+    `:I1` is accepted with any value and stores `max(value, clamp)`; `:i1` reads
+    back what was stored. That pair is the whole of the driver's min-period
+    probe, so the fake has to own a period, not answer from a table.
+    """
+
+    def __init__(self, clamp: int = 1103, initial_period: int = 110_359, period_error: str | None = None) -> None:
+        super().__init__(
+            "=000000\r",
+            responses_by_payload={
+                ":F1\r": "=000000\r",
+                ":e1\r": "=03110A\r",
+                ":a1\r": "=12A7BE\r",
+                ":b1\r": "=2400F4\r",
+                ":g1\r": "=010000\r",
+                ":f1\r": "=101\r",
+            },
+        )
+        self.connected = False
+        self.clamp = clamp
+        self.step_period = initial_period
+        self.period_error = period_error
+
+    def connect(self) -> None:
+        self.connected = True
+
+    def query(
+        self,
+        payload: str | None,
+        timeout: float | None = None,
+        response_prefixes: tuple[bytes, ...] | None = None,
+        response_terminator: bytes | str | None = None,
+    ) -> str:
+        if payload is not None and payload.startswith((":I1", ":i1")):
+            self.calls.append((payload, response_prefixes, response_terminator))
+            if self.period_error is not None:
+                return self.period_error
+            if payload.startswith(":I1"):
+                self.step_period = max(self.clamp, _Revu24.from_mount(payload[3:-1]))
+                return "=\r"
+            return f"={_Revu24.from_int(self.step_period)}\r"
+        return super().query(payload, timeout, response_prefixes, response_terminator)
+
+
 def test_skywatcher_connect_parses_mcversion_with_board_byte_order() -> None:
-    class _ConnectSerial(_FakeSkyWatcherSerial):
-        def __init__(self) -> None:
-            super().__init__(
-                "=000000\r",
-                responses_by_payload={
-                    ":F1\r": "=000000\r",
-                    ":e1\r": "=03110A\r",
-                    ":a1\r": "=12A7BE\r",
-                    ":b1\r": "=2400F4\r",
-                    ":g1\r": "=010000\r",
-                },
-            )
-            self.connected = False
-
-        def connect(self) -> None:
-            self.connected = True
-
     serial = _ConnectSerial()
     motor = SkyWatcherMotor(serial)  # type: ignore[arg-type]
 
@@ -150,7 +180,45 @@ def test_skywatcher_connect_parses_mcversion_with_board_byte_order() -> None:
 
     assert serial.connected is True
     assert motor._mount_code == 0x0A
-    assert motor._min_period == 0x0600
+    assert motor._min_period == 1103
+
+
+def test_skywatcher_connect_probes_the_clamp_with_the_documented_command_pair() -> None:
+    """§10.5 on the wire: read, write a value below any clamp, read back, put back.
+
+    Pinned as payloads on purpose. The probe is only honest if the write really
+    goes below the clamp (a value the board raises) and the restore really
+    carries the period that was there before.
+    """
+    serial = _ConnectSerial()
+    motor = SkyWatcherMotor(serial)  # type: ignore[arg-type]
+
+    motor.connect()
+
+    period_payloads = [call[0] for call in serial.calls if call[0].startswith((":I1", ":i1"))]
+    assert period_payloads == [
+        ":i1\r",
+        f":I1{_Revu24.from_int(1)}\r",
+        ":i1\r",
+        f":I1{_Revu24.from_int(110_359)}\r",
+    ]
+    assert serial.step_period == 110_359
+
+
+def test_skywatcher_connect_survives_a_board_that_refuses_the_probe() -> None:
+    """A board that will not talk about its period is not a failed connect.
+
+    The fallback is the reference `CUSTOM` value of 6: it clamps nothing the
+    board does not clamp itself, so the axis still runs — only the speed
+    reported upwards may be optimistic, which is what the log says.
+    """
+    serial = _ConnectSerial(period_error="!0\r")
+    motor = SkyWatcherMotor(serial)  # type: ignore[arg-type]
+
+    motor.connect()
+
+    assert motor._min_period == SkyWatcherMotor._DEFAULT_MIN_PERIOD
+    assert motor._is_connected is True
 
 
 def test_skywatcher_transact_requests_prefixed_response_and_strips_answer_end() -> None:

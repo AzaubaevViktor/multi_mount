@@ -35,6 +35,7 @@ class _Command(StrEnum):
     INQUIRE_POSITION = "j"
     INQUIRE_STATUS = "f"
     INQUIRE_HIGHSPEED_RATIO = "g"
+    INQUIRE_STEP_PERIOD = "i"
     SET_STEP_PERIOD = "I"
     SET_GOTO_TARGET_INCREMENT = "H"
     SET_BREAK_POINT_INCREMENT = "M"
@@ -136,11 +137,12 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     FORWARD_POSITION_SIGN = -1
 
     _POSITION_OFFSET = 0x800000
+    # Fallback for a board whose own clamp could not be measured (§10.5 probe below):
+    # the value the INDI reference uses for every mount it does not recognize.
     _DEFAULT_MIN_PERIOD = 6
-    _MOUNT_CODE_MIN_PERIODS: dict[int, int] = {
-        0x0A: 0x0600,
-        0xF0: 12,
-    }
+    # Written during the probe: below every plausible clamp, and harmless — the board
+    # answers `=` and stores its own minimum instead, even for 0 (§10.5).
+    _MIN_PERIOD_PROBE = 1
     _LOWSPEED_MARGIN = Ha(10 * 60)
     _LOWSPEED_SPEED = STELLAR_SPEED * 128
     _HIGHSPEED_SPEED = STELLAR_SPEED * 800
@@ -198,7 +200,6 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         mount_version = _Revu24.from_mount(self._transact(_Command.INQUIRE_MOTOR_BOARD_VERSION))
         mount_version = ((mount_version & 0xFF) << 16) | (mount_version & 0xFF00) | ((mount_version & 0xFF0000) >> 16)
         self._mount_code = mount_version & 0xFF
-        self._min_period = self._MOUNT_CODE_MIN_PERIODS.get(self._mount_code, self._DEFAULT_MIN_PERIOD)
         self._steps_360 = _Revu24.from_mount(self._transact(_Command.INQUIRE_CPR))
         self._steps_worm = _Revu24.from_mount(self._transact(_Command.INQUIRE_TIMER_FREQ))
         self._highspeed_ratio = _Revu24.from_mount(self._transact(_Command.INQUIRE_HIGHSPEED_RATIO), hex_chars=2)
@@ -206,7 +207,61 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
             raise SkyWatcherMotorProtocolError(
                 f"invalid mount config: steps_360={self._steps_360} steps_worm={self._steps_worm} highspeed_ratio={self._highspeed_ratio}"
             )
+        self._min_period = self._measure_min_period()
         self._is_connected = True
+
+    def _measure_min_period(self) -> int:
+        """Ask the board itself how fast it is willing to go (§10.5).
+
+        The board takes `:I1` with any value, answers `=`, and stores
+        `max(value, its own minimum)` — 1103 on this controller, i.e. exactly 100x
+        sidereal, a limit neither the specification nor the INDI reference mentions.
+        The driver used to guess that limit from the mount code (`0x0A -> 0x0600`, a
+        number with no source anywhere), which was wrong in both directions: it cut 28%
+        off the range the board offers, and it disagreed with the board, so the speed
+        reported upwards was not the speed the axis ran at. The vendor's own app has no
+        such table either (RA_SA_CONSOLE_PROTOCOL.md: `rpsToStride` clamps nothing).
+        Four commands once per connect replace the guess with the fact; the axis must be
+        stopped, which is what the probe checks first.
+        """
+        if self._get_status().running:
+            self._logger.warning(
+                "Axis is running at connect, cannot probe the board's minimum step period; "
+                "falling back to %d, so reported speeds may be optimistic",
+                self._DEFAULT_MIN_PERIOD,
+            )
+            return self._DEFAULT_MIN_PERIOD
+        try:
+            saved_period = _Revu24.from_mount(self._transact(_Command.INQUIRE_STEP_PERIOD))
+        except SkyWatcherMotorError as error:
+            self._logger.warning("Could not read the step period back, falling back to %d: %s", self._DEFAULT_MIN_PERIOD, error)
+            return self._DEFAULT_MIN_PERIOD
+
+        try:
+            self._transact(_Command.SET_STEP_PERIOD, _Revu24.from_int(self._MIN_PERIOD_PROBE))
+            measured = _Revu24.from_mount(self._transact(_Command.INQUIRE_STEP_PERIOD))
+        except SkyWatcherMotorError as error:
+            self._logger.warning("Could not probe the board's minimum step period, falling back to %d: %s", self._DEFAULT_MIN_PERIOD, error)
+            measured = self._DEFAULT_MIN_PERIOD
+        finally:
+            # The probe leaves the fastest period the board has loaded. Whatever happened
+            # above, put back what was there: a `:J1` from anywhere else (a leftover GOTO,
+            # a manual session) would otherwise start the axis at the board's top speed
+            # instead of at the tracking period the board powers up with (§12.1).
+            self._restore_step_period(saved_period)
+
+        min_period = max(measured, self._DEFAULT_MIN_PERIOD)
+        self._logger.info("Board clamps the step period at %d (%.1fx sidereal at most)", min_period, self._times_sidereal(min_period))
+        return min_period
+
+    def _restore_step_period(self, period: int) -> None:
+        try:
+            self._transact(_Command.SET_STEP_PERIOD, _Revu24.from_int(period))
+        except SkyWatcherMotorError as error:
+            self._logger.warning("Could not restore the step period %d after the probe: %s", period, error)
+
+    def _times_sidereal(self, period: int) -> float:
+        return float(STELLAR_DAY) * self._steps_worm / self._steps_360 / period
 
     def disconnect(self) -> bool:
         self._is_connected = False
@@ -369,7 +424,20 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         return True
 
     def get_speed_sps_by_delta(self, delta_steps: int) -> int:
-        return self.convert_speed_to_steps_per_second(self._get_goto_speed(self.convert_steps_to_position(delta_steps).moving_wrap()))
+        # What the axis above gets is what the mount will really do, not what the driver
+        # would like it to do. `Axis._run_goto_to` turns this number into the GOTO ETA and
+        # subtracts the sky drift over that ETA, so an optimistic answer is not cosmetic:
+        # asking for 800x and getting 100x made the move take 8 times longer than the axis
+        # expected and cut the sky compensation by the same factor — an undershoot and a
+        # second GOTO. The request therefore goes through the same round trip the board
+        # imposes (speed -> period -> clamp -> speed) before it is reported.
+        requested_speed = self._get_goto_speed(self.convert_steps_to_position(delta_steps).moving_wrap())
+        return self._achievable_speed_sps(self.convert_speed_to_steps_per_second(requested_speed))
+
+    def _achievable_speed_sps(self, speed_sps: int) -> int:
+        speed_mode = self._get_speed_mode_for_speed_sps(speed_sps)
+        period = self._clamp_period(self._period_from_speed_sps(speed_sps), speed_mode)
+        return self._speed_sps_from_period(period, speed_mode)
 
     def get_speed_by_speed_sps(self, speed_sps: int) -> HaPerSecond:
         if speed_sps < 0:

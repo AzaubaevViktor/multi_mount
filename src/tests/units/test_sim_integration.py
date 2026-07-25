@@ -36,10 +36,10 @@ def test_skywatcher_connect_reads_valid_mount_config() -> None:
     assert motor._steps_360 == _RA_CPR
     assert motor._steps_worm == _RA_TIMER_FREQ
     # Highspeed ratio 1 (§2.1): this board has no high-speed multiplier at all,
-    # so `G '3'` changes nothing. Mount code 0x0A picks the driver's 0x0600
-    # minimum period — stricter than the board's own clamp of 1103 (§2.2).
+    # so `G '3'` changes nothing. The minimum period is the board's own clamp,
+    # 1103 = 100x sidereal (§10.5), asked of the board and not guessed.
     assert motor._highspeed_ratio == 1
-    assert motor._min_period == 0x0600
+    assert motor._min_period == sim.min_period == 1103
 
     status = motor.status()
     assert status.is_connected is True
@@ -49,14 +49,90 @@ def test_skywatcher_connect_reads_valid_mount_config() -> None:
     assert status.target is None
 
 
-@pytest.mark.parametrize("mount_code,min_period", [(0x0A, 0x0600), (0xF0, 12), (0x42, 6)])
-def test_skywatcher_mount_code_selects_min_period(mount_code: int, min_period: int) -> None:
+@pytest.mark.parametrize("mount_code", [0x0A, 0xF0, 0x42])
+def test_skywatcher_min_period_comes_from_the_board_not_from_the_mount_code(mount_code: int) -> None:
+    """§10.5 and §13 #5/#6: the clamp is the board's, and only the board knows it.
+
+    The driver used to look the minimum period up by mount code (0x0A -> 0x0600,
+    0xF0 -> 12, else 6). Three independent sources say no such table exists: the
+    command-set PDF never mentions a minimum, the EQMod reference has no 0x0A at
+    all, and the vendor's own app (RA_SA_CONSOLE_PROTOCOL.md) clamps nothing in
+    `rpsToStride`. So the same board must yield the same limit whatever mount
+    code it reports — the number can only come off the wire.
+    """
     clock, sim, motor = _make_ra(mount_code=mount_code)
 
     motor.connect()
 
     assert motor._mount_code == mount_code
-    assert motor._min_period == min_period
+    assert motor._min_period == sim.min_period
+
+
+def test_skywatcher_min_period_probe_follows_a_board_with_another_clamp() -> None:
+    """A measurement, not a constant: another board, another answer.
+
+    `cpr`/`timer_freq` here give a 1x tracking period of 10 000, so this
+    simulated controller clamps at 100 instead of 1103. If the driver kept a
+    table (or a hard-coded 1103) it would report the wrong ceiling.
+    """
+    clock, sim, motor = _make_ra(cpr=8_616_410, timer_freq=1_000_000)
+    assert sim.min_period == 100
+
+    motor.connect()
+
+    assert motor._min_period == 100
+
+
+def test_skywatcher_min_period_probe_puts_back_the_period_it_found() -> None:
+    """The probe writes the fastest period the board has; it must not leave it there.
+
+    The board powers up at the 1x tracking period (§12.1) and a `:J1` from
+    anywhere would start the axis at whatever `:I1` left loaded. Connecting is
+    not a reason to arm the mount at 100x sidereal.
+    """
+    clock, sim, motor = _make_ra()
+    period_before = sim.step_period
+    assert period_before == sim.tracking_period_1x
+
+    motor.connect()
+
+    assert sim.step_period == period_before
+
+
+def test_skywatcher_goto_reports_the_speed_the_board_will_really_run() -> None:
+    """§2.2: what goes up to `Axis` is the achievable speed, not the wish.
+
+    `Axis._run_goto_to` divides the delta by this number to get the GOTO ETA and
+    subtracts the sky drift over that ETA from the target. The driver asks for
+    800x sidereal and the board holds it at 100x (§10.5), so reporting the
+    request made the axis expect a move eight times shorter than it is and
+    under-compensate the sky by the same factor.
+    """
+    clock, sim, motor = _make_ra()
+    motor.connect()
+
+    delta_steps = motor.convert_position_to_steps(Ha(1800))
+    reported_sps = motor.get_speed_sps_by_delta(delta_steps)
+    requested_sps = motor.convert_speed_to_steps_per_second(motor._HIGHSPEED_SPEED)
+
+    # The request is 800x sidereal, the board gives 100.05x: the two must not be
+    # confused for each other.
+    assert requested_sps == pytest.approx(_RA_CPR * 800 / float(STELLAR_DAY), rel=1e-3)
+    assert reported_sps == pytest.approx(_RA_CPR * 100.05 / float(STELLAR_DAY), rel=1e-3)
+
+    # And the reported speed is the one the axis really moves at: predicted ETA
+    # against the arrival measured on the simulated board.
+    predicted_eta_s = delta_steps / reported_sps
+    motor.set_delta(delta_steps)
+    motor.run()
+
+    elapsed_s = 0.0
+    while motor.status().motion_mode != MotionMode.IDLE and elapsed_s < 10 * predicted_eta_s:
+        clock.advance(0.1)
+        elapsed_s += 0.1
+
+    assert motor.status().steps == delta_steps
+    assert elapsed_s == pytest.approx(predicted_eta_s, rel=0.02)
 
 
 def test_skywatcher_tracking_drifts_at_sidereal_rate() -> None:
@@ -97,8 +173,9 @@ def test_skywatcher_goto_highspeed_reaches_target() -> None:
     assert status.target == delta_steps
     assert sim.highspeed is True
 
-    # 30s, not 10: the driver asks for 800x sidereal but its own `min_period`
-    # holds the axis at 71.8x (§2.2), so half an hour of RA takes ~25s here.
+    # 30s, not 4: the driver asks for 800x sidereal but the board clamps the
+    # step period at 1103 (§10.5), so half an hour of RA runs at 100x and takes
+    # ~18s here. The driver knows it — see the ETA test above.
     clock.advance(30)
 
     status = motor.status()
