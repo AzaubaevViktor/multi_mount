@@ -521,7 +521,412 @@ def phase_ramp(board: Board, out: list[dict[str, Any]]) -> None:
     board.set(":G110")
 
 
-PHASES = {"probe": phase_probe, "goto": phase_goto, "load": phase_load, "ramp": phase_ramp}
+# --------------------------------------------------------------------------- #
+# coldboot: what the board looks like straight after power-on
+# --------------------------------------------------------------------------- #
+
+
+_IDENTITY_QUERIES = (
+    ("e1_version", ":e1"),
+    ("a1_cpr", ":a1"),
+    ("b1_timer_freq", ":b1"),
+    ("g1_highspeed_ratio", ":g1"),
+    ("c1_brake_steps", ":c1"),
+    ("D1_1x_period", ":D1"),
+    ("s1_pec_period", ":s1"),
+    ("q1_status_ex", ":q1010000"),
+    ("q1_indexer", ":q1000000"),
+)
+
+
+def _identity(board: Board) -> dict[str, Any]:
+    """Everything the board says about itself that a read cannot change.
+
+    Tolerant on purpose: half of these are optional in the command set, and a
+    board that answers `!0` to `:s1` has told us something worth writing down —
+    it is not a reason to abort the snapshot.
+    """
+    row: dict[str, Any] = {}
+    for name, payload in _IDENTITY_QUERIES:
+        reply = board.ask(payload)
+        row[name] = reply
+        if reply.startswith("=") and len(reply) == 7:
+            row[f"{name}_int"] = unrevu24(reply[1:])
+    return row
+
+
+def _snapshot(board: Board, label: str) -> dict[str, Any]:
+    return {
+        "step": label,
+        "j1": board.position(),
+        "h1": board.target(),
+        "m1": board.brake_point(),
+        "d1": board.tele_position(),
+        "i1": board.period(),
+        "f1": board.status().as_dict(),
+        **board.voltages(),
+    }
+
+
+def phase_coldboot(board: Board, out: list[dict[str, Any]]) -> None:
+    """The reference picture of a *quiet* power-on, for §7 reboot detection.
+
+    Three reboots are on record, all of them under a GOTO ramp, where the axis
+    coasted 448…1241 counts past the logical zero while the controller came up.
+    What the same board looks like when it boots standing still has never been
+    written down, and without it there is no way to tell how much of that offset
+    is the reboot and how much is the coasting.
+
+    Nothing here moves the axis and nothing here writes: the value of the
+    snapshot is that it is taken *before* this session touches anything.
+    """
+    identity = _identity(board)
+    out.append({"step": "identity", **identity})
+    LOGGER.info("плата: %s", identity)
+
+    for index in range(3):
+        row = _snapshot(board, f"as_powered_on_{index}")
+        out.append(row)
+        LOGGER.info(
+            "%s: j1=0x%06X h1=0x%06X m1=0x%06X i1=%d f1=%s батарея %.2f В, второй канал %.2f В",
+            row["step"], row["j1"], row["h1"], row["m1"], row["i1"], row["f1"]["raw"],
+            row["battery_v"], row["usb_v"],
+        )
+        board.pause(0.3)
+
+
+# --------------------------------------------------------------------------- #
+# gotoprobe: what actually sets the GOTO speed (no motion at all)
+# --------------------------------------------------------------------------- #
+
+# `references/skywatcher.cpp` `SlewTo()` sets the motion mode **first** and the
+# step period **second**; `tools.ra_step2 goto` did it the other way round, and
+# the board then ran a GOTO at ~5500 steps/s with `:I1` set to 145 steps/s. If
+# `:G1` reloads the period, that alone explains "GOTO ignores `:I1`" — and it is
+# answerable with reads, on a standing axis, for free.
+_PROBE_MODES = ("0", "2", "1", "3", "8", "A")
+
+
+def phase_gotoprobe(board: Board, out: list[dict[str, Any]]) -> None:
+    board.set(":F1")
+    out.append(_snapshot(board, "before_probe"))
+
+    # 1. Does `:G1<mode>` overwrite the step period?
+    for mode in _PROBE_MODES:
+        board.set(f":I1{revu24(PERIOD_16X)}")
+        before = board.period()
+        reply = board.set(f":G1{mode}0")
+        after = board.period()
+        status = board.status().as_dict()
+        row = {
+            "step": "G_over_I",
+            "mode": mode,
+            "reply_G": reply,
+            "period_before_G": before,
+            "period_after_G": after,
+            "clobbered": before != after,
+            "f1": status,
+        }
+        out.append(row)
+        LOGGER.info(
+            "`:G1%s0` -> %r: период %d -> %d (%s), статус %s",
+            mode, reply, before, after, "СБРОШЕН" if before != after else "сохранён", status["raw"],
+        )
+
+    # 2. Does `:I1` still take effect once the board is in GOTO mode?
+    for mode in ("2", "0"):
+        board.set(f":G1{mode}0")
+        for period in (PERIOD_1X, PERIOD_16X, PERIOD_64X):
+            reply = board.set(f":I1{revu24(period)}")
+            read_back = board.period()
+            row = {
+                "step": "I_after_G",
+                "mode": mode,
+                "period_requested": period,
+                "reply_I": reply,
+                "period_read_back": read_back,
+                "accepted": read_back == period,
+            }
+            out.append(row)
+            LOGGER.info(
+                "goto `:G1%s0`, затем `:I1` %d -> %r, `:i1` = %d (%s)",
+                mode, period, reply, read_back, "принят" if read_back == period else "НЕ принят",
+            )
+
+    # 3. `:M1` against `:c1`: which of the two the brake point follows, with the
+    #    target set the way a real GOTO sets it (§2.2 only ever read `:M1` with
+    #    the target left at the logical zero).
+    board.set(":G120")
+    for distance, brake in ((1_000, 200), (20_000, 200), (20_000, 3_500), (20_000, 16_980)):
+        board.set(f":H1{revu24(distance)}")
+        target_before = board.target()
+        brake_before = board.brake_point()
+        reply = board.set(f":M1{revu24(brake)}")
+        row = {
+            "step": "M_vs_c",
+            "distance": distance,
+            "brake_requested": brake,
+            "reply_M": reply,
+            "target": target_before,
+            "m1_before_M": brake_before,
+            "m1_after_M": board.brake_point(),
+            "target_minus_m1_before": (target_before - brake_before) % 0x1000000,
+        }
+        out.append(row)
+        LOGGER.info(
+            "`:H1` %d, `:M1` %d: h1=0x%06X, m1 %06X -> %06X, цель−m1 = %d",
+            distance, brake, row["target"], row["m1_before_M"], row["m1_after_M"],
+            row["target_minus_m1_before"],
+        )
+
+    # Back to the power-on shape of §12.1.
+    board.set(f":H1{revu24(0)}")
+    board.set(f":I1{revu24(PERIOD_1X)}")
+    board.set(":G110")
+    out.append(_snapshot(board, "after_probe"))
+
+
+# --------------------------------------------------------------------------- #
+# gotoladder: the gentlest GOTO the board will accept, then one knob at a time
+# --------------------------------------------------------------------------- #
+
+# The board is not to be knocked over more than this in one session, whatever
+# the ladder still has left to try.
+SESSION_REBOOT_LIMIT = 3
+
+
+@dataclasses.dataclass(frozen=True)
+class Rung:
+    steps: int
+    mode: str
+    direction: str
+    # None: do not touch `:I1` at all — the vendor sequence never does (§6 of
+    # `RA_SA_CONSOLE_PROTOCOL.md`). A number: write it, in `period_order`.
+    period: int | None
+    period_order: str  # "after_G" (skywatcher.cpp) or "before_G" (the old runs)
+    brake: int | None
+    label: str
+
+
+def _ladder() -> list[Rung]:
+    """Every rung differs from the one above it in exactly one knob.
+
+    The first rung is **20 000** steps, not the 1 000 of the runs that fell, and
+    that is the whole point of the order. `phase_gotoprobe` showed `:M1` to be
+    inert at every value: the brake point is *always* the target minus `:c1` =
+    16 980, so any GOTO shorter than 16 980 steps has its brake point behind its
+    own starting position. All three recorded crashes were 1 000-step moves,
+    i.e. every one of them was that degenerate case. A ladder that started there
+    again would spend the whole reboot budget re-measuring what is already
+    known; starting past `:c1` buys the one fact nobody has — whether GOTO works
+    at all when its geometry makes sense.
+    """
+    return [
+        # 1. Sane geometry (arm > `:c1`), slow-goto mode, the slowest period the
+        #    board takes, written the way `references/skywatcher.cpp` writes it
+        #    (mode first, period second), INDI's brake for a short move.
+        Rung(20_000, "2", "0", PERIOD_1X, "after_G", 200, "20 000 шагов (> `:c1`), `:G120`, период 1×, `:M1`=200"),
+        # 2. Only the direction changes.
+        Rung(20_000, "2", "1", PERIOD_1X, "after_G", 200, "то же, CCW"),
+        # 3. Only the period changes.
+        Rung(20_000, "2", "0", PERIOD_16X, "after_G", 200, "20 000 шагов, период 16×"),
+        # 4. Only the period changes.
+        Rung(20_000, "2", "0", PERIOD_64X, "after_G", 200, "20 000 шагов, период 64×"),
+        # 5. Only the brake increment changes — INDI's high-speed value.
+        Rung(20_000, "2", "0", PERIOD_64X, "after_G", 3_200, "20 000 шагов, период 64×, `:M1`=3200"),
+        # 6. Only the mode changes: slow goto -> fast goto.
+        Rung(20_000, "0", "0", PERIOD_64X, "after_G", 3_200, "20 000 шагов, быстрый goto `:G100`"),
+        # 7. Only the arm grows.
+        Rung(100_000, "0", "0", PERIOD_64X, "after_G", 3_200, "100 000 шагов, быстрый goto"),
+        # 8. Only the arm shrinks — below `:c1`, back into the degenerate
+        #    geometry, but with everything else as gentle as rung 1.
+        Rung(1_000, "2", "0", PERIOD_1X, "after_G", 200, "1 000 шагов (< `:c1`), всё прочее как в 1"),
+        # 9. The run that fell three times out of three, byte for byte: the
+        #    vendor order of `RA_SA_CONSOLE_PROTOCOL.md` §6 with the period
+        #    written *before* `:G1` and the vendor's constant 3500 brake. Last,
+        #    because it is the known bad one.
+        Rung(1_000, "2", "0", PERIOD_1X, "before_G", VENDOR_BRAKE_INCREMENT, "прошлый сценарий целиком (период до `:G1`, `:M1`=3500)"),
+    ]
+
+
+def _voltage_row(board: Board, at_s: float, where: str) -> dict[str, Any]:
+    return {"at_s": round(at_s, 3), "where": where, **board.voltages()}
+
+
+def _signed(delta: int) -> int:
+    return delta if delta < 0x800000 else delta - 0x1000000
+
+
+def _run_rung(board: Board, rung: Rung) -> dict[str, Any]:
+    # What the requested period would take, if the board honoured it, doubled
+    # and capped: a GOTO that overshoots this is abandoned with `:K1` rather
+    # than waited out. Capped because the board has ignored `:I1` in GOTO
+    # before, and a 1x period over a long arm would otherwise mean minutes.
+    if rung.period is None:
+        expected_s = rung.steps / 500
+    else:
+        expected_s = rung.steps * rung.period / TIMER_FREQ
+    deadline_s = min(45.0, max(8.0, expected_s * 2 + 5.0))
+    row: dict[str, Any] = {
+        "step": "rung",
+        "label": rung.label,
+        "steps": rung.steps,
+        "mode": rung.mode,
+        "direction": rung.direction,
+        "period": rung.period,
+        "period_order": rung.period_order,
+        "brake": rung.brake,
+    }
+    volts: list[dict[str, Any]] = []
+
+    if rung.period is not None and rung.period_order == "before_G":
+        board.set(f":I1{revu24(rung.period)}")
+    row["status_before"] = board.status().as_dict()
+    row["voltage_before"] = board.voltages()
+    start_position = board.position()
+    row["position_before"] = start_position
+
+    row["reply_G"] = board.set(f":G1{rung.mode}{rung.direction}")
+    if rung.period is not None and rung.period_order == "after_G":
+        row["reply_I"] = board.set(f":I1{revu24(rung.period)}")
+    row["period_at_start"] = board.period()
+    row["reply_H"] = board.set(f":H1{revu24(rung.steps)}")
+    row["target"] = board.target()
+    if rung.brake is not None:
+        row["reply_M"] = board.set(f":M1{revu24(rung.brake)}")
+    row["brake_point"] = board.brake_point()
+
+    started = board.now()
+    volts.append(_voltage_row(board, 0.0, "before_J"))
+    row["reply_J"] = board.set(":J1", Safety.MOTION)
+
+    profile: list[dict[str, Any]] = []
+    stopped_samples = 0
+    polls = 0
+    outcome = "arrived"
+    while True:
+        elapsed = board.now() - started
+        status = board.status()
+        position = board.position()
+        profile.append(
+            {
+                "at_s": round(elapsed, 4),
+                "delta": _signed((position - start_position) % 0x1000000),
+                "f1": status.raw,
+                "running": status.running,
+            }
+        )
+        polls += 1
+        # Both channels every sixth poll: often enough to catch a sag that lasts
+        # a tenth of a second, rare enough not to blind the position trace (a
+        # voltage sample costs four round trips, a position sample one).
+        if polls % 6 == 0:
+            volts.append(_voltage_row(board, elapsed, "moving"))
+        stopped_samples = 0 if status.running else stopped_samples + 1
+        if stopped_samples >= 2 and elapsed > 0.3:
+            break
+        if elapsed > deadline_s:
+            outcome = "deadline"
+            LOGGER.error("плечо «%s» не уложилось в дедлайн — торможу", rung.label)
+            board.stop_and_wait()
+            break
+        # A pause on *every* iteration, not only after the first second: the
+        # virtual clock of `src/sim` moves on sleeps and on read timeouts alone,
+        # so a loop that only ever exchanges never advances it and never ends.
+        # On the wire 2 ms is below the round-trip time anyway.
+        board.pause(0.05 if elapsed > 1.0 else 0.002)
+    row["outcome"] = outcome
+    row["elapsed_s"] = round(board.now() - started, 3)
+    row["profile"] = profile
+
+    board.pause(0.3)
+    final = board.position()
+    signed = _signed((final - start_position) % 0x1000000)
+    wanted = rung.steps if rung.direction == "0" else -rung.steps
+    row["position_after"] = final
+    row["travelled"] = signed
+    row["error_steps"] = signed - wanted
+    row["target_after"] = board.target()
+    row["period_after"] = board.period()
+    row["status_after"] = board.status().as_dict()
+    volts.append(_voltage_row(board, board.now() - started, "after"))
+    row["voltages"] = volts
+    row["battery_min_v"] = min(sample["battery_v"] for sample in volts)
+    row["second_min_v"] = min(sample["usb_v"] for sample in volts)
+
+    peak = 0.0
+    for first, second in itertools.pairwise(profile):
+        span = second["at_s"] - first["at_s"]
+        if span > 0:
+            peak = max(peak, abs(second["delta"] - first["delta"]) / span)
+    row["peak_speed_sps"] = round(peak)
+
+    LOGGER.info(
+        "плечо «%s»: прошло %+d из %+d (ошибка %+d) за %.2f с, пик %d шаг/с, %s; "
+        "батарея %.2f В мин, второй канал %.2f В мин, статус %s",
+        rung.label, signed, wanted, row["error_steps"], row["elapsed_s"], row["peak_speed_sps"],
+        outcome, row["battery_min_v"], row["second_min_v"], row["status_after"]["raw"],
+    )
+    return row
+
+
+def _looks_rebooted(board: Board, row: dict[str, Any]) -> str | None:
+    """Why this leg reads as a reboot, or None. Nobody in this phase sends `:E`."""
+    status = board.status()
+    if not status.initialized:
+        return "флаг инициализации сброшен"
+    if status.tracking and row["mode"] in {"0", "2"} and row["outcome"] != "arrived":
+        return "режим вернулся к трекингу, хотя ход не завершился"
+    if row["target_after"] == POSITION_OFFSET and row["target"] != POSITION_OFFSET:
+        return "цель `:h1` вернулась к 0x800000"
+    if row["period"] is not None and row["period_after"] != row["period_at_start"]:
+        return f"период сам вернулся к {row['period_after']}"
+    return None
+
+
+def phase_gotoladder(board: Board, out: list[dict[str, Any]]) -> None:
+    reboots = 0
+    board.set(":F1")
+    for rung in _ladder():
+        if not board.status().initialized:
+            board.set(":F1")
+        try:
+            row = _run_rung(board, rung)
+        except BoardSatDown as error:
+            reboots += 1
+            out.append({"step": "board_sat_down", "label": rung.label, "error": str(error), "reboots": reboots})
+            LOGGER.critical("ПЛАТА ЗАМОЛЧАЛА на плече «%s»: %s. Лестница остановлена", rung.label, error)
+            break
+        reason = _looks_rebooted(board, row)
+        row["reboot_reason"] = reason
+        out.append(row)
+        board.stop_and_wait()
+        if reason is not None:
+            reboots += 1
+            LOGGER.critical(
+                "ПЕРЕЗАГРУЗКА на плече «%s» (%s). Перезагрузок за сессию: %d. Лестница остановлена",
+                rung.label, reason, reboots,
+            )
+            out.append({"step": "board_reset_detected", "label": rung.label, "reason": reason, "reboots": reboots})
+            break
+        if reboots >= SESSION_REBOOT_LIMIT:
+            break
+    board.set(f":H1{revu24(0)}")
+    board.set(f":I1{revu24(PERIOD_1X)}")
+    board.set(":G110")
+    out.append(_snapshot(board, "after_ladder"))
+    out.append({"step": "reboots", "count": reboots})
+
+
+PHASES = {
+    "probe": phase_probe,
+    "goto": phase_goto,
+    "load": phase_load,
+    "ramp": phase_ramp,
+    "coldboot": phase_coldboot,
+    "gotoprobe": phase_gotoprobe,
+    "gotoladder": phase_gotoladder,
+}
 
 
 # --------------------------------------------------------------------------- #
@@ -576,7 +981,12 @@ def _run_clamp(port: str, baud: int, timeout_s: float, trace: Path) -> list[dict
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="tools.ra_step2", description="Сценарные эксперименты шага 2 по плате RA.")
     parser.add_argument("phase", choices=[*PHASES, "clamp"])
-    parser.add_argument("--port", required=True)
+    parser.add_argument("--port", default=None)
+    parser.add_argument(
+        "--sim",
+        action="store_true",
+        help="прогнать фазу по src/sim вместо железа: новый сценарий не должен впервые исполняться на плате",
+    )
     parser.add_argument("--baud", type=int, default=BAUD)
     parser.add_argument("--timeout", type=float, default=TIMEOUT_S)
     parser.add_argument("--out", default=None)
@@ -594,17 +1004,35 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     rows: list[dict[str, Any]] = []
     if args.phase == "clamp":
+        if args.port is None:
+            raise SystemExit("фазе clamp нужен --port")
         rows = _run_clamp(args.port, int(args.baud), float(args.timeout), trace)
         out.write_text(json.dumps(rows, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
         LOGGER.info("результаты: %s, трасса: %s", out, trace)
         return 0
 
     recorder = JsonlRecorder(trace)
-    line = SerialLine(
-        port=args.port, baud=int(args.baud), timeout_s=float(args.timeout), name="ra",
-        terminator="\r", clock=REAL_CLOCK, recorder=recorder,
-    )
-    wire = HardwareWire(line, REAL_CLOCK, {Safety.READ, Safety.WRITE, Safety.MOTION})
+    line: SerialLine
+    if args.sim:
+        # Imported here, not at module scope: everything above this line has to
+        # keep working on a machine that only has the hardware path installed.
+        from sim import Clock as VirtualClock
+        from sim import SimSerialLine, SkyWatcherSim
+
+        clock: Any = VirtualClock()
+        line = SimSerialLine(
+            SkyWatcherSim(clock), clock, port="sim://ra", baud=int(args.baud),
+            timeout_s=float(args.timeout), name="ra", terminator="\r", recorder=recorder,
+        )
+    else:
+        if args.port is None:
+            raise SystemExit("живому прогону нужен --port (или --sim)")
+        clock = REAL_CLOCK
+        line = SerialLine(
+            port=args.port, baud=int(args.baud), timeout_s=float(args.timeout), name="ra",
+            terminator="\r", clock=REAL_CLOCK, recorder=recorder,
+        )
+    wire = HardwareWire(line, clock, {Safety.READ, Safety.WRITE, Safety.MOTION})
     board = Board(wire)
     line.connect()
     try:
