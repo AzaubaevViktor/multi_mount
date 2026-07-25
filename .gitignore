@@ -14,3 +14,7 @@ skywatcher.h
 polar_alignment_*.png
 logs/
 OBSERVATORY.md
+# Рабочий план: живёт рядом с деревом, но в историю не идёт — как и OBSERVATORY.md.
+# Здесь, а не только в договорённости, чтобы случайный `git add .` не протащил его.
+PLAN.md
+.golos/
