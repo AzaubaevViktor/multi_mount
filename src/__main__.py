@@ -31,37 +31,51 @@ if __name__ == "__main__":
     ra_search_missing = False
     dec_search_missing = False
 
-    try:
-        sw_path = SerialLine.search("PL2303G")
-        sw_serial = SerialLine(sw_path, 115200, .05, "sw", terminator="\r")
-        axis_ra = AxisRA(SkyWatcherMotor(sw_serial))
-    except SerialLineSearchError as exc:
-        ra_search_missing = True
-        logger.warning("RA axis is unavailable: %s", exc)
-        axis_ra = AxisRA(
-            UnavailableMotor(
-                Ha,
-                HaPerSecond,
-                SkyWatcherMotor.FORWARD_POSITION_SIGN,
-                f"RA axis is unavailable: {exc}",
-            )
-        )
+    # `python -m src --sim` runs the whole application over simulated boards, so
+    # a real external LX200 client can drive the mount with no hardware on the
+    # bench. Everything above the serial port is the production graph — see
+    # `tools/sim_stack.py` for what is fake and what is not.
+    simulated = "--sim" in sys.argv
 
-    try:
-        tmc_path = SerialLine.search("tty.usbserial")
-        tmc_serial = SerialLine(tmc_path, 115200, 2, "tmc", terminator="\n")
-        axis_dec = AxisDEC(TMC2209Motor(tmc_serial))
-    except SerialLineSearchError as exc:
-        dec_search_missing = True
-        logger.warning("DEC axis is unavailable: %s", exc)
-        axis_dec = AxisDEC(
-            UnavailableMotor(
-                Dec,
-                DecPerSecond,
-                TMC2209Motor.FORWARD_POSITION_SIGN,
-                f"DEC axis is unavailable: {exc}",
+    if simulated:
+        from tools.sim_stack import build_realtime_sim_stack
+
+        stack = build_realtime_sim_stack()
+        axis_ra, axis_dec = stack.axis_ra, stack.axis_dec
+        logger.warning("SIMULATION: both axes are simulated boards, nothing will move in the room")
+
+    if not simulated:
+        try:
+            sw_path = SerialLine.search("PL2303G")
+            sw_serial = SerialLine(sw_path, 115200, .05, "sw", terminator="\r")
+            axis_ra = AxisRA(SkyWatcherMotor(sw_serial))
+        except SerialLineSearchError as exc:
+            ra_search_missing = True
+            logger.warning("RA axis is unavailable: %s", exc)
+            axis_ra = AxisRA(
+                UnavailableMotor(
+                    Ha,
+                    HaPerSecond,
+                    SkyWatcherMotor.FORWARD_POSITION_SIGN,
+                    f"RA axis is unavailable: {exc}",
+                )
             )
-        )
+
+        try:
+            tmc_path = SerialLine.search("tty.usbserial")
+            tmc_serial = SerialLine(tmc_path, 115200, 2, "tmc", terminator="\n")
+            axis_dec = AxisDEC(TMC2209Motor(tmc_serial))
+        except SerialLineSearchError as exc:
+            dec_search_missing = True
+            logger.warning("DEC axis is unavailable: %s", exc)
+            axis_dec = AxisDEC(
+                UnavailableMotor(
+                    Dec,
+                    DecPerSecond,
+                    TMC2209Motor.FORWARD_POSITION_SIGN,
+                    f"DEC axis is unavailable: {exc}",
+                )
+            )
 
     combiner = Combiner(axis_ra, axis_dec)
     sky_lx200 = SkyLX200(combiner)
