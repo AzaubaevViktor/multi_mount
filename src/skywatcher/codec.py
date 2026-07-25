@@ -37,6 +37,15 @@ class SkyWatcherMotorTimeoutError(SkyWatcherMotorError, TimeoutError):
     pass
 
 
+class SkyWatcherMotorRebootError(SkyWatcherMotorError):
+    """The board rebooted under the driver's feet (§12.2) and nothing was started.
+
+    Raised only where the alternative would be to act on a board whose state has
+    just been rebuilt: a motion command whose acknowledgement would otherwise be
+    reported as "the axis is moving".
+    """
+
+
 class Command(StrEnum):
     INQUIRE_TIMER_FREQ = "b"
     INQUIRE_CPR = "a"

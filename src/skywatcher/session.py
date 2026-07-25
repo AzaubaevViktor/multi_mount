@@ -33,6 +33,7 @@ from skywatcher.codec import (
     SkyWatcherCodec,
     SkyWatcherMotorError,
     SkyWatcherMotorProtocolError,
+    SkyWatcherMotorRebootError,
     SkyWatcherMotorTimeoutError,
     Status,
 )
@@ -181,7 +182,18 @@ class SkyWatcherSession:
         # Where the axis stood before the first attempt is the only evidence there will
         # be afterwards, and it has to be read *fresh*: a cached position from before
         # the axis stopped would look like movement caused by this very command.
-        position_before = self.position_ticks(fresh=True) if command in self._NON_IDEMPOTENT else None
+        position_before = None
+        if command in self._NON_IDEMPOTENT:
+            reboots_before = self.reboots_detected
+            position_before = self.position_ticks(fresh=True)
+            if self.reboots_detected != reboots_before:
+                # §12.4.2: the board rebooted between the caller's decision and this
+                # command. Its target registers went with it, so starting now would
+                # run the axis to a target nobody asked for. The state has been put
+                # back; the motion has not been started, and the caller must know.
+                raise SkyWatcherMotorRebootError(
+                    f"RA board rebooted before {command.name}; state restored, motion not started"
+                )
 
         count = self.REPEATS
         response = None

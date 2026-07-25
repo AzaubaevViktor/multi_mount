@@ -250,6 +250,39 @@ class SkyWatcherSim:
         self._rx = bytearray()
         self._tx = bytearray()
 
+    def reboot(self) -> None:
+        """Power-cycle the controller: §12.1, the state the board comes up in.
+
+        Every observable the driver has goes back to what was measured on the
+        live board at the start of the session — position exactly `0x800000`,
+        initialization flag down, step period at the 1x tracking value, axis
+        stopped in tracking mode — and nothing else changes, because a reboot
+        does not alter the board's constants or the memory window.
+
+        This is the only way to produce the three signs of §12.2 at once, and
+        thus the only test bench the reboot detection has: the live board was
+        disconnected when it was written (Э5 of ``docs/RA_REWRITE_PLAN.md``).
+        """
+        self.initialized = False
+        self.running = False
+        self.braking = False
+        self.tracking_mode = True
+        self.backward = False
+        self.highspeed = False
+        self.position = 0.0
+        self.step_period = self.tracking_period_1x
+        self.target_increment = 0
+        self.brake_increment = 0
+        self.goto_target = None
+        self.goto_target_position = 0.0
+        self._target_from_increment = False
+        self._brake_speed_sps = 0.0
+        self._init_reset_at = None
+        self.memory_address = 0
+        # The RX buffer is not carried across a reset either: a command half sent
+        # when the power dipped is not completed by the board that comes back.
+        self._rx.clear()
+
     def feed(self, data: bytes) -> None:
         for index, byte in enumerate(data):
             if byte == ord(":"):

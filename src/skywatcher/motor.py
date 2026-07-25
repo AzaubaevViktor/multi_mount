@@ -33,6 +33,7 @@ from skywatcher.codec import (
     SkyWatcherMotorCommandError,
     SkyWatcherMotorError,
     SkyWatcherMotorProtocolError,
+    SkyWatcherMotorRebootError,
     SkyWatcherMotorTimeoutError,
     SlewMode,
     SpeedMode,
@@ -47,6 +48,7 @@ __all__ = [
     "SkyWatcherMotorCommandError",
     "SkyWatcherMotorError",
     "SkyWatcherMotorProtocolError",
+    "SkyWatcherMotorRebootError",
     "SkyWatcherMotorTimeoutError",
 ]
 
@@ -292,8 +294,19 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     # ------------------------------------------------------------------
 
     def run(self) -> bool:
+        reboots_before = self._session.reboots_detected
         status = self._session.status()
         self._ensure_not_goto(status, "cannot run while GOTO is in progress")
+        if self._session.reboots_detected != reboots_before:
+            # §12.4.2: "do not carry on moving". The board that was told the target,
+            # the direction and the period no longer exists — the session has put the
+            # position and the period back, but the GOTO registers went with the
+            # reboot, so starting now would run the axis to whatever `:H1` reset to.
+            # Nothing is sent, and the caller is told the axis did not start.
+            self._logger.error("RA board rebooted, the pending motion is cancelled instead of started")
+            self._last_target = None
+            self._zero_target_pending = False
+            return False
         if self._zero_target_pending:
             self._zero_target_pending = False
             return True
