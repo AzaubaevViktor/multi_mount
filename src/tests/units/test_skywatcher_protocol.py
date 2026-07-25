@@ -103,13 +103,18 @@ def test_serial_line_query_waits_for_prefix_then_reads_until_terminator() -> Non
 
 
 def test_serial_line_query_can_read_with_custom_terminator() -> None:
+    """Transport-level feature only: no SkyWatcher command uses `#` (§8).
+
+    The RA board terminates everything with `\\r`; this checks that a device
+    speaking some other framing can still be driven through the same transport.
+    """
     line = SerialLine("/dev/null", 9600, 0.25, "skywatcher-test", terminator="\r")
     line.serial = _FakePySerial(b"", b"7E#")
 
-    response = line.query(":fL#", timeout=0.5, response_terminator="#")
+    response = line.query(":X1#", timeout=0.5, response_terminator="#")
 
     assert response == "7E#"
-    assert line.serial.written == b":fL#"
+    assert line.serial.written == b":X1#"
 
 
 def test_skywatcher_connect_rejects_wrong_serial_terminator() -> None:
@@ -172,40 +177,21 @@ def test_skywatcher_transact_raises_command_error_on_error_prefix() -> None:
         motor._transact(_Command.INQUIRE_CPR)
 
 
-def test_skywatcher_transact_reads_voltage_from_hash_response() -> None:
-    serial = _FakeSkyWatcherSerial("7E#")
-    motor = SkyWatcherMotor(serial)  # type: ignore[arg-type]
-
-    response = motor._transact(_Command.INQUIRE_VOLTAGE)
-
-    assert response == "7E"
-    assert serial.calls == [
-        (
-            ":fL#",
-            None,
-            "#",
-        )
-    ]
-
-
-def test_skywatcher_get_power_v_reads_voltage_via_transact(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_skywatcher_get_power_v_sends_nothing_at_all(monkeypatch: pytest.MonkeyPatch) -> None:
+    """RA_PROTOCOL.md §6: there is no voltage query on this board, so none is sent."""
     motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
     motor._is_connected = True
     motor._steps_360 = 86400
-    monkeypatch.setattr(motor, "_get_status", MethodType(_idle_status, motor))
-    monkeypatch.setattr(motor, "_get_position", MethodType(lambda _self: Ha(0), motor))
     transact_calls: list[_Command] = []
 
     def _transact(_self: SkyWatcherMotor, command: _Command, arg: str | None = None) -> str:
         transact_calls.append(command)
-        return "7E" if command == _Command.INQUIRE_VOLTAGE else ""
+        return ""
 
     monkeypatch.setattr(motor, "_transact", MethodType(_transact, motor))
 
-    power_v = motor.get_power_v()
-
-    assert power_v == pytest.approx(12.6)
-    assert transact_calls == [_Command.INQUIRE_VOLTAGE]
+    assert motor.get_power_v() is None
+    assert transact_calls == []
 
 
 def test_skywatcher_status_does_not_fetch_voltage(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -225,4 +211,6 @@ def test_skywatcher_status_does_not_fetch_voltage(monkeypatch: pytest.MonkeyPatc
     status = motor.status()
 
     assert status.power_v is None
-    assert _Command.INQUIRE_VOLTAGE not in transact_calls
+    # Status and position are stubbed above, so a status costs no traffic at all;
+    # any command here would be a voltage probe sneaking back in.
+    assert transact_calls == []

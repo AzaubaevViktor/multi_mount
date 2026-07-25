@@ -1,37 +1,38 @@
-"""Red tests for П1 (INQUIRE_VOLTAGE storm), see PLAN.md §1 П1.
+"""П1: the RA driver must never ask the board for a supply voltage.
 
-The dashboard polls ``get_power_v()`` every ~2s. A board that does not support
-``:fL#`` answers with an empty response. Today each poll costs 3 ``_transact``
-retries plus one ``get_power_v`` log = ~4 error records with tracebacks per
-failure, and the "unsupported" verdict is never remembered, producing a storm
-(27k+ tracebacks in one real session).
+`get_power_v()` used to send `:fL#`, a command that cannot exist on this board:
+`L` sits where the hex channel belongs (`:fL\\r` -> `!3`) and `#` terminates
+nothing (`:fL#` -> silence), so the probe burned three 507 ms timeouts and a
+WARNING per attempt — every 60 s, forever, on every dashboard tick.
+RA_PROTOCOL.md §6 records the exhaustive search that found no other query.
 
-Desired contract:
-  (a) After the first full failure the command is marked unsupported: further
-      ``get_power_v()`` calls issue no new serial queries (or issue them only
-      after a >= 60s virtual backoff).
-  (b) A single failure produces at most one error-level log record.
+The contract these tests pin is therefore not "some backoff exists" (a backoff
+of 1 ms would satisfy that) but the real one: **after the first refusal not a
+single request byte for the voltage ever leaves the driver**, no matter how
+much time passes.
 """
 
 import logging
 
 import pytest
 
-import skywatcher.motor
+from sim import Clock, SimSerialLine, SkyWatcherSim
 from skywatcher.motor import SkyWatcherMotor
 
 
-@pytest.fixture(autouse=True)
-def _no_real_sleep(monkeypatch: pytest.MonkeyPatch) -> None:
-    # _transact sleeps 0.1s between its internal retries; keep tests off real time.
-    monkeypatch.setattr(skywatcher.motor.time, "sleep", lambda seconds: None)
+class _RecordingSerial:
+    """SerialLine stand-in that records every payload the driver sends."""
 
-
-class _DeadVoltageSerial:
-    """Minimal SerialLine stand-in: ``:fL#`` always returns an empty string."""
+    terminator = b"\r"
 
     def __init__(self) -> None:
         self.query_calls: list[str] = []
+
+    def connect(self) -> None:
+        pass
+
+    def close(self) -> None:
+        pass
 
     def query(
         self,
@@ -50,53 +51,68 @@ class _DeadVoltageSerial:
         return None
 
 
-def _make_connected_motor(serial: _DeadVoltageSerial) -> SkyWatcherMotor:
-    motor = SkyWatcherMotor(serial)  # type: ignore[arg-type]
+def test_voltage_is_never_asked_of_the_board_however_long_the_session_runs() -> None:
+    """No poll, ever: not the first one, not one after hours of dashboard ticks."""
+    clock = Clock()
+    serial = _RecordingSerial()
+    motor = SkyWatcherMotor(serial, clock)  # type: ignore[arg-type]
     motor._is_connected = True
-    return motor
 
-
-def test_voltage_failure_is_remembered_and_stops_new_queries() -> None:
-    """П1(a): a dead ``:fL#`` is probed once, not on every poll.
-
-    See PLAN.md §1 П1 / §3 item 7.
-    """
-    serial = _DeadVoltageSerial()
-    motor = _make_connected_motor(serial)
-
-    # First poll: real probe, allowed to fail.
     assert motor.get_power_v() is None
 
-    voltage_queries_after_first = len(serial.query_calls)
+    for _ in range(50):
+        # An hour of dashboard ticks per iteration: any TTL or backoff, however
+        # long, would have expired long ago.
+        clock.advance(3600)
+        assert motor.get_power_v() is None
 
-    # Many further polls without advancing the 2s cache TTL: a fixed, dead board
-    # must not be re-probed on every dashboard tick.
-    for _ in range(5):
-        motor._last_power_v_updated = 0.0  # force cache to look stale
-        motor.get_power_v()
-
-    new_voltage_queries = len(serial.query_calls) - voltage_queries_after_first
-
-    assert new_voltage_queries == 0, (
-        f"expected no new serial queries after the first voltage failure, "
-        f"got {new_voltage_queries} (command not marked unsupported / no backoff)"
+    assert serial.query_calls == [], (
+        f"the driver still probes the board for a voltage it cannot report: {serial.query_calls}"
     )
 
 
-def test_single_voltage_failure_emits_at_most_one_error_log(caplog: pytest.LogCaptureFixture) -> None:
-    """П1(b): one failure => at most one error record, not ~4.
+def test_voltage_probe_does_not_reach_the_simulated_board() -> None:
+    """The same contract end to end: the board receives no bytes at all."""
+    clock = Clock()
+    sim = SkyWatcherSim(clock)
+    line = SimSerialLine(sim, clock, port="sim://ra", timeout_s=0, name="sim-ra", terminator="\r")
+    motor = SkyWatcherMotor(line, clock)
+    motor.connect()
 
-    See PLAN.md §1 П1.
-    """
-    serial = _DeadVoltageSerial()
-    motor = _make_connected_motor(serial)
+    received = bytearray()
+    original_feed = sim.feed
 
-    with caplog.at_level(logging.ERROR):
-        motor.get_power_v()
+    def _recording_feed(data: bytes) -> None:
+        received.extend(data)
+        original_feed(data)
 
-    error_records = [r for r in caplog.records if r.levelno >= logging.ERROR]
+    sim.feed = _recording_feed  # type: ignore[method-assign]
 
-    assert len(error_records) <= 1, (
-        f"one voltage failure produced {len(error_records)} error records "
-        f"(expected <= 1): {[r.getMessage() for r in error_records]}"
+    for _ in range(10):
+        clock.advance(120)
+        assert motor.get_power_v() is None
+
+    assert bytes(received) == b"", f"the board was asked something after all: {bytes(received)!r}"
+
+
+def test_unsupported_voltage_is_announced_once_and_never_as_an_error(caplog: pytest.LogCaptureFixture) -> None:
+    """A permanent, known property of the board is not a per-tick failure."""
+    clock = Clock()
+    serial = _RecordingSerial()
+    motor = SkyWatcherMotor(serial, clock)  # type: ignore[arg-type]
+    motor._is_connected = True
+
+    with caplog.at_level(logging.DEBUG):
+        for _ in range(20):
+            clock.advance(600)
+            motor.get_power_v()
+
+    voltage_records = [r for r in caplog.records if "voltage" in r.getMessage().lower()]
+
+    assert len(voltage_records) == 1, (
+        f"expected exactly one note about the missing voltage query, got "
+        f"{[r.getMessage() for r in voltage_records]}"
+    )
+    assert voltage_records[0].levelno < logging.WARNING, (
+        "a board property that will never change is not a warning"
     )

@@ -392,8 +392,8 @@ def _step_read_board_config(session: Session) -> None:
         "cpr": _decode_revu24(_ra_inquire(line, "a")),
         "timer_freq": _decode_revu24(_ra_inquire(line, "b")),
         "highspeed_ratio": _decode_revu24(_ra_inquire(line, "g")),
-        # `:fL#` is absent from part of the board firmwares; None here is the
-        # expected answer for those, not a failure of the run.
+        # The RA board has no supply-voltage query at all (RA_PROTOCOL.md §6),
+        # so None is the only honest answer here, not a failure of the run.
         "power_v": power_v,
         "voltage_supported": power_v is not None,
     }

@@ -1,9 +1,5 @@
 import dataclasses
 import logging
-# Every wait in this driver goes through `self._clock`; `time` stays imported only
-# because the P1 red test keeps itself off real time via
-# `monkeypatch.setattr(skywatcher.motor.time, "sleep", ...)`.
-import time  # noqa: F401
 from enum import IntEnum, StrEnum
 
 from clock import NEVER, REAL_CLOCK, Clock
@@ -38,7 +34,6 @@ class _Command(StrEnum):
     INQUIRE_MOTOR_BOARD_VERSION = "e"
     INQUIRE_POSITION = "j"
     INQUIRE_STATUS = "f"
-    INQUIRE_VOLTAGE = "fL"
     INQUIRE_HIGHSPEED_RATIO = "g"
     SET_STEP_PERIOD = "I"
     SET_GOTO_TARGET_INCREMENT = "H"
@@ -149,8 +144,6 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     _LOWSPEED_MARGIN = Ha(10 * 60)
     _LOWSPEED_SPEED = STELLAR_SPEED * 128
     _HIGHSPEED_SPEED = STELLAR_SPEED * 800
-    _POWER_CACHE_TTL_S = 2.0
-    _POWER_UNSUPPORTED_BACKOFF_S = 60.0
     _CONNECT_ATTEMPTS = 3
     _CONNECT_RETRY_DELAY_S = 0.25
 
@@ -171,9 +164,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._zero_target_pending = False
         self._mount_position_cache = Ha(0)
         self._mount_position_cache_updated = NEVER
-        self._last_power_v: float | None = None
-        self._last_power_v_updated = NEVER
-        self._power_v_retry_at = NEVER
+        self._power_v_unsupported_reported = False
 
     def connect(self) -> None:
         if self._serial.terminator != Protocol.ANSWER_END_BYTE:
@@ -212,9 +203,6 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
 
     def disconnect(self) -> bool:
         self._is_connected = False
-        self._last_power_v = None
-        self._last_power_v_updated = NEVER
-        self._power_v_retry_at = NEVER
         self._serial.close()
         return True
 
@@ -246,26 +234,18 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         )
 
     def get_power_v(self) -> float | None:
-        power_v = self._last_power_v
-        now = self._clock.monotonic()
-        if self._is_connected and now >= self._power_v_retry_at and now - self._last_power_v_updated >= self._POWER_CACHE_TTL_S:
-            try:
-                encoded_voltage = self._transact(_Command.INQUIRE_VOLTAGE).strip()
-                if not encoded_voltage or len(encoded_voltage) > 2:
-                    raise SkyWatcherMotorProtocolError(f"invalid voltage response: {encoded_voltage!r}")
-
-                power_v = int(encoded_voltage, 16) / 10.0
-                self._last_power_v = power_v
-                self._last_power_v_updated = now
-                self._power_v_retry_at = NEVER
-            except (SkyWatcherMotorError, ValueError) as error:
-                # Many boards simply do not implement `:fL#` and answer nothing. Back off instead of
-                # re-probing (and re-logging a traceback) on every dashboard tick; a board that starts
-                # answering is picked up again after the backoff.
-                self._power_v_retry_at = now + self._POWER_UNSUPPORTED_BACKOFF_S
-                self._logger.warning("Skywatcher voltage is unavailable, next try in %.0fs: %s", self._POWER_UNSUPPORTED_BACKOFF_S, error)
-
-        return power_v
+        # RA_PROTOCOL.md §6: this board has no supply-voltage query, so there is nothing
+        # to ask and no point in ever asking. `:fL#` was invented by commit 9d38f3c: `L`
+        # sits where the hex channel belongs (`:fL\r` -> `!3`) and `#` terminates nothing
+        # on this board (`:fL#` -> silence), so every poll cost three 507ms timeouts and a
+        # WARNING, forever, on every dashboard tick. The search for a real query was
+        # exhaustive — the whole `:q` id space, all 256 register and 32 EEPROM addresses,
+        # every unused command letter, the full command-set PDF and the INDI reference —
+        # and it found nothing. The dashboard reads `power_v` off the DEC board instead.
+        if not self._power_v_unsupported_reported:
+            self._power_v_unsupported_reported = True
+            self._logger.info("SkyWatcher board exposes no supply voltage (RA_PROTOCOL.md §6); it is reported by the DEC board")
+        return None
 
     def protocol_monitor(self) -> dict[str, object]:
         return {
@@ -445,9 +425,6 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._last_direction = MotorDirection.STOP
         self._last_target = None
         self._zero_target_pending = False
-        self._last_power_v = None
-        self._last_power_v_updated = NEVER
-        self._power_v_retry_at = NEVER
 
     def _get_status(self) -> _Status:
         self._last_status = _Status.from_bytes(self._transact(_Command.INQUIRE_STATUS).encode("ascii"))
@@ -523,30 +500,21 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
 
     REPEATS = 3
     def _transact(self, command: _Command, arg: str | None = None) -> str:
-        if command == _Command.INQUIRE_VOLTAGE:
-            payload = f"{Protocol.COMMAND_PREFIX}{command.value}#"
-            response_prefixes = None
-            response_terminator: str | None = "#"
-        else:
-            payload = f"{Protocol.COMMAND_PREFIX}{command.value}{_Axis.RA}{arg or ''}{Protocol.COMMAND_TERMINATOR}"
-            response_prefixes = (Protocol.RESPONSE_PREFIX_BYTE, Protocol.COMMAND_ERROR_PREFIX_BYTE)
-            response_terminator = None
+        # Every command this board understands has the same frame: `:<cmd><channel><data>\r`,
+        # answered with `=<data>\r` or `!<code>\r`. There is no second framing (§8: only `\r`
+        # terminates anything), so there is no second branch here either.
+        payload = f"{Protocol.COMMAND_PREFIX}{command.value}{_Axis.RA}{arg or ''}{Protocol.COMMAND_TERMINATOR}"
+        response_prefixes = (Protocol.RESPONSE_PREFIX_BYTE, Protocol.COMMAND_ERROR_PREFIX_BYTE)
 
         count = self.REPEATS
         response = None
         while count > 0:
             try:
-                response = self._serial.query(
-                    payload,
-                    response_prefixes=response_prefixes,
-                    response_terminator=response_terminator,
-                )
+                response = self._serial.query(payload, response_prefixes=response_prefixes)
                 if not response:
                     raise SkyWatcherMotorProtocolError(f"empty response: {response!r}")
-                if not response.endswith(response_terminator or Protocol.ANSWER_END):
+                if not response.endswith(Protocol.ANSWER_END):
                     raise SkyWatcherMotorProtocolError(f"unterminated response: {response!r}")
-                if command == _Command.INQUIRE_VOLTAGE:
-                    return response[:-1]
                 if response[0] == Protocol.COMMAND_ERROR_PREFIX:
                     raise SkyWatcherMotorCommandError(f"command error: {response!r}")
                 if response[0] != Protocol.RESPONSE_PREFIX:
