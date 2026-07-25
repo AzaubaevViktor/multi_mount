@@ -160,6 +160,11 @@ ignore = [
 "src/tests/hw/test_ra_conformance_hw.py" = ["RUF001", "RUF002", "RUF003"]
 "src/tools/ra_conformance.py" = ["RUF001", "RUF002", "RUF003"]
 "src/tools/ra_step2.py" = ["RUF001", "RUF002", "RUF003"]
+# Same mixture for a different reason: the wire scanner speaks its findings out
+# loud (`say -v Milena`), so the strings are Russian by necessity — the user is
+# rewiring the board and cannot watch the screen — and they carry ASCII pin
+# numbers and hex values inside.
+"src/tools/dec_wirescan.py" = ["RUF001", "RUF002", "RUF003"]
 
 # -- BASELINE (file-scoped, so these rules stay enforced everywhere else) ----------------
 # src/stdout_dashboard.py renders internal axis/combiner state (27 hits). That is the

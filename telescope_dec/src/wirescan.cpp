@@ -51,6 +51,13 @@ static const uint8_t LED_B_G = A2;
 static const uint8_t LED_B_B = A5;
 static const uint8_t LED_ALIVE = 11; // power LED, toggled every round
 
+// Motor supply sense, same divider the main firmware uses. A driver with no power
+// answers exactly like a driver that is not wired: silence. Worth ruling out before
+// blaming the wire.
+static const uint8_t POWER_SENSE_PIN = A1;
+static const float ADC_INTERNAL_VREF = 1.1f;
+static const float POWER_DIVIDER_RATIO = 23.93555f;
+
 // Known VERSION bytes in IOIN. Not used to *accept* a reply -- a datagram whose CRC
 // checks out is a reply whatever it says -- only to name the chip afterwards. Assuming
 // 0x21 here was a real bug: the board carries a TMC2225, which is a TMC2208 variant and
@@ -77,6 +84,17 @@ static const uint16_t TX_TRIM = 5;
 static const uint16_t RX_TRIM = 6;
 
 static uint8_t rxBuf[12];
+// What the line carried back while the sync byte was being sent; TMC_SYNC when the
+// wire is intact and the timing is right.
+static uint8_t lastEcho = 0;
+
+// Once the chip has answered, remember it. The one real reply of the whole session
+// lasted a single round -- the green LED blinked for 150 ms while a wire was being
+// moved, which no eye could catch and which the log only gave up afterwards. A latch
+// turns "it worked for an instant" from something found by archaeology into something
+// the board tells you while your hand is still on the wire.
+static uint8_t everRepliedVersion[2] = {0, 0};
+static uint32_t everRepliedCount[2] = {0, 0};
 
 static uint8_t tmcCrc8(const uint8_t* data, uint8_t len) {
   uint8_t crc = 0;
@@ -89,6 +107,31 @@ static uint8_t tmcCrc8(const uint8_t* data, uint8_t len) {
     }
   }
   return crc;
+}
+
+// Send a byte and read the line back *while sending it*, sampling in the middle of
+// every bit. This is the loopback the scanner was missing: the echo of our own bytes
+// happens during transmission, and the receive path below only starts listening after
+// the last one has gone, so `raw` could never have counted an echo -- only a genuine
+// reply. A returned byte equal to the one sent proves three things at once that were
+// previously assumed: the bit-banged transmitter works, the receiver works, and the
+// two pins really are on the same wire.
+static uint8_t bbWriteEcho(uint8_t txPin, uint8_t rxPin, uint8_t value) {
+  uint8_t echo = 0;
+  noInterrupts();
+  digitalWrite(txPin, LOW);
+  delayMicroseconds(BIT_US - TX_TRIM);
+  for (uint8_t i = 0; i < 8; i++) {
+    digitalWrite(txPin, (value & 0x01) ? HIGH : LOW);
+    value = (uint8_t)(value >> 1);
+    delayMicroseconds(BIT_US / 2);
+    if (digitalRead(rxPin)) echo |= (uint8_t)(1 << i);
+    delayMicroseconds(BIT_US / 2 - TX_TRIM);
+  }
+  digitalWrite(txPin, HIGH);
+  interrupts();
+  delayMicroseconds(BIT_US);
+  return echo;
 }
 
 static void bbWrite(uint8_t txPin, uint8_t value) {
@@ -171,7 +214,8 @@ static bool dcLinked(uint8_t rxPin, uint8_t txPin) {
 static uint8_t sendAndCollect(uint8_t rxPin, uint8_t txPin, const uint8_t* datagram, uint8_t len) {
   idle(rxPin, txPin);
   delayMicroseconds(200);
-  for (uint8_t i = 0; i < len; i++) bbWrite(txPin, datagram[i]);
+  lastEcho = bbWriteEcho(txPin, rxPin, datagram[0]);
+  for (uint8_t i = 1; i < len; i++) bbWrite(txPin, datagram[i]);
 
   // The chip answers within a few bit times of the request. The MCU keeps driving
   // the transmit pin high meanwhile: the module's series resistor lets the chip pull
@@ -235,6 +279,7 @@ struct Orientation {
   // sees a start bit that never ends and fills its buffer with rubbish. Without this
   // field that rubbish reads as `raw=12` and looks exactly like a real reply.
   bool idleHigh;
+  uint8_t echo;
   uint16_t decayUs;
   uint8_t raw;
   uint8_t version;
@@ -242,8 +287,8 @@ struct Orientation {
   bool replied;
 };
 
-static Orientation probe(uint8_t rxPin, uint8_t txPin) {
-  Orientation out = {false, false, 0, 0, 0, -1, false};
+static Orientation probe(uint8_t rxPin, uint8_t txPin, uint8_t slot) {
+  Orientation out = {false, false, 0, 0, 0, 0, -1, false};
   out.linked = dcLinked(rxPin, txPin);
 
   // Release the transmit pin *first*. Measuring the idle level while it still drives
@@ -260,9 +305,12 @@ static Orientation probe(uint8_t rxPin, uint8_t txPin) {
 
   uint32_t ioin = 0;
   out.replied = tmcRead(rxPin, txPin, REG_IOIN, &ioin, &out.raw);
+  out.echo = lastEcho;
   if (!out.replied) return out;
 
   out.version = (uint8_t)(ioin >> 24);
+  everRepliedVersion[slot] = out.version;
+  everRepliedCount[slot]++;
 
   // Only worth the extra milliseconds once the chip is known to be talking.
   uint32_t before = 0;
@@ -281,10 +329,13 @@ static LinkState classify(const Orientation& o) {
   // Any datagram that passed sync, address and CRC is the chip talking. Which chip it
   // is comes out of `version`, and is not a precondition for hearing it.
   if (o.replied) return STATE_TALKING;
-  // A line held low outranks continuity on purpose: UART idles high, so a pinned line
-  // cannot carry a byte no matter how well the two pins are connected. Fix this first.
-  if (!o.idleHigh) return STATE_GROUNDED;
-  if (o.linked) return STATE_LINKED;
+  // The echo of our own sync byte is the sharpest signal we have, so it drives the
+  // colour. It came out of the loopback fix and beats `link`/`idle` at their own job:
+  //   0x05 -- the byte we sent, so the wire carries our bits faithfully
+  //   0x00 -- the line never rose, i.e. it is pinned to ground
+  //   0xFF -- the line never fell, i.e. nothing of ours reaches it
+  if (o.echo == TMC_SYNC) return STATE_LINKED;
+  if (o.echo == 0x00) return STATE_GROUNDED;
   return STATE_DEAD;
 }
 
@@ -312,7 +363,7 @@ static void identifyLeds() {
   }
 }
 
-static void report(const char* tag, const Orientation& o) {
+static void report(const char* tag, const Orientation& o, uint8_t slot) {
   Serial.print(tag);
   Serial.print(F("_link="));
   Serial.print(o.linked ? 1 : 0);
@@ -320,6 +371,10 @@ static void report(const char* tag, const Orientation& o) {
   Serial.print(tag);
   Serial.print(F("_idle="));
   Serial.print(o.idleHigh ? 1 : 0);
+  Serial.print(';');
+  Serial.print(tag);
+  Serial.print(F("_echo="));
+  Serial.print(o.echo);
   Serial.print(';');
   Serial.print(tag);
   Serial.print(F("_decay="));
@@ -341,10 +396,21 @@ static void report(const char* tag, const Orientation& o) {
   Serial.print(F("_state="));
   Serial.print((uint8_t)classify(o));
   Serial.print(';');
+  Serial.print(tag);
+  Serial.print(F("_everver="));
+  Serial.print(everRepliedVersion[slot]);
+  Serial.print(';');
+  Serial.print(tag);
+  Serial.print(F("_evercount="));
+  Serial.print(everRepliedCount[slot]);
+  Serial.print(';');
 }
 
 void setup() {
   Serial.begin(115200);
+  analogReference(INTERNAL);
+  analogRead(POWER_SENSE_PIN);
+  analogRead(POWER_SENSE_PIN);
   const uint8_t leds[] = {LED_A_R, LED_A_G, LED_A_B, LED_B_R, LED_B_G, LED_B_B, LED_ALIVE};
   for (uint8_t i = 0; i < sizeof(leds); i++) {
     pinMode(leds[i], OUTPUT);
@@ -355,19 +421,29 @@ void setup() {
   identifyLeds();
 }
 
+static uint16_t supplyCentivolts() {
+  uint32_t sum = 0;
+  for (uint8_t i = 0; i < 8; i++) sum += (uint32_t)analogRead(POWER_SENSE_PIN);
+  const float counts = (float)sum / 8.0f;
+  const float volts = counts * ADC_INTERNAL_VREF / 1023.0f * POWER_DIVIDER_RATIO;
+  return (uint16_t)(volts * 100.0f + 0.5f);
+}
+
 void loop() {
   // Orientation A is what the main firmware assumes: pin 8 listens, pin 9 talks.
-  const Orientation a = probe(PIN_A, PIN_B);
-  const Orientation b = probe(PIN_B, PIN_A);
+  const Orientation a = probe(PIN_A, PIN_B, 0);
+  const Orientation b = probe(PIN_B, PIN_A, 1);
 
-  showState(LED_A_R, LED_A_G, LED_A_B, classify(a));
-  showState(LED_B_R, LED_B_G, LED_B_B, classify(b));
+  showState(LED_A_R, LED_A_G, LED_A_B, everRepliedCount[0] ? STATE_TALKING : classify(a));
+  showState(LED_B_R, LED_B_G, LED_B_B, everRepliedCount[1] ? STATE_TALKING : classify(b));
   // A pulse per round: the eye can tell a scanner that is running from one that hung.
   digitalWrite(LED_ALIVE, !digitalRead(LED_ALIVE));
 
-  Serial.print(F("1;"));
-  report("a", a);
-  report("b", b);
+  Serial.print(F("1;vm="));
+  Serial.print(supplyCentivolts());
+  Serial.print(';');
+  report("a", a, 0);
+  report("b", b, 1);
   Serial.println();
 
   // Everything is released between rounds, so a wire moved mid-round cannot leave a

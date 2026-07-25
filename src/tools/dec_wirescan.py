@@ -54,6 +54,8 @@ LOGGER = logging.getLogger("dec_wirescan")
 
 PORT_GLOB = "/dev/tty.usbserial*"
 BAUD = 115200
+# The sync byte the board sends; hearing it back means the wire is sound.
+TMC_SYNC = 0x05
 SAY_BINARY = "/usr/bin/say"
 VOICE = "Milena"
 SPEAKER = "Агент ДЕК."
@@ -80,11 +82,14 @@ class Side:
 
     linked: bool
     idle_high: bool
+    echo: int
     decay_us: int
     raw: int
     version: int
     ifcnt: int
     state: int
+    ever_version: int = 0
+    ever_count: int = 0
 
     @property
     def replied(self) -> bool:
@@ -105,6 +110,13 @@ class Side:
 class Round:
     a: Side
     b: Side
+    vm_centivolts: int = 0
+
+    @property
+    def powered(self) -> bool:
+        """Motor supply present. A driver with no power is silent for a reason that
+        has nothing to do with the wire, and that is worth saying out loud."""
+        return self.vm_centivolts >= 600
 
     @property
     def rank(self) -> int:
@@ -129,10 +141,15 @@ def parse_round(line: str) -> Round | None:
             return None
     try:
         return Round(
-            a=Side(bool(values["a_link"]), bool(values["a_idle"]), values["a_decay"],
-                   values["a_raw"], values["a_ver"], values["a_ifcnt"], values["a_state"]),
-            b=Side(bool(values["b_link"]), bool(values["b_idle"]), values["b_decay"],
-                   values["b_raw"], values["b_ver"], values["b_ifcnt"], values["b_state"]),
+            a=Side(bool(values["a_link"]), bool(values["a_idle"]), values["a_echo"],
+                   values["a_decay"], values["a_raw"], values["a_ver"],
+                   values["a_ifcnt"], values["a_state"],
+                   values.get("a_everver", 0), values.get("a_evercount", 0)),
+            b=Side(bool(values["b_link"]), bool(values["b_idle"]), values["b_echo"],
+                   values["b_decay"], values["b_raw"], values["b_ver"],
+                   values["b_ifcnt"], values["b_state"],
+                   values.get("b_everver", 0), values.get("b_evercount", 0)),
+            vm_centivolts=values.get("vm", 0),
         )
     except KeyError:
         return None
@@ -147,20 +164,29 @@ ORIENTATIONS = (("первой", "приём на восьмом"), ("второ
 def describe(state: Round) -> str:
     """One short Russian sentence for the current situation, best news first."""
     sides = (state.a, state.b)
+    # A reply that has *ever* landed outranks the live reading: the one real answer of
+    # the session lasted a single round, and reporting only the present would have
+    # thrown it away again.
+    for (name, pin), side in zip(ORIENTATIONS, sides, strict=True):
+        if side.ever_count and not side.replied:
+            chip = CHIP_NAMES.get(side.ever_version, f"версия {side.ever_version:#04x}")
+            return (f"Драйвер уже отвечал в {name} ориентации, {pin}. Это {chip}. "
+                    f"Ответов всего {side.ever_count}. Ищи это положение снова.")
     for (name, pin), side in zip(ORIENTATIONS, sides, strict=True):
         if side.replied:
             chip = CHIP_NAMES.get(side.version, f"версия {side.version:#04x}")
             found = f"Драйвер отвечает в {name} ориентации, {pin}. Это {chip}."
             return f"{found} Запись проходит." if side.ifcnt > 0 else found
-    linked = [name for (name, _), side in zip(ORIENTATIONS, sides, strict=True) if side.linked]
-    if linked:
-        return f"Есть эхо в {' и '.join(linked)} ориентации. Провода соединены, но драйвер молчит."
-    stuck = [pin for (_, pin), side in zip(ORIENTATIONS, sides, strict=True) if side.stuck_low]
-    if stuck:
-        # Named separately from plain silence: a line pinned low is a different fault
-        # from a line hanging in the air, and it needs a different move.
-        return f"Тишина. Причём линия прижата к земле: {stuck[0]}. Похоже, провод сидит на земляном пятаке."
-    return "Тишина в обеих ориентациях. Контакта нет."
+    if not state.powered:
+        return "Силовое питание не подключено. Драйвер обесточен, поэтому и молчит."
+    good = [name for (name, _), side in zip(ORIENTATIONS, sides, strict=True) if side.echo == TMC_SYNC]
+    if good:
+        return f"Провод хороший, эхо чистое в {' и '.join(good)} ориентации. Но драйвер молчит."
+    grounded = [pin for (_, pin), side in zip(ORIENTATIONS, sides, strict=True) if side.echo == 0x00]
+    if grounded:
+        # A different fault from a line hanging in the air, and a different move.
+        return f"Линия прижата к земле: {grounded[0]}. Провод сидит на земляном пятаке."
+    return "Провода ни к чему не подключены. Эха нет совсем."
 
 
 def say(text: str) -> None:
@@ -254,10 +280,10 @@ def main(argv: list[str] | None = None) -> int:
                 continue
 
             LOGGER.info(
-                "A link=%d idle=%d decay=%4d raw=%2d ver=0x%02X | "
-                "B link=%d idle=%d decay=%4d raw=%2d ver=0x%02X",
-                state.a.linked, state.a.idle_high, state.a.decay_us, state.a.raw, state.a.version,
-                state.b.linked, state.b.idle_high, state.b.decay_us, state.b.raw, state.b.version,
+                "VM=%5.2fV | A echo=0x%02X decay=%4d raw=%2d ver=0x%02X | "
+                "B echo=0x%02X decay=%4d raw=%2d ver=0x%02X",
+                state.vm_centivolts / 100, state.a.echo, state.a.decay_us, state.a.raw, state.a.version,
+                state.b.echo, state.b.decay_us, state.b.raw, state.b.version,
             )
 
             now = time.monotonic()
