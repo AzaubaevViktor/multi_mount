@@ -37,6 +37,8 @@ class _Command(StrEnum):
     INQUIRE_HIGHSPEED_RATIO = "g"
     INQUIRE_STEP_PERIOD = "i"
     SET_STEP_PERIOD = "I"
+    SET_MEMORY_ADDRESS = "C"
+    INQUIRE_MEMORY_BYTE = "n"
     SET_GOTO_TARGET_INCREMENT = "H"
     SET_BREAK_POINT_INCREMENT = "M"
     SET_AXIS_POSITION = "E"
@@ -156,6 +158,20 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
     # an `:E`. The board was seen taking ~0.3s; the check waits longer than that on purpose.
     _INIT_FLAG_SETTLE_S = 0.5
 
+    # §6.8: both supply voltages sit in the `:C`/`:n` window as int16 little-endian in
+    # hundredths of a volt. The address is 16-bit and travels low byte first.
+    _BATTERY_VOLT_ADDRESS = 0x0004
+    _USB_VOLT_ADDRESS = 0x001C
+    _VOLT_PER_COUNT = 0.01
+    # One reading is eight commands (`:C1` + `:n1` per byte, two bytes per channel,
+    # two channels), and the dashboard asks on every tick. A supply that
+    # sags fast enough to matter (§12: motor load -> brownout -> reboot) still sags over
+    # seconds, so a few seconds of staleness costs nothing and keeps the line free.
+    _POWER_CACHE_TTL_S = 5.0
+    # A board that answers `!0` or garbage will keep doing so. Retrying every tick would
+    # be the `:fL#` storm all over again, only eight commands wide instead of one.
+    _POWER_FAILURE_BACKOFF_S = 60.0
+
     def __init__(self, serial: SerialLine, clock: Clock = REAL_CLOCK) -> None:
         self._serial = serial
         self._clock = clock
@@ -173,7 +189,10 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._zero_target_pending = False
         self._mount_position_cache = Ha(0)
         self._mount_position_cache_updated = NEVER
-        self._power_v_unsupported_reported = False
+        self._battery_v: float | None = None
+        self._usb_v: float | None = None
+        self._power_v_updated = NEVER
+        self._power_v_retry_at = NEVER
 
     def connect(self) -> None:
         if self._serial.terminator != Protocol.ANSWER_END_BYTE:
@@ -181,6 +200,9 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
                 f"invalid SerialLine terminator: expected {Protocol.ANSWER_END_BYTE!r}, got {self._serial.terminator!r}"
             )
         self._serial.connect()
+        # A reconnect is a different session (possibly a different power source):
+        # nothing measured before it may be reported afterwards.
+        self._forget_power_v()
 
         # A mount that stays silent right after the port opens is usually transient (PLAN.md §1 П3):
         # retry the handshake a bounded number of times before declaring the mount unreachable.
@@ -265,8 +287,15 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
 
     def disconnect(self) -> bool:
         self._is_connected = False
+        self._forget_power_v()
         self._serial.close()
         return True
+
+    def _forget_power_v(self) -> None:
+        self._battery_v = None
+        self._usb_v = None
+        self._power_v_updated = NEVER
+        self._power_v_retry_at = NEVER
 
     def status(self) -> MotorStatus:
         status = self._get_status()
@@ -292,29 +321,89 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
             direction=direction,
             target=self._last_target if status.slew_mode == _SlewMode.GOTO else None,
             microsteps=None,
-            power_v=None,
+            # Whatever the last poll brought, never a poll of its own: `status()` is
+            # called far more often than the voltage changes, and it must not turn
+            # into eight extra commands per call.
+            power_v=self._cached_power_v(),
             initialized=status.initialized,
         )
 
     def get_power_v(self) -> float | None:
-        # RA_PROTOCOL.md §6: this board has no supply-voltage query, so there is nothing
-        # to ask and no point in ever asking. `:fL#` was invented by commit 9d38f3c: `L`
-        # sits where the hex channel belongs (`:fL\r` -> `!3`) and `#` terminates nothing
-        # on this board (`:fL#` -> silence), so every poll cost three 507ms timeouts and a
-        # WARNING, forever, on every dashboard tick. The search for a real query was
-        # exhaustive — the whole `:q` id space, all 256 register and 32 EEPROM addresses,
-        # every unused command letter, the full command-set PDF and the INDI reference —
-        # and it found nothing. The dashboard reads `power_v` off the DEC board instead.
-        if not self._power_v_unsupported_reported:
-            self._power_v_unsupported_reported = True
-            self._logger.info("SkyWatcher board exposes no supply voltage (RA_PROTOCOL.md §6); it is reported by the DEC board")
-        return None
+        """Supply voltage of the RA board, or None while it is unknown.
+
+        §6.8: the board does have a voltage query after all — not a command of its
+        own but the `:C`/`:n` memory window, found by disassembling the vendor's
+        SAM Console app and then confirmed on the wire. Battery volts * 100 sit at
+        0x0004/0x0005, USB volts * 100 at 0x001C/0x001D, both int16 little-endian.
+        The measured pair (6.04 V against 6.08 V on the multimeter, 4.70 V on USB)
+        is what the simulator defaults to.
+
+        The number reported is `max(battery, usb)`, as the vendor's own UI shows
+        it. The board is fed from whichever source is higher, so that maximum is
+        the rail the regulator actually sees — and it is the only formula that
+        says something true in all three wirings: on USB only the battery channel
+        reads ~0, on batteries only the USB channel does, and reporting a flat 0
+        would be a false alarm. The two channels stay separately visible in
+        `protocol_monitor()`, so a battery sagging under a healthy USB is not
+        hidden by the maximum.
+        """
+        if not self._is_connected:
+            return None
+
+        now = self._clock.monotonic()
+        if now - self._power_v_updated < self._POWER_CACHE_TTL_S or now < self._power_v_retry_at:
+            return self._cached_power_v()
+
+        try:
+            battery_v = self._read_voltage(self._BATTERY_VOLT_ADDRESS)
+            usb_v = self._read_voltage(self._USB_VOLT_ADDRESS)
+        except SkyWatcherMotorError as error:
+            # A board that cannot answer this will not answer it in 40ms either, and
+            # the caller is a dashboard tick. Back off, report "unknown", stay quiet.
+            self._battery_v = None
+            self._usb_v = None
+            self._power_v_retry_at = now + self._POWER_FAILURE_BACKOFF_S
+            self._logger.warning(
+                "Could not read the RA supply voltage, next try in %.0fs: %s", self._POWER_FAILURE_BACKOFF_S, error
+            )
+            return None
+
+        self._battery_v = battery_v
+        self._usb_v = usb_v
+        self._power_v_updated = now
+        self._power_v_retry_at = NEVER
+        return self._cached_power_v()
+
+    def _cached_power_v(self) -> float | None:
+        voltages = [v for v in (self._battery_v, self._usb_v) if v is not None]
+        return max(voltages) if voltages else None
+
+    def _read_voltage(self, address: int) -> float:
+        # int16 little-endian: the low byte is at `address`, the high byte one above.
+        # Swapping them turns 6.04 V into 236.44 V, which is why both halves are read
+        # here and not by two independent callers.
+        low = self._read_memory_byte(address)
+        high = self._read_memory_byte(address + 1)
+        return ((high << 8) | low) * self._VOLT_PER_COUNT
+
+    def _read_memory_byte(self, address: int) -> int:
+        # `:C1<lo><hi>\r` then `:n1\r` -> `=XX\r`. The address is 16-bit, low byte
+        # first (`:C11C00` is 0x001C, not 0x1C00), and the window does not auto
+        # increment: it has to be set again before every single byte.
+        self._transact(_Command.SET_MEMORY_ADDRESS, f"{address & 0xFF:02X}{(address >> 8) & 0xFF:02X}")
+        data = self._transact(_Command.INQUIRE_MEMORY_BYTE)
+        if len(data) != 2 or any(char not in "0123456789abcdefABCDEF" for char in data):
+            raise SkyWatcherMotorProtocolError(f"expected 2 hex chars from the memory window, got {data!r}")
+        return int(data, 16)
 
     def protocol_monitor(self) -> dict[str, object]:
         return {
             "speed_mode": "-" if self._last_status is None else f"{self._last_status.speed_mode.name.lower()}({int(self._last_status.speed_mode)})",
             "highspeed_ratio": self._highspeed_ratio or "-",
             "initialized": "-" if self._last_status is None else ("yes" if self._last_status.initialized else "NO"),
+            # Both rails, because `get_power_v` reports only the higher one (§6.8).
+            "battery_v": "-" if self._battery_v is None else f"{self._battery_v:.2f}",
+            "usb_v": "-" if self._usb_v is None else f"{self._usb_v:.2f}",
         }
 
     def _get_preferred_speed_mode(self, fallback: _SpeedMode) -> _SpeedMode:

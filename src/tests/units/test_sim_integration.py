@@ -202,19 +202,64 @@ def test_skywatcher_goto_lowspeed_reaches_target() -> None:
     assert status.motion_mode == MotionMode.IDLE
 
 
-def test_skywatcher_board_has_no_voltage_to_report() -> None:
-    """§6: no command reads the supply voltage off this board.
+def test_skywatcher_reports_the_supply_voltage_in_volts() -> None:
+    """§6.8: the numbers measured on the board, end to end through the driver.
 
-    `:fL#` was invented by a commit of ours; the live controller stays silent
-    (only `\\r` terminates a command) and answers `!3` to `:fL\\r`, because `L`
-    is not a hex channel. The driver therefore has no voltage to report, and
-    the dashboard must take it from the DEC board instead.
+    Battery 604 hundredths -> 6.04 V (the multimeter said 6.08 V at the same
+    moment), USB 470 -> 4.70 V. Raw counts, or bytes taken big-endian, would
+    give 604 V and 236.44 V respectively — three orders of magnitude of
+    difference between a right and a wrong reading.
     """
     clock, sim, motor = _make_ra()
     motor.connect()
 
-    assert motor.get_power_v() is None
-    assert sim.drain() == b""
+    assert motor.get_power_v() == pytest.approx(6.04)
+    assert motor.protocol_monitor()["battery_v"] == "6.04"
+    assert motor.protocol_monitor()["usb_v"] == "4.70"
+
+
+def test_skywatcher_reports_the_higher_of_the_two_supply_rails() -> None:
+    """The board is fed by whichever source is higher, so that is what is shown.
+
+    The vendor's own UI does `max(usbVolt, batteryVolt)` too. The point is not
+    cosmetic: on USB alone the battery channel reads 0, and a driver reporting
+    the battery only would put a flat 0.00 V on the dashboard of a perfectly
+    healthy mount.
+    """
+    clock, sim, motor = _make_ra(battery_volt_hundredths=0, usb_volt_hundredths=498)
+    motor.connect()
+
+    assert motor.get_power_v() == pytest.approx(4.98)
+    # Both rails stay separately visible, so a sagging battery is not lost in
+    # the maximum.
+    assert motor.protocol_monitor()["battery_v"] == "0.00"
+    assert motor.protocol_monitor()["usb_v"] == "4.98"
+
+
+def test_skywatcher_status_carries_the_ra_voltage_without_polling_for_it() -> None:
+    """The dashboard reads `power_v` off both boards; RA is no longer a blank.
+
+    `status()` is called far more often than the voltage moves, so it reports
+    what the last poll brought and sends nothing of its own.
+    """
+    clock, sim, motor = _make_ra()
+    motor.connect()
+
+    assert motor.status().power_v is None
+    assert motor.get_power_v() == pytest.approx(6.04)
+
+    received = bytearray()
+    original_feed = sim.feed
+
+    def _recording_feed(data: bytes) -> None:
+        received.extend(data)
+        original_feed(data)
+
+    sim.feed = _recording_feed  # type: ignore[method-assign]
+
+    assert motor.status().power_v == pytest.approx(6.04)
+    assert b":C1" not in bytes(received)
+    assert b":n1" not in bytes(received)
 
 
 def test_skywatcher_driver_retries_over_scripted_faults() -> None:

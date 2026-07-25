@@ -215,6 +215,13 @@ class StdoutDashboard:
                 self._pair("mode", mount_state),
                 self._pair("polar", polar_status),
                 self._pair("ra_bat", self._fmt_voltage(ra_power_v)),
+                # RA_PROTOCOL.md §6.8: `ra_bat` is `max(battery, usb)`, the rail the
+                # board is actually fed from. Both channels are shown next to it, so
+                # a battery sagging under a healthy USB cable stays visible.
+                self._pair(
+                    "ra_rail",
+                    f"{ra_protocol_monitor.get('battery_v', '-')}/{ra_protocol_monitor.get('usb_v', '-')}",
+                ),
                 self._pair("dec_bat", self._fmt_voltage(dec_power_v)),
                 "",
             ]

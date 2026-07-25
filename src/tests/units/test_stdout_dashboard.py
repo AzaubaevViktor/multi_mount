@@ -175,7 +175,12 @@ class _StubCombiner:
                 ),
                 Ha(3600),
                 power_v=13.4,
-                protocol_snapshot={"speed_mode": "highspeed(1)", "highspeed_ratio": 11},
+                protocol_snapshot={
+                    "speed_mode": "highspeed(1)",
+                    "highspeed_ratio": 11,
+                    "battery_v": "6.04",
+                    "usb_v": "4.70",
+                },
             ),
             Ha(3600),
             HaPerSecond(1.0),
@@ -298,6 +303,8 @@ def test_stdout_dashboard_render_fits_30x130(monkeypatch) -> None:
     assert any("ra_track" in line and "+1.000hs" in line for line in lines)
     assert any("dec_track" in line and "+0.00as" in line for line in lines)
     assert any("ra_bat" in line and "13.40V" in line for line in lines)
+    # Both RA rails, not just the maximum `get_power_v` reports (§6.8).
+    assert any("ra_rail" in line and "6.04/4.70" in line for line in lines)
     assert any("dec_bat" in line and "12.80V" in line for line in lines)
     assert all("log_1" not in line and "log_2" not in line for line in lines)
     assert all("GR" not in line and "GD" not in line for line in lines)

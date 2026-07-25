@@ -392,8 +392,9 @@ def _step_read_board_config(session: Session) -> None:
         "cpr": _decode_revu24(_ra_inquire(line, "a")),
         "timer_freq": _decode_revu24(_ra_inquire(line, "b")),
         "highspeed_ratio": _decode_revu24(_ra_inquire(line, "g")),
-        # The RA board has no supply-voltage query at all (RA_PROTOCOL.md §6),
-        # so None is the only honest answer here, not a failure of the run.
+        # RA_PROTOCOL.md §6.8: read out of the `:C`/`:n` window. A board that will
+        # not answer it leaves None here — that is a fact about the board, not a
+        # failure of the run.
         "power_v": power_v,
         "voltage_supported": power_v is not None,
     }

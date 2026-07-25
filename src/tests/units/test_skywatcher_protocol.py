@@ -245,21 +245,61 @@ def test_skywatcher_transact_raises_command_error_on_error_prefix() -> None:
         motor._transact(_Command.INQUIRE_CPR)
 
 
-def test_skywatcher_get_power_v_sends_nothing_at_all(monkeypatch: pytest.MonkeyPatch) -> None:
-    """RA_PROTOCOL.md §6: there is no voltage query on this board, so none is sent."""
-    motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
+class _VoltageWindowSerial(_FakeSkyWatcherSerial):
+    """The `:C`/`:n` window byte by byte, as recorded on the wire (§6.8).
+
+    The map is keyed by address so a driver that gets the address byte order
+    wrong reads a different cell, not the same number by accident.
+    """
+
+    _MEMORY = {0x0004: "5C", 0x0005: "02", 0x001C: "D6", 0x001D: "01"}
+
+    def __init__(self) -> None:
+        super().__init__("=\r")
+        self.address = 0
+
+    def query(
+        self,
+        payload: str | None,
+        timeout: float | None = None,
+        response_prefixes: tuple[bytes, ...] | None = None,
+        response_terminator: bytes | str | None = None,
+    ) -> str:
+        self.calls.append((payload or "", response_prefixes, response_terminator))
+        assert payload is not None
+        if payload.startswith(":C1"):
+            data = payload[3:-1]
+            self.address = int(data[2:4] + data[0:2], 16)
+            return "=\r"
+        if payload.startswith(":n1"):
+            return f"={self._MEMORY.get(self.address, '00')}\r"
+        return self.response
+
+
+def test_skywatcher_voltage_is_read_through_the_memory_window_verbatim() -> None:
+    """§6.8: `:C1<lo><hi>` then `:n1`, four times, low byte of each pair first.
+
+    Pinned as payloads because every one of these details has a wrong variant
+    that still parses: `:C10004` reads address 0x0400, a big-endian assembly
+    turns 0x025C into 0x5C02, and skipping the `:C1` before the second `:n1`
+    reads the low byte twice.
+    """
+    serial = _VoltageWindowSerial()
+    motor = SkyWatcherMotor(serial)  # type: ignore[arg-type]
     motor._is_connected = True
-    motor._steps_360 = 86400
-    transact_calls: list[_Command] = []
 
-    def _transact(_self: SkyWatcherMotor, command: _Command, arg: str | None = None) -> str:
-        transact_calls.append(command)
-        return ""
+    assert motor.get_power_v() == pytest.approx(6.04)
 
-    monkeypatch.setattr(motor, "_transact", MethodType(_transact, motor))
-
-    assert motor.get_power_v() is None
-    assert transact_calls == []
+    assert [call[0] for call in serial.calls] == [
+        ":C10400\r",
+        ":n1\r",
+        ":C10500\r",
+        ":n1\r",
+        ":C11C00\r",
+        ":n1\r",
+        ":C11D00\r",
+        ":n1\r",
+    ]
 
 
 def test_skywatcher_status_does_not_fetch_voltage(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -278,7 +318,8 @@ def test_skywatcher_status_does_not_fetch_voltage(monkeypatch: pytest.MonkeyPatc
 
     status = motor.status()
 
+    # Nothing has been read yet, so there is nothing to report — and status()
+    # must not go and fetch it: it is called far more often than the voltage
+    # moves, and one reading is eight commands.
     assert status.power_v is None
-    # Status and position are stubbed above, so a status costs no traffic at all;
-    # any command here would be a voltage probe sneaking back in.
     assert transact_calls == []
