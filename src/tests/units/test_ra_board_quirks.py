@@ -15,6 +15,7 @@ from sim import Clock, SimSerialLine, SkyWatcherSim
 from sky.constants import STELLAR_SPEED
 from sky.motor import MotionMode, MotorDirection, MotorStopRequire
 from sky.physics import Ha
+from skywatcher.board import SkyWatcherBoard
 from skywatcher.motor import SkyWatcherMotor, SkyWatcherMotorTimeoutError
 
 
@@ -230,7 +231,7 @@ def test_set_steps_reinitializes_the_axis_when_the_flag_drops_after_set_position
     clock = Clock()
     serial = _FlagDroppingSerial(clock)
     motor = SkyWatcherMotor(serial, clock)  # type: ignore[arg-type]
-    motor._steps_360 = 12_492_146
+    motor._session._board = SkyWatcherBoard(cpr=12_492_146, timer_freq=16_000_000, highspeed_ratio=1)
 
     assert motor.set_steps(1000) is True
 

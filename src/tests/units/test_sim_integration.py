@@ -33,13 +33,15 @@ def test_skywatcher_connect_reads_valid_mount_config() -> None:
 
     motor.connect()
 
-    assert motor._steps_360 == _RA_CPR
-    assert motor._steps_worm == _RA_TIMER_FREQ
+    board = motor.board
+    assert board is not None
+    assert board.cpr == _RA_CPR
+    assert board.timer_freq == _RA_TIMER_FREQ
     # Highspeed ratio 1 (§2.1): this board has no high-speed multiplier at all,
     # so `G '3'` changes nothing. The minimum period is the board's own clamp,
     # 1103 = 100x sidereal (§10.5), asked of the board and not guessed.
-    assert motor._highspeed_ratio == 1
-    assert motor._min_period == sim.min_period == 1103
+    assert board.highspeed_ratio == 1
+    assert board.min_period == sim.min_period == 1103
 
     status = motor.status()
     assert status.is_connected is True
@@ -64,8 +66,10 @@ def test_skywatcher_min_period_comes_from_the_board_not_from_the_mount_code(moun
 
     motor.connect()
 
-    assert motor._mount_code == mount_code
-    assert motor._min_period == sim.min_period
+    board = motor.board
+    assert board is not None
+    assert board.mount_code == mount_code
+    assert board.min_period == sim.min_period
 
 
 def test_skywatcher_min_period_probe_follows_a_board_with_another_clamp() -> None:
@@ -80,7 +84,9 @@ def test_skywatcher_min_period_probe_follows_a_board_with_another_clamp() -> Non
 
     motor.connect()
 
-    assert motor._min_period == 100
+    board = motor.board
+    assert board is not None
+    assert board.min_period == 100
 
 
 def test_skywatcher_min_period_probe_puts_back_the_period_it_found() -> None:

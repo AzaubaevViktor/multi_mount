@@ -23,6 +23,7 @@ import pytest
 
 from sim import Clock, SimSerialLine, SkyWatcherSim
 from skywatcher.motor import SkyWatcherMotor
+from skywatcher.session import SkyWatcherSession
 
 _READING_COMMANDS = 8
 
@@ -88,12 +89,12 @@ def test_frequent_polling_costs_one_reading_per_ttl_not_one_per_call() -> None:
         clock.advance(tick_s)
 
     elapsed_s = ticks * tick_s
-    allowed_readings = int(elapsed_s / SkyWatcherMotor._POWER_CACHE_TTL_S) + 1
+    allowed_readings = int(elapsed_s / SkyWatcherSession._POWER_CACHE_TTL_S) + 1
     commands = [frame for frame in received if frame.startswith(b":")]
 
     assert len(commands) <= allowed_readings * _READING_COMMANDS, (
         f"{ticks} ticks over {elapsed_s:.0f}s sent {len(commands)} commands; "
-        f"a {SkyWatcherMotor._POWER_CACHE_TTL_S:.0f}s cache allows at most "
+        f"a {SkyWatcherSession._POWER_CACHE_TTL_S:.0f}s cache allows at most "
         f"{allowed_readings * _READING_COMMANDS}"
     )
     # And the cache is a cache, not a mute: over ten TTLs it did refresh.
@@ -109,10 +110,10 @@ def test_a_stale_reading_is_refreshed_once_the_ttl_expires() -> None:
     assert motor.get_power_v() == pytest.approx(6.04)
 
     sim.battery_volt_hundredths = 512
-    clock.advance(SkyWatcherMotor._POWER_CACHE_TTL_S / 2)
+    clock.advance(SkyWatcherSession._POWER_CACHE_TTL_S / 2)
     assert motor.get_power_v() == pytest.approx(6.04)
 
-    clock.advance(SkyWatcherMotor._POWER_CACHE_TTL_S)
+    clock.advance(SkyWatcherSession._POWER_CACHE_TTL_S)
     assert motor.get_power_v() == pytest.approx(5.12)
 
 
@@ -130,7 +131,7 @@ def test_a_board_that_refuses_the_query_is_not_hammered(caplog: pytest.LogCaptur
 
     elapsed_s = 600 * 0.1
     attempts = len([call for call in serial.query_calls if call.startswith(":C1")])
-    allowed_attempts = int(elapsed_s / SkyWatcherMotor._POWER_FAILURE_BACKOFF_S) + 1
+    allowed_attempts = int(elapsed_s / SkyWatcherSession._POWER_FAILURE_BACKOFF_S) + 1
 
     assert attempts <= allowed_attempts, (
         f"a refusing board was probed {attempts} times in {elapsed_s:.0f}s, "

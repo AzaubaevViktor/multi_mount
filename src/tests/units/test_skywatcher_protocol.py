@@ -1,20 +1,18 @@
-from types import MethodType
-
 import pytest
 
 from serial_wrapper.wrapper import SerialLine
-from sky.physics import Ha
-from skywatcher.motor import (
-    SkyWatcherMotor,
+from skywatcher.board import DEFAULT_MIN_PERIOD, SkyWatcherBoard
+from skywatcher.codec import (
+    Command,
+    Direction,
+    SkyWatcherCodec,
     SkyWatcherMotorCommandError,
     SkyWatcherMotorProtocolError,
-    _Command,
-    _Direction,
-    _Revu24,
-    _SlewMode,
-    _SpeedMode,
-    _Status,
+    SlewMode,
+    SpeedMode,
+    Status,
 )
+from skywatcher.motor import SkyWatcherMotor
 from skywatcher.protocol import Protocol
 
 
@@ -75,15 +73,14 @@ class _FakeSkyWatcherSerial:
         raise AssertionError("read_all_data() should not be called")
 
 
-def _idle_status(_self: SkyWatcherMotor) -> _Status:
-    return _Status(
-        raw=0,
-        running=False,
-        initialized=True,
-        slew_mode=_SlewMode.SLEW,
-        direction=_Direction.FORWARD,
-        speed_mode=_SpeedMode.LOWSPEED,
-    )
+_IDLE_STATUS = Status(
+    raw=0,
+    running=False,
+    initialized=True,
+    slew_mode=SlewMode.SLEW,
+    direction=Direction.FORWARD,
+    speed_mode=SpeedMode.LOWSPEED,
+)
 
 
 def test_serial_line_query_waits_for_prefix_then_reads_until_terminator() -> None:
@@ -166,9 +163,9 @@ class _ConnectSerial(_FakeSkyWatcherSerial):
             if self.period_error is not None:
                 return self.period_error
             if payload.startswith(":I1"):
-                self.step_period = max(self.clamp, _Revu24.from_mount(payload[3:-1]))
+                self.step_period = max(self.clamp, SkyWatcherCodec.decode_revu24(payload[3:-1]))
                 return "=\r"
-            return f"={_Revu24.from_int(self.step_period)}\r"
+            return f"={SkyWatcherCodec.encode_revu24(self.step_period)}\r"
         return super().query(payload, timeout, response_prefixes, response_terminator)
 
 
@@ -179,8 +176,11 @@ def test_skywatcher_connect_parses_mcversion_with_board_byte_order() -> None:
     motor.connect()
 
     assert serial.connected is True
-    assert motor._mount_code == 0x0A
-    assert motor._min_period == 1103
+    board = motor.board
+    assert board is not None
+    assert board.mount_code == 0x0A
+    assert board.firmware_version == 0x0311
+    assert board.min_period == 1103
 
 
 def test_skywatcher_connect_probes_the_clamp_with_the_documented_command_pair() -> None:
@@ -198,9 +198,9 @@ def test_skywatcher_connect_probes_the_clamp_with_the_documented_command_pair() 
     period_payloads = [call[0] for call in serial.calls if call[0].startswith((":I1", ":i1"))]
     assert period_payloads == [
         ":i1\r",
-        f":I1{_Revu24.from_int(1)}\r",
+        f":I1{SkyWatcherCodec.encode_revu24(1)}\r",
         ":i1\r",
-        f":I1{_Revu24.from_int(110_359)}\r",
+        f":I1{SkyWatcherCodec.encode_revu24(110_359)}\r",
     ]
     assert serial.step_period == 110_359
 
@@ -217,7 +217,9 @@ def test_skywatcher_connect_survives_a_board_that_refuses_the_probe() -> None:
 
     motor.connect()
 
-    assert motor._min_period == SkyWatcherMotor._DEFAULT_MIN_PERIOD
+    board = motor.board
+    assert board is not None
+    assert board.min_period == DEFAULT_MIN_PERIOD
     assert motor._is_connected is True
 
 
@@ -225,7 +227,7 @@ def test_skywatcher_transact_requests_prefixed_response_and_strips_answer_end() 
     serial = _FakeSkyWatcherSerial("=010203\r")
     motor = SkyWatcherMotor(serial)  # type: ignore[arg-type]
 
-    response = motor._transact(_Command.INQUIRE_CPR)
+    response = motor._session.transact(Command.INQUIRE_CPR)
 
     assert response == "010203"
     assert serial.calls == [
@@ -242,7 +244,7 @@ def test_skywatcher_transact_raises_command_error_on_error_prefix() -> None:
     motor = SkyWatcherMotor(serial)  # type: ignore[arg-type]
 
     with pytest.raises(SkyWatcherMotorCommandError, match="command error"):
-        motor._transact(_Command.INQUIRE_CPR)
+        motor._session.transact(Command.INQUIRE_CPR)
 
 
 class _VoltageWindowSerial(_FakeSkyWatcherSerial):
@@ -305,16 +307,16 @@ def test_skywatcher_voltage_is_read_through_the_memory_window_verbatim() -> None
 def test_skywatcher_status_does_not_fetch_voltage(monkeypatch: pytest.MonkeyPatch) -> None:
     motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
     motor._is_connected = True
-    motor._steps_360 = 86400
-    monkeypatch.setattr(motor, "_get_status", MethodType(_idle_status, motor))
-    monkeypatch.setattr(motor, "_get_position", MethodType(lambda _self: Ha(0), motor))
-    transact_calls: list[_Command] = []
+    motor._session._board = SkyWatcherBoard(cpr=86400, timer_freq=16_000_000, highspeed_ratio=1)
+    monkeypatch.setattr(motor._session, "status", lambda: _IDLE_STATUS)
+    monkeypatch.setattr(motor._session, "position_ticks", lambda fresh=False: 0)
+    transact_calls: list[Command] = []
 
-    def _transact(_self: SkyWatcherMotor, command: _Command, arg: str | None = None) -> str:
+    def _transact(command: Command, arg: str | None = None) -> str:
         transact_calls.append(command)
         return ""
 
-    monkeypatch.setattr(motor, "_transact", MethodType(_transact, motor))
+    monkeypatch.setattr(motor._session, "transact", _transact)
 
     status = motor.status()
 

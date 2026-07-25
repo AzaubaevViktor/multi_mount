@@ -169,9 +169,11 @@ def _ra_session(chaos: Chaos) -> _Guard:
     if guard.last_ok:
         # INV1: the geometry every axis conversion is built on. A truncated
         # answer accepted here poisons the whole session.
+        board = motor.board
         guard.check(
-            (motor._steps_360, motor._steps_worm, motor._highspeed_ratio) == (_RA_CPR, _RA_TIMER_FREQ, _RA_HIGHSPEED_RATIO),
-            f"connect accepted a damaged mount config: {motor._steps_360}/{motor._steps_worm}/{motor._highspeed_ratio}",
+            board is not None
+            and (board.cpr, board.timer_freq, board.highspeed_ratio) == (_RA_CPR, _RA_TIMER_FREQ, _RA_HIGHSPEED_RATIO),
+            f"connect accepted a damaged mount config: {board}",
         )
 
     # Pure conversions never touch the port, so they are allowed to answer on a

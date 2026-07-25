@@ -2,7 +2,7 @@ import pytest
 
 from sim import Clock, FaultKind, SkyWatcherSim, decode_revu24, encode_revu24
 from sky.constants import STELLAR_DAY
-from skywatcher.motor import _Revu24
+from skywatcher.codec import SkyWatcherCodec
 
 _OFFSET = 0x800000
 
@@ -33,9 +33,9 @@ def test_revu24_agrees_with_the_production_driver_codec(value: int) -> None:
     implementation, so the sim is compared to an independent one instead:
     what the sim emits must be what `SkyWatcherMotor` decodes, and vice versa.
     """
-    assert encode_revu24(value) == _Revu24.from_int(value)
-    assert decode_revu24(_Revu24.from_int(value)) == value
-    assert _Revu24.from_mount(encode_revu24(value)) == value
+    assert encode_revu24(value) == SkyWatcherCodec.encode_revu24(value)
+    assert decode_revu24(SkyWatcherCodec.encode_revu24(value)) == value
+    assert SkyWatcherCodec.decode_revu24(encode_revu24(value)) == value
 
 
 def test_revu24_rejects_out_of_range_and_bad_hex() -> None:

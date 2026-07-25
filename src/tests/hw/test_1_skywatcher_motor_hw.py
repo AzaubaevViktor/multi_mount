@@ -62,10 +62,10 @@ def _wait_for_position_change(
     while time.monotonic() < deadline:
         position = motor.status().steps
         signed_delta = position - start_position
-        if signed_delta > motor._steps_360 // 2:
-            signed_delta -= motor._steps_360
-        if signed_delta < -(motor._steps_360 // 2):
-            signed_delta += motor._steps_360
+        if signed_delta > motor.steps_per_revolution // 2:
+            signed_delta -= motor.steps_per_revolution
+        if signed_delta < -(motor.steps_per_revolution // 2):
+            signed_delta += motor.steps_per_revolution
         if direction == MotorDirection.FORWARD and signed_delta > 0:
             return position
         if direction == MotorDirection.BACKWARD and signed_delta < 0:
@@ -134,10 +134,10 @@ def test_hw_target_move_reaches_requested_delta(
             timeout_s=RUN_TIMEOUT_S,
         )
         signed_delta = moved_position - start_position
-        if signed_delta > skywatcher_motor._steps_360 // 2:
-            signed_delta -= skywatcher_motor._steps_360
-        if signed_delta < -(skywatcher_motor._steps_360 // 2):
-            signed_delta += skywatcher_motor._steps_360
+        if signed_delta > skywatcher_motor.steps_per_revolution // 2:
+            signed_delta -= skywatcher_motor.steps_per_revolution
+        if signed_delta < -(skywatcher_motor.steps_per_revolution // 2):
+            signed_delta += skywatcher_motor.steps_per_revolution
         if expected_direction == MotorDirection.FORWARD:
             assert signed_delta > 0
         else:
@@ -147,10 +147,10 @@ def test_hw_target_move_reaches_requested_delta(
     final_status = skywatcher_motor.status()
 
     signed_final_delta = final_position - start_position
-    if signed_final_delta > skywatcher_motor._steps_360 // 2:
-        signed_final_delta -= skywatcher_motor._steps_360
-    if signed_final_delta < -(skywatcher_motor._steps_360 // 2):
-        signed_final_delta += skywatcher_motor._steps_360
+    if signed_final_delta > skywatcher_motor.steps_per_revolution // 2:
+        signed_final_delta -= skywatcher_motor.steps_per_revolution
+    if signed_final_delta < -(skywatcher_motor.steps_per_revolution // 2):
+        signed_final_delta += skywatcher_motor.steps_per_revolution
     assert abs(signed_final_delta - delta_steps) <= POSITION_TOLERANCE_STEPS
     assert final_status.direction == MotorDirection.STOP
     assert final_status.motion_mode == MotionMode.IDLE
@@ -223,10 +223,10 @@ def test_hw_run_mode_moves_in_requested_direction(
     assert later_status.speed_sps == speed_sps
     assert later_status.direction == direction
     signed_delta = later_status.steps - moved_position
-    if signed_delta > skywatcher_motor._steps_360 // 2:
-        signed_delta -= skywatcher_motor._steps_360
-    if signed_delta < -(skywatcher_motor._steps_360 // 2):
-        signed_delta += skywatcher_motor._steps_360
+    if signed_delta > skywatcher_motor.steps_per_revolution // 2:
+        signed_delta -= skywatcher_motor.steps_per_revolution
+    if signed_delta < -(skywatcher_motor.steps_per_revolution // 2):
+        signed_delta += skywatcher_motor.steps_per_revolution
     assert signed_delta > 0 if direction == MotorDirection.FORWARD else signed_delta < 0
 
 
@@ -301,10 +301,10 @@ def test_hw_run_speed_matches_requested_value(
     time.sleep(SPEED_MEASURE_INTERVAL_S)
     sample_end_status = skywatcher_motor.status()
     measured_steps = sample_end_status.steps - sample_start_steps
-    if measured_steps > skywatcher_motor._steps_360 // 2:
-        measured_steps -= skywatcher_motor._steps_360
-    if measured_steps < -(skywatcher_motor._steps_360 // 2):
-        measured_steps += skywatcher_motor._steps_360
+    if measured_steps > skywatcher_motor.steps_per_revolution // 2:
+        measured_steps -= skywatcher_motor.steps_per_revolution
+    if measured_steps < -(skywatcher_motor.steps_per_revolution // 2):
+        measured_steps += skywatcher_motor.steps_per_revolution
     measured_speed_sps = abs(measured_steps) / (time.monotonic() - sample_start_time)
 
     assert sample_end_status.direction == direction
@@ -359,10 +359,10 @@ def test_hw_run_speed_matches_effective_speed_for_skywatcher_rates(
     time.sleep(STEADY_STATE_MEASURE_INTERVAL_S)
     sample_end_status = skywatcher_motor.status()
     measured_steps = sample_end_status.steps - sample_start_steps
-    if measured_steps > skywatcher_motor._steps_360 // 2:
-        measured_steps -= skywatcher_motor._steps_360
-    if measured_steps < -(skywatcher_motor._steps_360 // 2):
-        measured_steps += skywatcher_motor._steps_360
+    if measured_steps > skywatcher_motor.steps_per_revolution // 2:
+        measured_steps -= skywatcher_motor.steps_per_revolution
+    if measured_steps < -(skywatcher_motor.steps_per_revolution // 2):
+        measured_steps += skywatcher_motor.steps_per_revolution
     measured_speed_sps = abs(measured_steps) / (time.monotonic() - sample_start_time)
 
     assert sample_end_status.direction == MotorDirection.FORWARD

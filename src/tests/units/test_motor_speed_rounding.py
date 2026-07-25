@@ -4,19 +4,19 @@ import pytest
 from sky.constants import STELLAR_DAY, STELLAR_SPEED
 from sky.motor import MotorDirection
 from sky.physics import Dec
-from skywatcher.motor import SkyWatcherMotor, _Command, _Direction, _MotionStatus, _Revu24, _SpeedMode, _Status, _SlewMode
+from skywatcher.board import SkyWatcherBoard
+from skywatcher.codec import Command, Direction, MotionStatus, SkyWatcherCodec, SlewMode, SpeedMode, Status
+from skywatcher.motor import SkyWatcherMotor
 from tmc2209.motor import TMC2209Motor, _Mode, _Phase, _Response, _Status as _TmcStatus
 
-
-def _idle_status(_self: SkyWatcherMotor) -> _Status:
-    return _Status(
-        raw=0,
-        running=False,
-        initialized=True,
-        slew_mode=_SlewMode.SLEW,
-        direction=_Direction.FORWARD,
-        speed_mode=_SpeedMode.LOWSPEED,
-    )
+_IDLE_STATUS = Status(
+    raw=0,
+    running=False,
+    initialized=True,
+    slew_mode=SlewMode.SLEW,
+    direction=Direction.FORWARD,
+    speed_mode=SpeedMode.LOWSPEED,
+)
 
 
 def _idle_tmc_status(_self: TMC2209Motor) -> _TmcStatus:
@@ -34,15 +34,31 @@ def _idle_tmc_status(_self: TMC2209Motor) -> _TmcStatus:
     )
 
 
-def _recording_transact(
-    motor: SkyWatcherMotor,
-    written_commands: list[tuple[_Command, str | None]],
-) -> MethodType:
-    def _transact(_self: SkyWatcherMotor, command: _Command, arg: str | None = None) -> str:
+def _motor_on_board(board: SkyWatcherBoard) -> SkyWatcherMotor:
+    """A driver whose board snapshot is given instead of read off a wire.
+
+    The three numbers below used to be assigned to the driver one attribute at a
+    time; they are one immutable object now, which is the point of the board
+    layer — a half-filled snapshot is not a state the driver can be in.
+    """
+    motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
+    motor._session._board = board
+    return motor
+
+
+def _recording_session(
+    motor: SkyWatcherMotor, monkeypatch: pytest.MonkeyPatch
+) -> list[tuple[Command, str | None]]:
+    """Silence the wire and record what the driver would have sent."""
+    written_commands: list[tuple[Command, str | None]] = []
+
+    def _transact(command: Command, arg: str | None = None) -> str:
         written_commands.append((command, arg))
         return ""
 
-    return MethodType(_transact, motor)
+    monkeypatch.setattr(motor._session, "status", lambda: _IDLE_STATUS)
+    monkeypatch.setattr(motor._session, "transact", _transact)
+    return written_commands
 
 
 def _recording_tmc_transact(motor: TMC2209Motor, calls: list[list[str]]) -> MethodType:
@@ -58,119 +74,107 @@ def _recording_tmc_transact(motor: TMC2209Motor, calls: list[list[str]]) -> Meth
 
 @pytest.mark.parametrize("speed_sps", [32.4, 32.6, 127.6])
 def test_skywatcher_set_speed_returns_quantized_speed(speed_sps: float, monkeypatch: pytest.MonkeyPatch) -> None:
-    motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
-    motor._steps_360 = 12_489_074
-    motor._steps_worm = 15_400_960
-    motor._highspeed_ratio = 1
-    monkeypatch.setattr(motor, "_get_status", MethodType(_idle_status, motor))
-    written_commands: list[tuple[_Command, str | None]] = []
-    monkeypatch.setattr(motor, "_transact", _recording_transact(motor, written_commands))
+    motor = _motor_on_board(SkyWatcherBoard(cpr=12_489_074, timer_freq=15_400_960, highspeed_ratio=1))
+    written_commands = _recording_session(motor, monkeypatch)
 
-    # Quantization coverage: set_speed/_period_from_speed_sps are annotated int but
+    # Quantization coverage: set_speed/period_from_speed_sps are annotated int but
     # accept fractional steps-per-second at runtime; that is exactly what is tested here.
     actual_speed = motor.set_speed(speed_sps)  # type: ignore[arg-type]
 
-    assert actual_speed == motor._speed_sps_from_period(
-        motor._period_from_speed_sps(speed_sps),  # type: ignore[arg-type]
-        _SpeedMode.LOWSPEED,
+    board = motor.board
+    assert board is not None
+    assert actual_speed == board.speed_sps_from_period(
+        board.period_from_speed_sps(speed_sps, SpeedMode.LOWSPEED),
+        SpeedMode.LOWSPEED,
     )
     assert motor._last_speed_sps == actual_speed
     assert len(written_commands) == 2
     assert written_commands[0][0].name == "SET_MOTION_MODE"
-    assert written_commands[0][1] == _MotionStatus(_SlewMode.SLEW, _Direction.FORWARD, _SpeedMode.LOWSPEED).to_command()
+    assert written_commands[0][1] == MotionStatus(SlewMode.SLEW, Direction.FORWARD, SpeedMode.LOWSPEED).to_command()
     assert written_commands[1][0].name == "SET_STEP_PERIOD"
 
 
 def test_skywatcher_set_speed_switches_to_highspeed_mode_for_fast_speed(monkeypatch: pytest.MonkeyPatch) -> None:
-    motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
-    motor._steps_360 = 12_489_074
-    motor._steps_worm = 15_400_960
-    motor._highspeed_ratio = 2
-    monkeypatch.setattr(motor, "_get_status", MethodType(_idle_status, motor))
-    written_commands: list[tuple[_Command, str | None]] = []
-    monkeypatch.setattr(motor, "_transact", _recording_transact(motor, written_commands))
+    motor = _motor_on_board(SkyWatcherBoard(cpr=12_489_074, timer_freq=15_400_960, highspeed_ratio=2))
+    written_commands = _recording_session(motor, monkeypatch)
 
     speed_sps = motor.convert_speed_to_steps_per_second(motor._LOWSPEED_SPEED) + 1
 
     actual_speed = motor.set_speed(speed_sps)
 
-    assert actual_speed == motor._speed_sps_from_period(motor._period_from_speed_sps(speed_sps), _SpeedMode.HIGHSPEED)
+    board = motor.board
+    assert board is not None
+    assert actual_speed == board.speed_sps_from_period(
+        board.period_from_speed_sps(speed_sps, SpeedMode.HIGHSPEED), SpeedMode.HIGHSPEED
+    )
     assert written_commands[0][0].name == "SET_MOTION_MODE"
-    assert written_commands[0][1] == _MotionStatus(_SlewMode.SLEW, _Direction.FORWARD, _SpeedMode.HIGHSPEED).to_command()
+    assert written_commands[0][1] == MotionStatus(SlewMode.SLEW, Direction.FORWARD, SpeedMode.HIGHSPEED).to_command()
     assert written_commands[1][0].name == "SET_STEP_PERIOD"
 
 
 def test_skywatcher_highspeed_period_uses_lowspeed_threshold_not_ratio() -> None:
-    motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
-    motor._steps_360 = 12_489_074
-    motor._steps_worm = 15_400_960
-    motor._highspeed_ratio = 256
+    motor = _motor_on_board(SkyWatcherBoard(cpr=12_489_074, timer_freq=15_400_960, highspeed_ratio=256))
+    board = motor.board
+    assert board is not None
 
     speed_sps = motor.convert_speed_to_steps_per_second(motor._LOWSPEED_SPEED) + 1
 
     period = motor._period_from_speed_sps(speed_sps)
-    rate = speed_sps * (24 * 60 * 60) / motor._steps_360 / float(STELLAR_SPEED)
-    expected = int(float(STELLAR_DAY) * motor._steps_worm / motor._steps_360 / (rate / motor._highspeed_ratio))
+    rate = speed_sps * (24 * 60 * 60) / board.cpr / float(STELLAR_SPEED)
+    expected = int(float(STELLAR_DAY) * board.timer_freq / board.cpr / (rate / board.highspeed_ratio))
 
     assert period == expected
 
 
 def test_skywatcher_set_speed_clamps_period_to_mount_minimum(monkeypatch: pytest.MonkeyPatch) -> None:
-    motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
-    motor._steps_360 = 12_489_074
-    motor._steps_worm = 15_400_960
-    motor._highspeed_ratio = 11
-    monkeypatch.setattr(motor, "_get_status", MethodType(_idle_status, motor))
-    written_commands: list[tuple[_Command, str | None]] = []
-    monkeypatch.setattr(motor, "_transact", _recording_transact(motor, written_commands))
-
+    motor = _motor_on_board(SkyWatcherBoard(cpr=12_489_074, timer_freq=15_400_960, highspeed_ratio=11))
     speed_sps = motor.convert_speed_to_steps_per_second(motor._HIGHSPEED_SPEED)
     unclamped_period = motor._period_from_speed_sps(speed_sps)
-    motor._min_period = unclamped_period + 123
+    min_period = unclamped_period + 123
+    motor = _motor_on_board(
+        SkyWatcherBoard(cpr=12_489_074, timer_freq=15_400_960, highspeed_ratio=11, min_period=min_period)
+    )
+    written_commands = _recording_session(motor, monkeypatch)
 
     actual_speed = motor.set_speed(speed_sps)
 
-    assert actual_speed == motor._speed_sps_from_period(motor._min_period, _SpeedMode.HIGHSPEED)
+    board = motor.board
+    assert board is not None
+    assert actual_speed == board.speed_sps_from_period(min_period, SpeedMode.HIGHSPEED)
     assert motor._last_speed_sps == actual_speed
     assert written_commands[1][0].name == "SET_STEP_PERIOD"
-    assert written_commands[1][1] == _Revu24.from_int(motor._min_period)
+    assert written_commands[1][1] == SkyWatcherCodec.encode_revu24(min_period)
 
 
 def test_skywatcher_set_speed_clamps_lowspeed_period_to_mount_minimum(monkeypatch: pytest.MonkeyPatch) -> None:
-    motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
-    motor._steps_360 = 12_489_074
-    motor._steps_worm = 15_400_960
-    motor._highspeed_ratio = 1
-    monkeypatch.setattr(motor, "_get_status", MethodType(_idle_status, motor))
-    written_commands: list[tuple[_Command, str | None]] = []
-    monkeypatch.setattr(motor, "_transact", _recording_transact(motor, written_commands))
-    motor._min_period = 0x0600
+    min_period = 0x0600
+    motor = _motor_on_board(
+        SkyWatcherBoard(cpr=12_489_074, timer_freq=15_400_960, highspeed_ratio=1, min_period=min_period)
+    )
+    written_commands = _recording_session(motor, monkeypatch)
 
     speed_sps = 11_598
 
     actual_speed = motor.set_speed(speed_sps)
 
-    assert actual_speed == motor._speed_sps_from_period(motor._min_period, _SpeedMode.LOWSPEED)
+    board = motor.board
+    assert board is not None
+    assert actual_speed == board.speed_sps_from_period(min_period, SpeedMode.LOWSPEED)
     assert written_commands[1][0].name == "SET_STEP_PERIOD"
-    assert written_commands[1][1] == _Revu24.from_int(motor._min_period)
+    assert written_commands[1][1] == SkyWatcherCodec.encode_revu24(min_period)
 
 
 def test_skywatcher_set_direction_preserves_highspeed_mode_from_last_speed(monkeypatch: pytest.MonkeyPatch) -> None:
-    motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
-    motor._steps_360 = 12_489_074
-    motor._steps_worm = 15_400_960
-    motor._highspeed_ratio = 11
+    motor = _motor_on_board(SkyWatcherBoard(cpr=12_489_074, timer_freq=15_400_960, highspeed_ratio=11))
     motor._last_speed_sps = motor.convert_speed_to_steps_per_second(motor._HIGHSPEED_SPEED)
-    monkeypatch.setattr(motor, "_get_status", MethodType(_idle_status, motor))
-    written_commands: list[tuple[_Command, str | None]] = []
-    monkeypatch.setattr(motor, "_transact", _recording_transact(motor, written_commands))
+    written_commands = _recording_session(motor, monkeypatch)
 
     assert motor.set_direction(MotorDirection.FORWARD) is True
 
     assert written_commands == [
         (
-            _Command.SET_MOTION_MODE,
-            _MotionStatus(_SlewMode.SLEW, _Direction.FORWARD, _SpeedMode.HIGHSPEED).to_command(),
+            Command.SET_MOTION_MODE,
+            MotionStatus(SlewMode.SLEW, Direction.FORWARD, SpeedMode.HIGHSPEED).to_command(),
         )
     ]
 
@@ -178,7 +182,7 @@ def test_skywatcher_set_direction_preserves_highspeed_mode_from_last_speed(monke
 @pytest.mark.parametrize("speed_sps", [-0.1, -1, -10.5])
 def test_skywatcher_set_speed_rejects_negative_values(speed_sps: float, monkeypatch: pytest.MonkeyPatch) -> None:
     motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
-    monkeypatch.setattr(motor, "_get_status", MethodType(_idle_status, motor))
+    monkeypatch.setattr(motor._session, "status", lambda: _IDLE_STATUS)
 
     with pytest.raises(ValueError, match="steps_per_second must be positive"):
         # Negative test: floats are passed on purpose, the annotation only admits int.
