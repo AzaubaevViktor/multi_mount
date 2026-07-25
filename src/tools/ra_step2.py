@@ -918,6 +918,111 @@ def phase_gotoladder(board: Board, out: list[dict[str, Any]]) -> None:
     out.append({"step": "reboots", "count": reboots})
 
 
+# --------------------------------------------------------------------------- #
+# gotobrake: a GOTO that is never allowed to arrive
+# --------------------------------------------------------------------------- #
+
+# (arm, where to send `:K1`). The first pair stops the axis far from the
+# target, the second one close to it: if only the second falls, what kills the
+# board is *being near the target*; if neither falls, it is the board's own
+# arrival, and a GOTO cut short by `:K1` is a usable move.
+_BRAKE_RUNS = ((30_000, 12_000), (30_000, 28_000))
+
+
+def phase_gotobrake(board: Board, out: list[dict[str, Any]]) -> None:
+    """Does the board survive a GOTO it is not allowed to finish?
+
+    Four recorded crashes, and every one of them landed within ~200 steps of the
+    target: 1 000-step moves died at 0.06…0.22 s (arrival due at ~0.25 s), and
+    the 20 000-step move of the ladder died at 19 792 of 20 000 after three
+    seconds of healthy running. The acceleration is not the suspect any more —
+    it tops out at ~8 600 steps/s over a full second and the board is fine
+    throughout — the *arrival* is.
+
+    This is the experiment that separates the two, and it is the cheap direction
+    to be wrong in: if arrival is the killer, the board is not knocked over at
+    all here.
+    """
+    board.set(":F1")
+    out.append(_snapshot(board, "before_brake_runs"))
+
+    for index, (steps, stop_at) in enumerate(_BRAKE_RUNS):
+        row: dict[str, Any] = {"step": "brake_run", "steps": steps, "stop_at": stop_at}
+        board.set(":G120")
+        board.set(f":I1{revu24(PERIOD_1X)}")
+        start_position = board.position()
+        board.set(f":H1{revu24(steps)}")
+        board.set(f":M1{revu24(200)}")
+        row["position_before"] = start_position
+        row["target"] = board.target()
+        row["brake_point"] = board.brake_point()
+        row["voltage_before"] = board.voltages()
+
+        profile: list[dict[str, Any]] = []
+        volts: list[dict[str, Any]] = [_voltage_row(board, 0.0, "before_J")]
+        started = board.now()
+        board.set(":J1", Safety.MOTION)
+        stop_sent_at: float | None = None
+        polls = 0
+        while True:
+            elapsed = board.now() - started
+            status = board.status()
+            delta = _signed((board.position() - start_position) % 0x1000000)
+            profile.append({"at_s": round(elapsed, 4), "delta": delta, "f1": status.raw})
+            polls += 1
+            if polls % 6 == 0:
+                volts.append(_voltage_row(board, elapsed, "moving"))
+            if stop_sent_at is None and abs(delta) >= stop_at:
+                volts.append(_voltage_row(board, elapsed, "at_K"))
+                board.set(":K1", Safety.MOTION)
+                stop_sent_at = elapsed
+            if stop_sent_at is not None and not status.running:
+                break
+            if elapsed > 30.0:
+                LOGGER.error("прогон %d не уложился в дедлайн — торможу", index)
+                board.stop_and_wait()
+                break
+            board.pause(0.05 if elapsed > 1.0 else 0.002)
+
+        row["stop_sent_at_s"] = stop_sent_at
+        row["elapsed_s"] = round(board.now() - started, 3)
+        row["profile"] = profile
+        board.pause(0.5)
+        row["position_after"] = board.position()
+        row["travelled"] = _signed((row["position_after"] - start_position) % 0x1000000)
+        row["target_after"] = board.target()
+        row["status_after"] = board.status().as_dict()
+        volts.append(_voltage_row(board, board.now() - started, "after"))
+        row["voltages"] = volts
+        row["battery_min_v"] = min(sample["battery_v"] for sample in volts)
+        row["second_min_v"] = min(sample["usb_v"] for sample in volts)
+        # The initialization flag alone, on purpose: nothing in this phase sends
+        # `:E`, so on this board only a restart can clear it. `:h1` is not usable
+        # here — `:K1` moves it by itself — and the voltage window recovers from
+        # its post-restart zeros within a second, i.e. before the sample below.
+        row["target_reset"] = row["target_after"] != row["target"]
+        row["survived"] = bool(row["status_after"]["init"])
+        out.append(row)
+        LOGGER.info(
+            "прогон %d: `:K1` на %d из %d, прошло %+d, статус %s, цель %s, "
+            "батарея %.2f В мин, второй канал %.2f В мин — %s",
+            index, stop_at, steps, row["travelled"], row["status_after"]["raw"],
+            "цела" if row["target_after"] == row["target"] else "сброшена",
+            row["battery_min_v"], row["second_min_v"],
+            "ПЛАТА ЖИВА" if row["survived"] else "ПЕРЕЗАГРУЗКА",
+        )
+        board.stop_and_wait()
+        if not row["survived"]:
+            out.append({"step": "board_reset_detected", "at_run": index})
+            LOGGER.critical("Прогон %d уронил плату — фаза остановлена", index)
+            break
+
+    board.set(f":H1{revu24(0)}")
+    board.set(f":I1{revu24(PERIOD_1X)}")
+    board.set(":G110")
+    out.append(_snapshot(board, "after_brake_runs"))
+
+
 PHASES = {
     "probe": phase_probe,
     "goto": phase_goto,
@@ -926,6 +1031,7 @@ PHASES = {
     "coldboot": phase_coldboot,
     "gotoprobe": phase_gotoprobe,
     "gotoladder": phase_gotoladder,
+    "gotobrake": phase_gotobrake,
 }
 
 
