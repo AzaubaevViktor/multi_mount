@@ -210,7 +210,11 @@ class TestPolarCompensatorOnVirtualClock:
 
         # Both DROP_GUIDE_PULSES_COUNT_AFTER (20s) and STOP_AXIS_AFTER (4.1s) expire here.
         virtual_clock.advance(float(PolarCompensator.DROP_GUIDE_PULSES_COUNT_AFTER) + 1)
-        ra, dec = comp.get_guide_speeds()
+        speeds = comp.get_guide_speeds()
+        assert speeds is not None
+        ra, dec = speeds
+        assert ra is not None
+        assert dec is not None
         elapsed_real_s = time.monotonic() - started_at
 
         assert float(ra) == pytest.approx(float(expected_ra), abs=1e-9)

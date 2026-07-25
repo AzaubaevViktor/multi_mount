@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import Any
 
 from sky.physics import AxisPos, AxisSpeed
 
@@ -41,7 +42,7 @@ class MotorStateError(Exception):
 
 
 
-class Motor[POS_CLS: AxisPos, SPEED_CLS: AxisSpeed](ABC):
+class Motor[POS_CLS: AxisPos[Any], SPEED_CLS: AxisSpeed](ABC):
     """
     Abstract class for motor interface. 
     All methods should just inquire action, wait for answer from motor and return answer.
@@ -81,7 +82,7 @@ class Motor[POS_CLS: AxisPos, SPEED_CLS: AxisSpeed](ABC):
         ...
 
     @abstractmethod
-    def connect(self):
+    def connect(self) -> None:
         ...
     
     @abstractmethod
@@ -129,7 +130,7 @@ class Motor[POS_CLS: AxisPos, SPEED_CLS: AxisSpeed](ABC):
         ...
 
     @abstractmethod
-    def get_speed_by_speed_sps(self, speed_sps: int) -> AxisSpeed:
+    def get_speed_by_speed_sps(self, speed_sps: int) -> SPEED_CLS:
         """ Get speed in steps per second by speed in steps per second """
         ...
 

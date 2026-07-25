@@ -356,6 +356,7 @@ def test_unplug_during_a_retry_drain_closes_the_line() -> None:
     motor.connect()
 
     port = line.serial
+    assert port is not None
     sim.faults.make_dead()  # no answer ever comes, so the driver enters its retry handler
     drains = 0
     original_reset_input_buffer = port.reset_input_buffer

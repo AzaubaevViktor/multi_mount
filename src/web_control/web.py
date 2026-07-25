@@ -112,27 +112,30 @@ class MonitorMixin:
         self._monitor_log = MemoryLog()
 
     def monitor_structure(self) -> dict[str, JsonValue]:
-        field_payload = []
-        for item in self.monitor_fields:
-            value = self._monitor_resolve_value(item.source)
+        # Both payloads go straight into the JSON body below, so they are declared
+        # as JSON from the start: a `list[dict[...]]` inferred from the first
+        # append would not fit the invariant `list[JsonValue]` the body needs.
+        field_payload: list[JsonValue] = []
+        for field in self.monitor_fields:
+            value = self._monitor_resolve_value(field.source)
             field_payload.append(
                 {
-                    "id": item.id,
-                    "label": item.label,
-                    "renderer": item.renderer.value,
-                    "mode": item.mode,
-                    "group": item.group,
+                    "id": field.id,
+                    "label": field.label,
+                    "renderer": field.renderer.value,
+                    "mode": field.mode,
+                    "group": field.group,
                     "value": self._monitor_jsonify(value),
-                    "metadata": item.metadata,
+                    "metadata": field.metadata,
                 }
             )
 
-        action_payload = []
-        for item in self.monitor_actions:
-            callback = self._monitor_resolve_callback(item.callback)
+        action_payload: list[JsonValue] = []
+        for action in self.monitor_actions:
+            callback = self._monitor_resolve_callback(action.callback)
             signature = inspect.signature(callback)
             hints = get_type_hints(callback)
-            arguments = []
+            arguments: list[JsonValue] = []
             for name, parameter in signature.parameters.items():
                 if name == "self":
                     continue
@@ -146,7 +149,7 @@ class MonitorMixin:
                         "default": None if parameter.default is inspect.Signature.empty else self._monitor_jsonify(parameter.default),
                     }
                 )
-            action_payload.append({"id": item.id, "label": item.label, "group": item.group, "arguments": arguments})
+            action_payload.append({"id": action.id, "label": action.label, "group": action.group, "arguments": arguments})
 
         return {
             "name": self.monitor_name,

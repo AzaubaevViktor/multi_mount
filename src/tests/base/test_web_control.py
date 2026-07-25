@@ -6,9 +6,16 @@ def test_example_monitor_exposes_structure_and_actions() -> None:
     monitor = SkyWatcherMonitorExample()
     structure = monitor.monitor_structure()
 
+    # `monitor_structure()` returns `dict[str, JsonValue]`, so narrow the payload
+    # containers before indexing them.
+    fields = structure["fields"]
+    actions = structure["actions"]
+    assert isinstance(fields, list)
+    assert isinstance(actions, list)
+
     assert structure["name"] == "SkyWatcher"
-    assert any(field["id"] == "tracking_rate" for field in structure["fields"])
-    assert any(action["id"] == "slew" for action in structure["actions"])
+    assert any(isinstance(field, dict) and field["id"] == "tracking_rate" for field in fields)
+    assert any(isinstance(action, dict) and action["id"] == "slew" for action in actions)
 
 
 def test_registry_updates_after_field_write() -> None:

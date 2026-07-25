@@ -58,7 +58,7 @@ def test_interactive_main_runs_full_alignment_workflow() -> None:
         "show",
         "quit",
     ])
-    output_lines = []
+    output_lines: list[str] = []
 
     def fake_input(prompt: str) -> str:
         try:

@@ -114,15 +114,20 @@ def test_unplug_kills_the_live_port_and_the_line_reconnects() -> None:
     with pytest.raises(OSError) as unplugged:
         line.query(":f1\r")
 
+    assert dead_port is not None
     assert dead_port.is_unplugged is True
     assert unplugged.value.errno == errno.ENXIO
-    assert line.state == SerialLineState.CLOSED
+    # Read the state into a local: asserting on `line.state` directly would pin
+    # the narrowed type down for the rest of the test, past the reconnect below.
+    state_after_unplug = line.state
+    assert state_after_unplug == SerialLineState.CLOSED
 
     # The transport survives the port: a reconnect installs a fresh one and the
     # very same chaos keeps biting it.
     chaos.profile = _QUIET
     line.connect()
     assert line.state == SerialLineState.OPEN
+    assert line.serial is not None
     assert line.serial.is_unplugged is False
     assert line.query(":f1\r").endswith("\r")
 

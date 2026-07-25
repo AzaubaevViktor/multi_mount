@@ -20,6 +20,7 @@ dependencies = [
 dev = [
     "pytest>=9.0",
     "ruff>=0.16",
+    "mypy>=2.3",
     "pre-commit>=4.0",
 ]
 
@@ -79,6 +80,9 @@ extend-exclude = [
 #             by nature, but not unboundedly so.
 #   SIM, RET, C4, PIE, PERF, FURB, FLY
 #             mechanical simplification; cheap to satisfy, keeps diffs small.
+#   ANN       missing annotations. Enabled together with mypy (see [tool.mypy] below) and
+#             scoped the same way: enforced across src/, exempted in src/tests. Was 230+
+#             hits before the typing pass, 0 after. ANN401 stays off, see `ignore`.
 #   ARG       unused arguments. Motor backends implement a common interface, so ARG002 is
 #             partly by design (see baseline below), but ARG001 catches real leftovers.
 #   BLE, TRY  `except Exception:` swallowing is exactly how the March 2026 serial sessions
@@ -99,7 +103,6 @@ extend-exclude = [
 # Deliberately NOT selected:
 #   D     — the codebase has no docstring culture at all (~800 hits); enforcing it now
 #           would be a documentation project, not a lint config.
-#   ANN   — 230+ hits. Belongs with the (separate) mypy task, not before it.
 #   COM, ISC, Q — trailing commas / implicit concat / quote style are the formatter's job
 #           and COM812+ISC001 actively conflict with `ruff format`.
 #   EM, TRY003 — the project intentionally raises with f-string messages; 200+ hits of
@@ -109,7 +112,7 @@ extend-exclude = [
 #           risky next to runtime-introspected dataclasses.
 #   ASYNC — there is no async code in this repository.
 select = [
-    "A", "ARG", "B", "BLE", "C4", "C90", "DTZ", "E", "ERA", "EXE", "F", "FA", "FLY",
+    "A", "ANN", "ARG", "B", "BLE", "C4", "C90", "DTZ", "E", "ERA", "EXE", "F", "FA", "FLY",
     "FURB", "G", "I", "ICN", "INT", "LOG", "N", "PERF", "PIE", "PL", "PT", "RET",
     "RUF", "S", "SIM", "SLF", "SLOT", "T20", "TID", "TRY", "UP", "W", "YTT",
 ]
@@ -122,6 +125,11 @@ ignore = [
     "PLR0904",  # too-many-public-methods: LX200/axis facades are intentionally wide.
     "SIM105",   # contextlib.suppress instead of try/except/pass — hurts readability in
                 # the serial teardown paths where the except body is documented.
+    "ANN401",   # explicit `Any`. The 14 remaining ones are load-bearing: sky/physics.py
+                # declares `__mul__`/`__truediv__` wide on the abstract base precisely so
+                # each concrete quantity can narrow them (mypy forbids an override from
+                # widening an operator), and web_control/ walks runtime annotations.
+                # Every one of them is commented at the definition.
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -131,6 +139,9 @@ ignore = [
     "SLF001",   # tests deliberately reach into private state of motors/axes
     "ARG005",   # throwaway `lambda *_: ...` stubs standing in for callbacks
     "T20",      # ad-hoc print() in a test is acceptable
+    "ANN",      # same split as [tool.mypy]: test bodies are checked, test signatures
+                # are not. Tests monkeypatch methods and build partial fakes on
+                # purpose; demanding annotations there buys noise, not safety.
 ]
 # src/__main__.py mutates sys.path before importing project modules — that is the
 # documented entry-point bootstrap, not an accident.
@@ -270,23 +281,58 @@ docstring-code-format = false
 
 
 # --------------------------------------------------------------------------------------
-# mypy — intentionally NOT enabled yet (separate task).
+# mypy
 # --------------------------------------------------------------------------------------
-# When enabling, this section is the place to start:
+# Strictness is deliberately tiered rather than global. The value of types here is
+# *readability* of the domain — `HaPerSecond` must not be silently accepted where
+# `DecPerSecond` is meant — and that payoff comes from the physics/motor/axis layer,
+# not from annotating every test helper. So:
 #
-# [tool.mypy]
-# python_version = "3.14"
-# mypy_path = "src"
-# namespace_packages = true
-# explicit_package_bases = true          # src/ has mostly implicit namespace packages
-# files = ["src"]
-# exclude = ["^src/tests/hw/"]
-# warn_unused_ignores = true
-# warn_redundant_casts = true
-# # Start permissive, then tighten module by module:
-# check_untyped_defs = true
-# disallow_untyped_defs = false
-#
-# [[tool.mypy.overrides]]
-# module = ["serial.*"]
-# ignore_missing_imports = true          # pyserial ships no py.typed marker
+#   tier 0 (everywhere)   check_untyped_defs — bodies are checked even where the
+#                         signature is missing, which is what actually catches the
+#                         Ha/Dec mix-ups. Nothing is silently skipped.
+#   tier 1 (src/**)       disallow_untyped_defs — every production function has a
+#                         signature. This is the tier that makes the code pleasant
+#                         to read.
+#   tier 2 (foundation)   disallow_any_generics + warn_return_any + no_implicit_reexport
+#                         for the leaf modules everything else builds on
+#                         (clock, sky.physics, sky.motor, serial_wrapper.*).
+#                         A bare `Motor` or a leaked `Any` there poisons every caller.
+#   tests                 tier 0 only. Tests monkeypatch methods, poke private state
+#                         and build partial fakes on purpose; demanding signatures
+#                         there buys noise, not safety.
+[tool.mypy]
+python_version = "3.14"
+mypy_path = "src"
+namespace_packages = true
+explicit_package_bases = true          # src/ has mostly implicit namespace packages
+files = ["src"]
+# src/tests/hw needs a physically attached mount; it is excluded from CI's pytest run
+# for the same reason and its helpers are hardware-shaped, not type-shaped.
+exclude = ["^src/tests/hw/"]
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unused_configs = true
+check_untyped_defs = true
+no_implicit_optional = true
+strict_equality = true
+# Tier 1 default; relaxed back down for tests in the overrides below.
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+# -- tier 2: the leaf modules every other layer imports ----------------------------------
+[[tool.mypy.overrides]]
+module = ["clock", "sky.physics", "sky.motor", "serial_wrapper.*"]
+disallow_any_generics = true
+warn_return_any = true
+no_implicit_reexport = true
+
+# -- tests: tier 0 -----------------------------------------------------------------------
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+[[tool.mypy.overrides]]
+module = ["serial.*"]
+ignore_missing_imports = true          # pyserial ships no py.typed marker

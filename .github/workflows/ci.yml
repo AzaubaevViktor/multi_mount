@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   lint-and-test:
-    name: ruff + unit tests
+    name: ruff + mypy + unit tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -70,6 +70,12 @@ jobs:
             cat "$RUNNER_TEMP/lint-debt.txt"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+
+      # Blocking. Settings live in [tool.mypy] in pyproject.toml, including the file
+      # set (src, minus src/tests/hw which needs a physically attached mount).
+      # Runs before pytest: a type error is cheaper to read than a test failure.
+      - name: mypy
+        run: mypy
 
       # ONLY src/tests/units. src/tests/hw needs a physically attached mount and
       # fails collection without it (SerialLineSearchNotFound: no match for pattern

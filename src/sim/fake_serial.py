@@ -254,7 +254,7 @@ class SimSerialLine(SerialLine):
         self._sim_clock = clock
         self._sim_transport = transport
 
-    def connect(self):
+    def connect(self) -> None:
         with self._lock:
             serial_obj = self.serial
             if serial_obj is not None and getattr(serial_obj, "is_open", False):

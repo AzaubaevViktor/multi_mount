@@ -74,9 +74,20 @@ class _FakeSkyWatcherSerial:
         raise AssertionError("read_all_data() should not be called")
 
 
+def _idle_status(_self: SkyWatcherMotor) -> _Status:
+    return _Status(
+        raw=0,
+        running=False,
+        initialized=True,
+        slew_mode=_SlewMode.SLEW,
+        direction=_Direction.FORWARD,
+        speed_mode=_SpeedMode.LOWSPEED,
+    )
+
+
 def test_serial_line_query_waits_for_prefix_then_reads_until_terminator() -> None:
     line = SerialLine("/dev/null", 9600, 0.25, "skywatcher-test", terminator="\r")
-    line.serial = _FakePySerial(b"noise\r:ignored=", b"ABC123\r")  # type: ignore[assignment]
+    line.serial = _FakePySerial(b"noise\r:ignored=", b"ABC123\r")
 
     response = line.query(
         ":a1\r",
@@ -93,7 +104,7 @@ def test_serial_line_query_waits_for_prefix_then_reads_until_terminator() -> Non
 
 def test_serial_line_query_can_read_with_custom_terminator() -> None:
     line = SerialLine("/dev/null", 9600, 0.25, "skywatcher-test", terminator="\r")
-    line.serial = _FakePySerial(b"", b"7E#")  # type: ignore[assignment]
+    line.serial = _FakePySerial(b"", b"7E#")
 
     response = line.query(":fL#", timeout=0.5, response_terminator="#")
 
@@ -177,27 +188,19 @@ def test_skywatcher_transact_reads_voltage_from_hash_response() -> None:
     ]
 
 
-def test_skywatcher_get_power_v_reads_voltage_via_transact() -> None:
+def test_skywatcher_get_power_v_reads_voltage_via_transact(monkeypatch: pytest.MonkeyPatch) -> None:
     motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
     motor._is_connected = True
     motor._steps_360 = 86400
-    motor._get_status = MethodType(
-        lambda self: _Status(
-            raw=0,
-            running=False,
-            initialized=True,
-            slew_mode=_SlewMode.SLEW,
-            direction=_Direction.FORWARD,
-            speed_mode=_SpeedMode.LOWSPEED,
-        ),
-        motor,
-    )
-    motor._get_position = MethodType(lambda self: Ha(0), motor)
+    monkeypatch.setattr(motor, "_get_status", MethodType(_idle_status, motor))
+    monkeypatch.setattr(motor, "_get_position", MethodType(lambda _self: Ha(0), motor))
     transact_calls: list[_Command] = []
-    motor._transact = MethodType(
-        lambda self, command, arg=None: transact_calls.append(command) or ("7E" if command == _Command.INQUIRE_VOLTAGE else ""),
-        motor,
-    )
+
+    def _transact(_self: SkyWatcherMotor, command: _Command, arg: str | None = None) -> str:
+        transact_calls.append(command)
+        return "7E" if command == _Command.INQUIRE_VOLTAGE else ""
+
+    monkeypatch.setattr(motor, "_transact", MethodType(_transact, motor))
 
     power_v = motor.get_power_v()
 
@@ -205,24 +208,19 @@ def test_skywatcher_get_power_v_reads_voltage_via_transact() -> None:
     assert transact_calls == [_Command.INQUIRE_VOLTAGE]
 
 
-def test_skywatcher_status_does_not_fetch_voltage() -> None:
+def test_skywatcher_status_does_not_fetch_voltage(monkeypatch: pytest.MonkeyPatch) -> None:
     motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
     motor._is_connected = True
     motor._steps_360 = 86400
-    motor._get_status = MethodType(
-        lambda self: _Status(
-            raw=0,
-            running=False,
-            initialized=True,
-            slew_mode=_SlewMode.SLEW,
-            direction=_Direction.FORWARD,
-            speed_mode=_SpeedMode.LOWSPEED,
-        ),
-        motor,
-    )
-    motor._get_position = MethodType(lambda self: Ha(0), motor)
+    monkeypatch.setattr(motor, "_get_status", MethodType(_idle_status, motor))
+    monkeypatch.setattr(motor, "_get_position", MethodType(lambda _self: Ha(0), motor))
     transact_calls: list[_Command] = []
-    motor._transact = MethodType(lambda self, command, arg=None: transact_calls.append(command) or "", motor)
+
+    def _transact(_self: SkyWatcherMotor, command: _Command, arg: str | None = None) -> str:
+        transact_calls.append(command)
+        return ""
+
+    monkeypatch.setattr(motor, "_transact", MethodType(_transact, motor))
 
     status = motor.status()
 

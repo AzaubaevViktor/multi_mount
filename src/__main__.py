@@ -1,4 +1,5 @@
 import logging
+from collections.abc import Mapping
 from pathlib import Path
 import sys
 import time
@@ -30,7 +31,9 @@ setup_logging(stream_level=None)
 
 if __name__ == "__main__":
     def _axis_motor_connected(axis: AxisRA | AxisDEC) -> bool:
-        monitor = axis.command_monitor()
+        # Read as a plain mapping: this probe also accepts a `motor_connected`
+        # key, which the current `AxisCommandMonitor` TypedDict does not declare.
+        monitor: Mapping[str, object] = axis.command_monitor()
         if "motor_connected" in monitor:
             return bool(monitor["motor_connected"])
         try:

@@ -36,7 +36,7 @@ from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
-from typing import Any, Protocol, runtime_checkable
+from typing import Any, BinaryIO, Protocol, runtime_checkable
 
 
 class TraceKind(StrEnum):
@@ -136,7 +136,9 @@ class JsonlRecorder:
         self._flush_kinds = frozenset(flush_kinds)
         # Binary append: json.dumps(ensure_ascii=True) already yields pure ASCII,
         # and a binary handle cannot re-translate newlines inside the payload.
-        self._stream = self.path.open("ab", buffering=buffer_bytes)
+        # `None` is the closed state: `close()` drops the handle and every later
+        # call becomes a no-op instead of raising on the serial path.
+        self._stream: BinaryIO | None = self.path.open("ab", buffering=buffer_bytes)
         self._lock = threading.Lock()
 
     def record(self, event: TraceEvent) -> None:

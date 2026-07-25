@@ -1,10 +1,11 @@
 # Install once:  .venv/bin/pre-commit install
 # Run manually:  .venv/bin/pre-commit run --all-files
 #
-# Deliberately fast: ruff (~50 ms) + the unit suite (~4 s). No formatter, no hw tests,
-# nothing that rewrites files — a hook you are tempted to skip is a hook that is skipped.
+# Deliberately fast: ruff (~50 ms) + mypy (~0.1 s warm, ~1.8 s on a cold cache) + the
+# unit suite (~4 s). No formatter, no hw tests, nothing that rewrites files — a hook you
+# are tempted to skip is a hook that is skipped.
 
-exclude: '^(logs|references|telescope_dec|\.golos|\.pytest_cache)/'
+exclude: '^(logs|references|telescope_dec|\.golos|\.pytest_cache|\.mypy_cache)/'
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -29,6 +30,19 @@ repos:
 
   - repo: local
     hooks:
+      # Local, not the mirrors-mypy repo: mypy must see the project's own dependency
+      # set (pyserial) and the incremental cache in .mypy_cache, which is what keeps
+      # this at ~0.1 s. An isolated hook env would reinstall and re-analyse every time.
+      # Always the whole tree (pass_filenames: false) — typing errors surface in the
+      # file that *calls* a changed signature, not in the file you edited.
+      - id: mypy
+        name: mypy src
+        entry: .venv/bin/python -m mypy
+        language: system
+        pass_filenames: false
+        types: [python]
+        stages: [pre-commit]
+
       - id: pytest-units
         name: pytest src/tests/units
         # Uses the project venv explicitly: `git commit` from an IDE or a plain shell

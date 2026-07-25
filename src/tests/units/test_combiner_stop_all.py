@@ -60,7 +60,10 @@ def test_combiner_stop_all_stops_tracking_and_resets_guide_state() -> None:
     ra = _StubAxisRA()
     dec = _StubAxisDEC()
     combiner = Combiner(ra, dec)  # type: ignore[arg-type]
-    combiner._polar_compensator = _StubPolarCompensator()  # type: ignore[assignment]
+    # Keep the stub under its own name: `reset_calls` only exists on the stub,
+    # not on the real `PolarCompensator` the attribute is declared with.
+    compensator = _StubPolarCompensator()
+    combiner._polar_compensator = compensator  # type: ignore[assignment]
 
     combiner.stop_all()
 
@@ -72,7 +75,7 @@ def test_combiner_stop_all_stops_tracking_and_resets_guide_state() -> None:
         ("halt_all",),
         ("change_speed", SkyDirection.NORTH, DecPerSecond(0), True),
     ]
-    assert combiner._polar_compensator.reset_calls == 1
+    assert compensator.reset_calls == 1
     assert combiner._polar_compensator.eps_E is None
     assert combiner._polar_compensator.eps_N is None
     assert combiner._polar_compensator.stable_guide_ra_pulses_count == 0

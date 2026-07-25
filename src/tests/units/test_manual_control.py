@@ -64,11 +64,13 @@ def test_manual_console_handles_lx200_toggle_and_status() -> None:
 
     assert should_continue is True
     assert server.start_calls == 1
+    assert message is not None
     assert "LX200 server: on" in message
 
     should_continue, message = console.handle_line("status")
 
     assert should_continue is True
+    assert message is not None
     assert "RA=up" in message
     assert "DEC=wait" in message
 
@@ -76,6 +78,7 @@ def test_manual_console_handles_lx200_toggle_and_status() -> None:
 
     assert should_continue is True
     assert server.stop_calls == 1
+    assert message is not None
     assert "LX200 server: off" in message
 
 

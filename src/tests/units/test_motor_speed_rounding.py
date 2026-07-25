@@ -8,29 +8,68 @@ from skywatcher.motor import SkyWatcherMotor, _Command, _Direction, _MotionStatu
 from tmc2209.motor import TMC2209Motor, _Mode, _Phase, _Status as _TmcStatus
 
 
+def _idle_status(_self: SkyWatcherMotor) -> _Status:
+    return _Status(
+        raw=0,
+        running=False,
+        initialized=True,
+        slew_mode=_SlewMode.SLEW,
+        direction=_Direction.FORWARD,
+        speed_mode=_SpeedMode.LOWSPEED,
+    )
+
+
+def _idle_tmc_status(_self: TMC2209Motor) -> _TmcStatus:
+    return _TmcStatus(
+        initialised=True,
+        enabled=True,
+        mode=_Mode.FREE_RIDE,
+        position=0,
+        phase=_Phase.IDLE,
+        target=0,
+        target_set=False,
+        speed_sps=0.0,
+        actual_speed_sps=0.0,
+        accel_steps_per_s=0.0,
+    )
+
+
+def _recording_transact(
+    motor: SkyWatcherMotor,
+    written_commands: list[tuple[_Command, str | None]],
+) -> MethodType:
+    def _transact(_self: SkyWatcherMotor, command: _Command, arg: str | None = None) -> str:
+        written_commands.append((command, arg))
+        return ""
+
+    return MethodType(_transact, motor)
+
+
+def _recording_tmc_transact(motor: TMC2209Motor, calls: list[list[str]]) -> MethodType:
+    def _transact(_self: TMC2209Motor, command: str, args: list[str] | None = None) -> None:
+        calls.append(args or [])
+
+    return MethodType(_transact, motor)
+
+
 @pytest.mark.parametrize("speed_sps", [32.4, 32.6, 127.6])
-def test_skywatcher_set_speed_returns_quantized_speed(speed_sps: float) -> None:
+def test_skywatcher_set_speed_returns_quantized_speed(speed_sps: float, monkeypatch: pytest.MonkeyPatch) -> None:
     motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
     motor._steps_360 = 12_489_074
     motor._steps_worm = 15_400_960
     motor._highspeed_ratio = 1
-    motor._get_status = MethodType(
-        lambda self: _Status(
-            raw=0,
-            running=False,
-            initialized=True,
-            slew_mode=_SlewMode.SLEW,
-            direction=_Direction.FORWARD,
-            speed_mode=_SpeedMode.LOWSPEED,
-        ),
-        motor,
+    monkeypatch.setattr(motor, "_get_status", MethodType(_idle_status, motor))
+    written_commands: list[tuple[_Command, str | None]] = []
+    monkeypatch.setattr(motor, "_transact", _recording_transact(motor, written_commands))
+
+    # Quantization coverage: set_speed/_period_from_speed_sps are annotated int but
+    # accept fractional steps-per-second at runtime; that is exactly what is tested here.
+    actual_speed = motor.set_speed(speed_sps)  # type: ignore[arg-type]
+
+    assert actual_speed == motor._speed_sps_from_period(
+        motor._period_from_speed_sps(speed_sps),  # type: ignore[arg-type]
+        _SpeedMode.LOWSPEED,
     )
-    written_commands: list[tuple[object, str | None]] = []
-    motor._transact = MethodType(lambda self, command, arg=None: written_commands.append((command, arg)) or "", motor)
-
-    actual_speed = motor.set_speed(speed_sps)
-
-    assert actual_speed == motor._speed_sps_from_period(motor._period_from_speed_sps(speed_sps), _SpeedMode.LOWSPEED)
     assert motor._last_speed_sps == actual_speed
     assert len(written_commands) == 2
     assert written_commands[0][0].name == "SET_MOTION_MODE"
@@ -38,24 +77,14 @@ def test_skywatcher_set_speed_returns_quantized_speed(speed_sps: float) -> None:
     assert written_commands[1][0].name == "SET_STEP_PERIOD"
 
 
-def test_skywatcher_set_speed_switches_to_highspeed_mode_for_fast_speed() -> None:
+def test_skywatcher_set_speed_switches_to_highspeed_mode_for_fast_speed(monkeypatch: pytest.MonkeyPatch) -> None:
     motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
     motor._steps_360 = 12_489_074
     motor._steps_worm = 15_400_960
     motor._highspeed_ratio = 2
-    motor._get_status = MethodType(
-        lambda self: _Status(
-            raw=0,
-            running=False,
-            initialized=True,
-            slew_mode=_SlewMode.SLEW,
-            direction=_Direction.FORWARD,
-            speed_mode=_SpeedMode.LOWSPEED,
-        ),
-        motor,
-    )
-    written_commands: list[tuple[object, str | None]] = []
-    motor._transact = MethodType(lambda self, command, arg=None: written_commands.append((command, arg)) or "", motor)
+    monkeypatch.setattr(motor, "_get_status", MethodType(_idle_status, motor))
+    written_commands: list[tuple[_Command, str | None]] = []
+    monkeypatch.setattr(motor, "_transact", _recording_transact(motor, written_commands))
 
     speed_sps = motor.convert_speed_to_steps_per_second(motor._LOWSPEED_SPEED) + 1
 
@@ -82,24 +111,14 @@ def test_skywatcher_highspeed_period_uses_lowspeed_threshold_not_ratio() -> None
     assert period == expected
 
 
-def test_skywatcher_set_speed_clamps_period_to_mount_minimum() -> None:
+def test_skywatcher_set_speed_clamps_period_to_mount_minimum(monkeypatch: pytest.MonkeyPatch) -> None:
     motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
     motor._steps_360 = 12_489_074
     motor._steps_worm = 15_400_960
     motor._highspeed_ratio = 11
-    motor._get_status = MethodType(
-        lambda self: _Status(
-            raw=0,
-            running=False,
-            initialized=True,
-            slew_mode=_SlewMode.SLEW,
-            direction=_Direction.FORWARD,
-            speed_mode=_SpeedMode.LOWSPEED,
-        ),
-        motor,
-    )
-    written_commands: list[tuple[object, str | None]] = []
-    motor._transact = MethodType(lambda self, command, arg=None: written_commands.append((command, arg)) or "", motor)
+    monkeypatch.setattr(motor, "_get_status", MethodType(_idle_status, motor))
+    written_commands: list[tuple[_Command, str | None]] = []
+    monkeypatch.setattr(motor, "_transact", _recording_transact(motor, written_commands))
 
     speed_sps = motor.convert_speed_to_steps_per_second(motor._HIGHSPEED_SPEED)
     unclamped_period = motor._period_from_speed_sps(speed_sps)
@@ -113,24 +132,14 @@ def test_skywatcher_set_speed_clamps_period_to_mount_minimum() -> None:
     assert written_commands[1][1] == _Revu24.from_int(motor._min_period)
 
 
-def test_skywatcher_set_speed_clamps_lowspeed_period_to_mount_minimum() -> None:
+def test_skywatcher_set_speed_clamps_lowspeed_period_to_mount_minimum(monkeypatch: pytest.MonkeyPatch) -> None:
     motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
     motor._steps_360 = 12_489_074
     motor._steps_worm = 15_400_960
     motor._highspeed_ratio = 1
-    motor._get_status = MethodType(
-        lambda self: _Status(
-            raw=0,
-            running=False,
-            initialized=True,
-            slew_mode=_SlewMode.SLEW,
-            direction=_Direction.FORWARD,
-            speed_mode=_SpeedMode.LOWSPEED,
-        ),
-        motor,
-    )
-    written_commands: list[tuple[object, str | None]] = []
-    motor._transact = MethodType(lambda self, command, arg=None: written_commands.append((command, arg)) or "", motor)
+    monkeypatch.setattr(motor, "_get_status", MethodType(_idle_status, motor))
+    written_commands: list[tuple[_Command, str | None]] = []
+    monkeypatch.setattr(motor, "_transact", _recording_transact(motor, written_commands))
     motor._min_period = 0x0600
 
     speed_sps = 11_598
@@ -142,25 +151,15 @@ def test_skywatcher_set_speed_clamps_lowspeed_period_to_mount_minimum() -> None:
     assert written_commands[1][1] == _Revu24.from_int(motor._min_period)
 
 
-def test_skywatcher_set_direction_preserves_highspeed_mode_from_last_speed() -> None:
+def test_skywatcher_set_direction_preserves_highspeed_mode_from_last_speed(monkeypatch: pytest.MonkeyPatch) -> None:
     motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
     motor._steps_360 = 12_489_074
     motor._steps_worm = 15_400_960
     motor._highspeed_ratio = 11
     motor._last_speed_sps = motor.convert_speed_to_steps_per_second(motor._HIGHSPEED_SPEED)
-    motor._get_status = MethodType(
-        lambda self: _Status(
-            raw=0,
-            running=False,
-            initialized=True,
-            slew_mode=_SlewMode.SLEW,
-            direction=_Direction.FORWARD,
-            speed_mode=_SpeedMode.LOWSPEED,
-        ),
-        motor,
-    )
-    written_commands: list[tuple[object, str | None]] = []
-    motor._transact = MethodType(lambda self, command, arg=None: written_commands.append((command, arg)) or "", motor)
+    monkeypatch.setattr(motor, "_get_status", MethodType(_idle_status, motor))
+    written_commands: list[tuple[_Command, str | None]] = []
+    monkeypatch.setattr(motor, "_transact", _recording_transact(motor, written_commands))
 
     assert motor.set_direction(MotorDirection.FORWARD) is True
 
@@ -173,72 +172,39 @@ def test_skywatcher_set_direction_preserves_highspeed_mode_from_last_speed() -> 
 
 
 @pytest.mark.parametrize("speed_sps", [-0.1, -1, -10.5])
-def test_skywatcher_set_speed_rejects_negative_values(speed_sps: float) -> None:
+def test_skywatcher_set_speed_rejects_negative_values(speed_sps: float, monkeypatch: pytest.MonkeyPatch) -> None:
     motor = SkyWatcherMotor(object())  # type: ignore[arg-type]
-    motor._get_status = MethodType(
-        lambda self: _Status(
-            raw=0,
-            running=False,
-            initialized=True,
-            slew_mode=_SlewMode.SLEW,
-            direction=_Direction.FORWARD,
-            speed_mode=_SpeedMode.LOWSPEED,
-        ),
-        motor,
-    )
+    monkeypatch.setattr(motor, "_get_status", MethodType(_idle_status, motor))
 
     with pytest.raises(ValueError, match="steps_per_second must be positive"):
-        motor.set_speed(speed_sps)
+        # Negative test: floats are passed on purpose, the annotation only admits int.
+        motor.set_speed(speed_sps)  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(("speed_sps", "expected"), [(10.4, 10), (10.6, 11), (120.0, 120)])
-def test_tmc2209_set_speed_rounds_to_nearest_integer(speed_sps: float, expected: int) -> None:
+def test_tmc2209_set_speed_rounds_to_nearest_integer(
+    speed_sps: float, expected: int, monkeypatch: pytest.MonkeyPatch
+) -> None:
     motor = TMC2209Motor(object())  # type: ignore[arg-type]
-    motor._status = MethodType(
-        lambda self: _TmcStatus(
-            initialised=True,
-            enabled=True,
-            mode=_Mode.FREE_RIDE,
-            position=0,
-            phase=_Phase.IDLE,
-            target=0,
-            target_set=False,
-            speed_sps=0.0,
-            actual_speed_sps=0.0,
-            accel_steps_per_s=0.0,
-        ),
-        motor,
-    )
+    monkeypatch.setattr(motor, "_status", MethodType(_idle_tmc_status, motor))
     calls: list[list[str]] = []
-    motor._transact = MethodType(lambda self, command, args=None: calls.append(args or []) or None, motor)
+    monkeypatch.setattr(motor, "_transact", _recording_tmc_transact(motor, calls))
 
-    actual_speed = motor.set_speed(speed_sps)
+    # Rounding coverage: set_speed is annotated int but rounds floats at runtime.
+    actual_speed = motor.set_speed(speed_sps)  # type: ignore[arg-type]
 
     assert actual_speed == expected
     assert calls == [[str(expected)]]
 
 
 @pytest.mark.parametrize("speed_sps", [-0.1, -1, -10.5])
-def test_tmc2209_set_speed_rejects_negative_values(speed_sps: float) -> None:
+def test_tmc2209_set_speed_rejects_negative_values(speed_sps: float, monkeypatch: pytest.MonkeyPatch) -> None:
     motor = TMC2209Motor(object())  # type: ignore[arg-type]
-    motor._status = MethodType(
-        lambda self: _TmcStatus(
-            initialised=True,
-            enabled=True,
-            mode=_Mode.FREE_RIDE,
-            position=0,
-            phase=_Phase.IDLE,
-            target=0,
-            target_set=False,
-            speed_sps=0.0,
-            actual_speed_sps=0.0,
-            accel_steps_per_s=0.0,
-        ),
-        motor,
-    )
+    monkeypatch.setattr(motor, "_status", MethodType(_idle_tmc_status, motor))
 
     with pytest.raises(ValueError, match="steps_per_second must be non-negative"):
-        motor.set_speed(speed_sps)
+        # Negative test: floats are passed on purpose, the annotation only admits int.
+        motor.set_speed(speed_sps)  # type: ignore[arg-type]
 
 
 def test_tmc2209_dec_position_conversion_uses_calibrated_scale() -> None:

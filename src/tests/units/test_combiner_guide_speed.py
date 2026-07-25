@@ -1,12 +1,12 @@
 from sky.combiner import Combiner
-from sky.physics import DecPerSecond, Second, SkyDirection
+from sky.physics import DecPerSecond, HaPerSecond, Second, SkyDirection
 from sky.axis import AxisDEC, AxisRA
 
 
 class _StubPolarCompensator:
     def __init__(self) -> None:
-        self.ra_speeds = []
-        self.dec_speeds = []
+        self.ra_speeds: list[HaPerSecond] = []
+        self.dec_speeds: list[DecPerSecond] = []
 
     def guide_ra(self, speed) -> None:
         self.ra_speeds.append(speed)
@@ -18,7 +18,7 @@ class _StubPolarCompensator:
 class _StubAxisRA(AxisRA):
     def __init__(self) -> None:
         self.DIRECTIONS = (self.FORWARD_DIRECTION, self.BACKWARD_DIRECTION)
-        self.calls = []
+        self.calls: list[tuple[SkyDirection, HaPerSecond, bool]] = []
 
     def change_speed(self, direction, speed, update_sky_speed=False) -> None:
         self.calls.append((direction, speed, update_sky_speed))
@@ -27,7 +27,7 @@ class _StubAxisRA(AxisRA):
 class _StubAxisDEC(AxisDEC):
     def __init__(self) -> None:
         self.DIRECTIONS = (self.FORWARD_DIRECTION, self.BACKWARD_DIRECTION)
-        self.calls = []
+        self.calls: list[tuple[SkyDirection, DecPerSecond, bool]] = []
 
     def change_speed(self, direction, speed, update_sky_speed=False) -> None:
         self.calls.append((direction, speed, update_sky_speed))
@@ -126,7 +126,7 @@ def test_dec_guide_south_large_pulse_produces_negative_speed() -> None:
 def test_combiner_guide_uses_ra_forward_direction_for_west_guide() -> None:
     ra = _StubAxisRA()
     dec = _StubAxisDEC()
-    combiner = Combiner(ra, dec)  # type: ignore[arg-type]
+    combiner = Combiner(ra, dec)
     combiner._polar_compensator = _StubPolarCompensator()  # type: ignore[assignment]
 
     combiner.guide(SkyDirection.WEST, int(Combiner.GUIDE_INTERVAL_S.to_milliseconds()))
@@ -137,7 +137,7 @@ def test_combiner_guide_uses_ra_forward_direction_for_west_guide() -> None:
 def test_combiner_guide_uses_dec_forward_direction_for_south_guide() -> None:
     ra = _StubAxisRA()
     dec = _StubAxisDEC()
-    combiner = Combiner(ra, dec)  # type: ignore[arg-type]
+    combiner = Combiner(ra, dec)
     combiner._polar_compensator = _StubPolarCompensator()  # type: ignore[assignment]
 
     combiner.guide(SkyDirection.SOUTH, int(Combiner.GUIDE_INTERVAL_S.to_milliseconds()))

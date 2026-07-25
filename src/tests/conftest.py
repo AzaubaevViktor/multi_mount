@@ -1,12 +1,16 @@
 import logging
 import os
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Callable, Iterator
 
 import pytest
 
 from sim.clock import Clock as VirtualClock
 from sky.physics import set_clock
+
+# The original factory travels between the two hooks through the config stash:
+# ``pytest.Config`` has no room for ad-hoc attributes, the stash is its typed slot.
+_ORIGINAL_RECORD_FACTORY = pytest.StashKey[Callable[..., logging.LogRecord]]()
 
 
 @pytest.fixture
@@ -40,11 +44,11 @@ def pytest_configure(config: pytest.Config) -> None:
         return record
 
     logging.setLogRecordFactory(create_record)
-    config._multi_mount_original_record_factory = original_factory
+    config.stash[_ORIGINAL_RECORD_FACTORY] = original_factory
 
 
 @pytest.hookimpl(trylast=True)
 def pytest_unconfigure(config: pytest.Config) -> None:
-    original_factory = getattr(config, "_multi_mount_original_record_factory", None)
+    original_factory = config.stash.get(_ORIGINAL_RECORD_FACTORY, None)
     if original_factory is not None:
         logging.setLogRecordFactory(original_factory)

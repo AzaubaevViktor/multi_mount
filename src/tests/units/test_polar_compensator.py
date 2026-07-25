@@ -207,7 +207,11 @@ class TestGetGuideSpeeds:
         expected_dec = comp.dec_speed
 
         _at(virtual_clock, 100.0)
-        ra, dec = comp.get_guide_speeds()
+        speeds = comp.get_guide_speeds()
+        assert speeds is not None
+        ra, dec = speeds
+        assert ra is not None
+        assert dec is not None
 
         assert float(ra) == pytest.approx(float(expected_ra), abs=1e-9)
         assert float(dec) == pytest.approx(float(expected_dec), abs=1e-9)

@@ -38,7 +38,7 @@ class _FakeSerial:
 
 def test_close_tracks_state_and_last_close_meta() -> None:
     line = SerialLine("/dev/null", 9600, 0.25, "serial-state-test", terminator="\r")
-    line.serial = _FakeSerial()  # type: ignore[assignment]
+    line.serial = _FakeSerial()
 
     line.close()
 
@@ -64,7 +64,7 @@ def test_query_on_closed_line_returns_default_response() -> None:
 
 def test_query_error_closes_line_with_reason_and_error_meta() -> None:
     line = SerialLine("/dev/null", 9600, 0.25, "serial-state-test", terminator="\r")
-    line.serial = _FakeSerial(reset_error=SerialException("broken serial"))  # type: ignore[assignment]
+    line.serial = _FakeSerial(reset_error=SerialException("broken serial"))
 
     with pytest.raises(SerialException, match="broken serial"):
         line.query(":GR#")

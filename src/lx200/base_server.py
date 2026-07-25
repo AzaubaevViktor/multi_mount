@@ -1,9 +1,8 @@
 import logging
 import socket
 import threading
-from typing import Any
 
-from lx200.base import LX200Handler
+from lx200.base import LX200Answer, LX200Handler
 from lx200.protocol import AlignmentMode, Protocol
 
 
@@ -127,10 +126,10 @@ class LX200SimpleServer:
                         if idx:
                             buf.extend(data[:idx])
                         
-                        response = self.handle_alignment(buf)
+                        alignment_mode = self.handle_alignment(bytes(buf))
 
-                        self.log.info("Client asks about alignment mode, responce with %s", response)
-                        conn.sendall(response.value.encode(self.encoding))
+                        self.log.info("Client asks about alignment mode, responce with %s", alignment_mode)
+                        conn.sendall(alignment_mode.value.encode(self.encoding))
                         data = data[idx + 1 :]
                         idx = data.find(Protocol.ALIGNMENT_QUERY_BYTE)
                     if data:
@@ -175,5 +174,5 @@ class LX200SimpleServer:
     def handle_alignment(self, data: bytes) -> AlignmentMode:
         return self.lx200.handle_alignment(data)
 
-    def handle(self, data: str) -> Any:
+    def handle(self, data: str) -> LX200Answer:
         return self.lx200.handle(data)

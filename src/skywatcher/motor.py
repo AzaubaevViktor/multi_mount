@@ -175,7 +175,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         self._last_power_v_updated = NEVER
         self._power_v_retry_at = NEVER
 
-    def connect(self):
+    def connect(self) -> None:
         if self._serial.terminator != Protocol.ANSWER_END_BYTE:
             raise SkyWatcherMotorProtocolError(
                 f"invalid SerialLine terminator: expected {Protocol.ANSWER_END_BYTE!r}, got {self._serial.terminator!r}"
@@ -526,7 +526,7 @@ class SkyWatcherMotor(Motor[Ha, HaPerSecond]):
         if command == _Command.INQUIRE_VOLTAGE:
             payload = f"{Protocol.COMMAND_PREFIX}{command.value}#"
             response_prefixes = None
-            response_terminator: bytes | str | None = "#"
+            response_terminator: str | None = "#"
         else:
             payload = f"{Protocol.COMMAND_PREFIX}{command.value}{_Axis.RA}{arg or ''}{Protocol.COMMAND_TERMINATOR}"
             response_prefixes = (Protocol.RESPONSE_PREFIX_BYTE, Protocol.COMMAND_ERROR_PREFIX_BYTE)

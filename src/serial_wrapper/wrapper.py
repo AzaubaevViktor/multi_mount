@@ -7,7 +7,7 @@ import sys
 import traceback
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, Concatenate, ParamSpec, TypeVar
 
 import serial
 from serial.serialutil import SerialException
@@ -62,13 +62,22 @@ class SerialLineCloseMeta:
 EXCEPTIONS_TO_CLOSE = (SerialException, SerialLineError, OSError)
 
 
-T = TypeVar("T")
+_P = ParamSpec("_P")
+_R = TypeVar("_R")
+_D = TypeVar("_D")
 
 
-def _disconnect_when_error(default: T, reraise_closed: bool = False) -> Callable[[Callable[..., T]], Callable[..., T]]:
-    def decorator(func: Callable[..., T]) -> Callable[..., T]:
+# The decorated method keeps its own parameters (`Concatenate` pins the `self` the
+# wrapper needs), and its result widens to `_R | _D`: on a closed line the wrapper
+# answers with `default` instead of the value the method would have returned.
+def _disconnect_when_error(
+    default: _D, reraise_closed: bool = False
+) -> Callable[[Callable[Concatenate["SerialLine", _P], _R]], Callable[Concatenate["SerialLine", _P], _R | _D]]:
+    def decorator(
+        func: Callable[Concatenate["SerialLine", _P], _R],
+    ) -> Callable[Concatenate["SerialLine", _P], _R | _D]:
         @functools.wraps(func)
-        def wrapper(self: "SerialLine", *args: Any, **kwargs: Any) -> T:
+        def wrapper(self: "SerialLine", *args: _P.args, **kwargs: _P.kwargs) -> _R | _D:
             caller_frame = format_stack_frame(sys._getframe(1))
             try:
                 return func(self, *args, **kwargs)
@@ -167,7 +176,7 @@ class SerialLine:
         )
 
     @_disconnect_when_error(default=None)
-    def reset(self):
+    def reset(self) -> None:
         with self._lock:
             serial_obj = self._require_open_serial()
             serial_obj.dtr = False
@@ -185,7 +194,7 @@ class SerialLine:
     # raised a bare OSError past the caller while `state` stayed OPEN — the same defect as
     # `d04b9b8`, one method further down.
     @_disconnect_when_error(default=None, reraise_closed=True)
-    def drop_buffers(self):
+    def drop_buffers(self) -> None:
         with self._lock:
             serial_obj = self._require_open_serial()
             serial_obj.reset_input_buffer()
@@ -193,7 +202,7 @@ class SerialLine:
             if self._recorder is not None:
                 self._record(TraceKind.DROP_BUFFERS)
 
-    def connect(self):
+    def connect(self) -> None:
         with self._lock:
             serial_obj = self.serial
             if serial_obj is not None and getattr(serial_obj, "is_open", False):
@@ -266,6 +275,10 @@ class SerialLine:
         _timeout = serial_obj.timeout
         if timeout is not None:
             serial_obj.timeout = timeout
+        # The port object is untyped by design (a real `serial.Serial` or the
+        # simulator's fake), so the bytes it hands back are pinned down here
+        # rather than leaking as `Any` into the decoded answer.
+        line: bytes
         try:
             if response_prefixes is None:
                 line = serial_obj.read_until(terminator, 1024)
@@ -305,6 +318,7 @@ class SerialLine:
             _timeout = serial_obj.timeout
             if timeout is not None:
                 serial_obj.timeout = timeout
+            data: bytes | None
             try:
                 if (data := serial_obj.read_all()) is None:
                     return None
@@ -336,7 +350,7 @@ class SerialLine:
         error: BaseException | None = None,
         closed_from: str | None = None,
         caller_frame: str | None = None,
-    ):
+    ) -> None:
         with self._lock:
             if closed_from is None:
                 caller = None

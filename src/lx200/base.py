@@ -3,11 +3,23 @@ from enum import StrEnum
 import logging
 import re
 import threading
-from typing import Any
+from typing import TypedDict
 
 from sky.physics import Dec, Ha, Second, SkyDirection
 
 from .protocol import AlignmentMode
+
+
+class LX200CommandMonitor(TypedDict):
+    """Snapshot of LX200 command traffic, as read by the stdout dashboard.
+
+    ``stats`` entries are ``(command name, times seen, last seen at, last argument)``,
+    already sorted by frequency.
+    """
+
+    recent: list[tuple[Second, str]]
+    guide: tuple[Second, str] | None
+    stats: list[tuple[str, int, Second, str]]
 
 
 class LX200Commands(StrEnum):
@@ -71,6 +83,15 @@ class LX200Commands(StrEnum):
 class _LX200NotImplementedCommand:
     def __init__(self, cmd: str) -> None:
         self.cmd = cmd
+
+
+# What a single LX200 command answers with: a coordinate (GR/GD), a ready-made ASCII payload
+# (GT/GM/Gc/...), a 0/1 acknowledgement (Sr/Sd/...) or nothing at all (motion commands, which
+# the protocol leaves unanswered).
+LX200Answer = Ha | Dec | bool | str | None
+# `_do_handle` may additionally report an unknown command via an internal marker; `handle`
+# turns that marker into an exception and therefore never returns it.
+LX200Result = LX200Answer | _LX200NotImplementedCommand
 
 
 _logger = logging.getLogger("lx200")
@@ -259,8 +280,8 @@ class LX200Handler(LX200Base):
             self.halt_all()
             self._manual_move_directions.clear()
     
-    def _do_handle(self, cmd: LX200Commands, argument: Any, now: Second | None = None) -> Any:
-        result = None
+    def _do_handle(self, cmd: LX200Commands, argument: str, now: Second | None = None) -> LX200Result:
+        result: LX200Result = None
         if now is None:
             now = Second.monotonic()
 
@@ -384,7 +405,7 @@ class LX200Handler(LX200Base):
 
         return result
 
-    def handle(self, full_command: str) -> Any:
+    def handle(self, full_command: str) -> LX200Answer:
         _cmd, argument = full_command[:2], full_command[2:]
         try:
             cmd = LX200Commands(_cmd)
@@ -429,7 +450,7 @@ class LX200Handler(LX200Base):
     def stop(self) -> None:
         pass
 
-    def command_monitor(self) -> dict[str, object]:
+    def command_monitor(self) -> LX200CommandMonitor:
         with self._monitor_lock:
             return {
                 "recent": list(self._recent_commands),

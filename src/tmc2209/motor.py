@@ -139,7 +139,7 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         self._last_power_v_updated = NEVER
         self._last_tx_overflow: int | None = None
 
-    def connect(self):
+    def connect(self) -> None:
         ready = ""
         for attempt in range(self._READY_RETRIES):
             self._serial.connect()
@@ -357,3 +357,6 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
                 if data is not None:
                     self._logger.info("Received data: %s", data)
                 self._clock.sleep(0.1)
+        # Unreachable: the retry above re-raises once count hits 0. Mirrors the same
+        # guard in SkyWatcherMotor._transact and makes the return type total.
+        raise TMC2209MotorProtocolError(f"failed to execute command {command} with payload {payload}")

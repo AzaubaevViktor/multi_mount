@@ -257,7 +257,8 @@ def test_stdout_dashboard_render_fits_30x130(monkeypatch) -> None:
     lx200.handle("Mge0500")
 
     combiner = _StubCombiner()
-    dashboard = StdoutDashboard(combiner, lx200, refresh_s=0.01)
+    # `_StubCombiner` is a structural test double; the dashboard only reads attributes it provides.
+    dashboard = StdoutDashboard(combiner, lx200, refresh_s=0.01)  # type: ignore[arg-type]
 
     monkeypatch.setattr(stdout_dashboard_module.time, "strftime", lambda _fmt: "12:34:56")
     monkeypatch.setattr(stdout_dashboard_module.time, "monotonic", lambda: 100.0)
@@ -314,7 +315,8 @@ def test_stdout_dashboard_state_column_shows_goto_details(monkeypatch) -> None:
     combiner.dec._goto_target = Dec(1860)
     combiner.dec._position = Dec(1820)
 
-    dashboard = StdoutDashboard(combiner, lx200, refresh_s=0.01)
+    # `_StubCombiner` is a structural test double; the dashboard only reads attributes it provides.
+    dashboard = StdoutDashboard(combiner, lx200, refresh_s=0.01)  # type: ignore[arg-type]
 
     monkeypatch.setattr(stdout_dashboard_module.time, "strftime", lambda _fmt: "12:34:56")
     monkeypatch.setattr(stdout_dashboard_module.time, "monotonic", lambda: 101.0)
@@ -340,7 +342,8 @@ def test_stdout_dashboard_state_column_shows_lx200_command_stats(monkeypatch) ->
     lx200.handle("MS")
 
     combiner = _StubCombiner()
-    dashboard = StdoutDashboard(combiner, lx200, refresh_s=0.01)
+    # `_StubCombiner` is a structural test double; the dashboard only reads attributes it provides.
+    dashboard = StdoutDashboard(combiner, lx200, refresh_s=0.01)  # type: ignore[arg-type]
 
     monkeypatch.setattr(stdout_dashboard_module.time, "strftime", lambda _fmt: "12:34:56")
     monkeypatch.setattr(stdout_dashboard_module.time, "monotonic", lambda: 101.0)
@@ -359,7 +362,8 @@ def test_stdout_dashboard_state_column_shows_lx200_command_stats(monkeypatch) ->
 def test_stdout_dashboard_clear_screen_mode_sticks_frame_to_top(monkeypatch) -> None:
     lx200 = _StubLX200()
     combiner = _StubCombiner()
-    dashboard = StdoutDashboard(combiner, lx200, refresh_s=0.01)
+    # `_StubCombiner` is a structural test double; the dashboard only reads attributes it provides.
+    dashboard = StdoutDashboard(combiner, lx200, refresh_s=0.01)  # type: ignore[arg-type]
 
     monkeypatch.setattr(stdout_dashboard_module.time, "strftime", lambda _fmt: "12:34:56")
     monkeypatch.setattr(stdout_dashboard_module.time, "monotonic", lambda: 100.0)
@@ -382,7 +386,8 @@ def test_stdout_dashboard_clear_screen_mode_sticks_frame_to_top(monkeypatch) -> 
 def test_stdout_dashboard_wraps_exception_traceback(monkeypatch) -> None:
     lx200 = _StubLX200()
     combiner = _StubCombiner()
-    dashboard = StdoutDashboard(combiner, lx200, refresh_s=0.01)
+    # `_StubCombiner` is a structural test double; the dashboard only reads attributes it provides.
+    dashboard = StdoutDashboard(combiner, lx200, refresh_s=0.01)  # type: ignore[arg-type]
 
     def _raise_error():
         raise AttributeError("very long dashboard error message " * 8)

@@ -95,7 +95,8 @@ def test_ha_divide_and_multiply_by_seconds_roundtrip():
 
 def test_ha_division_rejects_unsupported_type():
     with pytest.raises(TypeError):
-        Ha(30) / object()
+        # Negative test: the unsupported operand type is exactly what is checked here.
+        Ha(30) / object()  # type: ignore[operator]
 
 
 @pytest.mark.parametrize(

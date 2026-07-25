@@ -37,7 +37,7 @@ class Combiner:
         forward=DecPerSecond(100),
     )
 
-    def __init__(self, ra: AxisRA, dec: AxisDEC):
+    def __init__(self, ra: AxisRA, dec: AxisDEC) -> None:
         self.ra = ra
         self.dec = dec
 
@@ -138,22 +138,25 @@ class Combiner:
     def guide(self, direction: SkyDirection, ms: int) -> None:
         axis = self._dispatch_axis(direction)
 
+        # Separate names per branch: one `speed` would have to be typed as the union of
+        # both axes' speed units, which is exactly the Ha/Dec mix-up these types exist
+        # to prevent.
         if isinstance(axis, AxisRA):
-            speed = self.RA_GUIDE_SPEED.calculate_speed(direction, Second.from_milliseconds(ms), self.GUIDE_INTERVAL_S)
+            ra_speed = self.RA_GUIDE_SPEED.calculate_speed(direction, Second.from_milliseconds(ms), self.GUIDE_INTERVAL_S)
             axis.change_speed(
-                axis.FORWARD_DIRECTION, 
-                speed, 
+                axis.FORWARD_DIRECTION,
+                ra_speed,
                 update_sky_speed=True,
             )
-            self._polar_compensator.guide_ra(speed)
+            self._polar_compensator.guide_ra(ra_speed)
         else:
-            speed = self.DEC_GUIDE_SPEED.calculate_speed(direction, Second.from_milliseconds(ms), self.GUIDE_INTERVAL_S)
+            dec_speed = self.DEC_GUIDE_SPEED.calculate_speed(direction, Second.from_milliseconds(ms), self.GUIDE_INTERVAL_S)
             axis.change_speed(
-                axis.FORWARD_DIRECTION, 
-                speed, 
+                axis.FORWARD_DIRECTION,
+                dec_speed,
                 update_sky_speed=True,
             )
-            self._polar_compensator.guide_dec(speed)
+            self._polar_compensator.guide_dec(dec_speed)
         
         self._guide_updated.set()
     

@@ -5,7 +5,7 @@ from functools import wraps
 import logging
 import queue
 import threading
-from typing import Callable, Concatenate, ParamSpec, Protocol, Sequence, TypeVar, cast
+from typing import Any, Callable, Concatenate, ParamSpec, Protocol, Sequence, TypedDict, TypeVar, cast
 
 from serial_wrapper.wrapper import EXCEPTIONS_TO_CLOSE
 from sky.motor import MotionMode, Motor, MotorDirection, MotorStopRequire
@@ -42,6 +42,13 @@ class AxisCommand:
     direction: SkyDirection | None = None
 
 
+class AxisCommandMonitor(TypedDict):
+    """Snapshot of one axis' command queue, as read by the stdout dashboard."""
+
+    queue_size: int
+    processed: list[tuple[Second, str]]
+
+
 @dataclass
 class PointCoordinates:
     ra: Ha
@@ -74,7 +81,7 @@ def _raise_if_thread_failed(
     return wrapped
 
 
-class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
+class Axis[_POS_CLS: AxisPos[Any], _SPEED_CLS: AxisSpeed]:
     """Motor axis with position tracking and motion conversion.
 
     Invariants:
@@ -118,7 +125,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
         self._processed_commands: deque[tuple[Second, str]] = deque(maxlen=8)
 
     @_raise_if_thread_failed
-    def connect(self):
+    def connect(self) -> None:
         if self._connected:
             return
         
@@ -141,7 +148,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
         return self._connected
 
     @_raise_if_thread_failed
-    def disconnect(self):
+    def disconnect(self) -> None:
         if not self._connected:
             return
         
@@ -160,17 +167,22 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
     def mode(self) -> AxisMotionMode:
         return self._mode
 
-    def _get_motor_direction_and_speed(self, direction: SkyDirection, speed: AxisSpeed) -> tuple[MotorDirection, int]:
+    def _get_motor_direction_and_speed(self, direction: SkyDirection, speed: _SPEED_CLS) -> tuple[MotorDirection, int]:
         if not isinstance(speed, self.SPEED_CLS):
             raise ValueError(f"Speed should be of type {self.SPEED_CLS} for {self.axis.value} axis, got {type(speed)}")
         
         if direction not in self.DIRECTIONS:
             raise ValueError(f"Direction should be one of {self.DIRECTIONS} for {self.axis.value} axis, got {direction}")
 
+        # mypy resolves `Self` against the *bound* of a type parameter for operator
+        # dunders, so `abs(speed)` widens _SPEED_CLS back to AxisSpeed. The cast keeps
+        # the motor's speed unit provable; `speed.__abs__()` would bind correctly but
+        # reads worse than the builtin.
+        magnitude = cast(_SPEED_CLS, abs(speed))
         if (direction == self.FORWARD_DIRECTION) ^ (float(speed) > 0):
-            return (MotorDirection.BACKWARD, self._motor.convert_speed_to_steps_per_second(abs(speed)))
+            return (MotorDirection.BACKWARD, self._motor.convert_speed_to_steps_per_second(magnitude))
         else:
-            return (MotorDirection.FORWARD, self._motor.convert_speed_to_steps_per_second(abs(speed)))
+            return (MotorDirection.FORWARD, self._motor.convert_speed_to_steps_per_second(magnitude))
 
     def _get_current_position(self, position: PointCoordinates | None = None) -> _POS_CLS:
         if position is None:
@@ -216,7 +228,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
             direction = MotorDirection.STOP
 
         with self._motor_lock:
-            speed = self._motor.convert_speed_to_steps_per_second(abs(self._sky_speed))
+            speed = self._motor.convert_speed_to_steps_per_second(cast(_SPEED_CLS, abs(self._sky_speed)))
             status = self._motor.status()
 
             if (
@@ -386,7 +398,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
 
     THREAD_ITERATION_DELAY_S = Second(.5)
     _GOTO_SECONDS_TOLERANCE = 10
-    def _motion_convertor(self):
+    def _motion_convertor(self) -> None:
         self._mc_logger = self.logger.getChild("_motion_convertor")
         self._mc_logger.info("Start working")
 
@@ -498,7 +510,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
 
                     match self._mode:
                         case AxisMotionMode.STOP:
-                            if self._sky_speed == 0:
+                            if float(self._sky_speed) == 0:
                                 # Technically if sky not moving, and mount not moving, it's tracking
                                 self._mode = AxisMotionMode.TRACK
                             else:
@@ -560,7 +572,11 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
                             motor_position_update_s = Second.monotonic()
                             elapsed_s = motor_position_update_s - self._last_motor_position_update_s
 
-                            expected_delta = self._sky_speed * elapsed_s
+                            # speed * time is a position of *this* axis, but AxisSpeed
+                            # is not parameterised by its position unit (HaDegPerHour
+                            # pairs with no position at all), so the product is only
+                            # known to be some AxisPos.
+                            expected_delta = cast(_POS_CLS, self._sky_speed * elapsed_s)
                             actual_delta = (current_motor_position - self._last_motor_position).moving_wrap()
 
                             delta = self.POS_CLS(self._motor.FORWARD_POSITION_SIGN * float(actual_delta - expected_delta))
@@ -594,7 +610,7 @@ class Axis[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed]:
         return self._mode == AxisMotionMode.GOTO
 
     @_raise_if_thread_failed
-    def command_monitor(self) -> dict[str, object]:
+    def command_monitor(self) -> AxisCommandMonitor:
         with self._motor_lock:
             return {
                 "queue_size": self._queue.qsize(),

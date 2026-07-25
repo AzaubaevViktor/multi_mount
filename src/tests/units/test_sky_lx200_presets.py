@@ -2,11 +2,12 @@ import pytest
 
 from sky.constants import STELLAR_SPEED
 from sky.lx200 import SkyLX200
+from sky.physics import DecPerSecond, HaPerSecond
 
 
 class _FakeCombiner:
     def __init__(self) -> None:
-        self.calls: list[tuple[object, object]] = []
+        self.calls: list[tuple[HaPerSecond, DecPerSecond]] = []
 
     def set_moving_speed(self, ra_speed, dec_speed) -> None:
         self.calls.append((ra_speed, dec_speed))

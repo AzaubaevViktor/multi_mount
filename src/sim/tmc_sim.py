@@ -130,9 +130,9 @@ class TMC2209Sim:
             desired = self.speed_sps
 
         if self.has_target and not self.free_ride and desired > 0.0 and self.accel_sps2 > 0.0:
-            delta = self.target - self.position
+            remaining = self.target - self.position
             stopping_distance = (self.actual_sps * self.actual_sps) / (2.0 * self.accel_sps2)
-            if abs(delta) <= stopping_distance:
+            if abs(remaining) <= stopping_distance:
                 desired = 0.0
 
         self.desired_sps = desired
@@ -302,19 +302,22 @@ class TMC2209Sim:
                 self._error(cmd, "single_param")
                 return
             token = args[0].removeprefix(":")
+            # `set` carries a textual value, `get` carries none — unlike every
+            # other branch above, where `value` is the parsed long.
+            param_value: str | None
             if cmd == "get":
-                name, value = token, None
+                name, param_value = token, None
             else:
-                name, separator, value = token.partition("=")
-                if not separator or not name or not value:
+                name, separator, param_value = token.partition("=")
+                if not separator or not name or not param_value:
                     self._error(cmd, "bad_param")
                     return
             if name != "microsteps":
                 self._error(cmd, "unknown_param")
                 return
-            if value is not None:
+            if param_value is not None:
                 try:
-                    requested = int(value)
+                    requested = int(param_value)
                 except ValueError:
                     self._error(cmd, "bad_value")
                     return

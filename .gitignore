@@ -8,6 +8,7 @@ skywatcher.cpp
 skywatcher.h
 .pytest_cache
 .ruff_cache
+.mypy_cache
 
 .pio
 polar_alignment_*.png

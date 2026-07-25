@@ -11,7 +11,10 @@ _R = TypeVar("_R")
 
 
 class _SupportsDebug(Protocol):
-    def debug(self, msg: object, *args: object, **kwargs: object) -> object: ...
+    # Deliberately narrow: `logging.Logger.debug` spells `exc_info`/`stack_info`/
+    # `stacklevel`/`extra` out as named parameters, so a `**kwargs: object`
+    # protocol would reject the very Logger this decorator falls back to.
+    def debug(self, msg: object, *args: object) -> None: ...
 
 
 def format_stack_frame(frame: FrameType) -> str:

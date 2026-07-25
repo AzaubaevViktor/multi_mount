@@ -108,6 +108,7 @@ def test_serial_line_closes_itself_when_the_device_is_unplugged() -> None:
     line.connect()
     assert line.query("ab\r") == "AB\r"
 
+    assert line.serial is not None
     line.serial.unplug()
 
     with pytest.raises(OSError) as unplugged:
@@ -144,6 +145,7 @@ def test_unplug_mid_tracking_degrades_the_skywatcher_axis() -> None:
     clock.advance(60)
     assert motor.status().motion_mode == MotionMode.RUN
 
+    assert line.serial is not None
     line.serial.unplug()
 
     with pytest.raises(OSError) as unplugged:

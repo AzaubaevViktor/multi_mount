@@ -246,6 +246,7 @@ def test_a_failing_step_stops_both_axes_and_closes_both_lines(tmp_path) -> None:
         _Boom,
     )
 
+    assert session.ra_device is not None and session.dec_device is not None
     assert session.ra_device.running is False
     assert session.dec_device.running is False
     assert session.dec_device.actual_sps == 0.0
@@ -270,6 +271,7 @@ def test_ctrl_c_in_the_middle_stops_both_axes_too(tmp_path) -> None:
         KeyboardInterrupt,
     )
 
+    assert session.ra_device is not None and session.dec_device is not None
     assert session.ra_device.running is False
     assert session.dec_device.running is False
     assert session.ra_line.state is SerialLineState.CLOSED
@@ -296,6 +298,7 @@ def test_an_axis_whose_port_was_already_closed_is_still_stopped(tmp_path) -> Non
         _Boom,
     )
 
+    assert session.ra_device is not None and session.dec_device is not None
     assert session.ra_device.running is False, "RA kept slewing after its port was closed"
     assert session.dec_device.running is False
 

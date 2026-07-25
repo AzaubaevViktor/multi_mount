@@ -18,6 +18,8 @@ synchronously (no live thread, no sleep) and asserts on that desired contract.
 import errno
 import queue
 
+import pytest
+
 from sky.axis import AxisRA
 from sky.motor import MotionMode, MotorDirection, MotorStatus
 from sky.physics import Ha, HaPerSecond
@@ -81,7 +83,7 @@ class _UnpluggedMotor:
         pass
 
 
-def test_usb_unplug_degrades_axis_instead_of_silent_crash() -> None:
+def test_usb_unplug_degrades_axis_instead_of_silent_crash(monkeypatch: pytest.MonkeyPatch) -> None:
     """П2: ENXIO during a motion step is handled, not re-raised into the thread.
 
     See PLAN.md §1 П2 / §3 item 8. Drives a single convertor iteration
@@ -112,7 +114,7 @@ def test_usb_unplug_degrades_axis_instead_of_silent_crash() -> None:
         axis._connected = False
         raise queue.Empty()
 
-    axis._queue.get = _get_then_stop  # type: ignore[method-assign]
+    monkeypatch.setattr(axis._queue, "get", _get_then_stop)
 
     crashed: BaseException | None = None
     try:

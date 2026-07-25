@@ -1,8 +1,10 @@
 from sky.motor import MotionMode, Motor, MotorDirection, MotorStatus
+from typing import Any
+
 from sky.physics import AxisPos, AxisSpeed
 
 
-class UnavailableMotor[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed](Motor[_POS_CLS, _SPEED_CLS]):
+class UnavailableMotor[_POS_CLS: AxisPos[Any], _SPEED_CLS: AxisSpeed](Motor[_POS_CLS, _SPEED_CLS]):
     def __init__(
         self,
         pos_cls: type[_POS_CLS],
@@ -15,7 +17,7 @@ class UnavailableMotor[_POS_CLS: AxisPos, _SPEED_CLS: AxisSpeed](Motor[_POS_CLS,
         self.FORWARD_POSITION_SIGN = forward_position_sign
         self._reason = reason
 
-    def connect(self):
+    def connect(self) -> None:
         raise ConnectionError(self._reason)
 
     def disconnect(self) -> bool:

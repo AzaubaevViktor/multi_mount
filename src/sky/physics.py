@@ -41,70 +41,75 @@ class _BasicAriphmetic(ABC):
     def __abs__(self) -> Self:
         return self.__class__(abs(float(self)))
     
-    @overload
-    def __sub__(self, other: Self) -> Self: ...
-
-    def __sub__(self, other: Any) -> Any:
+    # The isinstance guards below stay even though the annotations already forbid the
+    # bad calls: these types cross untyped boundaries (LX200 command payloads, test
+    # fakes), so the runtime TypeError is the second line of defence, not a duplicate.
+    def __sub__(self, other: Self) -> Self:
         if isinstance(other, self.__class__):
             return self.__class__(float(self) - float(other))
         raise TypeError(f"Unsupported subtraction: {type(self)} - {type(other)}")
 
-    @overload
-    def __mul__(self, other: float | int) -> Self: ...
-
+    # `*` and `/` are the two operators that can CHANGE the unit
+    # (Ha / Second -> HaPerSecond, HaPerSecond * Second -> Ha). mypy forbids an
+    # override from widening an inherited operator, so declaring them narrowly here
+    # would lock every subclass into the same operand types. The base therefore only
+    # carries the shared implementation behind a deliberately wide signature; each
+    # concrete quantity below re-declares the operand types and result unit it really
+    # supports. `+`, `-`, `-x`, `abs(x)` never change the unit and stay narrow here.
     def __mul__(self, other: Any) -> Any:
-        if isinstance(other, (float, int)):
-            return self.__class__(float(self) * float(other))
-        raise TypeError(f"Unsupported multiplication: {type(self)} * {type(other)}")
+        return self._scaled(other)
 
-    def __rmul__(self, other: Any) -> Any:
-        return self.__mul__(other)
+    def __rmul__(self, other: float | int) -> Self:
+        return self._scaled(other)
 
-    @overload
-    def __add__(self, other: Self) -> Self: ...
+    def _scaled(self, factor: float | int) -> Self:
+        """``self * factor`` -- same unit, scaled magnitude.
 
-    def __add__(self, other: Any) -> Any:
+        The unit-preserving half of `*`, shared by the wide base operator above and
+        by the narrow per-quantity overrides below.
+        """
+        if isinstance(factor, (float, int)):
+            return self.__class__(float(self) * float(factor))
+        raise TypeError(f"Unsupported multiplication: {type(self)} * {type(factor)}")
+
+    def __add__(self, other: Self) -> Self:
         if isinstance(other, self.__class__):
             return self.__class__(float(self) + float(other))
         raise TypeError(f"Unsupported addition: {type(self)} + {type(other)}")
 
-    @overload
-    def _comparison_value(self, other: Any) -> float: ...
+    def _comparison_value(self, other: Self | float | int) -> float:
+        """Magnitude of ``other`` to compare ``float(self)`` against.
 
-    @overload
-    def _comparison_value(self, other: Any, support_forwarding: bool) -> float | None: ...
-
-    def _comparison_value(self, other: Any, support_forwarding: bool = False) -> Any:
+        Ordering is only defined against the same unit or a bare number; anything
+        else is a unit mix-up and raises.
+        """
         if isinstance(other, self.__class__):
             return float(other)
         if isinstance(other, (float, int)):
             return float(other)
-        if support_forwarding:
-            return other
         raise TypeError(f"Unsupported comparison: {type(self)} and {type(other)}")
-    
-    def __lt__(self, other: Self | float | int):
+
+    def __lt__(self, other: Self | float | int) -> bool:
         return float(self) < self._comparison_value(other)
 
-    def __le__(self, other: Self | float | int):
+    def __le__(self, other: Self | float | int) -> bool:
         return float(self) <= self._comparison_value(other)
 
-    def __gt__(self, other: Self | float | int):
+    def __gt__(self, other: Self | float | int) -> bool:
         return float(self) > self._comparison_value(other)
 
-    def __ge__(self, other: Self | float | int):
+    def __ge__(self, other: Self | float | int) -> bool:
         return float(self) >= self._comparison_value(other)
-    
-    def __eq__(self, value: object) -> bool:
-        return float(self) == self._comparison_value(value, support_forwarding=True)
-    
-    @overload
-    def __truediv__(self, other: float | int) -> Self: ...
 
-    @overload
-    def __truediv__(self, other: Self) -> float: ...
+    def __eq__(self, value: object) -> bool:
+        if isinstance(value, (self.__class__, float, int)):
+            return float(self) == float(value)
+        # Foreign type: compare against the raw object so that *its* __eq__ decides.
+        # Unlike ordering, `==` must never raise.
+        return float(self) == value
 
     def __truediv__(self, other: Any) -> Any:
+        # Wide on purpose -- see the note above __mul__.
         if isinstance(other, (float, int)):
             return self.__class__(float(self) / float(other))
         if isinstance(other, self.__class__):
@@ -121,7 +126,7 @@ class Second(_BasicAriphmetic):
     CLOCK: Clock = REAL_CLOCK
     """Time source behind :meth:`monotonic`; swap it with :func:`set_clock`."""
 
-    def __init__(self, seconds: float):
+    def __init__(self, seconds: float) -> None:
         self.seconds = float(seconds)
     
     def to_milliseconds(self) -> float:
@@ -137,6 +142,18 @@ class Second(_BasicAriphmetic):
 
     def __float__(self) -> float:
         return self.seconds
+
+    def __mul__(self, other: float | int) -> Self:
+        return self._scaled(other)
+
+    @overload
+    def __truediv__(self, other: float | int) -> Self: ...
+
+    @overload
+    def __truediv__(self, other: Self) -> float: ...
+
+    def __truediv__(self, other: Any) -> Any:
+        return super().__truediv__(other)
 
     def __str__(self) -> str:
         return f"{self.seconds:.3f}s"
@@ -161,14 +178,21 @@ def set_clock(clock: Clock) -> Clock:
     return previous
 
 
-class AxisPos(_BasicAriphmetic):
+class AxisPos[SPEED_CLS: AxisSpeed](_BasicAriphmetic):
+    """A position on one axis, paired with the speed unit it integrates to.
+
+    The parameter is what makes ``Ha / DecPerSecond`` a type error rather than a
+    runtime ``TypeError``: ``Ha`` is an ``AxisPos[HaPerSecond]``, ``Dec`` is an
+    ``AxisPos[DecPerSecond]``, and the two never mix.
+    """
+
     @abstractmethod
     def __init__(self, *args: float) -> None:
         ...
     
     @classmethod
     @abstractmethod
-    def from_string(cls, s: str) -> Any:
+    def from_string(cls, s: str) -> Self:
         ...
 
     @abstractmethod
@@ -183,11 +207,13 @@ class AxisPos(_BasicAriphmetic):
     def check_wrap(self) -> tuple[Self, bool]:
         ...
 
+    # Position / time -> speed, position / speed -> time: the two unit changes that
+    # make the axis code readable.
     @overload
-    def __truediv__(self, other: Second) -> AxisSpeed: ...
+    def __truediv__(self, other: Second) -> SPEED_CLS: ...
 
     @overload
-    def __truediv__(self, other: AxisSpeed) -> Second: ...
+    def __truediv__(self, other: SPEED_CLS) -> Second: ...
 
     @overload
     def __truediv__(self, other: float | int) -> Self: ...
@@ -198,16 +224,28 @@ class AxisPos(_BasicAriphmetic):
     def __truediv__(self, other: Any) -> Any:
         return super().__truediv__(other)
 
+    def __mul__(self, other: float | int) -> Self:
+        return self._scaled(other)
+
 
 class AxisSpeed(_BasicAriphmetic):
     @overload
-    def __mul__(self, other: Second) -> AxisPos: ...
+    def __mul__(self, other: Second) -> AxisPos[Any]: ...
 
     @overload
     def __mul__(self, other: float | int) -> Self: ...
 
     def __mul__(self, other: Any) -> Any:
         return super().__mul__(other)
+
+    @overload
+    def __truediv__(self, other: Self) -> float: ...
+
+    @overload
+    def __truediv__(self, other: float | int) -> Self: ...
+
+    def __truediv__(self, other: Any) -> Any:
+        return super().__truediv__(other)
 
 
 class HaFormatError(ValueError):
@@ -222,13 +260,13 @@ DEG_PER_HOUR = 360 / _HOURS_PER_DAY
 SECONDS_PER_DAY = Second(_SECONDS_PER_DAY)
 
 
-class Ha(AxisPos):
+class Ha(AxisPos["HaPerSecond"]):
     UNIT_NAME = "s"
     __slots__ = ("_total_seconds",)
 
     HOURS_PATTERN = re.compile(r"^(\d{2}):(\d{2}):(\d{2})$")
 
-    def __init__(self, seconds: float):
+    def __init__(self, seconds: float) -> None:
         if seconds > _SECONDS_PER_DAY:
             seconds %= _SECONDS_PER_DAY
         if seconds < -_SECONDS_PER_DAY:
@@ -257,10 +295,10 @@ class Ha(AxisPos):
         return wrapped, wrapped != self
 
     @overload
-    def __truediv__(self, other: Second) -> AxisSpeed: ...
+    def __truediv__(self, other: Second) -> HaPerSecond: ...
 
     @overload
-    def __truediv__(self, other: AxisSpeed) -> Second: ...
+    def __truediv__(self, other: HaPerSecond) -> Second: ...
 
     @overload
     def __truediv__(self, other: float | int) -> Self: ...
@@ -269,7 +307,7 @@ class Ha(AxisPos):
     def __truediv__(self, other: Self) -> float: ...
 
     def __truediv__(self, other: Any) -> Any:
-        if isinstance(other, Second): 
+        if isinstance(other, Second):
             return HaPerSecond(float(self) / float(other))
         if isinstance(other, HaPerSecond):
             return Second(float(self) / float(other))
@@ -317,7 +355,7 @@ class Ha(AxisPos):
 class HaPerSecond(AxisSpeed):
     UNIT_NAME = "hs/s"
 
-    def __init__(self, seconds_per_second: float):
+    def __init__(self, seconds_per_second: float) -> None:
         self._total_ha_seconds_per_second = float(seconds_per_second)
 
     def __float__(self) -> float:
@@ -355,7 +393,7 @@ class HaPerSecond(AxisSpeed):
 class HaDegPerHour(AxisSpeed):
     UNIT_NAME = "°/h"
 
-    def __init__(self, degrees_per_hour: float):
+    def __init__(self, degrees_per_hour: float) -> None:
         self._degrees_per_hour = float(degrees_per_hour)
 
     def __float__(self) -> float:
@@ -365,7 +403,7 @@ class HaDegPerHour(AxisSpeed):
         return HaPerSecond(self._degrees_per_hour * 15 / _SECONDS_PER_HOUR)
 
 
-class Dec(AxisPos):
+class Dec(AxisPos["DecPerSecond"]):
     UNIT_NAME = "as"
 
     DEC_PATTERN = re.compile(
@@ -373,7 +411,7 @@ class Dec(AxisPos):
     )
     ARCSECONDS_PER_QUATER_CIRCLE = 90 * _SECONDS_PER_HOUR
 
-    def __init__(self, arcseconds: float):
+    def __init__(self, arcseconds: float) -> None:
         if arcseconds > self.ARCSECONDS_PER_QUATER_CIRCLE:
             arcseconds %= self.ARCSECONDS_PER_QUATER_CIRCLE
         if arcseconds < -self.ARCSECONDS_PER_QUATER_CIRCLE:
@@ -450,7 +488,7 @@ class Dec(AxisPos):
     def __truediv__(self, other: Self) -> float: ...
 
     def __truediv__(self, other: Any) -> Any:
-        if isinstance(other, Second): 
+        if isinstance(other, Second):
             return DecPerSecond(self._total_arcseconds / other.seconds)
         if isinstance(other, DecPerSecond):
             return Second(float(self) / float(other))
@@ -464,7 +502,7 @@ class Dec(AxisPos):
 class DecPerSecond(AxisSpeed):
     UNIT_NAME = "as/s"
 
-    def __init__(self, arcseconds_per_second: float):
+    def __init__(self, arcseconds_per_second: float) -> None:
         self._total_arcseconds_per_second = float(arcseconds_per_second)
 
     def __float__(self) -> float:
