@@ -69,7 +69,9 @@ Expected runtime behavior:
 ## Repository layout
 
 - `src/lx200`: LX200 protocol parsing and TCP server.
-- `src/sky`: axis state machine, combiner, polar compensation, coordinate math.
+- `src/sky`: axis state machine, combiner, polar compensation, coordinate math
+  and the typed quantities everything above the wire speaks in (`sky/physics.py`:
+  `Ha`/`Dec`, `HaPerSecond`/`DecPerSecond`, `Second`, `StepsPerSecond`).
 - `src/skywatcher/`: RA backend in four layers — `codec` (pure functions, no I/O),
   `board` (capabilities read from the board at connect), `session` (state and the
   board's quirks), `motor` (what `Axis` sees).
@@ -79,6 +81,8 @@ Expected runtime behavior:
 - `src/ra_conformance/`: protocol cases taken verbatim from the RA protocol
   document, run by the same code against the simulator and against the live board.
 - `src/serial_wrapper/`: shared serial transport and the byte-level session recorder.
+- `src/clock.py`: the injectable time source both drivers and the transport take,
+  plus the TTL cache they read their slow-changing values through.
 - `telescope_dec/src/main.cpp`: AVR firmware for the DEC controller.
 - `src/tests/units`: fast tests, no hardware.
 - `src/tests/hw`: hardware and end-to-end tests.
@@ -93,8 +97,11 @@ layer is the foundation of.
 ## Current TODO / known gaps
 
 - Pole crossing is still incomplete: when DEC reflection crosses the pole, RA should be mirrored by `+12h` as well.
-- Step-based typed units such as `steps/s` are not modeled explicitly in `sky.physics` yet.
 - RA and DEC backend status contracts are still similar but not fully unified.
+- Step counts (`steps`, `delta_steps`, `cpr`, a GOTO target) are still bare `int`.
+  The *rate* is typed (`StepsPerSecond`), which already separates it from every
+  count; telling a position from a delta from a revolution is a second, smaller
+  question and no defect has been traced to it yet.
 - **The RA board reboots when a GOTO is allowed to reach its target** — reproduced
   on live hardware. The driver therefore never lets the board arrive on its own.
 - **UART to the TMC2209 does not work in either direction.** Every software
