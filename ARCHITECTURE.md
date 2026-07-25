@@ -27,17 +27,6 @@ LX200 client
           -> PolarCompensator
 ```
 
-Отдельно существует HTTP monitor infrastructure:
-
-```text
-MonitorMixin objects
-  -> MonitorRegistry
-    -> MonitorRequestHandler / ThreadingHTTPServer
-      -> SSE + static UI
-```
-
-В `src/__main__.py` web server сейчас запускается отдельно и с пустым registry, то есть это заготовка инфраструктуры, а не полноценный production monitor.
-
 ## Основные модули
 
 ### `src/__main__.py`
@@ -49,8 +38,7 @@ MonitorMixin objects
 - оборачивает их в `AxisRA` и `AxisDEC`;
 - соединяет оси через `Combiner`;
 - создаёт `SkyLX200`;
-- поднимает `LX200SimpleServer`;
-- параллельно стартует `MonitorServer`, но без зарегистрированных monitor objects.
+- поднимает `LX200SimpleServer`.
 
 ### `src/lx200/base_server.py`
 
@@ -169,19 +157,6 @@ MonitorMixin objects
 - `HaPerSecond`, `DecPerSecond`, `Second`;
 - parsing / formatting / wrapping;
 - инварианты для координат и скоростей.
-
-### `src/web_control/web.py`
-
-Независимый стек веб-мониторинга:
-
-- `MonitorField`, `MonitorAction`, `MonitorGroup`;
-- `MonitorMixin` для декларативного описания monitor surface;
-- `MonitorRegistry` с polling diff loop;
-- `MonitorRequestHandler` и `MonitorServer`;
-- SSE endpoint `/events`;
-- static UI в `src/web_control/static`.
-
-Этот слой существует отдельно от LX200 runtime и пока не подключён к живым объектам в `src/__main__.py`.
 
 ### `telescope_dec/src/main.cpp`
 

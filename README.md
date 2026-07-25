@@ -72,7 +72,6 @@ Expected runtime behavior:
 - `src/sky`: axis state machine, combiner, polar compensation, coordinate math.
 - `src/skywatcher/motor.py`: SkyWatcher/SynScan RA backend.
 - `src/tmc2209/motor.py`: Python backend for the Arduino DEC controller.
-- `src/web_control`: standalone web monitor infrastructure.
 - `telescope_dec/src/main.cpp`: AVR firmware for the DEC controller.
 - `src/tests/hw`: active hardware and end-to-end tests.
 - `src/tests/units`: active fast tests.
@@ -84,7 +83,6 @@ Expected runtime behavior:
 - `MS` still returns a simplified boolean status instead of a full LX200 slew result code.
 - Step-based typed units such as `steps/s` are not modeled explicitly in `sky.physics` yet.
 - RA and DEC backend status contracts are still similar but not fully unified.
-- The web monitor server is started separately and currently uses an empty registry in `src/__main__.py`.
 
 ## Tests
 

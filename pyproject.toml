@@ -128,8 +128,7 @@ ignore = [
     "ANN401",   # explicit `Any`. The 14 remaining ones are load-bearing: sky/physics.py
                 # declares `__mul__`/`__truediv__` wide on the abstract base precisely so
                 # each concrete quantity can narrow them (mypy forbids an override from
-                # widening an operator), and web_control/ walks runtime annotations.
-                # Every one of them is commented at the definition.
+                # widening an operator). Every one of them is commented at the definition.
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -154,7 +153,6 @@ ignore = [
 # the fix is to widen the axis/combiner monitor API, which is a design task.
 "src/stdout_dashboard.py" = ["SLF001"]
 "src/lx200/base.py" = ["TID252"]           # 1 relative import left
-"src/web_control/example.py" = ["ARG005"]  # web UI is slated for a rewrite (PLAN.md P5)
 "polar_align.py" = ["E402"]                # 1 import after a `sys.path` tweak
 
 # =======================================================================================
@@ -265,7 +263,7 @@ max-statements = 60
 known-first-party = [
     "logging_setup", "lx200", "manual_control", "serial_wrapper", "sim", "sky",
     "skywatcher", "stdout_dashboard", "terminal_output", "tests", "tmc2209",
-    "utils", "web_control",
+    "utils",
 ]
 
 [tool.ruff.lint.flake8-tidy-imports]

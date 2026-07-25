@@ -186,7 +186,7 @@ pre-commit. `src/tests/hw` требует подключённой монтир�
 `src/tests/old` удалён. То, что он покрывал, закрыто заново: `sky.physics` —
 `test_physics_clock.py`, `serial_wrapper` — `test_serial_line_state.py` и
 хаос-набор, guide/splitter — `test_combiner_guide_speed.py`. Непокрытым из
-архива остался только web-control, который всё равно под снос (`PLAN.md` §1 П5).
+архива не осталось ничего: web-control удалён целиком.
 
 ## Рекомендуемый запуск
 
@@ -210,7 +210,6 @@ pre-commit. `src/tests/hw` требует подключённой монтир�
 
 ## Видимые пробелы
 
-- `src/web_control` не покрыт ничем (и под снос, П5);
 - нет marker-based разделения hardware-наборов по типам оборудования;
 - нет happy-path и нагрузочного слоя поверх симулятора: сейчас он проверен
   протоколом и хаосом, но не длинной штатной сессией (`PLAN.md` §3 этап 2 и 4);

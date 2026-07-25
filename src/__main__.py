@@ -3,7 +3,6 @@ from collections.abc import Mapping
 from pathlib import Path
 import sys
 import time
-import threading
 
 SRC_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SRC_DIR.parent
@@ -23,7 +22,6 @@ from sky.unavailable_motor import UnavailableMotor
 from stdout_dashboard import StdoutDashboard
 from skywatcher.motor import SkyWatcherMotor
 from tmc2209.motor import TMC2209Motor
-from web_control.web import MonitorServer
 
 
 setup_logging(stream_level=None)
@@ -79,13 +77,6 @@ if __name__ == "__main__":
 
     combiner = Combiner(axis_ra, axis_dec)
     sky_lx200 = SkyLX200(combiner)
-
-    try:
-        web_server = MonitorServer({}, port=8765)
-    except OSError as exc:
-        logger.warning("Web monitor is unavailable on 127.0.0.1:8765: %s", exc)
-    else:
-        threading.Thread(target=web_server.serve_forever, name="WEB_CONTROL", daemon=True).start()
 
     server = LX200SimpleServer(sky_lx200)
     sky_lx200.connect()
