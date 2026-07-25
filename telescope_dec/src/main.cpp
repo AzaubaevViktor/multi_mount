@@ -152,13 +152,46 @@ static char outBufV2[256];
 static uint8_t outWriteV2 = 0;
 static uint8_t outReadV2 = 0;
 
+// One slot is always kept empty so that outWriteV2 == outReadV2 means "empty" and never
+// "full"; usable capacity is therefore sizeof(outBufV2) - 1 == 255 bytes.
+static const uint8_t OUT_CAPACITY_V2 = (uint8_t)(sizeof(outBufV2) - 1);
+
+// Replacement emitted by respondEndV2() for a response that did not fit. Kept short so that
+// the room it needs is almost always there.
+static const char OUT_OVERFLOW_LINE_V2[] = "0;error=tx_overflow;\n";
+static const uint8_t OUT_OVERFLOW_LINE_LEN_V2 = (uint8_t)(sizeof(OUT_OVERFLOW_LINE_V2) - 1);
+
+// Bytes handed to the UART per loop() iteration. A non-blocking Serial.write() costs ~2 us,
+// so the ceiling adds at most ~35 us to an iteration, and only for the four iterations it
+// takes to fill the 64-byte hardware TX buffer right after a response is built; past that
+// the wire (87 us per byte at 115200) is the limit and the batch stays empty. 35 us is well
+// inside one step period even at the 6000 steps/s the host asks for, while a ~180-byte
+// status response now clears the ring in ~12 iterations instead of ~180.
+static const uint8_t TX_DRAIN_MAX_V2 = 16;
+
+// Write index at the start of the response currently being built, used to roll a
+// half-written response back instead of letting it reach the host truncated.
+static uint8_t outLineStartV2 = 0;
+static bool outLineFailedV2 = false;
+static uint16_t txOverflowCountV2 = 0;
+
 static inline bool outHasDataV2() {
   return outWriteV2 != outReadV2;
 }
 
+static inline uint8_t outFreeV2() {
+  return (uint8_t)(OUT_CAPACITY_V2 - (uint8_t)(outWriteV2 - outReadV2));
+}
+
 static inline bool outAppendCharV2(char c) {
+  // Once a response has failed, every further byte of it is dropped: partial output is
+  // worse than none, it glues itself to the next response.
+  if (outLineFailedV2) return false;
   uint8_t next = (uint8_t)(outWriteV2 + 1);
-  if (next == outReadV2) return false;
+  if (next == outReadV2) {
+    outLineFailedV2 = true;
+    return false;
+  }
   outBufV2[outWriteV2] = c;
   outWriteV2 = next;
   return true;
@@ -481,12 +514,32 @@ static bool parseU32V2(const char* s, uint32_t* value) {
 }
 
 static void respondStartV2(bool ok) {
+  outLineStartV2 = outWriteV2;
+  outLineFailedV2 = false;
+
   outAppendCharV2(ok ? '1' : '0');
   outAppendCharV2(';');
 }
 
 static void respondEndV2() {
   outFlushLineV2();
+  if (!outLineFailedV2) return;
+
+  // Roll the write index back to the start of this response. Bytes below outLineStartV2
+  // belong to earlier, not yet drained responses and are untouched; bytes above it belong
+  // to this response only, and draining never runs while a response is being built
+  // (serviceSerialv2() drains after handleLineV2() returns), so nothing is lost.
+  outWriteV2 = outLineStartV2;
+  outLineFailedV2 = false;
+  if (txOverflowCountV2 < 0xFFFF) txOverflowCountV2++;
+
+  // The rollback gives back exactly the space this response had when it started, and
+  // draining only ever frees more, so the marker fits whenever the response began with at
+  // least OUT_OVERFLOW_LINE_LEN_V2 bytes free. Below that the host is more than 234 bytes
+  // behind and nothing can be delivered anyway: stay silent and let the counter report it.
+  if (outFreeV2() >= OUT_OVERFLOW_LINE_LEN_V2) {
+    outAppendStrV2(OUT_OVERFLOW_LINE_V2);
+  }
 }
 
 static void respondKeyValueLongV2(const char* key, long value) {
@@ -870,6 +923,7 @@ static void handleLineV2(char* s) {
     respondKeyValueFloatV2("actual_speed", runV2.actualSpeedSps, 2);
     respondKeyValueFloatV2("accel_per_s", runV2.accelStepsPerUs * 1000000., 2);
     respondKeyValueFloatV2("power_v", ledStateV2.supplyVoltageV, 2);
+    respondKeyValueU32V2("tx_overflow", txOverflowCountV2);
     respondEndV2();
     return;
   }
@@ -1090,9 +1144,16 @@ void serviceSerialv2() {
 
   }
 
-  if (Serial.availableForWrite() > 0) {
-    char c = 0;
-    if (outPopV2(&c)) Serial.write((uint8_t)c);
+  // Drain in a batch, but never past the free room in the hardware TX buffer, so that
+  // Serial.write() cannot block. The extra ceiling keeps one loop() iteration short: the
+  // step accumulator is clamped in serviceStepperv2(), so a stretched iteration means
+  // steps that are lost, not steps that are merely late.
+  int txBudget = Serial.availableForWrite();
+  if (txBudget > TX_DRAIN_MAX_V2) txBudget = TX_DRAIN_MAX_V2;
+  char c = 0;
+  while (txBudget > 0 && outPopV2(&c)) {
+    Serial.write((uint8_t)c);
+    txBudget--;
   }
 }
 
