@@ -6,10 +6,43 @@ from clock import NEVER, REAL_CLOCK, Clock
 from serial_wrapper.wrapper import SerialLine
 from sky.motor import MotionMode, Motor, MotorDirection, MotorStateError, MotorStatus, MotorStopRequire
 from sky.physics import Dec, DecPerSecond
+from tmc2209.protocol import (
+    KEY_VALUE_SEPARATOR,
+    RESPONSE_DELIMITER,
+    Response as _Response,
+    TMC2209MotorCommandError,
+    TMC2209MotorConcatenatedResponseError,
+    TMC2209MotorEchoMismatchError,
+    TMC2209MotorError,
+    TMC2209MotorIntegrityError,
+    TMC2209MotorLegacyResponseError,
+    TMC2209MotorProtocolError,
+    TMC2209MotorStaleResponseError,
+    TMC2209MotorTimeoutError,
+    TMC2209MotorTruncatedResponseError,
+    build_request,
+    decode_response,
+    encode_frame,
+)
+
+# Re-exported: callers (and the hardware suite) have always imported the error
+# hierarchy from this module, and the codec split must not move their imports.
+__all__ = [
+    "MICROSTEPS_ALLOWED",
+    "TMC2209Motor",
+    "TMC2209MotorCommandError",
+    "TMC2209MotorConcatenatedResponseError",
+    "TMC2209MotorEchoMismatchError",
+    "TMC2209MotorError",
+    "TMC2209MotorIntegrityError",
+    "TMC2209MotorLegacyResponseError",
+    "TMC2209MotorProtocolError",
+    "TMC2209MotorStaleResponseError",
+    "TMC2209MotorTimeoutError",
+    "TMC2209MotorTruncatedResponseError",
+]
 
 COMMAND_TERMINATOR = "\n"
-RESPONSE_DELIMITER = ";"
-KEY_VALUE_SEPARATOR = "="
 MICROSTEPS_ALLOWED = {1, 2, 4, 8, 16, 32, 64, 128, 256}
 DEGREES_PER_REV = 360.0
 STEPS_PER_REV = 200
@@ -19,28 +52,15 @@ GEAR_RATIO_1 = 44 / 26
 GEAR_RATIO_2 = 125.608671834894
 
 
-class TMC2209MotorError(Exception):
-    pass
+class _Dialect(StrEnum):
+    AUTO = "auto"
+    """Probe the board on connect and pick one of the two below."""
 
+    FRAMED = "framed"
+    """Protocol v3: length + CRC + sequence number (``tmc2209/protocol.py``)."""
 
-class TMC2209MotorProtocolError(TMC2209MotorError):
-    pass
-
-
-class TMC2209MotorCommandError(TMC2209MotorError):
-    pass
-
-
-class TMC2209MotorTimeoutError(TMC2209MotorProtocolError):
-    """Nothing came back at all: the controller is silent or the port is gone."""
-
-
-class TMC2209MotorTruncatedResponseError(TMC2209MotorProtocolError):
-    """A response arrived cut off - the controller dropped bytes or the read timed out mid-line."""
-
-
-class TMC2209MotorConcatenatedResponseError(TMC2209MotorProtocolError):
-    """Two responses arrived glued together, the first one having lost its terminator."""
+    LEGACY = "legacy"
+    """Protocol v2: the ``1;key=value;`` lines of the firmware still in the field."""
 
 
 class _Phase(StrEnum):
@@ -54,38 +74,6 @@ class _Phase(StrEnum):
 class _Mode(StrEnum):
     TARGET = "target"
     FREE_RIDE = "free_ride"
-
-
-@dataclasses.dataclass(frozen=True)
-class _Response:
-    ok: bool
-    values: dict[str, str]
-    error: str | None
-
-    @classmethod
-    def from_line(cls, line: str) -> "_Response":
-        cleaned = line.strip()
-        if not cleaned:
-            raise TMC2209MotorTimeoutError("no response: controller sent nothing before the read timed out")
-        tokens = [token for token in cleaned.split(RESPONSE_DELIMITER) if token]
-        if not tokens or tokens[0] not in {"0", "1"}:
-            raise TMC2209MotorProtocolError(f"unrecognised response, no `0;`/`1;` status prefix: {line!r}")
-        # A bare status prefix inside the line means the previous response lost its
-        # terminator and the next one was appended to it.
-        if any(token in {"0", "1"} for token in tokens[1:]):
-            raise TMC2209MotorConcatenatedResponseError(f"two responses glued into one line: {line!r}")
-        if not cleaned.endswith(RESPONSE_DELIMITER):
-            raise TMC2209MotorTruncatedResponseError(f"response cut off before its terminator: {line!r}")
-        values: dict[str, str] = {}
-        for token in tokens[1:]:
-            if KEY_VALUE_SEPARATOR not in token:
-                raise TMC2209MotorTruncatedResponseError(f"response cut off inside token {token!r}: {line!r}")
-            key, value = token.split(KEY_VALUE_SEPARATOR, 1)
-            if not key or value == "":
-                raise TMC2209MotorProtocolError(f"invalid key-value token: {token!r}")
-            values[key] = value
-        ok = tokens[0] == "1"
-        return cls(ok=ok, values=values, error=values.get("error"))
 
 
 @dataclasses.dataclass(frozen=True)
@@ -106,20 +94,33 @@ class _Status:
 
     @classmethod
     def from_response(cls, response: _Response) -> "_Status":
-        return cls(
-            initialised=response.values["initialised"] == "1",
-            enabled=response.values["enabled"] == "1",
-            mode=_Mode(response.values.get("mode", _Mode.TARGET.value)),
-            position=int(response.values["position"]),
-            phase=_Phase(response.values["phase"]),
-            target=int(response.values["target"]),
-            target_set=response.values["target_set"] == "1",
-            speed_sps=float(response.values["speed"]),
-            actual_speed_sps=float(response.values["actual_speed"]),
-            accel_steps_per_s=float(response.values["accel_per_s"]),
-            power_v=float(response.values["power_v"]) if "power_v" in response.values else None,
-            tx_overflow=int(response.values["tx_overflow"]) if "tx_overflow" in response.values else None,
-        )
+        # A status frame that lost a field, or a field that lost its digits, used to
+        # leave here as a bare KeyError/ValueError: past the retry in `_transact`
+        # (which only catches command errors) and past every caller, all of which
+        # expect a TMC2209MotorError. On the framed dialect the CRC stops a damaged
+        # frame long before this point; on the legacy one this is the last line of
+        # defence, and the reason PLAN.md #33 exists.
+        try:
+            return cls(
+                initialised=response.values["initialised"] == "1",
+                enabled=response.values["enabled"] == "1",
+                mode=_Mode(response.values.get("mode", _Mode.TARGET.value)),
+                position=int(response.values["position"]),
+                phase=_Phase(response.values["phase"]),
+                target=int(response.values["target"]),
+                target_set=response.values["target_set"] == "1",
+                speed_sps=float(response.values["speed"]),
+                actual_speed_sps=float(response.values["actual_speed"]),
+                accel_steps_per_s=float(response.values["accel_per_s"]),
+                power_v=float(response.values["power_v"]) if "power_v" in response.values else None,
+                tx_overflow=int(response.values["tx_overflow"]) if "tx_overflow" in response.values else None,
+            )
+        except KeyError as error:
+            raise TMC2209MotorTruncatedResponseError(
+                f"status response has no {error.args[0]!r} field: {response.values}"
+            ) from error
+        except ValueError as error:
+            raise TMC2209MotorProtocolError(f"status response carries an unusable value: {response.values}") from error
 
 
 class TMC2209Motor(Motor[Dec, DecPerSecond]):
@@ -128,7 +129,9 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
     _READY_TIMEOUT_S = 10.0
     _POWER_CACHE_TTL_S = 2.0
 
-    def __init__(self, serial: SerialLine, clock: Clock = REAL_CLOCK) -> None:
+    _PROBE_ATTEMPTS = 3
+
+    def __init__(self, serial: SerialLine, clock: Clock = REAL_CLOCK, dialect: _Dialect = _Dialect.AUTO) -> None:
         self._serial = serial
         self._clock = clock
         self._logger = logging.getLogger(type(self).__name__)
@@ -138,6 +141,8 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         self._last_power_v: float | None = None
         self._last_power_v_updated = NEVER
         self._last_tx_overflow: int | None = None
+        self._dialect = dialect
+        self._seq = 0
 
     def connect(self) -> None:
         ready = ""
@@ -150,6 +155,8 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
             while self._clock.monotonic() < deadline:
                 ready = self._serial.query(None, timeout=1)
                 if ready and ready.strip() == "ready":
+                    if self._dialect is _Dialect.AUTO:
+                        self._probe_dialect()
                     self._is_connected = True
                     return
 
@@ -158,6 +165,37 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
                 self._clock.sleep(0.5)
 
         raise TMC2209MotorProtocolError(f"device not ready: {ready!r}")
+
+    def _probe_dialect(self) -> None:
+        """Decide which protocol the board on the other end speaks.
+
+        The probe is one HELLO frame. Firmware that predates the framed dialect
+        sees an unknown command and answers ``0;error=unknown_cmd;`` — a v2 line,
+        which is *positive* proof and the only thing that switches the driver down
+        to the legacy protocol. Silence proves nothing (a chewed-up line looks the
+        same on both firmwares), so an inconclusive probe stays on the framed
+        dialect: a board that then rejects every frame fails loudly, whereas a
+        needless downgrade would go back to corrupting data quietly.
+        """
+        for _ in range(self._PROBE_ATTEMPTS):
+            try:
+                hello = self._exchange("hello", None)
+            except TMC2209MotorLegacyResponseError:
+                self._dialect = _Dialect.LEGACY
+                self._logger.warning(
+                    "DEC controller speaks the v2 line protocol: no frame length, no CRC, "
+                    "damaged values cannot be detected. Flash the current firmware to fix it."
+                )
+                return
+            except TMC2209MotorError as error:
+                self._logger.info("Protocol probe attempt failed, retrying: %s", error)
+                continue
+            self._dialect = _Dialect.FRAMED
+            self._logger.info("DEC controller speaks framed protocol v%s", hello.values.get("protocol"))
+            return
+
+        self._dialect = _Dialect.FRAMED
+        self._logger.warning("Protocol probe was inconclusive, assuming the framed protocol")
 
     def disconnect(self) -> bool:
         self._is_connected = False
@@ -211,7 +249,7 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
 
     def set_steps(self, steps: int) -> bool:
         self._ensure_not_goto(self._status(), "cannot change steps while GOTO is in progress")
-        self._transact("position", [str(steps)])
+        self._confirm(self._transact("position", [str(steps)]), "position", steps)
         return True
 
     def set_speed(self, steps_per_second: int) -> int:
@@ -219,15 +257,18 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         if steps_per_second < 0:
             raise ValueError(f"steps_per_second must be non-negative, got {steps_per_second}")
         speed = int(round(steps_per_second))
-        self._transact("speed", [str(speed)])
-        return speed
+        # The applied speed comes back from the controller, not from the argument:
+        # "the command was sent" and "the axis now runs at that rate" are different
+        # statements, and only the echo can make the second one.
+        applied = self._confirm(self._transact("speed", [str(speed)]), "speed", speed)
+        return int(round(float(applied)))
 
     def set_acceleration(self, steps_per_second_square: float) -> bool:
         self._ensure_not_goto(self._status(), "cannot change acceleration while GOTO is in progress")
         acceleration = int(round(steps_per_second_square))
         if acceleration < 0:
             raise ValueError(f"steps_per_second_square must be non-negative, got {steps_per_second_square}")
-        self._transact("acceleration", [str(acceleration)])
+        self._confirm(self._transact("acceleration", [str(acceleration)]), "accel_per_s", acceleration)
         return True
 
     def set_direction(self, direction: MotorDirection) -> bool:
@@ -237,13 +278,14 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
             raise MotorStopRequire("cannot change direction while motor is moving")
         if direction == MotorDirection.STOP:
             return True
-        self._transact("direction", ["1" if direction == MotorDirection.BACKWARD else "0"])
+        backward = "1" if direction == MotorDirection.BACKWARD else "0"
+        self._confirm(self._transact("direction", [backward]), "direction", backward)
         self._direction = direction
         return True
 
     def set_delta(self, delta_steps: int) -> bool:
         self._ensure_not_goto(self._status(), "cannot change target while GOTO is in progress")
-        self._transact("delta", [str(delta_steps)])
+        self._confirm(self._transact("delta", [str(delta_steps)]), "delta", delta_steps)
         return True
 
     def get_speed_sps_by_delta(self, delta_steps: int) -> int:
@@ -258,10 +300,10 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         status = self._status()
         self._ensure_not_goto(status, "cannot change motion mode while GOTO is in progress")
         if motion_mode in (MotionMode.IDLE, MotionMode.RUN):
-            self._transact("mode", [_Mode.FREE_RIDE.value])
+            self._confirm(self._transact("mode", [_Mode.FREE_RIDE.value]), "mode", _Mode.FREE_RIDE.value)
             return True
         if motion_mode == MotionMode.TARGET:
-            self._transact("mode", [_Mode.TARGET.value])
+            self._confirm(self._transact("mode", [_Mode.TARGET.value]), "mode", _Mode.TARGET.value)
             return True
         raise MotorStateError(f"unsupported motion mode: {motion_mode}")
 
@@ -272,7 +314,13 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
             raise MotorStopRequire("cannot change microsteps while motor is moving")
         if microsteps not in MICROSTEPS_ALLOWED:
             raise ValueError(f"microsteps not allowed: {microsteps}")
-        self._transact("set", [f"microsteps={microsteps}"])
+        echoed = self._transact("set", [f"microsteps={microsteps}"]).values.get("microsteps")
+        if echoed != str(microsteps):
+            # Deliberately not an error: with the TMC2209 unpowered the board reads
+            # MRES out of a CHOPCONF that answers zero and reports 256 whatever was
+            # written (DEC_PROTOCOL.md §4). The request is what the step maths must
+            # use; the disagreement is worth a line in the log, not an exception.
+            self._logger.warning("TMC2209 acknowledged microsteps=%s for a written %d", echoed, microsteps)
         self._microsteps = microsteps
         return True
 
@@ -290,11 +338,11 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         self._ensure_not_goto(status, "cannot run while GOTO is in progress")
         if status.target_set and status.mode != _Mode.TARGET:
             raise MotorStateError("cannot run before motor motion mode is switched")
-        self._transact("run")
+        self._confirm(self._transact("run"), "running", 1)
         return True
 
     def stop(self) -> bool:
-        self._transact("stop")
+        self._confirm(self._transact("stop"), "stopping", 1)
         return True
 
     def wait_till_stop(self, do_stop: bool = True, timeout_s: float | None = None) -> None:
@@ -320,6 +368,25 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
     def _steps_per_arcsecond(self) -> float:
         return STEPS_PER_REV * self._microsteps * GEAR_RATIO_1 * GEAR_RATIO_2 / (DEGREES_PER_REV * 60 * 60)
 
+    def _confirm(self, response: _Response, key: str, sent: int | str) -> str:
+        """Prove the controller acknowledged the value that was actually sent.
+
+        Both dialects answer a write by echoing the field back, and until now the
+        driver ignored that echo and reported success on the ``1;`` prefix alone —
+        so a value the board clamped, rejected or received damaged was reported as
+        applied (DEC_PROTOCOL.md §4, §9.3).
+        """
+        echoed = response.values.get(key)
+        if echoed is None:
+            raise TMC2209MotorTruncatedResponseError(f"reply carries no `{key}` to confirm the write: {response.values}")
+        try:
+            matches = float(echoed) == float(sent)
+        except ValueError:
+            matches = echoed == str(sent)
+        if not matches:
+            raise TMC2209MotorEchoMismatchError(f"controller acknowledged {key}={echoed!r} for a written {sent!r}")
+        return echoed
+
     def _ensure_not_goto(self, status: _Status, message: str) -> None:
         if status.mode == _Mode.TARGET and status.phase not in (_Phase.IDLE, _Phase.HOLD):
             raise MotorStopRequire(message)
@@ -337,13 +404,30 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         self._last_tx_overflow = status.tx_overflow
         return status
 
+    def _exchange(self, command: str, args: list[str] | None) -> _Response:
+        """One request, one reply, in whichever dialect this board speaks.
+
+        The framed branch is where the integrity guarantees live: the sequence
+        number is bumped per request and checked on the way back, so a reply left
+        over from a previous command cannot be mistaken for this one, and the CRC
+        rejects anything the line altered.
+        """
+        if self._dialect is _Dialect.LEGACY:
+            payload = command if not args else f"{command} {' '.join(args)}"
+            return _Response.from_line(self._serial.query(f"{payload}{COMMAND_TERMINATOR}"))
+
+        op, arg_payload = build_request(command, args)
+        self._seq = (self._seq + 1) & 0xFF
+        raw = self._serial.query(encode_frame(op, self._seq, arg_payload))
+        return _Response.from_frame(decode_response(raw, op=op, seq=self._seq))
+
     def _transact(self, command: str, args: list[str] | None = None) -> _Response:
         payload = command if not args else f"{command} {' '.join(args)}"
         count = 3
         response = None
         while count > 0:
             try:
-                response = _Response.from_line(self._serial.query(f"{payload}{COMMAND_TERMINATOR}"))
+                response = self._exchange(command, args)
                 if not response.ok:
                     raise TMC2209MotorCommandError(response.error or "tmc2209 error")
                 return response

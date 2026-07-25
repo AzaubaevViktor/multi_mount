@@ -19,18 +19,24 @@ What is modelled
   seen in the March logs (PLAN.md §2.4);
 - **unplug** (``unplug``): the device disappears mid-transfer, the bytes of that
   very transfer included. ``is_open`` stays true, so the host only learns about
-  it on the next syscall — the P2 failure mode.
+  it on the next syscall — the P2 failure mode;
+- **bit flip** (``flip_write_byte`` / ``flip_read_byte``), per byte. USB
+  CRC-checks its packets, so on a healthy link corruption arrives as missing
+  bytes rather than altered ones — but the byte can be mangled after the USB
+  layer too (the board's own buffers, a marginal 5 V rail), and unlike loss it
+  leaves the frame the right length. Both faults default to zero and, like every
+  other one here, consume no randomness while disabled, so existing seeds replay
+  byte for byte.
 
-What is deliberately *not* modelled: bit flips inside a byte. USB already
-CRC-checks every packet, so on this hardware corruption shows up as missing
-bytes (buffer overrun, timeout, unplug), not as altered ones. Neither device
-protocol carries a checksum, so injecting flipped bytes would only prove the
-already-known fact that a mangled-but-well-formed frame is undetectable.
+Until the DEC protocol grew a CRC, injecting flips only proved the already-known
+fact that a mangled-but-well-formed frame is undetectable; it is now the sharpest
+way to tell the two dialects apart (``test_dec_driver_dialects.py``).
 
 Reproducibility
 ---------------
 Every decision comes from one ``random.Random(seed)`` owned by :class:`Chaos`,
-consumed in a fixed order (unplug -> per-byte loss -> short transfer). The same
+consumed in a fixed order (unplug -> per-byte loss -> per-byte flip -> short
+transfer), and a fault whose probability is zero draws nothing at all. The same
 seed and profile therefore replay byte for byte, which :attr:`Chaos.trace`
 records for comparison, and :attr:`Chaos.stats` counts what actually bit — a
 chaos run that damaged nothing is a green test that proves nothing.
@@ -61,6 +67,12 @@ class ChaosProfile:
     unplug: float = 0.0
     """Probability per transfer that the device vanishes (requires :meth:`Chaos.bind`)."""
 
+    flip_write_byte: float = 0.0
+    """Probability per byte that a host->device byte arrives with one bit flipped."""
+
+    flip_read_byte: float = 0.0
+    """Probability per byte that a device->host byte arrives with one bit flipped."""
+
 
 @dataclass
 class ChaosStats:
@@ -75,6 +87,8 @@ class ChaosStats:
     short_writes: int = 0
     short_reads: int = 0
     unplugs: int = 0
+    flipped_write_bytes: int = 0
+    flipped_read_bytes: int = 0
 
     @property
     def bites(self) -> int:
@@ -85,6 +99,8 @@ class ChaosStats:
             + self.short_writes
             + self.short_reads
             + self.unplugs
+            + self.flipped_write_bytes
+            + self.flipped_read_bytes
         )
 
 
@@ -125,8 +141,11 @@ class Chaos:
             self._unplug()
             payload = b""
         else:
-            payload, lost, shortened = self._damage(data, self.profile.lose_write_byte, self.profile.short_write)
+            payload, lost, flipped, shortened = self._damage(
+                data, self.profile.lose_write_byte, self.profile.flip_write_byte, self.profile.short_write
+            )
             self.stats.lost_write_bytes += lost
+            self.stats.flipped_write_bytes += flipped
             self.stats.short_writes += int(shortened)
 
         self.trace.append(("write", payload))
@@ -140,19 +159,31 @@ class Chaos:
             self._unplug()
             payload = b""
         else:
-            payload, lost, shortened = self._damage(data, self.profile.lose_read_byte, self.profile.short_read)
+            payload, lost, flipped, shortened = self._damage(
+                data, self.profile.lose_read_byte, self.profile.flip_read_byte, self.profile.short_read
+            )
             self.stats.lost_read_bytes += lost
+            self.stats.flipped_read_bytes += flipped
             self.stats.short_reads += int(shortened)
 
         self.trace.append(("read", payload))
         return payload
 
-    def _damage(self, data: bytes, lose_probability: float, short_probability: float) -> tuple[bytes, int, bool]:
+    def _damage(
+        self, data: bytes, lose_probability: float, flip_probability: float, short_probability: float
+    ) -> tuple[bytes, int, int, bool]:
         kept = bytearray()
         lost = 0
+        flipped = 0
         for byte in data:
             if self._roll(lose_probability):
                 lost += 1
+                continue
+            if self._roll(flip_probability):
+                # One bit, the way a marginal signal corrupts a byte: the chunk
+                # keeps its length, so nothing but a checksum can notice.
+                kept.append(byte ^ (1 << self._random.randrange(8)))
+                flipped += 1
                 continue
             kept.append(byte)
 
@@ -163,7 +194,7 @@ class Chaos:
             del kept[self._random.randrange(len(kept)):]
             shortened = True
 
-        return bytes(kept), lost, shortened
+        return bytes(kept), lost, flipped, shortened
 
     def _roll(self, probability: float) -> bool:
         # A zero probability must not consume the generator: profiles that

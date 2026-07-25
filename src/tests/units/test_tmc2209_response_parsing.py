@@ -1,4 +1,7 @@
-"""Parsing of TMC2209 controller replies.
+"""Parsing of TMC2209 controller replies in the v2 line dialect.
+
+That dialect is what the board in the field still speaks, so its parser stays under
+test even though new work happens on the framed one (``test_dec_framed_protocol.py``).
 
 Covers two things the DEC firmware change touches:
 
@@ -17,6 +20,7 @@ from tmc2209.motor import (
     TMC2209MotorProtocolError,
     TMC2209MotorTimeoutError,
     TMC2209MotorTruncatedResponseError,
+    _Dialect,
     _Mode,
     _Phase,
     _Response,
@@ -111,7 +115,7 @@ def test_growing_overflow_counter_is_logged_once_per_increment(caplog: pytest.Lo
             assert payload == "status\n"
             return next(lines)
 
-    motor = TMC2209Motor(_Line())  # type: ignore[arg-type]
+    motor = TMC2209Motor(_Line(), dialect=_Dialect.LEGACY)  # type: ignore[arg-type]
     with caplog.at_level(logging.WARNING):
         motor._status()
         motor._status()

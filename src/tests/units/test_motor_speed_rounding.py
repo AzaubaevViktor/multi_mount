@@ -5,7 +5,7 @@ from sky.constants import STELLAR_DAY, STELLAR_SPEED
 from sky.motor import MotorDirection
 from sky.physics import Dec
 from skywatcher.motor import SkyWatcherMotor, _Command, _Direction, _MotionStatus, _Revu24, _SpeedMode, _Status, _SlewMode
-from tmc2209.motor import TMC2209Motor, _Mode, _Phase, _Status as _TmcStatus
+from tmc2209.motor import TMC2209Motor, _Mode, _Phase, _Response, _Status as _TmcStatus
 
 
 def _idle_status(_self: SkyWatcherMotor) -> _Status:
@@ -46,8 +46,12 @@ def _recording_transact(
 
 
 def _recording_tmc_transact(motor: TMC2209Motor, calls: list[list[str]]) -> MethodType:
-    def _transact(_self: TMC2209Motor, command: str, args: list[str] | None = None) -> None:
+    def _transact(_self: TMC2209Motor, command: str, args: list[str] | None = None) -> _Response:
         calls.append(args or [])
+        # The driver now reads back the value the controller acknowledged instead of
+        # trusting the one it sent, so a stub that answers nothing is no longer a
+        # controller: it echoes the write the way both dialects do.
+        return _Response(ok=True, values={"speed": f"{float(args[0]):.2f}"} if args else {}, error=None)
 
     return MethodType(_transact, motor)
 

@@ -21,9 +21,10 @@ INV5 *position does not jump*: at rest the reported position equals the
      simulator's true position, and a completed GOTO lands on the target asked
      for.
 
-Three violations that live in the DEC driver's line protocol are reproduced
-with fixed seeds and marked ``xfail(strict=True)`` rather than asserted away —
-see the "known defects" section at the bottom.
+The bottom section holds four invariants that were reproduced as
+``xfail(strict=True)`` while the defects behind them were still open — three in
+the DEC line protocol, one in the RA driver. All four hold now and are kept as
+regression guards.
 """
 
 import os
@@ -657,15 +658,21 @@ def test_chaos_seed_from_env() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Known defects: reproduced here, not fixed (src/tmc2209/motor.py belongs to a
-# change in flight). Each states the invariant that *should* hold and is marked
-# xfail(strict=True), so the day the protocol grows an integrity check the
-# marker fails loudly and gets removed together with this comment.
+# Formerly known defects, each reproduced as xfail(strict=True) until it was
+# fixed: three by giving the DEC protocol a length, a CRC and a sequence
+# number, the fourth by confirming the RA start instead of re-sending it.
+# They stay here, unmarked, as the guard against all four coming back.
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="DEFECT: the TMC line protocol has no integrity check, so a digit lost inside a value parses as a valid position")
 def test_dec_never_reports_a_position_the_controller_does_not_have() -> None:
+    """INV1 (was a defect until the framed protocol): a lost digit is not a position.
+
+    On the v2 line protocol ``position=12345`` losing a byte reads back as
+    ``1234`` — a perfectly formed answer half a revolution away. The framed
+    dialect ends the argument: the byte count, the declared length and the CRC
+    all disagree, so the driver raises instead of answering.
+    """
     for seed in range(60):
         chaos = Chaos(seed=seed, profile=ChaosProfile())
         clock = Clock()
@@ -685,8 +692,14 @@ def test_dec_never_reports_a_position_the_controller_does_not_have() -> None:
             assert steps == 12345, f"seed={seed}: driver reports position {steps}, controller is at 12345"
 
 
-@pytest.mark.xfail(strict=True, reason="DEFECT: set_speed returns the requested value instead of the `speed=` the controller echoed back")
 def test_dec_never_reports_a_speed_the_controller_never_applied() -> None:
+    """INV4 (was a defect until the echo check): `set` is not a confirmation.
+
+    The command that never arrived, or arrived damaged, used to come back as the
+    requested speed because the driver returned its own argument. It now returns
+    the value the controller echoed, and a controller that echoed something else
+    raises.
+    """
     for seed in range(20):
         chaos = Chaos(seed=seed, profile=ChaosProfile())
         clock = Clock()
@@ -733,8 +746,13 @@ def test_ra_retried_start_motion_does_not_extend_the_goto_target() -> None:
     assert sim.position - started_at == pytest.approx(delta_steps, abs=2)
 
 
-@pytest.mark.xfail(strict=True, reason="DEFECT: a damaged TMC status frame escapes as a raw KeyError/ValueError instead of a TMC2209MotorError")
 def test_dec_only_raises_its_own_error_types() -> None:
+    """INV1 (was a defect until the framed protocol): no bare KeyError escapes.
+
+    A status line cut on a field boundary parsed as a valid response with fields
+    missing, and `_Status.from_response` then threw a KeyError past the retry
+    handler and past every caller that catches TMC2209MotorError (PLAN.md #33).
+    """
     for seed in range(40):
         chaos = Chaos(seed=seed, profile=_LOSSY)
         guard = _dec_session(chaos)
