@@ -379,12 +379,17 @@ class TMC2209Sim:
             return
 
         declared, op, seq = raw[0], raw[1], raw[2]
-        crc_ok = crc16(raw[:-CRC_SIZE]) == int.from_bytes(raw[-CRC_SIZE:], "big")
-        if len(raw) != HEADER_SIZE + declared + CRC_SIZE or not crc_ok:
-            # The sequence number is echoed as received even though it may itself
-            # be the damaged byte: either the host recognises its own number and
-            # reads the error, or the number is wrong and the host rejects the
-            # frame as stale. Both outcomes are safe; silence would not be.
+        # The sequence number is echoed as received even though it may itself be
+        # the damaged byte: either the host recognises its own number and reads
+        # the error, or the number is wrong and the host rejects the frame as
+        # stale. Both outcomes are safe; silence would not be.
+        if len(raw) != HEADER_SIZE + declared + CRC_SIZE:
+            # Structural: the frame does not carry what it says it carries. Kept
+            # apart from a CRC mismatch so that "the length is a lie" and "a byte
+            # changed" stay two distinguishable answers.
+            self._emit_frame(Op.ERROR, seq, _Reply.failure(ErrorCode.BAD_FRAME), "frame")
+            return
+        if crc16(raw[:-CRC_SIZE]) != int.from_bytes(raw[-CRC_SIZE:], "big"):
             self._emit_frame(Op.ERROR, seq, _Reply.failure(ErrorCode.BAD_CRC), "frame")
             return
 

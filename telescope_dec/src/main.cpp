@@ -13,6 +13,8 @@
 #include <limits.h>
 #include <math.h>
 
+#include "frame_v3.h"
+
 // ---------- Pins ----------
 static const uint8_t STEP_PIN = 7;
 static const uint8_t DIR_PIN  = 4;
@@ -540,6 +542,52 @@ static void respondEndV2() {
   if (outFreeV2() >= OUT_OVERFLOW_LINE_LEN_V2) {
     outAppendStrV2(OUT_OVERFLOW_LINE_V2);
   }
+}
+
+// ---------- Framed protocol v3 ----------
+// The codec itself lives in include/frame_v3.h so that it can be compiled for the
+// host and checked against the golden frames without a board (see that header).
+// What stays here is what only the firmware can do: feed the TX ring, roll a
+// half-written frame back, and act on the command.
+//
+// The line protocol above is kept alive next to it: the host probes with a HELLO
+// frame and falls back to lines when the answer is `0;error=unknown_cmd;`, so a
+// board flashed with this firmware serves both a new and an old host.
+
+static void outSinkV3(char c) { outAppendCharV2(c); }
+
+static FrameWriterV3 frameWriterV3 = {outSinkV3, 0xFFFF};
+static uint8_t frameSeqV3 = 0;
+
+// '#' + 2*(3 header + 1 payload + 2 crc) + '\n'
+static const uint8_t ERROR_FRAME_LEN_V3 = 14;
+
+static void frameStartV3(uint8_t op, uint8_t seq, uint8_t payloadLen) {
+  outLineStartV2 = outWriteV2;
+  outLineFailedV2 = false;
+  frameWriterV3.begin(op, seq, payloadLen);
+}
+
+static void frameEndV3() {
+  frameWriterV3.end();
+  if (!outLineFailedV2) return;
+
+  // Same rollback as respondEndV2: a half-written frame glued onto the next one is
+  // exactly what the length and the CRC exist to prevent, so it must never leave.
+  outWriteV2 = outLineStartV2;
+  outLineFailedV2 = false;
+  if (txOverflowCountV2 < 0xFFFF) txOverflowCountV2++;
+  if (outFreeV2() >= ERROR_FRAME_LEN_V3) {
+    frameWriterV3.begin(OP_ERROR_V3, frameSeqV3, 1);
+    frameWriterV3.byte(ERR_TX_OVERFLOW_V3);
+    frameWriterV3.end();
+  }
+}
+
+static void respondFrameErrorV3(uint8_t seq, uint8_t code) {
+  frameStartV3(OP_ERROR_V3, seq, 1);
+  frameWriterV3.byte(code);
+  frameEndV3();
 }
 
 static void respondKeyValueLongV2(const char* key, long value) {
@@ -1108,6 +1156,162 @@ static void handleLineV2(char* s) {
   respondErrorV2("unknown_cmd");
 }
 
+static void handleFrameV3(char* s) {
+  const FrameV3 frame = frameParseV3(s);
+  frameSeqV3 = frame.seq;
+  if (frame.error != FRAME_OK_V3) {
+    respondFrameErrorV3(frame.seq, frame.error);
+    return;
+  }
+
+  const uint8_t op = frame.op;
+  const uint8_t seq = frame.seq;
+  const int32_t argI32 = frame.len >= 4 ? framePayloadI32V3(frame.payload) : 0;
+
+  switch (op) {
+    case OP_HELLO_V3:
+      frameStartV3(op, seq, 2);
+      frameWriterV3.byte(FRAME_PROTOCOL_VERSION_V3);
+      frameWriterV3.byte(FRAME_FIRMWARE_BUILD_V3);
+      frameEndV3();
+      return;
+
+    case OP_STATUS_V3: {
+      uint8_t flags = 0;
+      if (v2Initialized) flags |= FRAME_FLAG_INITIALISED_V3;
+      if (runV2.enabled) flags |= FRAME_FLAG_ENABLED_V3;
+      if (runV2.freeRideMode) flags |= FRAME_FLAG_FREE_RIDE_V3;
+      if (runV2.hasTarget) flags |= FRAME_FLAG_TARGET_SET_V3;
+      outLineStartV2 = outWriteV2;
+      outLineFailedV2 = false;
+      frameWriteStatusV3(frameWriterV3, seq, flags, (uint8_t)getPhaseCodeV2(),
+                         (int32_t)getPosition(), (int32_t)runV2.target,
+                         runV2.speedSps, runV2.actualSpeedSps,
+                         runV2.accelStepsPerUs * 1000000.0f,
+                         ledStateV2.supplyVoltageV, txOverflowCountV2);
+      frameEndV3();
+      return;
+    }
+
+    case OP_POSITION_V3:
+      if (frame.len != 4) { respondFrameErrorV3(seq, ERR_BAD_VALUE_V3); return; }
+      setPosition((long)argI32);
+      frameStartV3(op, seq, 4);
+      frameWriterV3.i32((int32_t)getPosition());
+      frameEndV3();
+      return;
+
+    case OP_SPEED_V3: {
+      if (frame.len != 4) { respondFrameErrorV3(seq, ERR_BAD_VALUE_V3); return; }
+      const char* errorKey = nullptr;
+      if (!setSpeedSpsV2((long)argI32, &errorKey)) { respondFrameErrorV3(seq, ERR_RANGE_V3); return; }
+      frameStartV3(op, seq, 4);
+      frameWriterV3.u32(frameCentiV3(runV2.speedSps));
+      frameEndV3();
+      return;
+    }
+
+    case OP_ACCELERATION_V3: {
+      if (frame.len != 4) { respondFrameErrorV3(seq, ERR_BAD_VALUE_V3); return; }
+      const char* errorKey = nullptr;
+      if (!setAccelStepsPerUsV2((long)argI32, &errorKey)) { respondFrameErrorV3(seq, ERR_RANGE_V3); return; }
+      frameStartV3(op, seq, 4);
+      frameWriterV3.u32(frameCentiV3(runV2.accelStepsPerUs * 1000000.0f));
+      frameEndV3();
+      return;
+    }
+
+    case OP_DIRECTION_V3:
+      if (frame.len != 1) { respondFrameErrorV3(seq, ERR_BAD_VALUE_V3); return; }
+      setDirV2(frame.payload[0] != 0);
+      frameStartV3(op, seq, 1);
+      frameWriterV3.byte(runV2.dir ? 1 : 0);
+      frameEndV3();
+      return;
+
+    case OP_ENABLED_V3: {
+      if (frame.len != 1) { respondFrameErrorV3(seq, ERR_BAD_VALUE_V3); return; }
+      const bool enable = frame.payload[0] != 0;
+      setEnableV2(enable);
+      if (!enable) {
+        runV2.running = false;
+        runV2.stopRequested = false;
+        runV2.actualSpeedSps = 0.0f;
+        runV2.desiredSpeedSps = 0.0f;
+        runV2.nextStepUs = 0;
+        runV2.lastStepperUs = 0;
+        runV2.stepAcc = 0.0f;
+      }
+      frameStartV3(op, seq, 1);
+      frameWriterV3.byte(runV2.enabled ? 1 : 0);
+      frameEndV3();
+      return;
+    }
+
+    case OP_DELTA_V3:
+      if (frame.len != 4) { respondFrameErrorV3(seq, ERR_BAD_VALUE_V3); return; }
+      setDeltaV2((long)argI32);
+      frameStartV3(op, seq, 9);
+      frameWriterV3.i32(argI32);
+      frameWriterV3.i32((int32_t)runV2.target);
+      frameWriterV3.byte(runV2.hasTarget ? 1 : 0);
+      frameEndV3();
+      return;
+
+    case OP_MODE_V3:
+      if (frame.len != 1 || frame.payload[0] > 1) { respondFrameErrorV3(seq, ERR_BAD_VALUE_V3); return; }
+      runV2.freeRideMode = (frame.payload[0] == 1);
+      frameStartV3(op, seq, 1);
+      frameWriterV3.byte(runV2.freeRideMode ? 1 : 0);
+      frameEndV3();
+      return;
+
+    case OP_MICROSTEPS_V3: {
+      // No payload reads the parameter, two bytes write it.
+      if (frame.len != 0 && frame.len != 2) { respondFrameErrorV3(seq, ERR_BAD_VALUE_V3); return; }
+      if (frame.len == 2) {
+        const uint16_t requested = framePayloadU16V3(frame.payload);
+        if (requested < 1 || requested > 256) { respondFrameErrorV3(seq, ERR_RANGE_V3); return; }
+        if (!isMicrostepsAllowedV2(requested)) { respondFrameErrorV3(seq, ERR_INVALID_MICROSTEPS_V3); return; }
+        driver.microsteps(requested);
+        ledStateV2.microsteps = requested;
+        ledStateV2.stepColorCycle = 200UL * (uint32_t)requested;
+        ledStateV2.lastStepForColor = LONG_MIN;
+      }
+      frameStartV3(op, seq, 2);
+      frameWriterV3.u16(microstepsFromChopconfV2(driver.CHOPCONF()));
+      frameEndV3();
+      return;
+    }
+
+    case OP_RUN_V3:
+      runV2.running = true;
+      runV2.stopRequested = false;
+      if (!runV2.enabled) setEnableV2(true);
+      runV2.lastUpdateUs = micros();
+      runV2.lastStepperUs = 0;
+      runV2.stepAcc = 0.0f;
+      frameStartV3(op, seq, 1);
+      frameWriterV3.byte(1);
+      frameEndV3();
+      return;
+
+    case OP_STOP_V3:
+      runV2.stopRequested = true;
+      runV2.running = true;
+      runV2.lastUpdateUs = micros();
+      runV2.lastStepperUs = 0;
+      frameStartV3(op, seq, 1);
+      frameWriterV3.byte(1);
+      frameEndV3();
+      return;
+
+    default:
+      respondFrameErrorV3(seq, ERR_UNKNOWN_CMD_V3);
+      return;
+  }
+}
+
 void serviceSerialv2() {
   // Non-blocking block read + scan for '\n'. Avoids per-char Stream parsing overhead,
   // but still correctly detects line endings.
@@ -1128,7 +1332,14 @@ void serviceSerialv2() {
       if (c == '\n') {
         lineBufV2[lineLenV2] = 0;
         const uint32_t start = micros();
-        handleLineV2(lineBufV2);
+        // A marker anywhere in the line means a frame: not only at position 0,
+        // because the FIFO can leave a stump in front of it. No line command
+        // contains '#', so the two dialects cannot be confused for one another.
+        if (strchr(lineBufV2, '#') != nullptr) {
+          handleFrameV3(lineBufV2);
+        } else {
+          handleLineV2(lineBufV2);
+        }
         profiler.serialLastProcessed = micros() - start;
         lineLenV2 = 0;
         continue;
