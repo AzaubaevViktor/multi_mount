@@ -1,0 +1,292 @@
+# multi_mount project + tooling configuration.
+#
+# NOTE: this project is NOT packaged/installed. It runs as `python -m src` from the
+# repository root (see src/__main__.py, which bootstraps sys.path itself), and tests
+# import modules as top-level names via pytest's `pythonpath = src`.
+# Therefore there is deliberately no [build-system] section: [project] here is
+# metadata + a single machine-readable place to declare dependencies for CI.
+
+[project]
+name = "multi-mount"
+version = "0.1.0"
+description = "Hybrid telescope mount: SkyWatcher RA + TMC2209 DEC behind a single LX200 endpoint"
+requires-python = ">=3.14"
+dependencies = [
+    "pyserial>=3.5",
+]
+
+[project.optional-dependencies]
+# Everything needed to run the checks in .github/workflows/ci.yml and .pre-commit-config.yaml.
+dev = [
+    "pytest>=9.0",
+    "ruff>=0.16",
+    "pre-commit>=4.0",
+]
+
+[project.urls]
+Repository = "https://github.com/AzaubaevViktor/multi_mount"
+
+
+# --------------------------------------------------------------------------------------
+# pytest
+# --------------------------------------------------------------------------------------
+# Moved here from pytest.ini verbatim. rootdir stays the repository root (the directory
+# holding this file), which src/tests/base/conftest.py relies on for `relpath` logging
+# and for the logs/ session directory.
+[tool.pytest.ini_options]
+testpaths = ["src/tests"]
+pythonpath = ["src"]
+log_cli = true
+log_cli_level = "INFO"
+log_level = "DEBUG"
+log_cli_format = "[%(levelname)6s] %(relativeCreated).3f %(name)s  %(relpath)s:%(lineno)d %(funcName)s: %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+log_format = "%(asctime)s [%(levelname)6s] %(relativeCreated).3f %(name)s  %(relpath)s:%(lineno)d %(funcName)s: %(message)s"
+log_date_format = "%Y-%m-%d %H:%M:%S"
+
+
+# --------------------------------------------------------------------------------------
+# ruff
+# --------------------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py314"
+line-length = 120
+src = ["src"]
+extend-exclude = [
+    "logs",
+    "references",
+    "telescope_dec",  # PlatformIO firmware sketch dir, not Python application code
+]
+
+[tool.ruff.lint]
+# Rationale for this selection (this is a threaded, serial-protocol, domain-typed codebase):
+#
+#   E, W, F   pycodestyle + pyflakes: the non-negotiable baseline (dead imports, shadowing,
+#             undefined names, line length).
+#   I         import order. 38 files are currently unsorted; a stable order makes the
+#             frequent `from sky.physics import ...` churn reviewable.
+#   UP        pyupgrade. The project pins Python 3.14; typing.Optional/List and
+#             `datetime.timezone.utc` leftovers should not creep back in.
+#   B         bugbear. Highest value here: mutable/call-in-default arguments (B006/B008)
+#             are a real hazard for the dataclass-heavy sky/ domain types.
+#   RUF       includes RUF012 (mutable class attribute) — motor drivers keep protocol
+#             tables as class attributes; and RUF046/RUF057 (redundant int()/round())
+#             which show up in step<->angle conversions.
+#   PL        pylint subset. PLW1641 (__eq__ without __hash__) matters because sky/physics.py
+#             defines rich dunder arithmetic; PLR09xx complexity limits fence off the
+#             LX200 command dispatch from growing further.
+#   C90       mccabe, with a raised threshold (see below) — protocol dispatch is branchy
+#             by nature, but not unboundedly so.
+#   SIM, RET, C4, PIE, PERF, FURB, FLY
+#             mechanical simplification; cheap to satisfy, keeps diffs small.
+#   ARG       unused arguments. Motor backends implement a common interface, so ARG002 is
+#             partly by design (see baseline below), but ARG001 catches real leftovers.
+#   BLE, TRY  `except Exception:` swallowing is exactly how the March 2026 serial sessions
+#             died silently (see PLAN.md P2/P3); these rules make each one visible.
+#   LOG, G    logging correctness: the whole diagnosis workflow is log-driven, so
+#             f-strings in log calls / exc_info misuse are real bugs, not style.
+#   DTZ       naive datetimes — log session directories and plate-solve timestamps mix
+#             aware and naive values today.
+#   T20       no bare `print()` in application code: output goes through
+#             src/terminal_output.py + src/stdout_dashboard.py. Currently clean (0 hits),
+#             so this rule is a guard, not debt.
+#   S         bandit. Almost everything it finds here is in tests (asserts), which are
+#             exempted below; the few remaining hits are worth a look.
+#   PT        pytest style, for a suite that is the main safety net.
+#   N, A, ERA, EXE, INT, YTT, SLOT, TID, ICN, FA
+#             small, low-noise hygiene rules.
+#
+# Deliberately NOT selected:
+#   D     — the codebase has no docstring culture at all (~800 hits); enforcing it now
+#           would be a documentation project, not a lint config.
+#   ANN   — 230+ hits. Belongs with the (separate) mypy task, not before it.
+#   COM, ISC, Q — trailing commas / implicit concat / quote style are the formatter's job
+#           and COM812+ISC001 actively conflict with `ruff format`.
+#   EM, TRY003 — the project intentionally raises with f-string messages; 200+ hits of
+#           "move the message into the exception class" is pure churn.
+#   FBT   — 50 hits, all of them API-shape changes to public motor/axis methods.
+#   TC    — moving imports into `if TYPE_CHECKING` blocks is a micro-optimisation and is
+#           risky next to runtime-introspected dataclasses.
+#   ASYNC — there is no async code in this repository.
+select = [
+    "A", "ARG", "B", "BLE", "C4", "C90", "DTZ", "E", "ERA", "EXE", "F", "FA", "FLY",
+    "FURB", "G", "I", "ICN", "INT", "LOG", "N", "PERF", "PIE", "PL", "PT", "RET",
+    "RUF", "S", "SIM", "SLF", "SLOT", "T20", "TID", "TRY", "UP", "W", "YTT",
+]
+
+ignore = [
+    # -- permanent, intent-driven -------------------------------------------------------
+    "PLR2004",  # magic-value-comparison: serial protocol code compares against raw
+                # opcodes/step counts constantly; naming every one of them is noise.
+    "TRY003",   # see "deliberately not selected" above (TRY is selected as a family).
+    "PLR0904",  # too-many-public-methods: LX200/axis facades are intentionally wide.
+    "SIM105",   # contextlib.suppress instead of try/except/pass — hurts readability in
+                # the serial teardown paths where the except body is documented.
+]
+
+[tool.ruff.lint.per-file-ignores]
+# -- intent, not debt -------------------------------------------------------------------
+"src/tests/**/*.py" = [
+    "S101",     # assert *is* the test
+    "SLF001",   # tests deliberately reach into private state of motors/axes
+    "ARG005",   # throwaway `lambda *_: ...` stubs standing in for callbacks
+    "T20",      # ad-hoc print() in a test is acceptable
+]
+# src/__main__.py mutates sys.path before importing project modules — that is the
+# documented entry-point bootstrap, not an accident.
+"src/__main__.py" = ["E402", "SLF001"]  # SLF001 is BASELINE, see below
+
+# -- BASELINE (file-scoped, so these rules stay enforced everywhere else) ----------------
+# src/stdout_dashboard.py renders internal axis/combiner state (27 hits) and
+# src/__main__.py probes `axis._motor` for the startup readiness check (1 hit).
+# Both are the "reaching into lower-level internals" that AGENTS.md rule 3 forbids;
+# the fix is to widen the axis/combiner monitor API, which is a design task.
+"src/stdout_dashboard.py" = ["SLF001"]
+"src/lx200/base.py" = ["TID252"]           # 1 relative import left
+"src/web_control/example.py" = ["ARG005"]  # web UI is slated for a rewrite (PLAN.md P5)
+"polar_align.py" = ["E402"]                # 1 import after a `sys.path` tweak
+
+# =======================================================================================
+# BASELINE: existing debt, frozen so that CI is green from day one.
+# =======================================================================================
+# Every code below is a *temporary* repo-wide exemption for code that already violates it.
+# Counts are as of 2026-07-25 (ruff 0.16.0, line-length 120): 571 findings in total,
+# 204 of them auto-fixable. Nothing here is suppressed with an inline `# noqa`.
+# The follow-up task "fix lint violations" deletes these entries one at a time.
+#
+# To see the full, unfiltered debt at any moment (this keeps the intentional exemptions
+# above and drops only the baseline):
+#
+#   ruff check --statistics --config "lint.per-file-ignores={\
+#     'src/tests/**/*.py'=['S101','SLF001','ARG005','T20'],'src/__main__.py'=['E402']}"
+#
+# NOTE (verified against ruff 0.16.0): `--config "lint.ignore=[...]"` alone does NOT work
+# (ruff resolves select/ignore as a pair), and CLI `--extend-select` does not bypass
+# per-file-ignores either. Overriding `lint.per-file-ignores` as shown above is the way in.
+"*" = [
+    "E501",     # 97  line-too-long (worst: 209 chars, src/sky/polar_compensator.py:143)
+    "W293",     # 92  blank-line-with-whitespace
+    "ARG002",   # 65  unused-method-argument — largely the shared motor/axis interface
+    "I001",     # 39  unsorted-imports. Touches nearly every file, so unfreezing it while
+                #     another agent edits the drivers would be a rebase minefield; it is
+                #     a pure `ruff check --fix` away.
+    "RUF046",   # 22  unnecessary-cast-to-int (step <-> angle conversions)
+    "UP037",    # 16  quoted-annotation
+    "W291",     # 16  trailing-whitespace
+    "PT006",    # 14  pytest-parametrize-names-wrong-type
+    "RUF059",   # 14  unused-unpacked-variable
+    "UP035",    # 12  deprecated-import
+    "PT007",    # 10  pytest-parametrize-values-wrong-type
+    "PLR0912",  # 7   too-many-branches (already measured against max-branches = 15)
+    "PT011",    # 7   pytest-raises-too-broad
+    "TRY004",   # 7   type-check-without-type-error
+    "C901",     # 6   complex-structure (already measured against max-complexity = 15)
+    "F401",     # 6   unused-import (all in src/tests/hw)
+    "PLR0915",  # 6   too-many-statements
+    "SIM108",   # 6   if-else-block-instead-of-if-exp
+    "UP017",    # 6   datetime-timezone-utc
+    "F811",     # 5   redefined-while-unused (pytest fixtures imported across hw modules)
+    "PT018",    # 5   pytest-composite-assertion
+    "TRY301",   # 5   raise-within-try
+    "UP006",    # 5   non-pep585-annotation
+    "UP049",    # 5   private-type-parameter
+    "A002",     # 4   builtin-argument-shadowing (`type=`, `id=` parameters)
+    "BLE001",   # 4   blind-except — PLAN.md P2/P3; fixing these changes behaviour
+    "ARG001",   # 3   unused-function-argument
+    "ERA001",   # 3   commented-out code (src/serial_wrapper/wrapper.py:178,183,230 —
+                #     the disabled raw-serial logging that PLAN.md §0 wants back)
+    "N818",     # 3   error-suffix-on-exception-name (renaming these is a public API change)
+    "PLR0911",  # 3   too-many-return-statements
+    "PLR0913",  # 3   too-many-arguments (already measured against max-args = 8)
+    "PT019",    # 3   pytest-fixture-param-without-value
+    "RET504",   # 3   unnecessary-assign
+    "B008",     # 2   function-call-in-default-argument
+    "DTZ001",   # 2   naive datetime()
+    "DTZ005",   # 2   naive datetime.now()
+    "FURB188",  # 2   slice-to-remove-prefix-or-suffix
+    "PLC0415",  # 2   import-outside-top-level
+    "PLR5501",  # 2   collapsible-else-if
+    "RET505",   # 2   superfluous-else-return
+    "UP045",    # 2   non-pep604-annotation-optional
+    "UP047",    # 2   non-pep695-generic-function
+    "DTZ006",   # 1   naive datetime.fromtimestamp()
+    "F541",     # 1   f-string-missing-placeholders
+    "FURB136",  # 1   if-expr-min-max
+    "PERF401",  # 1   manual-list-comprehension
+    "PLR0917",  # 1   too-many-positional-arguments
+    "PLW0108",  # 1   unnecessary-lambda
+    "PLW1641",  # 1   eq-without-hash (src/sky/physics.py:18 — real, needs a design call:
+                #     the domain types are compared and could plausibly be dict keys)
+    "RET503",   # 1   implicit-return
+    "RET508",   # 1   superfluous-else-break
+    "RUF005",   # 1   collection-literal-concatenation
+    "RUF012",   # 1   mutable-class-default (src/skywatcher/motor.py:136)
+    "RUF022",   # 1   unsorted-dunder-all
+    "RUF036",   # 1   none-not-at-end-of-union
+    "RUF057",   # 1   unnecessary-round
+    "S108",     # 1   hardcoded /tmp path in a test
+    "S311",     # 1   non-cryptographic random (fine, but flagged consciously)
+    "S324",     # 1   hashlib.sha1 for test-log filenames (needs usedforsecurity=False)
+    "TRY300",   # 1   try-consider-else
+    "UP012",    # 1   unnecessary-encode-utf8
+    "W292",     # 1   missing-newline-at-end-of-file
+    "RUF100",   # 1   unused-noqa. Pure artifact of this baseline:
+                #     src/tests/units/test_red_p2_usb_unplug.py:120 carries
+                #     `# noqa: BLE001`, which only *looks* unused because BLE001 is
+                #     frozen above. Unfreeze the two together.
+]
+
+[tool.ruff.lint.flake8-self]
+# `sys._getframe` is a documented CPython entry point, not someone else's private state.
+extend-ignore-names = ["_getframe"]
+
+[tool.ruff.lint.mccabe]
+# LX200 command dispatch and the serial framing loops are legitimately branchy.
+# 15 keeps the existing worst offenders visible without flagging every dispatcher.
+max-complexity = 15
+
+[tool.ruff.lint.pylint]
+max-args = 8
+max-branches = 15
+max-statements = 60
+
+[tool.ruff.lint.isort]
+known-first-party = [
+    "logging_setup", "lx200", "manual_control", "serial_wrapper", "sim", "sky",
+    "skywatcher", "stdout_dashboard", "terminal_output", "tests", "tmc2209",
+    "utils", "web_control",
+]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.format]
+# Configured but NOT yet enforced: `ruff format` would rewrite ~1/3 of the repository,
+# which is a separate, dedicated commit. Neither CI nor the pre-commit hook runs it.
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+docstring-code-format = false
+
+
+# --------------------------------------------------------------------------------------
+# mypy — intentionally NOT enabled yet (separate task).
+# --------------------------------------------------------------------------------------
+# When enabling, this section is the place to start:
+#
+# [tool.mypy]
+# python_version = "3.14"
+# mypy_path = "src"
+# namespace_packages = true
+# explicit_package_bases = true          # src/ has mostly implicit namespace packages
+# files = ["src"]
+# exclude = ["^src/tests/hw/"]
+# warn_unused_ignores = true
+# warn_redundant_casts = true
+# # Start permissive, then tighten module by module:
+# check_untyped_defs = true
+# disallow_untyped_defs = false
+#
+# [[tool.mypy.overrides]]
+# module = ["serial.*"]
+# ignore_missing_imports = true          # pyserial ships no py.typed marker

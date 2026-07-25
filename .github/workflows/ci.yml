@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-test:
+    name: ruff + unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          # Matches `requires-python` in pyproject.toml. The code relies on 3.14
+          # semantics (PEP 649 deferred annotations in src/sky/physics.py).
+          python-version: '3.14'
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      # The project is not pip-installable on purpose (it runs as `python -m src`,
+      # see the note at the top of pyproject.toml), so there is no `pip install .`
+      # and no requirements.txt. pyproject.toml stays the single source of truth and
+      # the dependency list is materialised here.
+      - name: Resolve dependencies from pyproject.toml
+        run: |
+          python - <<'PY' > "$RUNNER_TEMP/requirements-ci.txt"
+          import tomllib
+
+          with open("pyproject.toml", "rb") as handle:
+              project = tomllib.load(handle)["project"]
+
+          for spec in project["dependencies"] + project["optional-dependencies"]["dev"]:
+              print(spec)
+          PY
+          cat "$RUNNER_TEMP/requirements-ci.txt"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r "$RUNNER_TEMP/requirements-ci.txt"
+
+      - name: ruff check
+        run: ruff check --output-format=github .
+
+      # Non-blocking visibility into the frozen lint baseline (see pyproject.toml).
+      # This step is expected to report findings; it must never fail the build.
+      - name: ruff — lint debt behind the baseline (informational)
+        if: always()
+        continue-on-error: true
+        run: |
+          ruff check --statistics --config "lint.per-file-ignores={\
+            'src/tests/**/*.py'=['S101','SLF001','ARG005','T20'],'src/__main__.py'=['E402']}" . \
+            | tee "$RUNNER_TEMP/lint-debt.txt" || true
+          {
+            echo '### Lint debt currently frozen by the ruff baseline'
+            echo
+            echo '```'
+            cat "$RUNNER_TEMP/lint-debt.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # ONLY src/tests/units. src/tests/hw needs a physically attached mount and
+      # fails collection without it (SerialLineSearchNotFound: no match for pattern
+      # 'PL2303G' in '/dev'), which would drown the signal. The explicit path
+      # overrides `testpaths` from pyproject.toml.
+      # log_cli_level is raised to WARNING so a green run stays readable; full DEBUG
+      # logs are still written to logs/ by src/tests/base/conftest.py and uploaded
+      # below when something fails.
+      - name: pytest (unit tests only)
+        run: pytest src/tests/units -q -o log_cli_level=WARNING
+
+      - name: Upload pytest logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-logs
+          path: logs/
+          retention-days: 7
+          if-no-files-found: ignore

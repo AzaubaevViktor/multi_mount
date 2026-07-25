@@ -1,0 +1,41 @@
+# Install once:  .venv/bin/pre-commit install
+# Run manually:  .venv/bin/pre-commit run --all-files
+#
+# Deliberately fast: ruff (~50 ms) + the unit suite (~4 s). No formatter, no hw tests,
+# nothing that rewrites files — a hook you are tempted to skip is a hook that is skipped.
+
+exclude: '^(logs|references|telescope_dec|\.golos|\.pytest_cache)/'
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.0
+    hooks:
+      # `ruff check` only. No `--fix`: mass-fixing the frozen baseline is a separate,
+      # reviewable commit, not something a commit hook should do behind your back.
+      # `ruff format` is configured in pyproject.toml but intentionally not wired up yet.
+      # (the hook already passes --force-exclude itself)
+      - id: ruff-check
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      # Read-only checks only — none of these rewrite tracked files.
+      - id: check-toml           # keeps pyproject.toml parseable
+      - id: check-yaml           # keeps .github/workflows/*.yml parseable
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=512]
+      - id: debug-statements     # no stray breakpoint()/pdb in a mount control loop
+
+  - repo: local
+    hooks:
+      - id: pytest-units
+        name: pytest src/tests/units
+        # Uses the project venv explicitly: `git commit` from an IDE or a plain shell
+        # usually has no venv activated, and src/tests/hw needs real hardware, so the
+        # path is pinned to the unit suite.
+        entry: .venv/bin/python -m pytest src/tests/units -q -x -o log_cli=false
+        language: system
+        pass_filenames: false
+        types: [python]
+        stages: [pre-commit]
