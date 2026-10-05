@@ -70,9 +70,9 @@ CALM_INTERVAL_S = 25.0
 STABLE_ROUNDS = 4
 LOG_DIR = Path(__file__).resolve().parents[2] / "logs" / "protocol"
 
-# VERSION byte in IOIN, used only to name the chip once it answers. The board here
-# carries a TMC2225, which is a TMC2208 variant and reports 0x20; requiring 0x21 was a
-# bug that would have called a working link a silent one.
+# VERSION byte in IOIN, used only to name the chip once it answers. The repaired board
+# repeatedly reports 0x21 (TMC2209); 0x20 stays recognized so the scanner also works
+# with TMC2208/2224/2225 modules.
 CHIP_NAMES = {0x20: "двадцать два ноль восемь или двадцать два двадцать пять", 0x21: "двадцать два ноль девять"}
 
 

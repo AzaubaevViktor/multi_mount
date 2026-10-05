@@ -30,12 +30,29 @@ import time
 import pytest
 
 from sim.realtime import RealtimeClock
+from tmc2209.motor import TMC2209MotorEchoMismatchError
 from tools.sim_stack import SimStack, build_sim_stack
 
 # Long enough for the motion convertor thread to pick the command up and for the
 # board to put counts on the axis, short enough to keep the unit suite quick.
 # The RA axis moves thousands of counts in this time at the manual rate.
 _SETTLE_S = 0.6
+
+
+@pytest.mark.parametrize("broken_uart", [False, True])
+def test_dec_microstep_writes_follow_the_selected_board_configuration(broken_uart: bool) -> None:
+    built = build_sim_stack(dec_config={"uart_to_driver_dead": True} if broken_uart else None)
+    built.dec_motor.connect()
+    try:
+        if broken_uart:
+            with pytest.raises(TMC2209MotorEchoMismatchError):
+                built.dec_motor.set_microsteps(32)
+            assert built.dec_sim.microsteps == 16
+        else:
+            assert built.dec_motor.set_microsteps(32)
+            assert built.dec_sim.microsteps == 32
+    finally:
+        built.dec_motor.disconnect()
 
 
 @pytest.fixture

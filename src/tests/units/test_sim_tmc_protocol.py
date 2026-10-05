@@ -49,17 +49,38 @@ def test_dtr_reset_reboots_and_delays_ready_by_one_drain() -> None:
 def test_status_snapshot_matches_firmware_key_order() -> None:
     """Byte for byte what the reflashed board answered on the bench (task #19).
 
-    The live reply differed only in `power_v=12.10`, the supply actually measured
-    at the time; `tx_overflow` is last, after `power_v`, exactly as
-    `handleLineV2` appends it.
+    The safety and microstep fields follow the original motion snapshot without
+    changing the established field order.
     """
     sim = _make_sim()
 
     assert _exchange(sim, "status\n") == (
         "1;initialised=1;enabled=0;mode=target;position=0;phase=idle;"
         "target=0;target_set=0;speed=500.00;actual_speed=0.00;"
-        "accel_per_s=1000.00;power_v=12.00;tx_overflow=0;\n"
+        "accel_per_s=1000.00;power_v=12.00;tx_overflow=0;"
+        "drv_flags=0;safety=normal;mres=16;fine_mres=16;limit=40000;\n"
     )
+
+
+def test_worst_case_line_status_still_fits_the_tx_ring() -> None:
+    sim = TMC2209Sim(Clock(), power_v=26.39, tx_ring_capacity=TX_RING_CAPACITY)
+    sim.drain()
+    sim.position = -2147483648
+    sim.target = 2147483647
+    sim.speed_sps = 40000
+    sim.actual_sps = 40000
+    sim.accel_sps2 = 100000
+    sim.driver_flags = 0xFF
+    sim.safety = "shutdown"
+    sim.active_microsteps = 256
+    sim.microsteps = 256
+    sim.safety_events = 65535
+
+    answer = _exchange(sim, "status\n")
+
+    assert len(answer.encode("ascii")) <= TX_RING_CAPACITY
+    assert sim.tx_overflow == 0
+    assert "events=" not in answer
 
 
 def test_the_firmware_in_the_field_reports_no_tx_overflow_counter() -> None:
@@ -295,7 +316,7 @@ def _frame(sim: TMC2209Sim, op: int, seq: int, payload: bytes = b"") -> Frame:
 def test_framed_hello_answers_with_the_protocol_version() -> None:
     sim = _make_sim()
 
-    assert response_values(_frame(sim, Op.HELLO, 1)) == {"protocol": "3", "firmware": "1"}
+    assert response_values(_frame(sim, Op.HELLO, 1)) == {"protocol": "3", "firmware": "2"}
 
 
 def test_framed_status_carries_the_same_snapshot_as_the_line_dialect() -> None:
@@ -311,9 +332,85 @@ def test_framed_status_carries_the_same_snapshot_as_the_line_dialect() -> None:
     framed = response_values(_frame(sim, Op.STATUS, 7))
     line = _exchange(sim, "status\n")
 
-    # Every key, in the same order, including the TX-ring counter: the reflashed
-    # board reports it in both dialects (measured on the bench, task #19).
-    assert line == "1;" + "".join(f"{key}={value};" for key, value in framed.items()) + "\n"
+    # The framed snapshot also carries the safety event counter. It is the only
+    # omitted line field: a worst-case textual status must still fit the 255-byte ring.
+    line_fields = {key: value for key, value in framed.items() if key != "events"}
+    assert line == "1;" + "".join(f"{key}={value};" for key, value in line_fields.items()) + "\n"
+
+
+def test_target_motion_uses_full_steps_then_returns_to_fine_steps() -> None:
+    clock = Clock()
+    sim = _make_sim(clock)
+    _exchange(sim, "speed 1000\n")
+    _exchange(sim, "acceleration 0\n")
+    _exchange(sim, "delta 2000\n")
+    _exchange(sim, "run\n")
+
+    clock.advance(1.0)
+    assert response_values(_frame(sim, Op.STATUS, 1))["mres"] == "1"
+
+    clock.advance(0.5)
+    assert response_values(_frame(sim, Op.STATUS, 2))["mres"] == "16"
+
+    clock.advance(0.5)
+    final = response_values(_frame(sim, Op.STATUS, 3))
+    assert final["position"] == "2000"
+    assert final["mres"] == final["fine_mres"] == "16"
+
+
+def test_overtemperature_warning_derates_and_critical_fault_shuts_down() -> None:
+    clock = Clock()
+    sim = _make_sim(clock)
+    _exchange(sim, "acceleration 0\n")
+    _exchange(sim, "speed 40000\n")
+    _exchange(sim, "mode free_ride\n")
+    _exchange(sim, "run\n")
+
+    sim.driver_flags = 0x01
+    clock.advance(0.1)
+    derated = response_values(_frame(sim, Op.STATUS, 1))
+    assert derated["safety"] == "derated"
+    assert derated["limit"] == "1000"
+    assert derated["actual_speed"] == "1000.00"
+    assert derated["events"] == "1"
+
+    sim.driver_flags = 0x04
+    clock.advance(0.1)
+    shutdown = response_values(_frame(sim, Op.STATUS, 2))
+    assert shutdown["safety"] == "shutdown"
+    assert shutdown["enabled"] == "0"
+    assert response_values(_frame(sim, Op.RUN, 3)) == {"error": "driver_fault"}
+
+    sim.driver_flags = 0
+    clock.advance(5.1)
+    recovered = response_values(_frame(sim, Op.STATUS, 4))
+    assert recovered["safety"] == "normal"
+    assert recovered["limit"] == "40000"
+
+
+def test_confirmed_stall_is_latched_reported_and_requires_explicit_acknowledgement() -> None:
+    clock = Clock()
+    sim = _make_sim(clock)
+    _exchange(sim, "acceleration 0\n")
+    _exchange(sim, "speed 1000\n")
+    _exchange(sim, "mode free_ride\n")
+    _exchange(sim, "run\n")
+
+    sim.sg_result = 2
+    clock.advance(1.3)
+    stalled = response_values(_frame(sim, Op.STATUS, 1))
+    assert stalled["drv_flags"] == "16"
+    assert stalled["safety"] == "shutdown"
+    assert stalled["enabled"] == "0"
+    assert stalled["events"] == "1"
+    assert response_values(_frame(sim, Op.RUN, 2)) == {"error": "driver_fault"}
+
+    assert response_values(_frame(sim, Op.ENABLED, 3, b"\x00")) == {"enabled": "0"}
+    acknowledged = response_values(_frame(sim, Op.STATUS, 4))
+    assert acknowledged["drv_flags"] == "0"
+    assert acknowledged["safety"] == "normal"
+    assert acknowledged["events"] == "1"
+    assert response_values(_frame(sim, Op.RUN, 5)) == {"running": "1"}
 
 
 def test_framed_setters_echo_the_value_that_was_applied() -> None:
@@ -386,13 +483,13 @@ def test_the_same_two_commands_do_not_overflow_the_ring_when_framed() -> None:
     sim.feed((encode_frame(Op.STATUS, 1) + encode_frame(Op.STATUS, 2)).encode("ascii"))
     out = sim.drain()
 
-    assert len(out) == 128
+    assert len(out) == 176
     assert sim.tx_overflow == 0
     assert response_values(decode_response(out.decode("ascii"), op=Op.STATUS, seq=2))["position"] == "0"
 
 
 def test_the_current_firmware_replaces_an_overflowing_reply_with_a_marker() -> None:
-    sim = TMC2209Sim(Clock(), tx_ring_capacity=100)
+    sim = TMC2209Sim(Clock(), tx_ring_capacity=110)
     sim.drain()
 
     sim.feed((encode_frame(Op.STATUS, 1) + encode_frame(Op.STATUS, 2)).encode("ascii"))

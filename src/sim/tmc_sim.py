@@ -87,6 +87,21 @@ MICROSTEPS_ALLOWED = {1, 2, 4, 8, 16, 32, 64, 128, 256}
 
 _MAX_SPEED_SPS = 40000
 _MAX_ACCEL_SPS2 = 100000
+_DERATED_SPEED_LIMIT_SPS = 1000
+_FINE_APPROACH_FULL_STEPS = 32
+
+_DRIVER_FLAG_OTPW = 0x01
+_DRIVER_FLAG_OT = 0x02
+_DRIVER_FLAG_SHORT = 0x04
+_DRIVER_FLAG_STALL = 0x10
+
+_STALL_POLL_INTERVAL_S = 0.2
+_STALL_ARM_TIME_S = 0.8
+_STALL_MIN_SPEED_SPS = 500
+_STALL_STRONG_SG = 8
+_STALL_LOADED_SG = 20
+_STALL_CLEAR_SG = 40
+_STALL_SCORE_LIMIT = 6
 
 _INTEGRATION_SUBSTEP_S = 0.01
 
@@ -95,7 +110,7 @@ _INTEGRATION_SUBSTEP_S = 0.01
 TX_RING_CAPACITY = 255
 RX_FIFO_CAPACITY = 64
 
-_FIRMWARE_BUILD = 1
+_FIRMWARE_BUILD = 2
 
 # Command names, kept as the single vocabulary of the fault script: a test targets
 # `command="status"` and gets the same fault whichever dialect asked for it.
@@ -127,6 +142,7 @@ _ERROR_NAMES: dict[int, str] = {
     ErrorCode.TX_OVERFLOW: "tx_overflow",
     ErrorCode.BAD_CRC: "bad_crc",
     ErrorCode.BAD_FRAME: "bad_frame",
+    ErrorCode.DRIVER_FAULT: "driver_fault",
 }
 
 
@@ -162,12 +178,8 @@ class TMC2209Sim:
         rx_capacity: int | None = None,
         uart_to_driver_dead: bool = False,
     ) -> None:
-        # The board this models: the UART between the Arduino and the TMC2209 is
-        # electrically broken, measured with `tools.dec_wirescan` (one wire in the
-        # air, the other on ground). The firmware still accepts `set microsteps=N`
-        # and still answers — it just talks to nothing, so the strapped value keeps
-        # running. Modelling it is the only way to test that the driver refuses to
-        # believe a write it cannot confirm (DEC_PROTOCOL.md §4, FRAME.md §3.6).
+        # This flag preserves the historical broken-UART/failure mode. The repaired
+        # board normally talks to the driver and confirms each microstep write.
         self.uart_to_driver_dead = uart_to_driver_dead
         self._clock = clock
         self.faults = FaultScript()
@@ -197,6 +209,17 @@ class TMC2209Sim:
         self.accel_sps2 = 1000.0
         self.position = 0.0
         self.microsteps = 16
+        self.active_microsteps = 16
+        self.driver_flags = 0
+        self.sg_result = 100
+        self.stall_latched = False
+        self._stall_eligible_s = 0.0
+        self._stall_poll_s = 0.0
+        self._stall_score = 0
+        self.safety = "normal"
+        self.safety_events = 0
+        self.speed_limit_sps = _MAX_SPEED_SPS
+        self._safety_clear_s = 0.0
         self.tx_overflow = 0
         self.rx_dropped = 0
         self._seq = 0
@@ -252,11 +275,33 @@ class TMC2209Sim:
             self._step_motion(step)
 
     def _step_motion(self, dt: float) -> None:
+        if self.driver_flags & (_DRIVER_FLAG_OT | _DRIVER_FLAG_SHORT):
+            if self.safety != "shutdown":
+                self.safety_events += 1
+            self.safety = "shutdown"
+            self.speed_limit_sps = 0
+            self.enabled = False
+            self.active_microsteps = self.microsteps
+            self._safety_clear_s = 0.0
+        elif self.driver_flags & _DRIVER_FLAG_OTPW:
+            if self.safety == "normal":
+                self.safety_events += 1
+            self.safety = "derated"
+            self.speed_limit_sps = _DERATED_SPEED_LIMIT_SPS
+            self._safety_clear_s = 0.0
+        elif self.safety != "normal" and not self.stall_latched:
+            self._safety_clear_s += dt
+            if self._safety_clear_s >= 5.0:
+                self.safety = "normal"
+                self.speed_limit_sps = _MAX_SPEED_SPS
+                self._safety_clear_s = 0.0
+
         if not self.enabled:
             self.actual_sps = 0.0
             self.desired_sps = 0.0
             self.running = False
             self.stop_requested = False
+            self.active_microsteps = self.microsteps
             return
 
         if self.running and self.has_target and not self.free_ride:
@@ -266,9 +311,22 @@ class TMC2209Sim:
                 return
             self.dir_negative = delta < 0
 
+            stopping_distance = (
+                (self.actual_sps * self.actual_sps) / (2.0 * self.accel_sps2)
+                if self.accel_sps2 > 0.0
+                else 0.0
+            )
+            fine_approach = stopping_distance + self.microsteps * _FINE_APPROACH_FULL_STEPS
+            if self.active_microsteps == 1 and abs(delta) <= fine_approach:
+                self.active_microsteps = self.microsteps
+            elif self.active_microsteps != 1 and self.actual_sps <= 0.0 and abs(delta) > fine_approach:
+                self.active_microsteps = 1
+        else:
+            self.active_microsteps = self.microsteps
+
         desired = 0.0
         if not self.stop_requested and self.running:
-            desired = self.speed_sps
+            desired = min(self.speed_sps, self.speed_limit_sps)
 
         if self.has_target and not self.free_ride and desired > 0.0 and self.accel_sps2 > 0.0:
             remaining = self.target - self.position
@@ -292,6 +350,45 @@ class TMC2209Sim:
             self.actual_sps = 0.0
             self.desired_sps = 0.0
 
+        stall_eligible = (
+            self.enabled
+            and self.running
+            and not self.stop_requested
+            and self.safety in {"normal", "derated"}
+            and self._phase() == "running"
+            and self.actual_sps >= _STALL_MIN_SPEED_SPS
+        )
+        if not stall_eligible:
+            self._stall_eligible_s = 0.0
+            self._stall_poll_s = 0.0
+            self._stall_score = 0
+        elif not self.stall_latched:
+            self._stall_eligible_s += dt
+            if self._stall_eligible_s >= _STALL_ARM_TIME_S:
+                self._stall_poll_s += dt
+                if self._stall_poll_s >= _STALL_POLL_INTERVAL_S:
+                    self._stall_poll_s -= _STALL_POLL_INTERVAL_S
+                    if self.sg_result <= _STALL_STRONG_SG:
+                        self._stall_score = min(self._stall_score + 3, _STALL_SCORE_LIMIT)
+                    elif self.sg_result <= _STALL_LOADED_SG:
+                        self._stall_score = min(self._stall_score + 1, _STALL_SCORE_LIMIT)
+                    elif self.sg_result >= _STALL_CLEAR_SG:
+                        self._stall_score = max(self._stall_score - 1, 0)
+
+                    if self._stall_score >= _STALL_SCORE_LIMIT:
+                        self.stall_latched = True
+                        self.driver_flags |= _DRIVER_FLAG_STALL
+                        self.safety_events += 1
+                        self.safety = "shutdown"
+                        self.speed_limit_sps = 0
+                        self.enabled = False
+                        self.running = False
+                        self.stop_requested = False
+                        self.actual_sps = 0.0
+                        self.desired_sps = 0.0
+                        self.active_microsteps = self.microsteps
+                        return
+
         if self.actual_sps > 0.0:
             travel = self.actual_sps * dt
             self.position += -travel if self.dir_negative else travel
@@ -307,6 +404,7 @@ class TMC2209Sim:
         self.stop_requested = False
         self.actual_sps = 0.0
         self.desired_sps = 0.0
+        self.active_microsteps = self.microsteps
 
     def _phase(self) -> str:
         if not self.enabled:
@@ -354,7 +452,7 @@ class TMC2209Sim:
             self._tx.extend(marker)
 
     def _emit_legacy(self, command: str, reply: _Reply) -> None:
-        body = "".join(f"{key}={value};" for key, value in reply.pairs)
+        body = "".join(f"{key}={value};" for key, value in reply.pairs if key != "events")
         line = f"{'0' if reply.error is not None else '1'};{body}\n".encode("ascii")
         self._emit(line, command, b"0;error=tx_overflow;\n")
 
@@ -534,6 +632,14 @@ class TMC2209Sim:
                 # versions apart, and the counter arrived in the same commit as
                 # the frame parser.
                 pairs.append(("tx_overflow", str(self.tx_overflow)))
+                pairs.extend([
+                    ("drv_flags", str(self.driver_flags)),
+                    ("safety", self.safety),
+                    ("mres", str(self.active_microsteps)),
+                    ("fine_mres", str(self.microsteps)),
+                    ("limit", str(self.speed_limit_sps)),
+                    ("events", str(self.safety_events)),
+                ])
             return _Reply(pairs, encode_status_payload(
                 initialised=True,
                 enabled=self.enabled,
@@ -547,6 +653,12 @@ class TMC2209Sim:
                 accel_sps2=self.accel_sps2,
                 power_v=self.power_v,
                 tx_overflow=self.tx_overflow,
+                driver_flags=self.driver_flags,
+                safety=self.safety,
+                active_microsteps=self.active_microsteps,
+                fine_microsteps=self.microsteps,
+                speed_limit_sps=self.speed_limit_sps,
+                safety_events=self.safety_events,
             ))
 
         if op == Op.POSITION:
@@ -555,8 +667,23 @@ class TMC2209Sim:
             return _Reply([("position", str(value))], value.to_bytes(4, "big", signed=True))
 
         if op == Op.ENABLED:
+            if arg and self.safety == "shutdown":
+                return _Reply.failure(ErrorCode.DRIVER_FAULT)
             self.enabled = bool(arg)
             if not self.enabled:
+                if self.stall_latched:
+                    self.stall_latched = False
+                    self.driver_flags &= ~_DRIVER_FLAG_STALL
+                    self._stall_eligible_s = 0.0
+                    self._stall_poll_s = 0.0
+                    self._stall_score = 0
+                    if not self.driver_flags & (_DRIVER_FLAG_OT | _DRIVER_FLAG_SHORT):
+                        if self.driver_flags & _DRIVER_FLAG_OTPW:
+                            self.safety = "derated"
+                            self.speed_limit_sps = _DERATED_SPEED_LIMIT_SPS
+                        else:
+                            self.safety = "normal"
+                            self.speed_limit_sps = _MAX_SPEED_SPS
                 self.running = False
                 self.stop_requested = False
                 self.actual_sps = 0.0
@@ -595,6 +722,8 @@ class TMC2209Sim:
             return _Reply([("mode", MODE_NAMES[arg])], bytes((arg,)))
 
         if op == Op.RUN:
+            if self.safety == "shutdown":
+                return _Reply.failure(ErrorCode.DRIVER_FAULT)
             self.running = True
             self.stop_requested = False
             self.enabled = True
@@ -613,6 +742,7 @@ class TMC2209Sim:
                     return _Reply.failure(ErrorCode.INVALID_MICROSTEPS)
                 if not self.uart_to_driver_dead:
                     self.microsteps = arg
+                    self.active_microsteps = arg
             return _Reply([("microsteps", str(self.microsteps))], self.microsteps.to_bytes(2, "big"))
 
         return _Reply.failure(ErrorCode.UNKNOWN_CMD)

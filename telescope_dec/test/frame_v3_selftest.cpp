@@ -72,10 +72,13 @@ int main() {
   emitted.clear();
   frameWriteStatusV3(writer, 0x2A,
                      (uint8_t)(FRAME_FLAG_INITIALISED_V3 | FRAME_FLAG_ENABLED_V3 | FRAME_FLAG_TARGET_SET_V3),
-                     3, 123456, 200000, 1000.0f, 980.0f, 1000.0f, 12.34f, 7);
+                     3, 123456, 200000, 1000.0f, 980.0f, 1000.0f, 12.34f, 7,
+                     1, 1, 1, 16, 1000, 2);
   writer.end();
-  checkEqual(emitted, "#1A022A0B030001E24000030D40000186A000017ED0000186A004D200078986\n", "status reply");
-  check(emitted.size() == 64, "a status reply is 64 bytes (147 in the line protocol)");
+  checkEqual(emitted,
+             "#26022A0B030001E24000030D40000186A000017ED0000186A004D20007010100010010000003E800026A92\n",
+             "status reply");
+  check(emitted.size() == 88, "an extended status reply is 88 bytes");
 
   // 4. The receive path: a good frame, and every way of damaging it.
   char good[] = "#041107000003E8218D";

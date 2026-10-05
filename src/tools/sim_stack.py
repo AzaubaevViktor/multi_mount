@@ -28,11 +28,9 @@ drives the controllers this project actually owns:
 
 - the RA model already defaults to the measured Star Adventurer 2i (CPR
   12 492 146, 16 MHz timer, the 9 000 steps/s ceiling, the 1103 clamp);
-- the DEC model is given ``uart_to_driver_dead=True`` here, because that is the
-  state of the board on the bench — the UART between the Arduino and the
-  TMC2209 is electrically broken (``docs/protocol/DEC_PROTOCOL.md`` §4), and a
-  simulator that quietly had a working one would make the driver look healthier
-  in simulation than it is in the room.
+- the DEC model defaults to the repaired UART link documented in
+  ``docs/protocol/DEC_PROTOCOL.md`` §13. The former broken link remains available
+  through ``dec_config={"uart_to_driver_dead": True}`` for fault scenarios.
 
 Two defaults are deliberately *not* the hardware's:
 
@@ -118,8 +116,7 @@ def build_sim_stack(
     )
     ra_motor = SkyWatcherMotor(ra_line, clock)
 
-    dec_defaults: dict[str, Any] = {"uart_to_driver_dead": True}
-    dec_sim = TMC2209Sim(clock, **{**dec_defaults, **(dec_config or {})})
+    dec_sim = TMC2209Sim(clock, **(dec_config or {}))
     dec_line = SimSerialLine(
         dec_sim, clock, port="sim://dec", timeout_s=DEC_TIMEOUT_S, name="tmc", terminator="\n"
     )

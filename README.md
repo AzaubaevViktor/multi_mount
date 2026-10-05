@@ -17,7 +17,10 @@ The current Python runtime is built from:
 - `AxisRA` and `AxisDEC` for mount-position tracking, motion queuing, and motor compensation;
 - `SerialLine` for the low-level serial transport to both controllers.
 
-The DEC firmware lives in `telescope_dec/src/main.cpp`. It exposes a small line-based protocol (`status`, `position`, `speed`, `acceleration`, `direction`, `delta`, `run`, `stop`, `mode`, `set`) that the Python `TMC2209Motor` backend uses directly.
+The DEC firmware lives in `telescope_dec/src/main.cpp`. The Python backend detects
+the framed v3 protocol (length, sequence and CRC16), with fallback to the older
+line protocol. Both expose the same motion commands. The extended status reports
+driver faults, safety state, active microstep resolution and safety events.
 
 ## Scheme
 ```text
@@ -90,9 +93,20 @@ Expected runtime behavior:
 ## Start here
 
 `FRAME.md` — the goal of the project and the invariants that must not be broken.
-Each of them was paid for with either damaged hardware or lost time. `PLAN.md`
-says where the work stands right now; `OBSERVATORY.md` describes the product this
-layer is the foundation of.
+Each of them was paid for with either damaged hardware or lost time.
+`ARCHITECTURE.md` describes the runtime, `TESTS_PLAN.md` the checks, and
+`docs/protocol/DEC_PROTOCOL.md` the DEC protocol and recorded hardware findings.
+`PLAN.md` and `OBSERVATORY.md` are local planning documents excluded from Git.
+
+For a hardware-free session with a real LX200 client, use Python 3.14 or newer
+with the dependencies declared in `pyproject.toml`, then run:
+
+```sh
+python -m src --sim
+```
+
+The simulated mount listens on `localhost:7624`. `python -m src` selects the
+physical controllers using the serial-device patterns in `src/__main__.py`.
 
 ## Current TODO / known gaps
 
@@ -104,10 +118,15 @@ layer is the foundation of.
   question and no defect has been traced to it yet.
 - **The RA board reboots when a GOTO is allowed to reach its target** — reproduced
   on live hardware. The driver therefore never lets the board arrive on its own.
-- **UART to the TMC2209 does not work in either direction.** Every software
-  explanation has been tested and ruled out; the cause is physical. Until it is
-  fixed, `set` answers success while doing nothing, and StallGuard, driver status
-  and current control are unavailable.
+- DEC UART was repaired; register writes are verified, driver diagnostics and
+  current control are available. Target moves use full steps for the distant
+  part and return to fine microsteps for the approach.
+- **DEC stall detection through UART polling is not reliable on the bench.**
+  The latch and fault reporting are implemented, but free and stalled motion
+  produced overlapping StallGuard samples. Reliable detection still needs the
+  planned DIAG-to-D2 connection and calibration, or an encoder; see
+  `telescope_dec/FIRMWARE_PLAN.md`. Keep the bench motor disabled until that
+  hardware step is completed.
 
 ## Tests
 

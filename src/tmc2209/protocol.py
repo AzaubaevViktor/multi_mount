@@ -51,9 +51,8 @@ up to a byte terminator and decodes with ``errors="ignore"``. Raw binary would
 need byte stuffing (a payload byte 0x0A ends the line), would be silently mangled
 by that decode, and would mean changing a module three other drivers sit on.
 Hex costs a factor of two on the wire and buys a frame that survives the existing
-transport untouched — and even at 2x a ``status`` reply is 64 bytes against the
-147 the line protocol needs, so *more* replies fit in the 255-byte TX ring than
-before, not fewer.
+transport untouched. The extended ``status`` reply is 88 bytes, so two complete
+snapshots still fit in the 255-byte TX ring.
 """
 
 import dataclasses
@@ -105,6 +104,7 @@ class ErrorCode(IntEnum):
     TX_OVERFLOW = 10
     BAD_CRC = 11
     BAD_FRAME = 12
+    DRIVER_FAULT = 13
 
 
 # The names the line protocol used, so that a caller (and every log line) sees the same
@@ -122,10 +122,12 @@ ERROR_NAMES: dict[int, str] = {
     ErrorCode.TX_OVERFLOW: "tx_overflow",
     ErrorCode.BAD_CRC: "bad_crc",
     ErrorCode.BAD_FRAME: "bad_frame",
+    ErrorCode.DRIVER_FAULT: "driver_fault",
 }
 
 PHASE_NAMES: tuple[str, ...] = ("idle", "hold", "acceleration", "running", "deceleration")
 MODE_NAMES: tuple[str, ...] = ("target", "free_ride")
+SAFETY_NAMES: tuple[str, ...] = ("normal", "derated", "stopping", "shutdown")
 
 # Status flag bits (payload byte 0).
 FLAG_INITIALISED = 0x01
@@ -133,7 +135,8 @@ FLAG_ENABLED = 0x02
 FLAG_FREE_RIDE = 0x04
 FLAG_TARGET_SET = 0x08
 
-STATUS_PAYLOAD_SIZE = 26
+LEGACY_STATUS_PAYLOAD_SIZE = 26
+STATUS_PAYLOAD_SIZE = 38
 
 RESPONSE_DELIMITER = ";"
 KEY_VALUE_SEPARATOR = "="
@@ -183,7 +186,7 @@ def crc16(data: bytes) -> int:
     """CRC-16/CCITT-FALSE: poly 0x1021, init 0xFFFF, no reflection, no final xor.
 
     Bitwise on purpose. A table costs 512 bytes of AVR flash for a payload that is
-    never longer than 29 bytes, and both sides must agree byte for byte, so the two
+    never longer than 38 bytes, and both sides must agree byte for byte, so the two
     implementations are kept trivially comparable.
     """
     crc = 0xFFFF
@@ -359,12 +362,16 @@ def response_values(frame: Frame) -> dict[str, str]:
         _expect(payload, 2, frame.op)
         return {"protocol": str(payload[0]), "firmware": str(payload[1])}
     if frame.op == Op.STATUS:
-        _expect(payload, STATUS_PAYLOAD_SIZE, frame.op)
+        if len(payload) not in (LEGACY_STATUS_PAYLOAD_SIZE, STATUS_PAYLOAD_SIZE):
+            raise TMC2209MotorProtocolError(
+                f"reply to op=0x{frame.op:02X} carries {len(payload)} payload bytes, "
+                f"expected {LEGACY_STATUS_PAYLOAD_SIZE} or {STATUS_PAYLOAD_SIZE}"
+            )
         flags = payload[0]
         phase = payload[1]
         if phase >= len(PHASE_NAMES):
             raise TMC2209MotorProtocolError(f"status reports an unknown phase code {phase}")
-        return {
+        values = {
             "initialised": "1" if flags & FLAG_INITIALISED else "0",
             "enabled": "1" if flags & FLAG_ENABLED else "0",
             "mode": MODE_NAMES[1] if flags & FLAG_FREE_RIDE else MODE_NAMES[0],
@@ -378,6 +385,21 @@ def response_values(frame: Frame) -> dict[str, str]:
             "power_v": _centi(_u16(payload, 22)),
             "tx_overflow": str(_u16(payload, 24)),
         }
+        if len(payload) == STATUS_PAYLOAD_SIZE:
+            safety = payload[27]
+            if safety >= len(SAFETY_NAMES):
+                raise TMC2209MotorProtocolError(f"status reports an unknown safety code {safety}")
+            values.update(
+                {
+                    "drv_flags": str(payload[26]),
+                    "safety": SAFETY_NAMES[safety],
+                    "mres": str(_u16(payload, 28)),
+                    "fine_mres": str(_u16(payload, 30)),
+                    "limit": str(_u32(payload, 32)),
+                    "events": str(_u16(payload, 36)),
+                }
+            )
+        return values
     if frame.op == Op.POSITION:
         _expect(payload, 4, frame.op)
         return {"position": str(_i32(payload, 0))}
@@ -427,12 +449,18 @@ def encode_status_payload(
     accel_sps2: float,
     power_v: float,
     tx_overflow: int,
+    driver_flags: int = 0,
+    safety: str = "normal",
+    active_microsteps: int = 16,
+    fine_microsteps: int = 16,
+    speed_limit_sps: int = 40000,
+    safety_events: int = 0,
 ) -> bytes:
-    """Pack the 26-byte status snapshot the controller sends.
+    """Pack the 38-byte status snapshot the controller sends.
 
     Lives next to :func:`response_values` on purpose: the layout is stated once and
     both directions are read off the same lines. The firmware is the third
-    implementation of these 26 bytes and is pinned to them by a golden frame in
+    implementation of these 38 bytes and is pinned to them by a golden frame in
     ``src/tests/units/test_dec_framed_protocol.py``.
     """
     flags = 0
@@ -453,6 +481,11 @@ def encode_status_payload(
         + to_centi(accel_sps2).to_bytes(4, "big")
         + min(to_centi(power_v), 0xFFFF).to_bytes(2, "big")
         + min(int(tx_overflow), 0xFFFF).to_bytes(2, "big")
+        + bytes((int(driver_flags) & 0xFF, SAFETY_NAMES.index(safety)))
+        + int(active_microsteps).to_bytes(2, "big")
+        + int(fine_microsteps).to_bytes(2, "big")
+        + int(speed_limit_sps).to_bytes(4, "big")
+        + min(int(safety_events), 0xFFFF).to_bytes(2, "big")
     )
 
 

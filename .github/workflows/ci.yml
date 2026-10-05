@@ -95,3 +95,27 @@ jobs:
           path: logs/
           retention-days: 7
           if-no-files-found: ignore
+
+  firmware:
+    name: DEC firmware + protocol self-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Shared DEC frame self-test
+        run: |
+          c++ -std=c++11 -O1 -Wall -Wextra \
+            -o "$RUNNER_TEMP/frame_v3_selftest" telescope_dec/test/frame_v3_selftest.cpp
+          "$RUNNER_TEMP/frame_v3_selftest"
+
+      - name: Install tested PlatformIO version
+        run: python -m pip install platformio==6.1.19
+
+      - name: Build DEC controller and wire scanner
+        run: python -m platformio run -d telescope_dec -e nanoatmega328 -e wirescan

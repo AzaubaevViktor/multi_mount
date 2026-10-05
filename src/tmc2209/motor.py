@@ -44,6 +44,7 @@ __all__ = [
 
 COMMAND_TERMINATOR = "\n"
 MICROSTEPS_ALLOWED = {1, 2, 4, 8, 16, 32, 64, 128, 256}
+DRIVER_FLAG_STALL = 0x10
 DEGREES_PER_REV = 360.0
 STEPS_PER_REV = 200
 GEAR_RATIO_1 = 44 / 26
@@ -76,6 +77,13 @@ class _Mode(StrEnum):
     FREE_RIDE = "free_ride"
 
 
+class _Safety(StrEnum):
+    NORMAL = "normal"
+    DERATED = "derated"
+    STOPPING = "stopping"
+    SHUTDOWN = "shutdown"
+
+
 @dataclasses.dataclass(frozen=True)
 class _Status:
     initialised: bool
@@ -91,6 +99,12 @@ class _Status:
     power_v: float | None = None
     # Firmware older than the TX-ring fix does not report it; None means "unknown", not zero.
     tx_overflow: int | None = None
+    driver_flags: int | None = None
+    safety: _Safety | None = None
+    active_microsteps: int | None = None
+    fine_microsteps: int | None = None
+    speed_limit_sps: int | None = None
+    safety_events: int | None = None
 
     @classmethod
     def from_response(cls, response: _Response) -> "_Status":
@@ -114,6 +128,12 @@ class _Status:
                 accel_steps_per_s=float(response.values["accel_per_s"]),
                 power_v=float(response.values["power_v"]) if "power_v" in response.values else None,
                 tx_overflow=int(response.values["tx_overflow"]) if "tx_overflow" in response.values else None,
+                driver_flags=int(response.values["drv_flags"]) if "drv_flags" in response.values else None,
+                safety=_Safety(response.values["safety"]) if "safety" in response.values else None,
+                active_microsteps=int(response.values["mres"]) if "mres" in response.values else None,
+                fine_microsteps=int(response.values["fine_mres"]) if "fine_mres" in response.values else None,
+                speed_limit_sps=int(response.values["limit"]) if "limit" in response.values else None,
+                safety_events=int(response.values["events"]) if "events" in response.values else None,
             )
         except KeyError as error:
             raise TMC2209MotorTruncatedResponseError(
@@ -143,6 +163,10 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         # per call to learn the same nothing.
         self._power_v: TtlCache[float | None] = TtlCache(self._POWER_CACHE_TTL_S, clock)
         self._last_tx_overflow: int | None = None
+        self._last_driver_flags: int | None = None
+        self._last_safety: _Safety | None = None
+        self._last_safety_events: int | None = None
+        self._last_active_microsteps: int | None = None
         self._dialect = dialect
         self._seq = 0
 
@@ -202,6 +226,10 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
     def disconnect(self) -> bool:
         self._is_connected = False
         self._power_v.forget()
+        self._last_driver_flags = None
+        self._last_safety = None
+        self._last_safety_events = None
+        self._last_active_microsteps = None
         self._serial.close()
         return True
 
@@ -315,20 +343,13 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
             raise ValueError(f"microsteps not allowed: {microsteps}")
         echoed = self._transact("set", [f"microsteps={microsteps}"]).values.get("microsteps")
         if echoed != str(microsteps):
-            # The old code logged this and carried on, updating `self._microsteps`
-            # anyway — which is the worst of the three options. The write does not
-            # reach the chip at all: the UART between the Arduino and the TMC2209 is
-            # electrically broken (measured, not inferred — `tools.dec_wirescan`;
-            # DEC_PROTOCOL.md §4, §8, §9.1), so the strapped 1/16 keeps running while
-            # the caller is told it got what it asked for. Believing the request would
-            # then corrupt `_steps_per_arcsecond()` and every angle derived from it,
-            # silently and by exactly the ratio of the lie.
-            #
-            # FRAME.md §3.6: an interface that does not work is marked as not working.
+            # Never update the host-side scale unless the board echoed the value it
+            # actually applied. A broken UART or rejected register write would
+            # otherwise corrupt every angle derived from `_steps_per_arcsecond()`.
             raise TMC2209MotorEchoMismatchError(
                 f"microsteps stayed at {echoed} after writing {microsteps}: the UART to the driver chip "
-                f"is not functional, so the strapped value is the only one in effect. "
-                f"See DEC_PROTOCOL.md §4 and run `python -m tools.dec_wirescan` to check the wiring."
+                f"did not confirm the requested register value. "
+                f"Run `python -m tools.dec_wirescan` to check the wiring and baud rate."
             )
         self._microsteps = microsteps
         return True
@@ -410,6 +431,44 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
                     status.tx_overflow,
                 )
         self._last_tx_overflow = status.tx_overflow
+        if status.fine_microsteps is not None:
+            self._microsteps = status.fine_microsteps
+        if status.active_microsteps is not None and status.active_microsteps != self._last_active_microsteps:
+            self._logger.info(
+                "TMC2209 active microstep resolution changed to 1/%d (fine position units: 1/%d)",
+                status.active_microsteps,
+                status.fine_microsteps or self._microsteps,
+            )
+        if status.safety is not None and status.safety != self._last_safety:
+            if status.safety == _Safety.NORMAL and self._last_safety is not None:
+                self._logger.info("TMC2209 safety state returned to normal")
+            elif status.safety != _Safety.NORMAL:
+                self._logger.warning(
+                    "TMC2209 safety state is %s: flags=0x%02X, speed limit=%s steps/s",
+                    status.safety,
+                    status.driver_flags or 0,
+                    status.speed_limit_sps,
+                )
+        if status.safety_events is not None:
+            new_events = status.safety_events - (self._last_safety_events or 0)
+            if new_events > 0:
+                self._logger.warning(
+                    "TMC2209 reported %d new safety event(s), %d since controller boot",
+                    new_events,
+                    status.safety_events,
+                )
+        if status.driver_flags and status.driver_flags != self._last_driver_flags:
+            self._logger.warning("TMC2209 driver flags changed to 0x%02X", status.driver_flags)
+        if (
+            status.driver_flags is not None
+            and status.driver_flags & DRIVER_FLAG_STALL
+            and not ((self._last_driver_flags or 0) & DRIVER_FLAG_STALL)
+        ):
+            self._logger.warning("TMC2209 stall detected; controller stopped and disabled motor")
+        self._last_driver_flags = status.driver_flags
+        self._last_safety = status.safety
+        self._last_safety_events = status.safety_events
+        self._last_active_microsteps = status.active_microsteps
         return status
 
     def _exchange(self, command: str, args: list[str] | None) -> _Response:

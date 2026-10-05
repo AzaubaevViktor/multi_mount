@@ -49,8 +49,14 @@ _STATUS_PAYLOAD = encode_status_payload(
     accel_sps2=1000.0,
     power_v=12.34,
     tx_overflow=7,
+    driver_flags=1,
+    safety="derated",
+    active_microsteps=1,
+    fine_microsteps=16,
+    speed_limit_sps=1000,
+    safety_events=2,
 )
-_STATUS_REPLY = "#1A022A0B030001E24000030D40000186A000017ED0000186A004D200078986\n"
+_STATUS_REPLY = "#26022A0B030001E24000030D40000186A000017ED0000186A004D20007010100010010000003E800026A92\n"
 
 
 def test_crc16_matches_the_published_ccitt_false_check_value() -> None:
@@ -85,17 +91,35 @@ def test_golden_status_frame_decodes_into_the_line_protocol_field_names() -> Non
         "accel_per_s": "1000.00",
         "power_v": "12.34",
         "tx_overflow": "7",
+        "drv_flags": "1",
+        "safety": "derated",
+        "mres": "1",
+        "fine_mres": "16",
+        "limit": "1000",
+        "events": "2",
     }
 
 
-def test_a_status_reply_is_less_than_half_the_line_protocol_one() -> None:
+def test_previous_firmware_status_still_decodes_without_safety_fields() -> None:
+    previous_reply = "#1A022A0B030001E24000030D40000186A000017ED0000186A004D200078986\n"
+
+    values = response_values(decode_response(previous_reply, op=Op.STATUS, seq=0x2A))
+
+    assert values["position"] == "123456"
+    assert values["actual_speed"] == "980.00"
+    assert values["tx_overflow"] == "7"
+    assert "safety" not in values
+    assert "fine_mres" not in values
+
+
+def test_two_extended_status_replies_fit_the_tx_ring() -> None:
     """The compactness claim, in numbers.
 
-    The line protocol needs 147 bytes for this same snapshot (DEC_PROTOCOL.md §3),
-    so only one reply fits in the TX ring with room for a second to be cut in half.
+    The extended line reply needs more than twice this space, while two complete
+    framed snapshots still fit in the TX ring.
     """
-    assert len(_STATUS_REPLY) == 64
-    assert TX_RING // len(_STATUS_REPLY) == 3
+    assert len(_STATUS_REPLY) == 88
+    assert TX_RING // len(_STATUS_REPLY) == 2
 
 
 @pytest.mark.parametrize(
@@ -165,7 +189,7 @@ def test_a_frame_cut_on_a_field_boundary_is_rejected_not_shortened() -> None:
     """The TX-ring cut (§6.1), which used to yield a valid response with fields missing."""
     cut = _STATUS_REPLY[1:].strip()[: 2 * (HEADER_SIZE + 10)]
 
-    with pytest.raises(TMC2209MotorTruncatedResponseError, match="declares 26 payload bytes"):
+    with pytest.raises(TMC2209MotorTruncatedResponseError, match="declares 38 payload bytes"):
         decode_frame(cut)
 
 

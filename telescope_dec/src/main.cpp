@@ -36,26 +36,42 @@ static const uint8_t TMC_RX_PIN = 8;
 static const uint8_t TMC_TX_PIN = 9;
 
 // ---------- TMC config ----------
-static const uint32_t TMC_BAUD = 9600;
+static const uint32_t TMC_BAUD = 19200;
 // Most SilentStepStick-like modules use 0.11 ohm; check your board to be correct.
 static const float R_SENSE = 0.11f;
+static const uint16_t DRIVER_RUN_CURRENT_MA = 600;
+static const uint16_t DRIVER_DERATED_CURRENT_MA = 400;
+static const uint32_t DRIVER_POLL_INTERVAL_MS = 1000;
+static const uint8_t DRIVER_CLEAR_POLLS = 5;
+static const uint32_t DRIVER_NORMAL_SPEED_LIMIT_SPS = 40000;
+static const uint32_t DRIVER_DERATED_SPEED_LIMIT_SPS = 1000;
+static const uint8_t DRIVER_FLAG_OTPW = 0x01;
+static const uint8_t DRIVER_FLAG_OT = 0x02;
+static const uint8_t DRIVER_FLAG_SHORT = 0x04;
+static const uint8_t DRIVER_FLAG_OPEN_LOAD = 0x08;
+static const uint8_t DRIVER_FLAG_STALL = 0x10;
+static const uint8_t DRIVER_FLAG_UART = 0x80;
+static const uint8_t DRIVER_STATUS_SHORT_MASK = 0x3C;
+static const uint8_t DRIVER_STATUS_OPEN_LOAD_MASK = 0xC0;
+static const uint8_t DRIVER_UART_FAILURE_LIMIT = 2;
+static const uint32_t DRIVER_STALL_POLL_INTERVAL_MS = 200;
+static const uint32_t DRIVER_STALL_ARM_TIME_MS = 800;
+static const uint16_t DRIVER_STALL_MIN_SPEED_SPS = 500;
+static const uint16_t DRIVER_STALL_STRONG_SG = 8;
+static const uint16_t DRIVER_STALL_LOADED_SG = 20;
+static const uint16_t DRIVER_STALL_CLEAR_SG = 40;
+static const uint8_t DRIVER_STALL_SCORE_LIMIT = 6;
+static const uint8_t FINE_APPROACH_FULL_STEPS = 32;
 // Address is the MS1/MS2 strapping: ADDR = MS2<<1 | MS1.
 //
-// The chip on this board answers at *no* address: every register reads back zero and
-// every write is ignored (DEC_PROTOCOL.md §12.8, proven mechanically — a written
-// microsteps=32 did not change how far the shaft turned). 0b11 was tried on the bench
-// as well and behaves identically to 0b00, so the address is not the fault and this
-// constant is back to the value it always had.
+// The original 9600-baud link was silent in both directions even with the driver
+// powered. After the PDN_UART wiring was repaired, `tmc_wire` reported linked=1 and
+// five consecutive scans at both 19200 and 38400 baud returned VERSION=0x21 and
+// IFCNT+1. The same scans still failed at 9600, so this board uses address 0b00 and
+// TMC_BAUD=19200.
 //
-// The other two addresses need no flashing to rule out. With the UART dead the chip
-// runs on its pin-selected resolution, and the shaft was measured at 3200 steps per
-// revolution; 0b01 and 0b10 mean 1/2 and 1/4 microstepping, which cannot produce that
-// figure for either a 200- or a 400-step motor. Only 0b00 and 0b11 could, and both are
-// silent.
-//
-// So the fault is physical, not a wrong number here: the single-wire PDN_UART link,
-// its pull-up, or AltSoftSerial on pins 8/9. Until that is fixed, treat every `get`
-// and every `set` in this firmware as talking to a shadow copy, not to the chip.
+// Normal reads now return stable nonzero registers and `tmc_scan` proves writes with
+// the chip's own IFCNT counter. `get` and `set` therefore reach silicon at this baud.
 static const uint8_t DRIVER_ADDRESS = 0b00;
 
 static const float ADC_INTERNAL_VREF = 1.1f;
@@ -139,6 +155,13 @@ enum MotionPhaseCodeV2 : uint8_t {
   MOTION_PHASE_DECEL_V2
 };
 
+enum SafetyStateCodeV2 : uint8_t {
+  SAFETY_NORMAL_V2 = 0,
+  SAFETY_DERATED_V2,
+  SAFETY_STOPPING_V2,
+  SAFETY_SHUTDOWN_V2
+};
+
 struct LedStateV2 {
   float supplyVoltageV = 0.0f;
   uint16_t powerBlinkHalfPeriodMs = 0;
@@ -152,7 +175,24 @@ struct LedStateV2 {
 
 static uint8_t stepColorLutV2[STEP_COLOR_LUT_SIZE];
 
+static SafetyStateCodeV2 safetyStateV2 = SAFETY_NORMAL_V2;
+static uint32_t driverStatusV2 = 0;
+static uint8_t driverFlagsV2 = DRIVER_FLAG_UART;
+static uint16_t safetyEventsV2 = 0;
+static uint32_t driverPolledAtMsV2 = 0;
+static uint8_t driverClearPollsV2 = 0;
+static uint8_t driverUartFailuresV2 = 0;
+static uint32_t driverSgPolledAtMsV2 = 0;
+static uint32_t driverStallEligibleAtMsV2 = 0;
+static uint16_t driverSgResultV2 = 0;
+static uint8_t driverStallScoreV2 = 0;
+static bool driverStallLatchedV2 = false;
+static uint16_t fineMicrostepsV2 = 16;
+
 static MotionPhaseCodeV2 getPhaseCodeV2();
+static inline uint32_t getSafetySpeedLimitV2();
+static inline void setDriverMicrostepsV2(uint16_t microsteps);
+static bool applyDriverMicrostepsV2(uint16_t microsteps);
 static void buildStepColorLutV2();
 static void runStartupLedSequenceV2();
 static void serviceLedsV2();
@@ -226,6 +266,15 @@ static inline void outAppendStrV2(const char* s) {
   if (!s) return;
   while (*s) {
     if (!outAppendCharV2(*s++)) return;
+  }
+}
+
+static inline void outAppendStrV2(const __FlashStringHelper* s) {
+  if (!s) return;
+  PGM_P p = reinterpret_cast<PGM_P>(s);
+  char c;
+  while ((c = (char)pgm_read_byte(p++)) != 0) {
+    if (!outAppendCharV2(c)) return;
   }
 }
 
@@ -484,15 +533,21 @@ void setup() {
   driver.mstep_reg_select(true);     // microsteps via registers (UART)
   driver.toff(4);                    // enable driver
   driver.blank_time(24);
-  driver.rms_current(600);           // RMS mA; adjust for your motor
-  driver.microsteps(16);
+  driver.rms_current(DRIVER_RUN_CURRENT_MA);
+  setDriverMicrostepsV2(16);
   ledStateV2.microsteps = 16;
+  fineMicrostepsV2 = 16;
   ledStateV2.stepColorCycle = 200UL * (uint32_t)ledStateV2.microsteps;
   driver.en_spreadCycle(false);      // stealth by default
   driver.pwm_autoscale(true);
 
   // Clear latched flags
   driver.GSTAT(0x7);
+  driverStatusV2 = driver.DRV_STATUS();
+  if (driverStatusV2 != 0 && driverStatusV2 != 0xFFFFFFFFUL) {
+    driverFlagsV2 = 0;
+    driverUartFailuresV2 = 0;
+  }
 
   const uint32_t nowMs = millis();
   samplePowerVoltageV2(nowMs);
@@ -506,6 +561,27 @@ void setup() {
 static inline void setEnableV2(bool on) {
   runV2.enabled = on;
   digitalWrite(EN_PIN, (EN_ACTIVE_LOW ? !on : on) ? HIGH : LOW);
+}
+
+static void acknowledgeStallV2() {
+  if (!driverStallLatchedV2) return;
+
+  driverStallLatchedV2 = false;
+  driverStallScoreV2 = 0;
+  driverStallEligibleAtMsV2 = 0;
+  driverFlagsV2 &= (uint8_t)~DRIVER_FLAG_STALL;
+
+  if (safetyStateV2 == SAFETY_SHUTDOWN_V2 &&
+      !(driverFlagsV2 & (DRIVER_FLAG_OT | DRIVER_FLAG_SHORT | DRIVER_FLAG_UART))) {
+    if (driverFlagsV2 & DRIVER_FLAG_OTPW) {
+      driver.rms_current(DRIVER_DERATED_CURRENT_MA);
+      safetyStateV2 = SAFETY_DERATED_V2;
+    } else {
+      driver.rms_current(DRIVER_RUN_CURRENT_MA);
+      safetyStateV2 = SAFETY_NORMAL_V2;
+    }
+    driverClearPollsV2 = 0;
+  }
 }
 
 static inline void setDirV2(bool dir) {
@@ -613,7 +689,21 @@ static void respondKeyValueLongV2(const char* key, long value) {
   outAppendCharV2(';');
 }
 
+static void respondKeyValueLongV2(const __FlashStringHelper* key, long value) {
+  outAppendStrV2(key);
+  outAppendCharV2('=');
+  outAppendNumLongV2(value);
+  outAppendCharV2(';');
+}
+
 static void respondKeyValueU32V2(const char* key, uint32_t value) {
+  outAppendStrV2(key);
+  outAppendCharV2('=');
+  outAppendNumU32V2(value);
+  outAppendCharV2(';');
+}
+
+static void respondKeyValueU32V2(const __FlashStringHelper* key, uint32_t value) {
   outAppendStrV2(key);
   outAppendCharV2('=');
   outAppendNumU32V2(value);
@@ -627,7 +717,24 @@ static void respondKeyValueBoolV2(const char* key, bool value) {
   outAppendCharV2(';');
 }
 
+static void respondKeyValueBoolV2(const __FlashStringHelper* key, bool value) {
+  outAppendStrV2(key);
+  outAppendCharV2('=');
+  outAppendCharV2(value ? '1' : '0');
+  outAppendCharV2(';');
+}
+
 static void respondKeyValueFloatV2(const char* key, float value, uint8_t decimals) {
+  outAppendStrV2(key);
+  outAppendCharV2('=');
+  outAppendNumFloatV2(value, decimals);
+  outAppendCharV2(';');
+}
+
+static void respondKeyValueFloatV2(
+    const __FlashStringHelper* key,
+    float value,
+    uint8_t decimals) {
   outAppendStrV2(key);
   outAppendCharV2('=');
   outAppendNumFloatV2(value, decimals);
@@ -641,7 +748,30 @@ static void respondKeyValueStrV2(const char* key, const char* value) {
   outAppendCharV2(';');
 }
 
+static void respondKeyValueStrV2(const __FlashStringHelper* key, const char* value) {
+  outAppendStrV2(key);
+  outAppendCharV2('=');
+  outAppendStrV2(value);
+  outAppendCharV2(';');
+}
+
+static void respondKeyValueStrV2(
+    const __FlashStringHelper* key,
+    const __FlashStringHelper* value) {
+  outAppendStrV2(key);
+  outAppendCharV2('=');
+  outAppendStrV2(value);
+  outAppendCharV2(';');
+}
+
 static void respondKeyValueHexV2(const char* key, uint32_t value) {
+  outAppendStrV2(key);
+  outAppendCharV2('=');
+  outAppendHexU32V2(value);
+  outAppendCharV2(';');
+}
+
+static void respondKeyValueHexV2(const __FlashStringHelper* key, uint32_t value) {
   outAppendStrV2(key);
   outAppendCharV2('=');
   outAppendHexU32V2(value);
@@ -653,6 +783,12 @@ static void respondErrorV2(const char* msg) {
   if (msg && *msg) {
     respondKeyValueStrV2("error", msg);
   }
+  respondEndV2();
+}
+
+static void respondErrorV2(const __FlashStringHelper* msg) {
+  respondStartV2(false);
+  respondKeyValueStrV2(F("error"), msg);
   respondEndV2();
 }
 
@@ -694,6 +830,20 @@ static inline uint16_t microstepsFromChopconfV2(uint32_t chopconf) {
 static inline bool intpolFromChopconfV2(uint32_t chopconf) {
   // CHOPCONF.INTPOL bit 28
   return ((chopconf >> 28) & 0x01) != 0;
+}
+
+static inline void setDriverMicrostepsV2(uint16_t microsteps) {
+  // TMCStepper 0.7.3 exposes full-step MRES=8 as the special argument 0, while
+  // this firmware and both wire protocols use the conventional value 1.
+  driver.microsteps(microsteps == 1 ? 0 : microsteps);
+}
+
+static bool applyDriverMicrostepsV2(uint16_t microsteps) {
+  setDriverMicrostepsV2(microsteps);
+  for (uint8_t attempt = 0; attempt < 2; attempt++) {
+    if (microstepsFromChopconfV2(driver.CHOPCONF()) == microsteps) return true;
+  }
+  return false;
 }
 
 static uint8_t calcCurrentScaleFromMaV2(uint16_t mA, bool highSense) {
@@ -743,10 +893,7 @@ static bool appendParamValueV2(const char* name, bool emit) {
     return true;
   }
   if (!strcmp(name, "microsteps")) {
-    if (emit) {
-      const uint32_t chop = driver.CHOPCONF();
-      respondKeyValueU32V2("microsteps", microstepsFromChopconfV2(chop));
-    }
+    if (emit) respondKeyValueU32V2("microsteps", fineMicrostepsV2);
     return true;
   }
   if (!strcmp(name, "intpol")) {
@@ -812,9 +959,13 @@ static bool applySetParamV2(const char* name, const char* value, const char** er
     if (!parseLongV2(value, &v)) { if (errorKey) *errorKey = "bad_value"; return false; }
     if (v < 1 || v > 256) { if (errorKey) *errorKey = "range"; return false; }
     if (!isMicrostepsAllowedV2((uint16_t)v)) { if (errorKey) *errorKey = "invalid_microsteps"; return false; }
-    driver.microsteps((uint16_t)v);
+    if (!applyDriverMicrostepsV2((uint16_t)v)) {
+      if (errorKey) *errorKey = "driver_fault";
+      return false;
+    }
+    fineMicrostepsV2 = (uint16_t)v;
     ledStateV2.microsteps = (uint16_t)v;
-    ledStateV2.stepColorCycle = 200UL * (uint32_t)ledStateV2.microsteps;
+    ledStateV2.stepColorCycle = 200UL * (uint32_t)fineMicrostepsV2;
     ledStateV2.lastStepForColor = LONG_MIN;
     return true;
   }
@@ -866,6 +1017,13 @@ static void completeTargetV2() {
   runV2.nextStepUs = 0;
   runV2.lastStepperUs = 0;
   runV2.stepAcc = 0.0f;
+}
+
+static inline uint32_t getSafetySpeedLimitV2() {
+  if (safetyStateV2 == SAFETY_DERATED_V2) return DRIVER_DERATED_SPEED_LIMIT_SPS;
+  if (safetyStateV2 == SAFETY_STOPPING_V2 ||
+      safetyStateV2 == SAFETY_SHUTDOWN_V2) return 0;
+  return DRIVER_NORMAL_SPEED_LIMIT_SPS;
 }
 
 static MotionPhaseCodeV2 getPhaseCodeV2() {
@@ -932,6 +1090,9 @@ static void updateMotionStateV2() {
     desired = runV2.speedSps;
   }
 
+  const float safetySpeedLimit = (float)getSafetySpeedLimitV2();
+  if (desired > safetySpeedLimit) desired = safetySpeedLimit;
+
   if (runV2.hasTarget && !runV2.freeRideMode && desired > 0.0f && runV2.accelStepsPerUs > 0.0f) {
     const long delta = runV2.target - getPosition();
     const float accelSps2 = runV2.accelStepsPerUs * 1000000.0f;
@@ -968,9 +1129,8 @@ static void updateMotionStateV2() {
 }
 
 // ---------- TMC2209 link diagnostics ----------
-// The chip answers nothing at either plausible address (DEC_PROTOCOL.md §12.8), and
-// with the board sealed the remaining suspects are all on this side of the wire. This
-// command interrogates them without a screwdriver.
+// This command separated the original open wire from a silent chip and remains useful
+// as a baud/address diagnostic after the repair (DEC_PROTOCOL.md §13).
 //
 // Three numbers per baud rate, and it is the *first* that is new:
 //
@@ -1057,10 +1217,8 @@ static void tmcScanV2() {
 }
 
 // Continuity between the two UART pins, measured as plain DC and without going
-// through AltSoftSerial at all. `tmc_scan` says nothing ever comes back on RX, and
-// that has two very different causes — a wire that is not there, or a library that
-// never transmitted. Driving one pin and reading the other tells them apart, because
-// it uses neither the library nor the chip.
+// through AltSoftSerial at all. It distinguishes an open wire from a protocol fault
+// because it uses neither the library nor the chip.
 //
 // The two pads on the driver module join at its single PDN_UART node (one of them
 // through the module's series resistor), so on a correctly wired board pin 8 must
@@ -1122,18 +1280,27 @@ static void handleLineV2(char* s) {
 
   if (!strcmp(cmd, "status")) {
     respondStartV2(true);
-    respondKeyValueBoolV2("initialised", v2Initialized);
-    respondKeyValueBoolV2("enabled", runV2.enabled);
-    respondKeyValueStrV2("mode", getModeV2());
-    respondKeyValueLongV2("position", getPosition());
-    respondKeyValueStrV2("phase", getPhaseV2());
-    respondKeyValueLongV2("target", runV2.target);
-    respondKeyValueBoolV2("target_set", runV2.hasTarget);
-    respondKeyValueFloatV2("speed", runV2.speedSps, 2);
-    respondKeyValueFloatV2("actual_speed", runV2.actualSpeedSps, 2);
-    respondKeyValueFloatV2("accel_per_s", runV2.accelStepsPerUs * 1000000., 2);
-    respondKeyValueFloatV2("power_v", ledStateV2.supplyVoltageV, 2);
-    respondKeyValueU32V2("tx_overflow", txOverflowCountV2);
+    respondKeyValueBoolV2(F("initialised"), v2Initialized);
+    respondKeyValueBoolV2(F("enabled"), runV2.enabled);
+    respondKeyValueStrV2(F("mode"), getModeV2());
+    respondKeyValueLongV2(F("position"), getPosition());
+    respondKeyValueStrV2(F("phase"), getPhaseV2());
+    respondKeyValueLongV2(F("target"), runV2.target);
+    respondKeyValueBoolV2(F("target_set"), runV2.hasTarget);
+    respondKeyValueFloatV2(F("speed"), runV2.speedSps, 2);
+    respondKeyValueFloatV2(F("actual_speed"), runV2.actualSpeedSps, 2);
+    respondKeyValueFloatV2(F("accel_per_s"), runV2.accelStepsPerUs * 1000000., 2);
+    respondKeyValueFloatV2(F("power_v"), ledStateV2.supplyVoltageV, 2);
+    respondKeyValueU32V2(F("tx_overflow"), txOverflowCountV2);
+    respondKeyValueU32V2(F("drv_flags"), driverFlagsV2);
+    const __FlashStringHelper* safety = F("normal");
+    if (safetyStateV2 == SAFETY_DERATED_V2) safety = F("derated");
+    else if (safetyStateV2 == SAFETY_STOPPING_V2) safety = F("stopping");
+    else if (safetyStateV2 == SAFETY_SHUTDOWN_V2) safety = F("shutdown");
+    respondKeyValueStrV2(F("safety"), safety);
+    respondKeyValueU32V2(F("mres"), ledStateV2.microsteps);
+    respondKeyValueU32V2(F("fine_mres"), fineMicrostepsV2);
+    respondKeyValueU32V2(F("limit"), getSafetySpeedLimitV2());
     respondEndV2();
     return;
   }
@@ -1149,11 +1316,21 @@ static void handleLineV2(char* s) {
   }
 
   if (!strcmp(cmd, "full_status") || !strcmp(cmd, "driver_status")) {
+    const uint32_t drvStatus = driver.DRV_STATUS();
+    const uint8_t currentScale = (uint8_t)((drvStatus >> 16) & 0x1FUL);
+
     respondStartV2(true);
-    respondKeyValueHexV2("gconf", driver.GCONF());
-    respondKeyValueHexV2("chopconf", driver.CHOPCONF());
-    respondKeyValueHexV2("drv_status", driver.DRV_STATUS());
-    respondKeyValueU32V2("sg_result", driver.SG_RESULT());
+    respondKeyValueHexV2(F("ioin"), driver.IOIN());
+    respondKeyValueU32V2(F("ifcnt"), driver.IFCNT());
+    respondKeyValueHexV2(F("gconf"), driver.GCONF());
+    respondKeyValueHexV2(F("chopconf"), driver.CHOPCONF());
+    respondKeyValueHexV2(F("drv_status"), drvStatus);
+    respondKeyValueU32V2(F("sg_result"), driver.SG_RESULT());
+    respondKeyValueU32V2(F("cs_actual"), currentScale);
+    respondKeyValueU32V2(F("current_ma_est"), driver.cs2rms(currentScale));
+    respondKeyValueHexV2(F("tstep"), driver.TSTEP());
+    respondKeyValueU32V2(F("mscnt"), driver.MSCNT());
+    respondKeyValueHexV2(F("pwm_scale"), driver.PWM_SCALE());
     respondEndV2();
     return;
   }
@@ -1203,8 +1380,13 @@ static void handleLineV2(char* s) {
     long value = 0;
     if (!a || !parseLongV2(a, &value)) { respondErrorV2("bad_value"); return; }
     const bool enable = (value != 0);
+    if (enable && (safetyStateV2 == SAFETY_STOPPING_V2 || safetyStateV2 == SAFETY_SHUTDOWN_V2)) {
+      respondErrorV2(F("driver_fault"));
+      return;
+    }
     setEnableV2(enable);
     if (!enable) {
+      acknowledgeStallV2();
       runV2.running = false;
       runV2.stopRequested = false;
       runV2.actualSpeedSps = 0.0f;
@@ -1289,6 +1471,10 @@ static void handleLineV2(char* s) {
   }
 
   if (!strcmp(cmd, "run")) {
+    if (safetyStateV2 == SAFETY_STOPPING_V2 || safetyStateV2 == SAFETY_SHUTDOWN_V2) {
+      respondErrorV2(F("driver_fault"));
+      return;
+    }
     runV2.running = true;
     runV2.stopRequested = false;
     if (!runV2.enabled) setEnableV2(true);
@@ -1360,7 +1546,11 @@ static void handleFrameV3(char* s, uint8_t len) {
                          (int32_t)getPosition(), (int32_t)runV2.target,
                          runV2.speedSps, runV2.actualSpeedSps,
                          runV2.accelStepsPerUs * 1000000.0f,
-                         ledStateV2.supplyVoltageV, txOverflowCountV2);
+                         ledStateV2.supplyVoltageV, txOverflowCountV2,
+                         driverFlagsV2, (uint8_t)safetyStateV2,
+                         ledStateV2.microsteps, fineMicrostepsV2,
+                         getSafetySpeedLimitV2(),
+                         safetyEventsV2);
       frameEndV3();
       return;
     }
@@ -1404,8 +1594,13 @@ static void handleFrameV3(char* s, uint8_t len) {
     case OP_ENABLED_V3: {
       if (frame.len != 1) { respondFrameErrorV3(seq, ERR_BAD_VALUE_V3); return; }
       const bool enable = frame.payload[0] != 0;
+      if (enable && (safetyStateV2 == SAFETY_STOPPING_V2 || safetyStateV2 == SAFETY_SHUTDOWN_V2)) {
+        respondFrameErrorV3(seq, ERR_DRIVER_FAULT_V3);
+        return;
+      }
       setEnableV2(enable);
       if (!enable) {
+        acknowledgeStallV2();
         runV2.running = false;
         runV2.stopRequested = false;
         runV2.actualSpeedSps = 0.0f;
@@ -1445,18 +1640,26 @@ static void handleFrameV3(char* s, uint8_t len) {
         const uint16_t requested = framePayloadU16V3(frame.payload);
         if (requested < 1 || requested > 256) { respondFrameErrorV3(seq, ERR_RANGE_V3); return; }
         if (!isMicrostepsAllowedV2(requested)) { respondFrameErrorV3(seq, ERR_INVALID_MICROSTEPS_V3); return; }
-        driver.microsteps(requested);
+        if (!applyDriverMicrostepsV2(requested)) {
+          respondFrameErrorV3(seq, ERR_DRIVER_FAULT_V3);
+          return;
+        }
+        fineMicrostepsV2 = requested;
         ledStateV2.microsteps = requested;
-        ledStateV2.stepColorCycle = 200UL * (uint32_t)requested;
+        ledStateV2.stepColorCycle = 200UL * (uint32_t)fineMicrostepsV2;
         ledStateV2.lastStepForColor = LONG_MIN;
       }
       frameStartV3(op, seq, 2);
-      frameWriterV3.u16(microstepsFromChopconfV2(driver.CHOPCONF()));
+      frameWriterV3.u16(fineMicrostepsV2);
       frameEndV3();
       return;
     }
 
     case OP_RUN_V3:
+      if (safetyStateV2 == SAFETY_STOPPING_V2 || safetyStateV2 == SAFETY_SHUTDOWN_V2) {
+        respondFrameErrorV3(seq, ERR_DRIVER_FAULT_V3);
+        return;
+      }
       runV2.running = true;
       runV2.stopRequested = false;
       if (!runV2.enabled) setEnableV2(true);
@@ -1581,8 +1784,13 @@ void serviceStepperv2() {
   runV2.lastStepperUs = nowUs;
   if (dtUs == 0) return;
 
-  // Accumulate fractional steps: acc += speed[sps] * dt[s]
-  runV2.stepAcc += runV2.actualSpeedSps * ((float)dtUs / 1000000.0f);
+  uint16_t logicalStepsPerPulse = fineMicrostepsV2 / ledStateV2.microsteps;
+  if (logicalStepsPerPulse == 0) logicalStepsPerPulse = 1;
+
+  // Speed and position stay in the configured fine-resolution units. In coarse
+  // mode one physical STEP pulse advances several of those logical units.
+  runV2.stepAcc +=
+      runV2.actualSpeedSps * ((float)dtUs / 1000000.0f) / (float)logicalStepsPerPulse;
 
   // Clamp accumulator to avoid runaway after long stalls
   if (runV2.stepAcc > 8.0f) runV2.stepAcc = 8.0f;
@@ -1601,7 +1809,9 @@ void serviceStepperv2() {
   runV2.stepAcc -= 1.0f;
 
   // Update position
-  stepPosition += runV2.dir ? STEP_NEGATIVE : STEP_POSITIVE;
+  stepPosition += runV2.dir
+      ? STEP_NEGATIVE * (long)logicalStepsPerPulse
+      : STEP_POSITIVE * (long)logicalStepsPerPulse;
 
   // Target completion check (same logic as before)
   if (runV2.running && runV2.hasTarget && !runV2.freeRideMode) {
@@ -1619,10 +1829,183 @@ void loop() {
   profiler.serial += micros() - start;
   profiler.serial /= 2.;
 
+  if (!runV2.stepHigh) {
+    uint16_t wantedMicrosteps = fineMicrostepsV2;
+    if (runV2.enabled && runV2.running && runV2.hasTarget &&
+        !runV2.freeRideMode && !runV2.stopRequested && fineMicrostepsV2 > 1) {
+      const long delta = runV2.target - getPosition();
+      const long remaining = labs(delta);
+      if (delta != 0) setDirV2(delta < 0);
+
+      float stoppingDistance = 0.0f;
+      if (runV2.accelStepsPerUs > 0.0f) {
+        const float accelSps2 = runV2.accelStepsPerUs * 1000000.0f;
+        stoppingDistance =
+            (runV2.actualSpeedSps * runV2.actualSpeedSps) / (2.0f * accelSps2);
+      }
+      const float fineApproach =
+          stoppingDistance + (float)fineMicrostepsV2 * (float)FINE_APPROACH_FULL_STEPS;
+      if (ledStateV2.microsteps == 1) {
+        if ((float)remaining > fineApproach) wantedMicrosteps = 1;
+      } else if (runV2.actualSpeedSps <= 0.0f && (float)remaining > fineApproach) {
+        wantedMicrosteps = 1;
+      }
+    }
+
+    if (wantedMicrosteps != ledStateV2.microsteps) {
+      const uint16_t previousMicrosteps = ledStateV2.microsteps;
+      const uint16_t before = driver.MSCNT();
+      if (applyDriverMicrostepsV2(wantedMicrosteps)) {
+        const uint16_t after = driver.MSCNT();
+        int16_t phaseDelta = (int16_t)after - (int16_t)before;
+        if (phaseDelta > 512) phaseDelta -= 1024;
+        else if (phaseDelta < -512) phaseDelta += 1024;
+        const long scaled = (long)phaseDelta * (long)fineMicrostepsV2;
+        const long correction =
+            scaled >= 0 ? (scaled + 128L) / 256L : (scaled - 128L) / 256L;
+        stepPosition += correction;
+        const uint16_t previousStride = fineMicrostepsV2 / previousMicrosteps;
+        const uint16_t appliedStride = fineMicrostepsV2 / wantedMicrosteps;
+        runV2.stepAcc *= (float)previousStride / (float)appliedStride;
+        if (runV2.stepAcc > 8.0f) runV2.stepAcc = 8.0f;
+        ledStateV2.microsteps = wantedMicrosteps;
+        ledStateV2.lastStepForColor = LONG_MIN;
+      } else {
+        driverFlagsV2 |= DRIVER_FLAG_UART;
+        if (safetyStateV2 != SAFETY_STOPPING_V2 && safetyStateV2 != SAFETY_SHUTDOWN_V2) {
+          if (safetyEventsV2 < UINT16_MAX) safetyEventsV2++;
+          safetyStateV2 = SAFETY_STOPPING_V2;
+        }
+        runV2.stopRequested = true;
+        runV2.running = true;
+      }
+    }
+  }
+
   start = micros();
   serviceStepperv2();
   profiler.stepper += micros() - start;
   profiler.stepper /= 2.;
+
+  const uint32_t nowMs = millis();
+  const bool stallEligible =
+      runV2.enabled && runV2.running && !runV2.stopRequested &&
+      (safetyStateV2 == SAFETY_NORMAL_V2 || safetyStateV2 == SAFETY_DERATED_V2) &&
+      getPhaseCodeV2() == MOTION_PHASE_RUN_V2 &&
+      runV2.actualSpeedSps >= (float)DRIVER_STALL_MIN_SPEED_SPS;
+  if (!stallEligible) {
+    driverStallEligibleAtMsV2 = 0;
+    driverStallScoreV2 = 0;
+  } else if (driverStallEligibleAtMsV2 == 0) {
+    driverStallEligibleAtMsV2 = nowMs;
+    driverStallScoreV2 = 0;
+  } else if (!runV2.stepHigh && !driverStallLatchedV2 &&
+             nowMs - driverStallEligibleAtMsV2 >= DRIVER_STALL_ARM_TIME_MS &&
+             nowMs - driverSgPolledAtMsV2 >= DRIVER_STALL_POLL_INTERVAL_MS) {
+    driverSgPolledAtMsV2 = nowMs;
+    driverSgResultV2 = driver.SG_RESULT();
+
+    if (driverSgResultV2 <= DRIVER_STALL_STRONG_SG) {
+      const uint8_t room = (uint8_t)(DRIVER_STALL_SCORE_LIMIT - driverStallScoreV2);
+      driverStallScoreV2 += room < 3 ? room : 3;
+    } else if (driverSgResultV2 <= DRIVER_STALL_LOADED_SG) {
+      if (driverStallScoreV2 < DRIVER_STALL_SCORE_LIMIT) driverStallScoreV2++;
+    } else if (driverSgResultV2 >= DRIVER_STALL_CLEAR_SG && driverStallScoreV2 > 0) {
+      driverStallScoreV2--;
+    }
+
+    if (driverStallScoreV2 >= DRIVER_STALL_SCORE_LIMIT) {
+      const uint32_t confirmedStatus = driver.DRV_STATUS();
+      if (confirmedStatus == 0 || confirmedStatus == 0xFFFFFFFFUL) {
+        driverStallScoreV2 = 0;
+      } else {
+        driverStatusV2 = confirmedStatus;
+        driverStallLatchedV2 = true;
+        driverFlagsV2 |= DRIVER_FLAG_STALL;
+        if (safetyEventsV2 < UINT16_MAX) safetyEventsV2++;
+        safetyStateV2 = SAFETY_SHUTDOWN_V2;
+        setEnableV2(false);
+        runV2.running = false;
+        runV2.stopRequested = false;
+        runV2.actualSpeedSps = 0.0f;
+        runV2.desiredSpeedSps = 0.0f;
+        runV2.lastStepperUs = 0;
+        runV2.stepAcc = 0.0f;
+      }
+    }
+  }
+
+  if (!runV2.stepHigh &&
+      (runV2.enabled || safetyStateV2 != SAFETY_NORMAL_V2 ||
+       (driverFlagsV2 & DRIVER_FLAG_UART)) &&
+      nowMs - driverPolledAtMsV2 >= DRIVER_POLL_INTERVAL_MS) {
+    driverPolledAtMsV2 = nowMs;
+    const uint32_t observed = driver.DRV_STATUS();
+    if (observed == 0 || observed == 0xFFFFFFFFUL) {
+      if (driverUartFailuresV2 < UINT8_MAX) driverUartFailuresV2++;
+      if (driverUartFailuresV2 >= DRIVER_UART_FAILURE_LIMIT) {
+        driverFlagsV2 |= DRIVER_FLAG_UART;
+        driverClearPollsV2 = 0;
+        if (safetyStateV2 != SAFETY_STOPPING_V2 && safetyStateV2 != SAFETY_SHUTDOWN_V2) {
+          if (safetyEventsV2 < UINT16_MAX) safetyEventsV2++;
+          safetyStateV2 = SAFETY_STOPPING_V2;
+        }
+        runV2.stopRequested = true;
+        runV2.running = true;
+      }
+    } else {
+      driverStatusV2 = observed;
+      driverUartFailuresV2 = 0;
+      driverFlagsV2 = driverStallLatchedV2 ? DRIVER_FLAG_STALL : 0;
+      if (observed & 0x01UL) driverFlagsV2 |= DRIVER_FLAG_OTPW;
+      if (observed & 0x02UL) driverFlagsV2 |= DRIVER_FLAG_OT;
+      if (observed & DRIVER_STATUS_SHORT_MASK) driverFlagsV2 |= DRIVER_FLAG_SHORT;
+      if (observed & DRIVER_STATUS_OPEN_LOAD_MASK) driverFlagsV2 |= DRIVER_FLAG_OPEN_LOAD;
+
+      const bool critical =
+          (driverFlagsV2 & (DRIVER_FLAG_OT | DRIVER_FLAG_SHORT)) != 0;
+      if (critical) {
+        driverClearPollsV2 = 0;
+        if (safetyStateV2 != SAFETY_SHUTDOWN_V2) {
+          if (safetyEventsV2 < UINT16_MAX) safetyEventsV2++;
+        }
+        safetyStateV2 = SAFETY_SHUTDOWN_V2;
+        setEnableV2(false);
+        runV2.running = false;
+        runV2.stopRequested = false;
+        runV2.actualSpeedSps = 0.0f;
+        runV2.desiredSpeedSps = 0.0f;
+        runV2.lastStepperUs = 0;
+        runV2.stepAcc = 0.0f;
+      } else if (driverFlagsV2 & DRIVER_FLAG_OTPW) {
+        driverClearPollsV2 = 0;
+        if (safetyStateV2 == SAFETY_NORMAL_V2) {
+          driver.rms_current(DRIVER_DERATED_CURRENT_MA);
+          if (safetyEventsV2 < UINT16_MAX) safetyEventsV2++;
+          safetyStateV2 = SAFETY_DERATED_V2;
+        }
+      } else if (safetyStateV2 == SAFETY_DERATED_V2 ||
+                 (safetyStateV2 == SAFETY_SHUTDOWN_V2 && !driverStallLatchedV2)) {
+        if (driverClearPollsV2 < DRIVER_CLEAR_POLLS) driverClearPollsV2++;
+        if (driverClearPollsV2 >= DRIVER_CLEAR_POLLS) {
+          driver.rms_current(DRIVER_RUN_CURRENT_MA);
+          safetyStateV2 = SAFETY_NORMAL_V2;
+          driverClearPollsV2 = 0;
+        }
+      } else {
+        driverClearPollsV2 = 0;
+      }
+    }
+  }
+
+  if (!runV2.stepHigh && safetyStateV2 == SAFETY_STOPPING_V2 &&
+      runV2.actualSpeedSps <= 0.0f) {
+    setEnableV2(false);
+    runV2.running = false;
+    runV2.stopRequested = false;
+    runV2.desiredSpeedSps = 0.0f;
+    safetyStateV2 = SAFETY_SHUTDOWN_V2;
+  }
 
   serviceLedsV2();
 }

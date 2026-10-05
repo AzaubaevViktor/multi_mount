@@ -59,14 +59,14 @@ static const float ADC_INTERNAL_VREF = 1.1f;
 static const float POWER_DIVIDER_RATIO = 23.93555f;
 
 // Known VERSION bytes in IOIN. Not used to *accept* a reply -- a datagram whose CRC
-// checks out is a reply whatever it says -- only to name the chip afterwards. Assuming
-// 0x21 here was a real bug: the board carries a TMC2225, which is a TMC2208 variant and
-// answers 0x20, so a perfectly good link would have been reported as "no reply".
+// checks out is a reply whatever it says -- only to name the chip afterwards. The
+// repaired board repeatedly reports 0x21, so it carries a TMC2209; 0x20 remains
+// accepted because the scanner is also useful with TMC2208/2224/2225 modules.
 static const uint8_t VERSION_TMC220X = 0x20;  // TMC2208 / TMC2224 / TMC2225
 static const uint8_t VERSION_TMC2209 = 0x21;
 
-// TMC2208/2225 have no address pins at all -- the slave address is always 0. (On a
-// TMC2209 it would be the MS1/MS2 strapping.) The board here carries a TMC2225.
+// TMC2208/2225 have no address pins at all and always use address 0. On this board the
+// TMC2209's MS1/MS2 strapping also selects address 0, confirmed by VERSION and IFCNT.
 static const uint8_t TMC_ADDRESS = 0b00;
 static const uint8_t REG_IFCNT = 0x02;
 static const uint8_t REG_IOIN = 0x06;

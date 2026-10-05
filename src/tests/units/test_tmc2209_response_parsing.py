@@ -34,6 +34,10 @@ _LEGACY_STATUS = (
     "accel_per_s=1000.00;power_v=12.34;\n"
 )
 _NEW_STATUS = _LEGACY_STATUS.replace("power_v=12.34;", "power_v=12.34;tx_overflow=7;")
+_SAFE_STATUS = _NEW_STATUS.replace(
+    "tx_overflow=7;",
+    "tx_overflow=7;drv_flags=0;safety=normal;mres=16;fine_mres=16;limit=40000;",
+)
 
 
 def test_status_without_tx_overflow_key_still_parses() -> None:
@@ -126,3 +130,51 @@ def test_growing_overflow_counter_is_logged_once_per_increment(caplog: pytest.Lo
         "TMC2209 dropped 7 response(s) to TX ring overflow, 7 since controller boot",
         "TMC2209 dropped 2 response(s) to TX ring overflow, 9 since controller boot",
     ]
+
+
+def test_safety_derating_and_recovery_are_reported_outward(caplog: pytest.LogCaptureFixture) -> None:
+    derated = _SAFE_STATUS.replace(
+        "drv_flags=0;safety=normal;mres=16;fine_mres=16;limit=40000;",
+        "drv_flags=1;safety=derated;mres=1;fine_mres=16;limit=1000;events=1;",
+    )
+    recovered = _SAFE_STATUS.replace("limit=40000;", "limit=40000;events=1;")
+    lines = iter([_SAFE_STATUS, derated, recovered])
+
+    class _Line:
+        def query(self, payload: str, **kwargs: object) -> str:
+            assert payload == "status\n"
+            return next(lines)
+
+    motor = TMC2209Motor(_Line(), dialect=_Dialect.LEGACY)  # type: ignore[arg-type]
+    with caplog.at_level(logging.INFO):
+        motor._status()
+        motor._status()
+        motor._status()
+
+    messages = [record.getMessage() for record in caplog.records]
+    assert not any("returned to normal" in message for message in messages[:1])
+    assert any("safety state is derated: flags=0x01, speed limit=1000 steps/s" in message for message in messages)
+    assert any("reported 1 new safety event(s), 1 since controller boot" in message for message in messages)
+    assert any("safety state returned to normal" in message for message in messages)
+
+
+def test_stall_flag_is_reported_outward_once(caplog: pytest.LogCaptureFixture) -> None:
+    stalled = _SAFE_STATUS.replace(
+        "drv_flags=0;safety=normal;mres=16;fine_mres=16;limit=40000;",
+        "drv_flags=16;safety=shutdown;mres=16;fine_mres=16;limit=0;events=1;",
+    )
+    lines = iter([_SAFE_STATUS, stalled, stalled])
+
+    class _Line:
+        def query(self, payload: str, **kwargs: object) -> str:
+            assert payload == "status\n"
+            return next(lines)
+
+    motor = TMC2209Motor(_Line(), dialect=_Dialect.LEGACY)  # type: ignore[arg-type]
+    with caplog.at_level(logging.WARNING):
+        motor._status()
+        motor._status()
+        motor._status()
+
+    messages = [record.getMessage() for record in caplog.records]
+    assert messages.count("TMC2209 stall detected; controller stopped and disabled motor") == 1

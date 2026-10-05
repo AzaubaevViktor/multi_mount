@@ -18,7 +18,7 @@
 #include <stdint.h>
 
 static const uint8_t FRAME_PROTOCOL_VERSION_V3 = 3;
-static const uint8_t FRAME_FIRMWARE_BUILD_V3 = 1;
+static const uint8_t FRAME_FIRMWARE_BUILD_V3 = 2;
 
 // LEN + OP + SEQ, then the payload, then two bytes of CRC.
 static const uint8_t FRAME_HEADER_V3 = 3;
@@ -50,10 +50,11 @@ enum FrameErrorV3 : uint8_t {
   ERR_INVALID_MICROSTEPS_V3 = 8,
   ERR_TX_OVERFLOW_V3 = 10,
   ERR_BAD_CRC_V3 = 11,
-  ERR_BAD_FRAME_V3 = 12
+  ERR_BAD_FRAME_V3 = 12,
+  ERR_DRIVER_FAULT_V3 = 13
 };
 
-static const uint8_t STATUS_PAYLOAD_LEN_V3 = 26;
+static const uint8_t STATUS_PAYLOAD_LEN_V3 = 38;
 
 // Status flag bits (payload byte 0).
 static const uint8_t FRAME_FLAG_INITIALISED_V3 = 0x01;
@@ -62,7 +63,7 @@ static const uint8_t FRAME_FLAG_FREE_RIDE_V3 = 0x04;
 static const uint8_t FRAME_FLAG_TARGET_SET_V3 = 0x08;
 
 // CRC-16/CCITT-FALSE, bitwise: a table would cost 512 bytes of flash for payloads
-// that never exceed 26 bytes. The check value over "123456789" is 0x29B1, and that
+// that never exceed 38 bytes. The check value over "123456789" is 0x29B1, and that
 // constant is what pins this implementation to the host's.
 static inline uint16_t crc16UpdateV3(uint16_t crc, uint8_t value) {
   crc ^= (uint16_t)value << 8;
@@ -128,12 +129,15 @@ static inline uint32_t frameCentiV3(float value) {
   return (uint32_t)(value * 100.0f + 0.5f);
 }
 
-// The 26-byte status snapshot, in one place because it is the one payload with a
-// layout worth getting wrong: eleven fields, three of them fixed point. The caller
+// The 38-byte status snapshot, in one place because it is the one payload with a
+// layout worth getting wrong. The caller
 // passes plain numbers, so the same code runs on the board and in the self test.
 static inline void frameWriteStatusV3(FrameWriterV3& writer, uint8_t seq, uint8_t flags, uint8_t phase,
                                       int32_t position, int32_t target, float speedSps, float actualSps,
-                                      float accelSps2, float powerV, uint16_t txOverflow) {
+                                      float accelSps2, float powerV, uint16_t txOverflow,
+                                      uint8_t driverFlags, uint8_t safetyState,
+                                      uint16_t activeMicrosteps, uint16_t fineMicrosteps,
+                                      uint32_t speedLimitSps, uint16_t safetyEvents) {
   writer.begin(OP_STATUS_V3, seq, STATUS_PAYLOAD_LEN_V3);
   writer.byte(flags);
   // The phase code is the wire value: MOTION_PHASE_*_V2 in main.cpp and PHASE_NAMES
@@ -147,6 +151,12 @@ static inline void frameWriteStatusV3(FrameWriterV3& writer, uint8_t seq, uint8_
   const uint32_t powerCenti = frameCentiV3(powerV);
   writer.u16((uint16_t)(powerCenti > 0xFFFFUL ? 0xFFFFUL : powerCenti));
   writer.u16(txOverflow);
+  writer.byte(driverFlags);
+  writer.byte(safetyState);
+  writer.u16(activeMicrosteps);
+  writer.u16(fineMicrosteps);
+  writer.u32(speedLimitSps);
+  writer.u16(safetyEvents);
 }
 
 struct FrameV3 {
