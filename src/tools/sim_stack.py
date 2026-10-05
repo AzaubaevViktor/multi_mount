@@ -46,10 +46,13 @@ Two defaults are deliberately *not* the hardware's:
 
 from dataclasses import dataclass
 import logging
+from pathlib import Path
 from typing import Any
 
+from pointing.service import PointingService
 from sim.clock import Clock
 from sim.fake_serial import SimSerialLine
+from sim.orientation_sensor import OrientationSensorSim
 from sim.skywatcher_sim import SkyWatcherSim
 from sim.tmc_sim import TMC2209Sim
 from sky.axis import AxisDEC, AxisRA
@@ -89,6 +92,8 @@ class SimStack:
     axis_dec: AxisDEC
     combiner: Combiner
     sky_lx200: SkyLX200
+    orientation_sensor: OrientationSensorSim
+    pointing: PointingService
 
 
 def build_sim_stack(
@@ -96,6 +101,7 @@ def build_sim_stack(
     *,
     ra_config: dict[str, Any] | None = None,
     dec_config: dict[str, Any] | None = None,
+    calibration_storage: Path | None = None,
 ) -> SimStack:
     """Assemble the application over simulated boards.
 
@@ -116,7 +122,9 @@ def build_sim_stack(
     )
     ra_motor = SkyWatcherMotor(ra_line, clock)
 
-    dec_sim = TMC2209Sim(clock, **(dec_config or {}))
+    orientation_sensor = OrientationSensorSim(clock)
+    dec_settings = {"orientation_sensor": orientation_sensor, **(dec_config or {})}
+    dec_sim = TMC2209Sim(clock, **dec_settings)
     dec_line = SimSerialLine(
         dec_sim, clock, port="sim://dec", timeout_s=DEC_TIMEOUT_S, name="tmc", terminator="\n"
     )
@@ -125,7 +133,8 @@ def build_sim_stack(
     axis_ra = AxisRA(ra_motor)
     axis_dec = AxisDEC(dec_motor)
     combiner = Combiner(axis_ra, axis_dec)
-    sky_lx200 = SkyLX200(combiner)
+    pointing = PointingService(axis_dec, calibration_storage)
+    sky_lx200 = SkyLX200(combiner, pointing)
 
     return SimStack(
         clock=clock,
@@ -139,6 +148,8 @@ def build_sim_stack(
         axis_dec=axis_dec,
         combiner=combiner,
         sky_lx200=sky_lx200,
+        orientation_sensor=orientation_sensor,
+        pointing=pointing,
     )
 
 

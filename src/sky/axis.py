@@ -7,6 +7,7 @@ import queue
 import threading
 from typing import Any, Callable, Concatenate, ParamSpec, Protocol, Sequence, TypedDict, TypeVar, cast
 
+from pointing.sensor import SensorReading, SensorState
 from serial_wrapper.wrapper import EXCEPTIONS_TO_CLOSE
 from sky.motor import MotionMode, Motor, MotorDirection, MotorStopRequire
 from sky.physics import AxisPos, AxisSpeed, Dec, DecPerSecond, Ha, HaPerSecond, Second, SkyDirection, StepsPerSecond
@@ -183,6 +184,12 @@ class Axis[_POS_CLS: AxisPos[Any], _SPEED_CLS: AxisSpeed]:
     @_raise_if_thread_failed
     def is_connected(self) -> bool:
         return self._connected
+
+    def read_orientation_sensor(self) -> SensorReading:
+        with self._motor_lock:
+            if not self._connected:
+                return SensorReading(SensorState.NOT_CONNECTED)
+            return self._motor.read_orientation_sensor()
 
     @_raise_if_thread_failed
     def disconnect(self) -> None:

@@ -18,7 +18,7 @@
 #include <stdint.h>
 
 static const uint8_t FRAME_PROTOCOL_VERSION_V3 = 3;
-static const uint8_t FRAME_FIRMWARE_BUILD_V3 = 2;
+static const uint8_t FRAME_FIRMWARE_BUILD_V3 = 3;
 
 // LEN + OP + SEQ, then the payload, then two bytes of CRC.
 static const uint8_t FRAME_HEADER_V3 = 3;
@@ -38,7 +38,8 @@ enum FrameOpV3 : uint8_t {
   OP_ENABLED_V3 = 0x16,
   OP_MICROSTEPS_V3 = 0x17,
   OP_RUN_V3 = 0x20,
-  OP_STOP_V3 = 0x21
+  OP_STOP_V3 = 0x21,
+  OP_SENSOR_V3 = 0x30
 };
 
 // Same numbers as ErrorCode in protocol.py; 1..9 are the line protocol's own errors.
@@ -127,6 +128,23 @@ struct FrameWriterV3 {
 static inline uint32_t frameCentiV3(float value) {
   if (value <= 0.0f) return 0;
   return (uint32_t)(value * 100.0f + 0.5f);
+}
+
+struct RawSensorV3 {
+  uint8_t flags;  // bit 0: present, bit 1: gravity valid, bit 2: magnetic valid
+  uint32_t sequence;
+  uint16_t ageMs;
+  int16_t gravity[3];  // 0.001 m/s², sensor frame, points down
+  int16_t magnetic[3];  // 0.01 µT, same frame
+};
+
+static inline void frameWriteSensorV3(FrameWriterV3& writer, uint8_t seq, const RawSensorV3& sensor) {
+  writer.begin(OP_SENSOR_V3, seq, 19);
+  writer.byte(sensor.flags);
+  writer.u32(sensor.sequence);
+  writer.u16(sensor.ageMs);
+  for (uint8_t i = 0; i < 3; i++) writer.u16((uint16_t)sensor.gravity[i]);
+  for (uint8_t i = 0; i < 3; i++) writer.u16((uint16_t)sensor.magnetic[i]);
 }
 
 // The 38-byte status snapshot, in one place because it is the one payload with a

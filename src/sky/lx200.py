@@ -1,7 +1,10 @@
 import logging
+from datetime import UTC, datetime
+from typing import Any
 
 from lx200.base import LX200Handler
 from lx200.protocol import AlignmentMode
+from pointing.service import PointingService, validate_solve
 from sky.axis import PointCoordinates
 from sky.combiner import Combiner
 from sky.constants import STELLAR_SPEED
@@ -21,10 +24,11 @@ class SkyLX200(LX200Handler):
     MAX_RA_SPEED = HaPerSecond(80 * float(STELLAR_SPEED))
     MAX_DEC_SPEED = DecPerSecond(2000)
 
-    def __init__(self, combiner: Combiner) -> None:
+    def __init__(self, combiner: Combiner, pointing: PointingService | None = None) -> None:
         super().__init__()
         self.logger = logging.getLogger(type(self).__name__)
         self._combiner = combiner
+        self.pointing = pointing
         self._manual_ra_speed = self.GUIDE_RA_SPEED
         self._manual_dec_speed = self.GUIDE_DEC_SPEED
 
@@ -45,8 +49,26 @@ class SkyLX200(LX200Handler):
         return self._combiner.get_position().ra
 
     def sync_telescope(self, ra: Ha, dec: Dec) -> bool:
-        self._combiner.set_position(PointCoordinates(ra=ra, dec=dec))
+        self.sync_from_solve(float(ra) / 3600, float(dec) / 3600, strict=False)
         return True
+
+    def sync_from_solve(
+        self, ra_hours: float, dec_deg: float, *, timestamp: datetime | None = None,
+        measurement_id: str | None = None, strict: bool = True,
+    ) -> dict[str, Any]:
+        validate_solve(ra_hours, dec_deg, timestamp or datetime.now(UTC))
+        result: dict[str, Any] = {"status": "unsupported", "sample_added": False}
+        if self.pointing is not None:
+            try:
+                result = self.pointing.record_sync(ra_hours, dec_deg, timestamp=timestamp, measurement_id=measurement_id)
+            except (ValueError, OSError):
+                if strict:
+                    raise
+                self.logger.exception("Sensor calibration could not record SYNC")
+                result = {"status": "calibration_error", "sample_added": False}
+        self._combiner.set_position(PointCoordinates(ra=Ha(ra_hours * 3600), dec=Dec(dec_deg * 3600)))
+        result["mount_synced"] = True
+        return result
 
     def get_telescope_dec(self) -> Dec:
         return self._combiner.get_position().dec

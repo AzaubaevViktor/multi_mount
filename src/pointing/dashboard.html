@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ориентация телескопа</title>
+<style>
+  :root { color-scheme: dark; font: 16px/1.5 system-ui, sans-serif; background: #101720; color: #e4edf6; }
+  body { max-width: 1000px; margin: auto; padding: 24px; }
+  h1 { font-size: 28px; margin-bottom: 4px; } h2 { font-size: 18px; margin-top: 0; }
+  p { color: #a9bbce; } section { background: #1a2533; padding: 20px; border: 1px solid #314153; border-radius: 12px; margin: 16px 0; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 16px; }
+  .grid section { margin: 0; } label { display: inline-flex; flex-direction: column; gap: 4px; margin: 6px 10px 6px 0; }
+  input { background: #101720; color: inherit; border: 1px solid #62788f; border-radius: 6px; padding: 9px; width: 140px; font: inherit; }
+  button { background: #345b83; color: white; border: 1px solid #6a91b9; border-radius: 6px; padding: 10px 14px; font: inherit; margin: 6px 4px 6px 0; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: wait; } .danger { background: #64343d; border-color: #ba7480; }
+  output { font-size: 22px; font-weight: 600; } pre { white-space: pre-wrap; word-break: break-word; font-size: 13px; }
+  #message { white-space: pre-wrap; color: #f5c37e; } [hidden] { display: none !important; }
+</style>
+<body>
+<h1>Ориентация телескопа</h1>
+<p id="mode">Подключение…</p>
+<section aria-live="polite">
+  <output id="status">Нет данных</output>
+  <p id="summary"></p>
+  <div class="grid"><div><h2>Горизонтальные координаты</h2><div id="altaz">—</div></div><div><h2>Экваториальные координаты</h2><div id="equatorial">—</div></div></div>
+</section>
+<div class="grid">
+<section>
+  <h2>Место наблюдения</h2>
+  <form id="site">
+    <label>Широта, °<input name="latitude_deg" type="number" step="any" min="-90" max="90" required></label>
+    <label>Долгота на восток, °<input name="longitude_deg" type="number" step="any" min="-180" max="180" required></label>
+    <button>Сохранить</button>
+  </form>
+</section>
+<section>
+  <h2>Калибровка по plate solve</h2>
+  <p>Включите сбор точек и выполните SYNC в разных направлениях. После остановки новые SYNC проверяют расхождение.</p>
+  <button data-action="start">Начать / продолжить</button>
+  <button data-action="stop">Закончить сбор</button>
+  <button data-action="reset" class="danger">Сбросить точки</button>
+</section>
+</div>
+<section id="simulation" hidden>
+  <h2>Положение датчика в симуляторе</h2>
+  <p>Показания задаются отдельно от координат монтировки. SYNC не меняет положение датчика.</p>
+  <form id="pose">
+    <label>Высота, °<input name="alt_deg" type="number" step="any" min="-90" max="90" value="45" required></label>
+    <label>Азимут, °<input name="az_deg" type="number" step="any" min="0" max="359.999" value="0" required></label>
+    <label>Угол крепления, °<input name="mounting_deg" type="number" step="any" value="17" required></label>
+    <button>Задать положение</button>
+  </form>
+</section>
+<section>
+  <h2>Результат plate solve → SYNC</h2>
+  <p>Зафиксируйте показания во время снимка. Введите RA и DEC результата этого снимка, затем отправьте SYNC. Время измерения сохранится вместе с точкой.</p>
+  <button id="capture">Зафиксировать измерение</button><span id="captured">Измерение не выбрано</span>
+  <form id="solve">
+    <label>RA, часы<input name="ra_hours" type="number" step="any" min="0" max="23.999999" required></label>
+    <label>DEC, °<input name="dec_deg" type="number" step="any" min="-90" max="90" required></label>
+    <button>Отправить SYNC</button>
+  </form>
+</section>
+<p id="message" role="status"></p>
+<details><summary>Сырые показания и последняя проверка</summary><pre id="raw"></pre></details>
+<script>
+  const byId = id => document.getElementById(id);
+  let measurement = null, initializedSite = false;
+  const names = {ready:'Откалибровано',calibrating:'Сбор калибровочных точек',uncalibrated:'Не откалибровано',device_not_found:'Датчик не найден',not_connected:'DEC не подключён',unsupported:'Прошивка не поддерживает датчик',no_data:'Нет измерений',stale_data:'Измерение устарело',heading_unavailable:'Нет магнитного направления',invalid_data:'Некорректные показания',transport_error:'Ошибка связи',out_of_coverage:'Вне области калибровки',calibration_inconsistent:'Точки калибровки противоречат друг другу',calibration_drift:'Калибровка сбилась'};
+  async function api(path, data) {
+    const response = await fetch(path, data === undefined ? {} : {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    const result = await response.json();
+    if (!response.ok) throw Error(result.error || response.statusText);
+    return result;
+  }
+  async function refresh() {
+    try {
+      const data = await api('/v1/status'), cal = data.calibration;
+      byId('status').textContent = names[data.status] || data.status;
+      byId('mode').textContent = `${data.simulated ? 'Симулятор' : 'Реальное оборудование'} · монтировка ${data.mount_connected ? 'подключена' : 'не подключена'}`;
+      byId('simulation').hidden = !data.simulated;
+      const residual = cal.latest_sync?.residual_deg;
+      byId('summary').textContent = `Точек: ${cal.point_count} · сбор ${cal.mode ? 'включён' : 'выключен'} · последняя ошибка: ${residual == null ? 'не измерена' : residual.toFixed(3) + '°'}`;
+      byId('altaz').textContent = data.altaz ? `Высота ${data.altaz.alt_deg.toFixed(3)}° · азимут ${data.altaz.az_deg.toFixed(3)}°` : 'Нет достоверных координат';
+      byId('equatorial').textContent = data.equatorial ? `RA ${data.equatorial.ra_hours.toFixed(6)} ч · DEC ${data.equatorial.dec_deg.toFixed(4)}°` : 'Нет достоверных координат';
+      byId('raw').textContent = JSON.stringify({sensor:data.sensor,calibration:cal}, null, 2);
+      if (!initializedSite && cal.site) {
+        for (const [key,value] of Object.entries(cal.site)) byId('site').elements[key].value = value;
+        initializedSite = true;
+      }
+    } catch(error) { byId('status').textContent = 'API недоступен'; byId('message').textContent = error.message; }
+  }
+  async function action(work) {
+    const buttons = [...document.querySelectorAll('button')];
+    buttons.forEach(button => button.disabled = true);
+    try { const result = await work(); byId('message').textContent = result?.mount_synced ? `SYNC: ${result.status}, точка ${result.sample_added ? 'добавлена' : 'не добавлена'}` : 'Сохранено'; await refresh(); }
+    catch(error) { byId('message').textContent = error.message; }
+    finally { buttons.forEach(button => button.disabled = false); }
+  }
+  for (const [id,path] of [['site','/v1/site'],['pose','/v1/sim/sensor'],['solve','/v1/sync']]) {
+    byId(id).addEventListener('submit', event => {
+      event.preventDefault();
+      const data = Object.fromEntries([...new FormData(event.target)].map(([key,value]) => [key,Number(value)]));
+      if (id === 'solve') {
+        if (!measurement) { byId('message').textContent = 'Сначала зафиксируйте измерение во время снимка'; return; }
+        data.measurement_id = measurement.measurement_id; data.timestamp = measurement.timestamp;
+      }
+      action(() => api(path,data));
+    });
+  }
+  document.querySelectorAll('[data-action]').forEach(button => button.addEventListener('click', () => action(() => api(`/v1/calibration/${button.dataset.action}`,{}))));
+  byId('capture').addEventListener('click', () => action(async () => { measurement = await api('/v1/sensor'); byId('captured').textContent = measurement.timestamp; }));
+  refresh(); setInterval(refresh,2000);
+</script>
+</body>
+</html>

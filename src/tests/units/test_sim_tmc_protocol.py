@@ -316,7 +316,7 @@ def _frame(sim: TMC2209Sim, op: int, seq: int, payload: bytes = b"") -> Frame:
 def test_framed_hello_answers_with_the_protocol_version() -> None:
     sim = _make_sim()
 
-    assert response_values(_frame(sim, Op.HELLO, 1)) == {"protocol": "3", "firmware": "2"}
+    assert response_values(_frame(sim, Op.HELLO, 1)) == {"protocol": "3", "firmware": "3"}
 
 
 def test_framed_status_carries_the_same_snapshot_as_the_line_dialect() -> None:

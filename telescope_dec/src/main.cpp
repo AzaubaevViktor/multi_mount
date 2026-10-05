@@ -1278,6 +1278,15 @@ static void handleLineV2(char* s) {
   char* cmd = strtok(s, " \t");
   if (!cmd) return;
 
+  if (!strcmp(cmd, "sensor")) {
+    if (strtok(NULL, " \t")) { respondErrorV2("bad_value"); return; }
+    // No physical sensor driver is configured yet. Never fabricate measurements.
+    respondStartV2(true);
+    respondKeyValueLongV2(F("sensor_flags"), 0);
+    respondEndV2();
+    return;
+  }
+
   if (!strcmp(cmd, "status")) {
     respondStartV2(true);
     respondKeyValueBoolV2(F("initialised"), v2Initialized);
@@ -1527,6 +1536,17 @@ static void handleFrameV3(char* s, uint8_t len) {
   const int32_t argI32 = frame.len >= 4 ? framePayloadI32V3(frame.payload) : 0;
 
   switch (op) {
+    case OP_SENSOR_V3: {
+      if (frame.len != 0) { respondFrameErrorV3(seq, ERR_BAD_VALUE_V3); return; }
+      // flags=0: absent device. Remaining reserved fields are not measurements.
+      const RawSensorV3 sensor = {};
+      outLineStartV2 = outWriteV2;
+      outLineFailedV2 = false;
+      frameWriteSensorV3(frameWriterV3, seq, sensor);
+      frameEndV3();
+      return;
+    }
+
     case OP_HELLO_V3:
       frameStartV3(op, seq, 2);
       frameWriterV3.byte(FRAME_PROTOCOL_VERSION_V3);

@@ -65,6 +65,18 @@ int main() {
   checkEqual(frame(OP_STATUS_V3, 1, 0, 0), "#000201BADF\n", "status request");
   checkEqual(frame(OP_HELLO_V3, 1, 0, 0), "#000101EF8C\n", "hello request");
 
+  emitted.clear();
+  const RawSensorV3 missingSensor = {};
+  frameWriteSensorV3(writer, 1, missingSensor);
+  writer.end();
+  checkEqual(emitted, "#13300100000000000000000000000000000000000000225F\n", "sensor absent reply");
+  emitted.clear();
+  const RawSensorV3 rawSensor = {7, 42, 7, {-1234, 2345, -9001}, {1234, -2345, 3456}};
+  frameWriteSensorV3(writer, 42, rawSensor);
+  writer.end();
+  checkEqual(emitted, "#13302A070000002A0007FB2E0929DCD704D2F6D70D802CBE\n", "raw sensor reply");
+  check(emitted.size() == 50, "raw sensor reply fits TX ring");
+
   const uint8_t speed[4] = {0x00, 0x00, 0x03, 0xE8};
   checkEqual(frame(OP_SPEED_V3, 7, speed, 4), "#041107000003E8218D\n", "speed=1000 request");
 

@@ -2,3 +2,10 @@
 - Don't remove blank lines that separate logical blocks of code. Preserve those line breaks when editing files.
 - Preserve architectural boundaries and module invariants. When extending behavior, integrate through the module's existing abstraction boundary instead of adding side paths, duplicating protocol/validation/error-handling logic, or reaching into lower-level internals for a local shortcut.
 - Keep coordination boundaries minimal. When code relies on locks, transactions, lifecycle hooks, retries, or other ordering-sensitive boundaries, keep only the minimal commit step inside them; move computation, I/O, logging, and complex calls outside whenever possible.
+
+## Sensor interface for agents
+
+Read `docs/POINTING_SENSOR.md` for the HTTP API, calibration workflow, states,
+units and simulator controls. DEC supplies raw measurements; Python owns all
+calibration and persistence. Pair a plate solve with the sensor measurement
+captured during its exposure using `measurement_id` and UTC `timestamp`.

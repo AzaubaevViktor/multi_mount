@@ -22,6 +22,12 @@ the framed v3 protocol (length, sequence and CRC16), with fallback to the older
 line protocol. Both expose the same motion commands. The extended status reports
 driver faults, safety state, active microstep resolution and safety events.
 
+The Python app also provides a gravity/magnetic sensor calibration screen and
+agent HTTP API at `http://127.0.0.1:8080/`. Run `python -m src --sim` to use the
+independent sensor simulator. Calibration points and verification live in Python;
+the real DEC firmware currently reports that no sensor is configured.
+See [sensor workflow and API](docs/POINTING_SENSOR.md).
+
 ## Scheme
 ```text
 KStars / Ekos / INDI
@@ -81,6 +87,7 @@ Expected runtime behavior:
 - `src/tmc2209/`: DEC backend — `protocol` (v3 frame: length, opcode, sequence,
   CRC16) and `motor` (dialect autodetection, echo verification).
 - `src/sim/`: simulators of both boards plus transport chaos, on a virtual clock.
+- `src/pointing/`: raw sensor capability, persistent calibration, agent HTTP API and screen.
 - `src/ra_conformance/`: protocol cases taken verbatim from the RA protocol
   document, run by the same code against the simulator and against the live board.
 - `src/serial_wrapper/`: shared serial transport and the byte-level session recorder.

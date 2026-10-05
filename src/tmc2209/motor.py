@@ -3,6 +3,7 @@ import logging
 from enum import StrEnum
 
 from clock import REAL_CLOCK, Clock, TtlCache
+from pointing.sensor import SensorReading, SensorState
 from serial_wrapper.wrapper import SerialLine
 from sky.motor import MotionMode, Motor, MotorDirection, MotorStateError, MotorStatus, MotorStopRequire
 from sky.physics import Dec, DecPerSecond, DecStepsPerSecond, StepsPerSecond
@@ -24,6 +25,7 @@ from tmc2209.protocol import (
     decode_response,
     encode_frame,
 )
+from utils.polar_align_lib import Vec3
 
 # Re-exported: callers (and the hardware suite) have always imported the error
 # hierarchy from this module, and the codec split must not move their imports.
@@ -488,9 +490,34 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         raw = self._serial.query(encode_frame(op, self._seq, arg_payload))
         return _Response.from_frame(decode_response(raw, op=op, seq=self._seq))
 
-    def _transact(self, command: str, args: list[str] | None = None) -> _Response:
+    def read_orientation_sensor(self) -> SensorReading:
+        if not self._is_connected:
+            return SensorReading(SensorState.NOT_CONNECTED)
+        try:
+            values = self._transact("sensor", attempts=1).values
+        except TMC2209MotorCommandError as error:
+            if str(error) == "unknown_cmd":
+                return SensorReading(SensorState.UNSUPPORTED)
+            raise
+        try:
+            flags = int(values["sensor_flags"])
+            if flags not in (0, 1, 3, 7):
+                raise ValueError("inconsistent sensor flags")
+            if flags < 3:
+                return SensorReading(SensorState.DEVICE_NOT_FOUND if flags == 0 else SensorState.NO_DATA)
+            return SensorReading(
+                SensorState.AVAILABLE,
+                int(values["sample"]),
+                int(values["age_ms"]),
+                Vec3(*(int(values[key]) / 1000 for key in ("gx", "gy", "gz"))),
+                Vec3(*(int(values[key]) / 100 for key in ("mx", "my", "mz"))) if flags & 4 else None,
+            )
+        except (ValueError, KeyError) as error:
+            raise TMC2209MotorProtocolError("invalid raw sensor response") from error
+
+    def _transact(self, command: str, args: list[str] | None = None, *, attempts: int = 3) -> _Response:
         payload = command if not args else f"{command} {' '.join(args)}"
-        count = 3
+        count = attempts
         response = None
         while count > 0:
             try:

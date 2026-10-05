@@ -1,4 +1,5 @@
 import logging
+import argparse
 from pathlib import Path
 import sys
 import time
@@ -12,6 +13,8 @@ for path in (str(PROJECT_ROOT), str(SRC_DIR)):
 from logging_setup import setup_logging
 from lx200.base_server import LX200SimpleServer
 from manual_control import ManualControlConsole
+from pointing.api import AgentAPI, AgentAPIServer
+from pointing.service import PointingService
 from serial_wrapper.wrapper import SerialLine, SerialLineSearchError
 from sky.axis import AxisDEC, AxisRA, MotorReadinessState
 from sky.combiner import Combiner
@@ -35,12 +38,21 @@ if __name__ == "__main__":
     # a real external LX200 client can drive the mount with no hardware on the
     # bench. Everything above the serial port is the production graph — see
     # `tools/sim_stack.py` for what is fake and what is not.
-    simulated = "--sim" in sys.argv
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--sim", action="store_true")
+    parser.add_argument("--api-host", default="127.0.0.1")
+    parser.add_argument("--api-port", type=int, default=8080)
+    parser.add_argument("--sensor-calibration", type=Path)
+    options = parser.parse_args()
+    simulated = options.sim
+    calibration_storage = options.sensor_calibration or Path(
+        "state/sensor_calibration_sim.json" if simulated else "state/sensor_calibration.json"
+    )
 
     if simulated:
         from tools.sim_stack import build_realtime_sim_stack
 
-        stack = build_realtime_sim_stack()
+        stack = build_realtime_sim_stack(calibration_storage=calibration_storage)
         axis_ra, axis_dec = stack.axis_ra, stack.axis_dec
         logger.warning("SIMULATION: both axes are simulated boards, nothing will move in the room")
 
@@ -77,13 +89,23 @@ if __name__ == "__main__":
                 )
             )
 
-    combiner = Combiner(axis_ra, axis_dec)
-    sky_lx200 = SkyLX200(combiner)
+    if simulated:
+        combiner, pointing, sky_lx200 = stack.combiner, stack.pointing, stack.sky_lx200
+    else:
+        combiner = Combiner(axis_ra, axis_dec)
+        pointing = PointingService(axis_dec, calibration_storage)
+        sky_lx200 = SkyLX200(combiner, pointing)
+    api_server = AgentAPIServer(
+        AgentAPI(sky_lx200, pointing, stack.orientation_sensor if simulated else None),
+        options.api_host, options.api_port,
+    )
 
     server = LX200SimpleServer(sky_lx200)
     sky_lx200.connect()
 
     try:
+        api_server.start()
+        logger.info("Agent API listening at %s:%s", *api_server.address)
         startup_timeout_s = 0.0 if ra_search_missing or dec_search_missing else 12.0
         deadline = time.monotonic() + startup_timeout_s
         while time.monotonic() < deadline:
@@ -120,5 +142,6 @@ if __name__ == "__main__":
             )
             console.run()
     finally:
+        api_server.stop()
         server.stop()
         sky_lx200.stop()

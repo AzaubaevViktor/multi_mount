@@ -67,6 +67,7 @@ seconds to boot, so the host's ``read_all_data()`` right after
 poll. The sim models that as "skip one drain after reset" instead of real time.
 """
 
+from pointing.sensor import SensorReader, SensorState
 from sim.clock import Clock
 from sim.faults import FaultScript
 from tmc2209.protocol import (
@@ -76,11 +77,14 @@ from tmc2209.protocol import (
     MODE_NAMES,
     PROTOCOL_VERSION,
     ErrorCode,
+    Frame,
     Op,
     crc16,
     encode_frame,
+    encode_sensor_payload,
     encode_status_payload,
     to_centi,
+    response_values,
 )
 
 MICROSTEPS_ALLOWED = {1, 2, 4, 8, 16, 32, 64, 128, 256}
@@ -110,7 +114,7 @@ _INTEGRATION_SUBSTEP_S = 0.01
 TX_RING_CAPACITY = 255
 RX_FIFO_CAPACITY = 64
 
-_FIRMWARE_BUILD = 2
+_FIRMWARE_BUILD = 3
 
 # Command names, kept as the single vocabulary of the fault script: a test targets
 # `command="status"` and gets the same fault whichever dialect asked for it.
@@ -127,6 +131,7 @@ _OP_NAMES: dict[int, str] = {
     Op.MICROSTEPS: "set",
     Op.RUN: "run",
     Op.STOP: "stop",
+    Op.SENSOR: "sensor",
 }
 
 _ERROR_NAMES: dict[int, str] = {
@@ -177,10 +182,12 @@ class TMC2209Sim:
         tx_overflow_truncates: bool = False,
         rx_capacity: int | None = None,
         uart_to_driver_dead: bool = False,
+        orientation_sensor: SensorReader | None = None,
     ) -> None:
         # This flag preserves the historical broken-UART/failure mode. The repaired
         # board normally talks to the driver and confirms each microstep write.
         self.uart_to_driver_dead = uart_to_driver_dead
+        self.orientation_sensor = orientation_sensor
         self._clock = clock
         self.faults = FaultScript()
         self.power_v = power_v
@@ -560,6 +567,8 @@ class TMC2209Sim:
 
         if command == "status":
             return (Op.STATUS, None)
+        if command == "sensor":
+            return (Op.SENSOR, None) if not args else _Reply.failure(ErrorCode.BAD_VALUE)
         if command == "run":
             return (Op.RUN, None)
         if command == "stop":
@@ -608,6 +617,21 @@ class TMC2209Sim:
 
     def _apply(self, op: int, arg: int | None) -> _Reply:
         """Command semantics, written once for both dialects."""
+        if op == Op.SENSOR:
+            flags, sequence, age_ms = 0, 0, 0
+            vectors: tuple[int, ...] = (0,) * 6
+            if self.orientation_sensor is not None:
+                reading = self.orientation_sensor.read_orientation_sensor()
+                if reading.state is SensorState.NO_DATA:
+                    flags = 1
+                elif reading.state is SensorState.AVAILABLE and reading.gravity is not None:
+                    flags = 3 if reading.magnetic is None else 7
+                    sequence, age_ms = reading.sequence or 0, reading.age_ms or 0
+                    magnetic = (0.0,) * 3 if reading.magnetic is None else reading.magnetic.as_tuple()
+                    vectors = tuple(round(v * 1000) for v in reading.gravity.as_tuple()) + tuple(round(v * 100) for v in magnetic)
+            payload = encode_sensor_payload(flags, sequence, age_ms, vectors)
+            return _Reply(list(response_values(Frame(Op.SENSOR, 0, payload)).items()), payload)
+
         if op == Op.HELLO:
             return _Reply([("protocol", str(PROTOCOL_VERSION)), ("firmware", str(_FIRMWARE_BUILD))],
                           bytes((PROTOCOL_VERSION, _FIRMWARE_BUILD)))

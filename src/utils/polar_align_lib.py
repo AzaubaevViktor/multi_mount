@@ -353,6 +353,17 @@ def enu_vec_to_altaz(v_enu: Vec3) -> AltAzCoord:
     return AltAzCoord(alt_deg=degrees(alt), az_deg=degrees(az))
 
 
+def altaz_to_radec(alt_deg: float, az_deg: float, dt: datetime, site: ObserverSite) -> EquatorialCoord:
+    if dt.tzinfo is None:
+        raise ValueError("timestamp must be timezone-aware")
+    direction = altaz_to_enu(alt_deg, az_deg)
+    phi = radians(site.latitude_deg)
+    dec = asin(clamp(direction.z * sin(phi) + direction.y * cos(phi), -1, 1))
+    hour_angle = atan2(-direction.x, direction.z * cos(phi) - direction.y * sin(phi))
+    ra = (lst_rad(dt, site.longitude_deg) - hour_angle) % TWOPI
+    return EquatorialCoord(degrees(ra) / 15, degrees(dec))
+
+
 def north_celestial_pole_eq() -> Vec3:
     return Vec3(0.0, 0.0, 1.0)
 

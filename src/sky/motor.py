@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
+from pointing.sensor import SensorReading, SensorState
 from sky.physics import AxisPos, AxisSpeed, StepsPerSecond
 
 
@@ -98,6 +99,9 @@ class Motor[POS_CLS: AxisPos[Any], SPEED_CLS: AxisSpeed](ABC):
     @abstractmethod
     def __init__(self) -> None:
         ...
+
+    def read_orientation_sensor(self) -> SensorReading:
+        return SensorReading(SensorState.UNSUPPORTED)
 
     @abstractmethod
     def connect(self) -> None:

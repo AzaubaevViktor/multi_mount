@@ -87,6 +87,7 @@ class Op(IntEnum):
     MICROSTEPS = 0x17
     RUN = 0x20
     STOP = 0x21
+    SENSOR = 0x30
 
 
 class ErrorCode(IntEnum):
@@ -294,6 +295,8 @@ def build_request(command: str, args: list[str] | None = None) -> tuple[Op, byte
         return Op.STATUS, b""
     if command == "hello":
         return Op.HELLO, b""
+    if command == "sensor":
+        return Op.SENSOR, b""
     if command == "run":
         return Op.RUN, b""
     if command == "stop":
@@ -361,6 +364,18 @@ def response_values(frame: Frame) -> dict[str, str]:
     if frame.op == Op.HELLO:
         _expect(payload, 2, frame.op)
         return {"protocol": str(payload[0]), "firmware": str(payload[1])}
+    if frame.op == Op.SENSOR:
+        _expect(payload, 19, frame.op)
+        flags = payload[0]
+        if flags not in (0, 1, 3, 7):
+            raise TMC2209MotorProtocolError("inconsistent sensor flags")
+        values = {"sensor_flags": str(flags)}
+        if flags & 2:
+            values.update({"sample": str(_u32(payload, 1)), "age_ms": str(_u16(payload, 5))})
+            for index, key in enumerate(("gx", "gy", "gz", "mx", "my", "mz")):
+                if index < 3 or flags & 4:
+                    values[key] = str(int.from_bytes(payload[7 + index * 2 : 9 + index * 2], "big", signed=True))
+        return values
     if frame.op == Op.STATUS:
         if len(payload) not in (LEGACY_STATUS_PAYLOAD_SIZE, STATUS_PAYLOAD_SIZE):
             raise TMC2209MotorProtocolError(
@@ -486,6 +501,18 @@ def encode_status_payload(
         + int(fine_microsteps).to_bytes(2, "big")
         + int(speed_limit_sps).to_bytes(4, "big")
         + min(int(safety_events), 0xFFFF).to_bytes(2, "big")
+    )
+
+
+def encode_sensor_payload(flags: int, sequence: int = 0, age_ms: int = 0, vectors: tuple[int, ...] = (0,) * 6) -> bytes:
+    """Pack raw gravity (0.001 m/s²) and magnetic (0.01 µT) components."""
+    if flags not in (0, 1, 3, 7) or len(vectors) != 6:
+        raise ValueError("inconsistent sensor packet")
+    return (
+        bytes((flags,))
+        + sequence.to_bytes(4, "big")
+        + min(age_ms, 65535).to_bytes(2, "big")
+        + b"".join(value.to_bytes(2, "big", signed=True) for value in vectors)
     )
 
 
