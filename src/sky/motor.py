@@ -103,6 +103,10 @@ class Motor[POS_CLS: AxisPos[Any], SPEED_CLS: AxisSpeed](ABC):
     def read_orientation_sensor(self) -> SensorReading:
         return SensorReading(SensorState.UNSUPPORTED)
 
+    def protocol_monitor(self) -> dict[str, object]:
+        """Optional board diagnostics, without bypassing the motor interface."""
+        return {}
+
     @abstractmethod
     def connect(self) -> None:
         ...

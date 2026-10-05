@@ -352,6 +352,9 @@ def test_live_http_and_lx200_sync_share_the_calibration_service(tmp_path):
         with urlopen(f"http://{host}:{port}/model.mjs", timeout=5) as response:
             assert response.headers.get_content_type() == "text/javascript"
             assert "export class TelescopeModel" in response.read().decode()
+        with urlopen(f"http://{host}:{port}/telemetry.mjs", timeout=5) as response:
+            assert response.headers.get_content_type() == "text/javascript"
+            assert "export class MountPanel" in response.read().decode()
         assert request("/v1/status")["status"] == "uncalibrated"
         request("/v1/site", {"latitude_deg": 43, "longitude_deg": 77})
         request("/v1/calibration/start", {})

@@ -95,12 +95,12 @@ if __name__ == "__main__":
         combiner = Combiner(axis_ra, axis_dec)
         pointing = PointingService(axis_dec, calibration_storage)
         sky_lx200 = SkyLX200(combiner, pointing)
+    server = LX200SimpleServer(sky_lx200)
     api_server = AgentAPIServer(
-        AgentAPI(sky_lx200, pointing, stack.orientation_sensor if simulated else None),
+        AgentAPI(sky_lx200, pointing, stack.orientation_sensor if simulated else None, lx200_server=server),
         options.api_host, options.api_port,
     )
 
-    server = LX200SimpleServer(sky_lx200)
     sky_lx200.connect()
 
     try:

@@ -1,6 +1,7 @@
 import logging
 import socket
 import threading
+from typing import Any
 
 from lx200.base import LX200Answer, LX200BadCommandError, LX200Handler, LX200SlewResult
 from lx200.protocol import AlignmentMode, Protocol
@@ -109,6 +110,17 @@ class LX200SimpleServer:
     def is_running(self) -> bool:
         with self._state_lock:
             return self._running
+
+    def monitor(self) -> dict[str, Any]:
+        with self._state_lock:
+            running, listening = self._running, self._running and self._socket is not None
+            error, refused = self.last_error, self.refused_clients
+            client_connected = self._client_slot.locked()
+        return {
+            "running": running, "listening": listening, "host": self.host, "port": self.port,
+            "client_connected": client_connected, "refused_clients": refused,
+            "error": f"{type(error).__name__}: {error}" if error is not None else None,
+        }
     
     def _handle_client(self, conn: socket.socket) -> None:
         with conn:

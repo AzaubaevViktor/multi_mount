@@ -30,6 +30,12 @@ repos:
 
   - repo: local
     hooks:
+      - id: pointing-telemetry
+        name: pointing telemetry syntax
+        entry: node --check src/pointing/telemetry.mjs
+        language: system
+        pass_filenames: false
+        files: '^src/pointing/telemetry\.mjs$'
       - id: pointing-model
         name: pointing model scenarios
         entry: node --test src/tests/ui/test_pointing_model.mjs

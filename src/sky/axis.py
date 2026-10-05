@@ -152,6 +152,7 @@ class Axis[_POS_CLS: AxisPos[Any], _SPEED_CLS: AxisSpeed]:
         """ Ra Mount point position """
         self._dec_position = Dec(0)
         """ Dec Mount point position """
+        self._position_revision = 0
 
         self._move_direction: SkyDirection | None = None
         self._goto_target: _POS_CLS | None = None
@@ -170,9 +171,10 @@ class Axis[_POS_CLS: AxisPos[Any], _SPEED_CLS: AxisSpeed]:
         with self._motor_lock:
             self._motor.connect()
             self._motor.reset()
+            self._connected = True
+            self._position_revision += 1
+            self._motion_convertor_error = None
 
-        self._connected = True
-        self._motion_convertor_error = None
         if self._motion_convertor_thread is None or not self._motion_convertor_thread.is_alive():
             self._motion_convertor_thread = threading.Thread(
                 target=self._motion_convertor,
@@ -319,6 +321,7 @@ class Axis[_POS_CLS: AxisPos[Any], _SPEED_CLS: AxisSpeed]:
 
         self._ra_position = position.ra
         self._dec_position = position.dec
+        self._position_revision += 1
 
         return return_to_tracking
 
@@ -693,6 +696,67 @@ class Axis[_POS_CLS: AxisPos[Any], _SPEED_CLS: AxisSpeed]:
                 "queue_size": self._queue.qsize(),
                 "processed": list(self._processed_commands),
             }
+
+    def monitor(self) -> dict[str, Any]:
+        """Read-only axis/board snapshot for operator displays and agents.
+
+        The motor gate protects the exchange and its conversion settings. All
+        presentation and rate estimation happens after releasing the gate.
+        A failed board read leaves this axis unknown, rather than hiding the
+        other axis or presenting a stopped motor with fabricated zero values.
+        """
+        status = None
+        error = None
+        motor_position = motor_speed = power = None
+        protocol: dict[str, object] = {}
+        with self._motor_lock:
+            connected, mode = self._connected, self._mode
+            ra, dec, sky_speed = self._ra_position, self._dec_position, self._sky_speed
+            revision, queue_size = self._position_revision, self._queue.qsize()
+            processed = tuple(self._processed_commands)
+            target, goto_direction, move_direction = self._goto_target, self._goto_direction, self._move_direction
+            thread_error = self._motion_convertor_error
+            try:
+                if connected:
+                    status = self._motor.status()
+                    power = self._motor.get_power_v()
+                    protocol = self._motor.protocol_monitor()
+                    motor_position = self._motor.convert_steps_to_position(status.steps)
+                    motor_speed = self._motor.get_speed_by_speed_sps(status.speed_sps)
+            except Exception as failure:
+                error = f"{type(failure).__name__}: {failure}"
+            observed = float(Second.monotonic())
+
+        if thread_error is not None:
+            error = f"Axis thread failed: {type(thread_error).__name__}: {thread_error}"
+        available = connected and error is None and status is not None and status.is_connected
+        position = ra if self.axis is AxisName.RA else dec
+        return {
+            "connected": connected, "available": available, "error": error,
+            "observed_s": observed, "position_revision": revision, "mode": mode.value,
+            "native_unit": "RA-time-second" if self.axis is AxisName.RA else "arcsec",
+            "position": {"ra_hours": float(ra) / 3600, "dec_deg": float(dec) / 3600} if available else None,
+            "position_native": float(position) if available else None,
+            "position_text": str(position) if available else None,
+            "sky_speed_native": float(sky_speed) if connected else None,
+            "queue_size": queue_size,
+            "processed": [{"age_s": max(0, observed - float(at)), "command": command} for at, command in processed],
+            "movement": {
+                "direction": (goto_direction if mode is AxisMotionMode.GOTO else move_direction) if mode in (AxisMotionMode.GOTO, AxisMotionMode.SLEW) else None,
+                "target_native": float(target) if target is not None and mode is AxisMotionMode.GOTO else None,
+                "target_text": str(target) if target is not None and mode is AxisMotionMode.GOTO else None,
+                "remaining_native": abs(float(self.POS_CLS(float(position) - float(target)).moving_wrap())) if target is not None and mode is AxisMotionMode.GOTO and available else None,
+            },
+            "motor": {
+                "connected": status.is_connected, "steps": status.steps,
+                "position_native": float(motor_position) if motor_position is not None else None,
+                "position_text": str(motor_position) if motor_position is not None else None,
+                "motion_mode": status.motion_mode.value, "direction": status.direction.value,
+                "speed_sps": float(status.speed_sps), "speed_native": float(motor_speed) if motor_speed is not None else None,
+                "accel_sps": status.accel_sps, "target_steps": status.target, "microsteps": status.microsteps,
+                "power_v": power, "initialized": status.initialized, "protocol": protocol,
+            } if available and status is not None else None,
+        }
 
 
 class AxisRA(Axis[Ha, HaPerSecond]):

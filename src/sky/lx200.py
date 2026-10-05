@@ -8,7 +8,7 @@ from pointing.service import PointingService, validate_solve
 from sky.axis import PointCoordinates
 from sky.combiner import Combiner
 from sky.constants import STELLAR_SPEED
-from sky.physics import Dec, DecPerSecond, Ha, HaPerSecond, SkyDirection
+from sky.physics import Dec, DecPerSecond, Ha, HaPerSecond, Second, SkyDirection
 
 
 class SkyLX200(LX200Handler):
@@ -47,6 +47,16 @@ class SkyLX200(LX200Handler):
 
     def get_telescope_ra(self) -> Ha:
         return self._combiner.get_position().ra
+
+    def monitor(self) -> dict[str, Any]:
+        result = self._combiner.monitor()
+        now = float(Second.monotonic())
+        monitor = self.command_monitor()
+        result["lx200"] = {
+            "stats": [{"command": command, "count": count, "age_s": max(0, now - float(at)), "argument": argument} for command, count, at, argument in monitor["stats"]],
+            "recent": [{"age_s": max(0, now - float(at)), "command": command} for at, command in monitor["recent"]],
+        }
+        return result
 
     def sync_telescope(self, ra: Ha, dec: Dec) -> bool:
         self.sync_from_solve(float(ra) / 3600, float(dec) / 3600, strict=False)

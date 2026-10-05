@@ -9,11 +9,13 @@ from pathlib import Path
 import threading
 from typing import Any
 
+from lx200.base_server import LX200SimpleServer
 from pointing.sensor import SensorReading, SensorState
 from pointing.service import PointingService
 from sim.orientation_sensor import OrientationSensorSim
 from sky.lx200 import SkyLX200
-from utils.polar_align_lib import Vec3
+from sky.telemetry import MountTelemetry
+from utils.polar_align_lib import ObserverSite, Vec3
 
 
 def finite_number(payload: dict[str, Any], key: str, default: float | None = None) -> float:
@@ -24,10 +26,19 @@ def finite_number(payload: dict[str, Any], key: str, default: float | None = Non
 
 
 class AgentAPI:
-    def __init__(self, sky: SkyLX200, pointing: PointingService, simulator: OrientationSensorSim | None = None) -> None:
+    def __init__(self, sky: SkyLX200, pointing: PointingService, simulator: OrientationSensorSim | None = None, *, lx200_server: LX200SimpleServer | None = None) -> None:
         self._sky, self._pointing, self._simulator = sky, pointing, simulator
+        self._mount_telemetry = MountTelemetry(sky)
+        self._lx200_server = lx200_server
+
+    def _mount_status(self, site: ObserverSite | None) -> dict[str, Any]:
+        status = self._mount_telemetry.status(site)
+        status["lx200"]["server"] = self._lx200_server.monitor() if self._lx200_server is not None else None
+        return status
 
     def handle_request(self, method: str, path: str, payload: dict[str, Any]) -> tuple[int, dict[str, Any]]:
+        if method == "GET" and path == "/v1/mount":
+            return 200, self._mount_status(self._pointing.observer_site())
         if method == "GET" and path in ("/v1/status", "/v1/sensor", "/v1/calibration"):
             status = self._pointing.status()
             status["mount_connected"] = self._sky.is_connected()
@@ -36,6 +47,8 @@ class AgentAPI:
                 return 200, status["sensor"]
             if path == "/v1/calibration":
                 return 200, status["calibration"]
+            site = status["calibration"]["site"]
+            status["mount"] = self._mount_status(ObserverSite(**site) if site is not None else None)
             return 200, status
         if method != "POST":
             return 404, {"error": "unknown_endpoint"}
@@ -115,7 +128,7 @@ class AgentAPIServer:
                 self.respond("POST")
 
             def respond(self, method: str) -> None:
-                assets = {"/": ("dashboard.html", "text/html"), "/model.mjs": ("model.mjs", "text/javascript")}
+                assets = {"/": ("dashboard.html", "text/html"), "/model.mjs": ("model.mjs", "text/javascript"), "/telemetry.mjs": ("telemetry.mjs", "text/javascript")}
                 if method == "GET" and self.path in assets:
                     filename, content_type = assets[self.path]
                     data = Path(__file__).with_name(filename).read_bytes()

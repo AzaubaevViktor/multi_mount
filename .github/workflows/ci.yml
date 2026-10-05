@@ -82,7 +82,9 @@ jobs:
           node-version: '24'
 
       - name: Sensor model geometry and motion scenarios
-        run: node --test src/tests/ui/test_pointing_model.mjs
+        run: |
+          node --check src/pointing/telemetry.mjs
+          node --test src/tests/ui/test_pointing_model.mjs
 
       # ONLY src/tests/units. src/tests/hw needs a physically attached mount and
       # fails collection without it (SerialLineSearchNotFound: no match for pattern

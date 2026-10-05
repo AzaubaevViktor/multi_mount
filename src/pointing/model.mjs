@@ -73,7 +73,15 @@ function path(svg, points, color, width=1, dash='') {
 }
 function label(svg, position, text, color='#82948a') {
   const [x,y] = project(position);
-  element(svg,'text',{x:x+5,y:y-5,style:`fill:${color}`}).textContent = text;
+  const width = text.length * 7.2, left = Math.max(8,Math.min(432-width,x+5));
+  const occupied = [...svg.querySelectorAll('text')].map(item => ({x:Number(item.getAttribute('x')),y:Number(item.getAttribute('y')),width:item.textContent.length*7.2}));
+  let top = Math.max(16,Math.min(284,y-5));
+  for (const offset of [0,-16,16,-32,32,-48,48,-64,64]) {
+    const candidate = Math.max(16,Math.min(284,y-5+offset));
+    if (!occupied.some(item => Math.abs(item.y-candidate)<15 && left<item.x+item.width+4 && left+width+4>item.x)) {top=candidate; break;}
+  }
+  if (Math.abs(top-(y-5))>8 || Math.abs(left-(x+5))>8) element(svg,'path',{d:`M${x},${y} L${left-2},${top-4}`,fill:'none',stroke:color,'stroke-width':.6});
+  element(svg,'text',{x:left,y:top,style:`fill:${color}`}).textContent = text;
 }
 function arrow(svg, start, end, color, text='') {
   path(svg,[start,end],color,2);
@@ -128,8 +136,8 @@ export class TelescopeModel {
       const lonArc = Array.from({length:49},(_,i)=>direction(frame.basis,frame.lon*i/48,0));
       const latArc = Array.from({length:25},(_,i)=>direction(frame.basis,frame.lon,frame.lat*i/24));
       path(svg,lonArc,colors[0]); path(svg,latArc,colors[1]);
-      label(svg,scale(planar,.65),`${frame.keys[0].toUpperCase()} ${index === 0 ? frame.lon.toFixed(1)+'°' : (frame.lon/15).toFixed(2)+'h'}`,colors[0]);
-      label(svg,add(planar,scale(axial,.55)),`${frame.keys[1].toUpperCase()} ${frame.lat.toFixed(1)}°`,colors[1]);
+      label(svg,scale(planar,.65),frame.keys[0].toUpperCase(),colors[0]);
+      label(svg,add(planar,scale(axial,.55)),frame.keys[1].toUpperCase(),colors[1]);
       // Wireframe tube, with its open end on the pointing side.
       const cross = scale(transverse,.075);
       const side = scale(add(scale(direction(frame.basis,frame.lon,0),-Math.sin(frame.lat*rad)),scale(frame.basis[2],Math.cos(frame.lat*rad))),.055);

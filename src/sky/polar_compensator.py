@@ -1,5 +1,5 @@
 import logging
-from typing import Sequence
+from typing import Any, Sequence
 
 from sky.constants import STELLAR_SPEED
 from sky.physics import AxisSpeed, DecPerSecond, HaPerSecond, Dec, Ha, Second
@@ -219,3 +219,26 @@ class PolarCompensator:
         self.logger.info("No guide speeds: ra: %s, dec: %s, external guide: %s, stable guide: %s", is_external_guide_ra, is_external_guide_dec, is_external_guide, is_stable_guide)
 
         return None
+
+    def monitor(self) -> dict[str, Any]:
+        now = Second.monotonic()
+        ra_speeds, dec_speeds = tuple(self._ra_speeds), tuple(self._dec_speeds)
+        external = now - self.last_guide_pulse < self.DROP_GUIDE_PULSES_COUNT_AFTER
+        stable = self.stable_guide_ra_pulses_count >= self.STABLE_GUIDE_PULSES_COUNT and self.stable_guide_dec_pulses_count >= self.STABLE_GUIDE_PULSES_COUNT
+        axes: dict[str, dict[str, Any]] = {}
+        for name, speeds, last, count, current, eps, delta in (
+            ("ra", ra_speeds, self.last_ra_guide_pulse, self.stable_guide_ra_pulses_count, self.current_ha, self.eps_E, self.last_ra_percent_delta),
+            ("dec", dec_speeds, self.last_dec_guide_pulse, self.stable_guide_dec_pulses_count, self.current_dec, self.eps_N, self.last_dec_percent_delta),
+        ):
+            axes[name] = {
+                "average_native": float(self._clean(speeds)), "samples": len(speeds),
+                "pulse_age_s": max(0, float(now - last)), "external": external, "stable": stable,
+                "axis_external": now - last < self.STOP_AXIS_AFTER, "stable_count": count,
+                "current_native": float(current) if current is not None else None,
+                "eps_native": float(eps) if eps is not None else None, "delta_percent": delta,
+            }
+        axes["ra"]["average_sidereal"] = axes["ra"]["average_native"] / float(STELLAR_SPEED)
+        return {
+            "status": "external" if external else "guiding" if self.is_guiding else "stable" if stable else "disabled",
+            "guide_age_s": max(0, float(now - self.last_guide_pulse)), "is_guiding": self.is_guiding, **axes,
+        }

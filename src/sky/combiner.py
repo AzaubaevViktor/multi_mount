@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 import threading
+from typing import Any
 from sky.axis import AxisMotionMode, AxisMotorReadiness, AxisRA, AxisDEC, PointCoordinates
 from sky.constants import STELLAR_SPEED
-from sky.physics import AxisSpeed, DecPerSecond, HaPerSecond, Second, SkyDirection
+from sky.physics import AxisSpeed, Dec, DecPerSecond, HaPerSecond, Second, SkyDirection
 from sky.polar_compensator import PolarCompensator
 
 @dataclass
@@ -79,6 +80,20 @@ class Combiner:
     def motors_readiness(self) -> tuple[AxisMotorReadiness, AxisMotorReadiness]:
         """RA and DEC readiness, in that order — the startup probe's whole input."""
         return (self.ra.motor_readiness(), self.dec.motor_readiness())
+
+    def monitor(self) -> dict[str, Any]:
+        ra, dec = self.ra.monitor(), self.dec.monitor()
+        position = None
+        if ra["position"] is not None and dec["position"] is not None:
+            position = {
+                "ra_hours": (ra["position"]["ra_hours"] + dec["position"]["ra_hours"]) % 24,
+                "dec_deg": float(Dec((ra["position"]["dec_deg"] + dec["position"]["dec_deg"]) * 3600).wrap()) / 3600,
+            }
+        modes = (ra["mode"], dec["mode"])
+        return {
+            "ra": ra, "dec": dec, "equatorial": position, "polar": self._polar_compensator.monitor(),
+            "state": "goto" if "goto" in modes else "move" if "slew" in modes else "track" if "track" in modes else "stop",
+        }
 
     def disconnect(self) -> None:
         self.ra.disconnect()

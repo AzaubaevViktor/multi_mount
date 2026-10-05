@@ -374,6 +374,10 @@ class PointingService:
             return "invalid_data"
         return "available"
 
+    def observer_site(self) -> ObserverSite | None:
+        with self._lock:
+            return self._calibration.site
+
     def status(self) -> dict[str, Any]:
         measurement = self.capture()
         with self._lock:
