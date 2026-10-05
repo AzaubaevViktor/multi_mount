@@ -169,4 +169,16 @@ test('drag capture, cancellation and view reset preserve the telemetry baseline'
   assert.equal(model.samples.previous,baseline);
   assert.equal(model.motion,motion);
   close(model.motion.rates.az,18);
+  const touch={...event,pointerType:'touch',pointerId:6};
+  targets[0].listeners.get('pointerdown')(touch);
+  targets[0].listeners.get('pointermove')({...touch,clientY:150});
+  close(model.view.yaw,35); close(model.view.elevation,25);
+  assert.equal(targets[0].captured,null);
+  targets[1].listeners.get('pointerdown')({...touch,pointerId:7});
+  targets[1].listeners.get('pointermove')({...touch,pointerId:7,clientX:180,clientY:110});
+  close(model.view.yaw,67); close(model.view.elevation,25);
+  targets[1].listeners.get('pointerup')({...touch,pointerId:7});
+  assert.equal(targets[1].captured,null);
+  assert.equal(model.samples.previous,baseline);
+  assert.equal(model.motion,motion);
 });

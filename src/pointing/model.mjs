@@ -89,12 +89,13 @@ function path(svg, points, color, width=1, dash='') {
 }
 function label(svg, position, text, color='#82948a') {
   const [x,y] = views.get(svg).project(position);
-  const width = text.length * 7.2, left = Math.max(8,Math.min(432-width,x+5));
-  const occupied = [...svg.querySelectorAll('text')].map(item => ({x:Number(item.getAttribute('x')),y:Number(item.getAttribute('y')),width:item.textContent.length*7.2}));
+  const fontSize=Number(svg.dataset.fontSize), gap=fontSize*1.35;
+  const width = text.length * fontSize*.6, left = Math.max(8,Math.min(432-width,x+5));
+  const occupied = [...svg.querySelectorAll('text')].map(item => ({x:Number(item.getAttribute('x')),y:Number(item.getAttribute('y')),width:item.textContent.length*fontSize*.6}));
   let top = Math.max(16,Math.min(284,y-5));
-  for (const offset of [0,-16,16,-32,32,-48,48,-64,64]) {
+  for (const offset of [0,-gap,gap,-gap*2,gap*2,-gap*3,gap*3,-gap*4,gap*4]) {
     const candidate = Math.max(16,Math.min(284,y-5+offset));
-    if (!occupied.some(item => Math.abs(item.y-candidate)<15 && left<item.x+item.width+4 && left+width+4>item.x)) {top=candidate; break;}
+    if (!occupied.some(item => Math.abs(item.y-candidate)<gap && left<item.x+item.width+4 && left+width+4>item.x)) {top=candidate; break;}
   }
   if (Math.abs(top-(y-5))>8 || Math.abs(left-(x+5))>8) element(svg,'path',{d:`M${x},${y} L${left-2},${top-4}`,fill:'none',stroke:color,'stroke-width':.6});
   element(svg,'text',{x:left,y:top,style:`fill:${color}`}).textContent = text;
@@ -128,13 +129,20 @@ export class TelescopeModel {
     for (const svg of root.querySelectorAll('[data-model-view]')) {
       svg.addEventListener('pointerdown',event=>{
         if (event.button!==0 || drag) return;
-        drag={id:event.pointerId,x:event.clientX,y:event.clientY};
-        svg.setPointerCapture(event.pointerId); event.preventDefault();
+        drag={id:event.pointerId,x:event.clientX,y:event.clientY,touch:event.pointerType==='touch',started:event.pointerType!=='touch'};
+        svg.setPointerCapture(event.pointerId);
+        if (!drag.touch) event.preventDefault();
       });
       svg.addEventListener('pointermove',event=>{
         if (!drag || drag.id!==event.pointerId) return;
+        if (!drag.started) {
+          const dx=event.clientX-drag.x, dy=event.clientY-drag.y;
+          if (Math.hypot(dx,dy)<6) return;
+          if (Math.abs(dy)>Math.abs(dx)) {drag=null; svg.releasePointerCapture(event.pointerId); return;}
+          drag.started=true;
+        }
         this.view.yaw=(this.view.yaw+(event.clientX-drag.x)*.4+360)%360;
-        this.view.elevation=Math.max(-85,Math.min(85,this.view.elevation-(event.clientY-drag.y)*.4));
+        if (!drag.touch) this.view.elevation=Math.max(-85,Math.min(85,this.view.elevation-(event.clientY-drag.y)*.4));
         drag.x=event.clientX; drag.y=event.clientY; this.render();
       });
       svg.addEventListener('lostpointercapture',()=>{drag=null;});
@@ -152,6 +160,10 @@ export class TelescopeModel {
       }
       this.render();
     });
+    if (typeof ResizeObserver!=='undefined') {
+      this.resizeObserver=new ResizeObserver(()=>this.render());
+      for (const svg of root.querySelectorAll('[data-model-view]')) this.resizeObserver.observe(svg);
+    }
   }
   update(data) {
     this.motion = this.samples.update(data);
@@ -178,6 +190,9 @@ export class TelescopeModel {
     const equatorial=modelFrames[1], polar=this.site ? [0,Math.cos(this.site.latitude_deg*rad),Math.sin(this.site.latitude_deg*rad)] : null;
     for (const [index,frame] of modelFrames.entries()) {
       const svg = this.root.querySelectorAll('[data-model-view]')[index];
+      const bounds=svg.getBoundingClientRect(), screenScale=Math.max(.1,Math.min(bounds.width/440,bounds.height/300));
+      const fontSize=Math.min(18,Math.max(12,12*screenScale))/screenScale;
+      svg.dataset.fontSize=fontSize; svg.style.fontSize=`${fontSize}px`;
       views.set(svg,this.view);
       svg.replaceChildren();
       // A dim, star-free celestial grid surrounds the instrument. Dashed lines
@@ -194,7 +209,7 @@ export class TelescopeModel {
         }
         for (const [side,d] of segments.entries()) element(svg,'path',{d,fill:'none',stroke:side?'#34483c':'#26372e','stroke-width':.65,'stroke-dasharray':side?'':'3 4'});
       }
-      element(svg,'text',{x:8,y:290,style:'font-size:10px'}).textContent=equatorial.basis ? 'СФЕРА / СЕТКА RA·DEC' : 'СЕТКА ENU / НЕТ ОРИЕНТАЦИИ RA·DEC';
+      element(svg,'text',{x:8,y:290,style:'font-size:.85em'}).textContent=equatorial.basis ? 'СФЕРА / СЕТКА RA·DEC' : 'СЕТКА ENU / НЕТ ОРИЕНТАЦИИ RA·DEC';
       // ENU ground, pedestal and tripod remain visible when no trustworthy pose exists.
       for (const axis of [[1.35,0,0],[0,1.35,0],[0,0,1.35]]) arrow(svg,[0,0,0],axis,'#34483c');
       for (const [position,text] of [[[1.35,0,0],'E'],[[0,1.35,0],'N'],[[0,0,1.35],'Z']]) label(svg,position,text);

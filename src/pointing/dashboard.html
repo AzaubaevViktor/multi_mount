@@ -4,70 +4,74 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ориентация телескопа</title>
 <style>
-  :root { color-scheme: dark; font: 12px/1.35 ui-monospace, SFMono-Regular, Consolas, monospace; background: #090d0c; color: #b5c6ba; --line: #34483c; --signal: #9aeab0; --muted: #82948a; --amber: #ffc16b; }
+  :root { color-scheme: dark; font: clamp(14px, .85vw, 20px)/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; background: #090d0c; color: #b5c6ba; --line: #34483c; --signal: #9aeab0; --muted: #82948a; --amber: #ffc16b; }
   * { box-sizing: border-box; }
-  body { max-width: 1280px; margin: auto; padding: 12px; }
+  body { width: 100%; max-width: 2000px; margin: auto; padding: max(8px, env(safe-area-inset-top)) max(clamp(8px, .75vw, 20px), env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(clamp(8px, .75vw, 20px), env(safe-area-inset-left)); }
   header, .strip, .panel-title, .capture-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   header { min-height: 36px; border-bottom: 2px solid var(--line); margin-bottom: 8px; }
-  h1, h2, p { margin: 0; } h1 { font-size: 14px; letter-spacing: .08em; } h2 { font-size: 11px; font-weight: 500; letter-spacing: .08em; }
-  #mode { font-size: 11px; text-align: right; color: var(--amber); }
-  main { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  h1, h2, p { margin: 0; } h1 { font-size: 1rem; letter-spacing: .08em; } h2 { font-size: .9rem; font-weight: 500; letter-spacing: .05em; }
+  #mode { font-size: .85rem; text-align: right; color: var(--amber); }
+  main { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; }
   section { border: 1px solid var(--line); background: #101612; min-width: 0; }
-  .panel-title { padding: 6px 8px; border-bottom: 1px solid var(--line); color: var(--muted); }
-  .panel-title span { font-size: 10px; } .full { grid-column: 1 / -1; }
+  .panel-title { padding: 6px 8px; border-bottom: 1px solid var(--line); color: var(--muted); flex-wrap: wrap; overflow-wrap: anywhere; }
+  .panel-title span { font-size: .85rem; } .full { grid-column: 1 / -1; }
   .strip { padding: 7px 8px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
-  #status { color: var(--amber); font-size: 13px; font-weight: 700; }
+  #status { color: var(--amber); font-size: 1rem; font-weight: 700; }
   body[data-state="ready"] #status, body[data-state="calibrating"] #status { color: var(--signal); }
   body[data-state="calibration_drift"] #status, body[data-state="transport_error"] #status, body[data-state="offline"] #status { color: #ff8c84; }
-  #summary { font-size: 11px; font-variant-numeric: tabular-nums; }
+  #summary { font-size: .85rem; font-variant-numeric: tabular-nums; }
   svg { width: 100%; height: 160px; display: block; color: var(--signal); }
   svg text { font: 10px ui-monospace, monospace; fill: var(--muted); }
   form, .controls { display: flex; align-items: end; flex-wrap: wrap; gap: 6px; padding: 8px; }
-  form label { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 85px; color: var(--muted); font-size: 10px; }
-  input { width: 100%; min-width: 0; height: 30px; background: #080e0a; color: var(--signal); border: 1px solid #526557; border-radius: 0; padding: 4px 6px; font: inherit; font-size: 13px; }
-  button { min-height: 30px; padding: 5px 9px; background: #1b2a20; color: #d5ebda; border: 1px solid #526557; border-radius: 0; font: inherit; font-size: 11px; cursor: pointer; }
-  button:hover { background: #2d4233; border-color: var(--signal); } button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+  form label { display: flex; flex-direction: column; gap: 3px; flex: 1 1 140px; min-width: 0; color: var(--muted); font-size: .85rem; }
+  input { width: 100%; min-width: 0; min-height: 44px; background: #080e0a; color: var(--signal); border: 1px solid #526557; border-radius: 0; padding: 6px 8px; font: inherit; font-size: max(16px,1rem); }
+  button { min-height: 44px; min-width: 44px; padding: 6px 10px; background: #1b2a20; color: #d5ebda; border: 1px solid #526557; border-radius: 0; font: inherit; font-size: .9rem; cursor: pointer; }
+  button:hover { background: #2d4233; border-color: var(--signal); } button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
   button:disabled { opacity: .45; cursor: wait; } .danger { color: #ffb5a7; border-color: #86504a; background: #2c1917; }
-  .hint { color: var(--muted); font-size: 10px; padding: 0 8px 7px; }
+  .hint { color: var(--muted); font-size: .85rem; padding: 0 8px 7px; overflow-wrap: anywhere; }
   .capture-row { padding: 8px 8px 0; justify-content: flex-start; flex-wrap: wrap; }
-  #captured { color: var(--amber); font-size: 10px; overflow-wrap: anywhere; }
+  #captured { color: var(--amber); font-size: .85rem; overflow-wrap: anywhere; }
   table { width: 100%; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
   th, td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--line); font-weight: 400; }
-  th { color: var(--muted); font-size: 10px; } th:first-child, td:first-child { text-align: left; width: 100px; }
-  td { color: var(--signal); } .telemetry { padding: 6px 8px; color: var(--muted); font-size: 10px; }
+  th { color: var(--muted); font-size: .85rem; } th:first-child, td:first-child { text-align: left; width: 34%; }
+  th, td { overflow-wrap: anywhere; }
+  td { color: var(--signal); } .telemetry { padding: 6px 8px; color: var(--muted); font-size: .85rem; }
   #message { margin-top: 6px; border-left: 2px solid var(--amber); padding: 6px 8px; background: #171b13; color: var(--amber); overflow-wrap: anywhere; }
-  #message:empty { display: none; } details { margin-top: 6px; border: 1px solid var(--line); } summary { cursor: pointer; padding: 6px 8px; color: var(--muted); font-size: 10px; }
-  pre { margin: 0; padding: 8px; border-top: 1px solid var(--line); white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: 10px; }
-  .model-grid { display: grid; grid-template-columns: 1fr 1fr; }
+  #message:empty { display: none; } details { margin-top: 6px; border: 1px solid var(--line); } summary { cursor: pointer; padding: 10px 8px; min-height: 44px; color: var(--muted); font-size: .85rem; }
+  pre { margin: 0; padding: 8px; border-top: 1px solid var(--line); white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: .85rem; }
+  .model-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
   .model-view { min-width: 0; border-right: 1px solid var(--line); }
-  .model-view h3 { margin: 0; padding: 6px 8px; font-size: 10px; font-weight: 400; color: var(--muted); }
-  .model-view svg { height: 380px; touch-action: none; cursor: grab; }
+  .model-view h3 { margin: 0; padding: 6px 8px; font-size: .85rem; font-weight: 400; color: var(--muted); }
+  .model-view svg { height: auto; aspect-ratio: 440 / 300; max-height: 620px; touch-action: pan-y; cursor: grab; }
   .model-view svg:active { cursor: grabbing; }
-  .model-view svg text { font-size: 12px; }
+  .model-view svg text { font-size: inherit; paint-order: stroke; stroke: #101612; stroke-width: .1em; stroke-linejoin: round; }
   .view-controls { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; padding: 5px 8px; border-bottom: 1px solid var(--line); }
-  .view-controls span { font-size: 10px; color: var(--muted); margin-right: auto; }
-  .view-controls button { min-height: 25px; padding: 3px 8px; }
-  .model-rates { grid-column: 1 / -1; border-top: 1px solid var(--line); }
-  .model-rates th:first-child, .model-rates td:first-child { width: 100px; }
-  .model-rates td { font-size: 11px; padding: 3px 6px; }
-  .model-rates th { padding: 3px 6px; }
-  .model-legend { padding: 7px 8px; font-size: 10px; color: var(--muted); border-top: 1px solid var(--line); }
+  .view-controls span { font-size: .85rem; color: var(--muted); flex: 1 1 280px; }
+  .model-rates { grid-column: 1 / -1; border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); }
+  .coordinate { padding: 5px 8px; border-right: 1px solid var(--line); min-width: 0; }
+  .coordinate h3 { font-size: .9rem; margin: 0 0 3px; font-weight: 400; }
+  .coordinate dl { margin: 0; font-variant-numeric: tabular-nums; }
+  .coordinate dl > div { display: flex; justify-content: space-between; gap: 4px; }
+  .coordinate dt { font-size: .8rem; color: var(--muted); }
+  .coordinate dd { margin: 0; font-size: .9rem; color: var(--signal); white-space: nowrap; }
+  .model-legend { padding: 7px 8px; font-size: .85rem; color: var(--muted); border-top: 1px solid var(--line); }
   .lon-color { color: #72cced; } .lat-color { color: var(--amber); } .los-color { color: var(--signal); }
-  .sensor-strip, .mount-strip { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 5px 8px; color: var(--muted); font-size: 10px; }
+  .sensor-strip, .mount-strip { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 5px 8px; color: var(--muted); font-size: .85rem; overflow-wrap: anywhere; }
   .sensor-strip output { color: var(--signal); }
   .model-source { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  .model-source label { font-size: 10px; }
-  select { font: inherit; color: var(--signal); background: #080e0a; border: 1px solid var(--line); padding: 2px 4px; }
-  .motor-grid, .telemetry-columns { display: grid; grid-template-columns: 1fr 1fr; }
+  .model-source { min-width: 0; } .model-source label { font-size: .85rem; }
+  select { font: inherit; min-height: 44px; max-width: 100%; color: var(--signal); background: #080e0a; border: 1px solid var(--line); padding: 6px; }
+  .motor-grid, .telemetry-columns { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
   .telemetry-columns { align-items: start; }
   .motor-view { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-  .motor-view svg { height: 90px; } .motor-view:first-child, .telemetry-columns > table { border-right: 1px solid var(--line); }
-  .telemetry-columns table { table-layout: auto; } .telemetry-columns th, .telemetry-columns td, [data-lx200-table] th, [data-lx200-table] td { padding: 3px 6px; font-size: 10px; overflow-wrap: anywhere; }
-  .telemetry-columns th:first-child { width: 120px; } [data-lx200-table] th:first-child { width: 140px; }
+  .motor-view { min-width: 0; } .motor-view svg { height: clamp(110px,8vw,160px); } .motor-view:first-child, .telemetry-columns > table { border-right: 1px solid var(--line); }
+  .polar-traffic { min-width: 0; }
+  .telemetry-columns th, .telemetry-columns td { padding: 4px 6px; font-size: .85rem; }
+  [data-lx200-table] th:first-child { width: 36%; } [data-lx200-table] th, [data-lx200-table] td { font-size: .8rem; }
   [hidden] { display: none !important; }
-  @media (max-width: 600px) { body { padding: 6px; } main { grid-template-columns: 1fr; } header { align-items: start; padding: 4px 0; } h1 { font-size: 12px; } #mode { font-size: 10px; } }
-  @media (max-width: 800px) { .model-grid { grid-template-columns: 1fr 1fr; } .model-rates { grid-column: 1 / -1; border-top: 1px solid var(--line); } .model-view:last-of-type { border-right: 0; } .model-view svg { height: auto; aspect-ratio: 440 / 300; } }
-  @media (max-width: 600px) { .model-grid, .telemetry-columns { grid-template-columns: 1fr; } .model-view { border-right: 0; border-bottom: 1px solid var(--line); } .telemetry-columns table:first-child { border-right: 0; } .panel-title { flex-wrap: wrap; } }
+  @media (max-width: 1100px) { .telemetry-columns { grid-template-columns: minmax(0,1fr); } .telemetry-columns > table { border-right: 0; } }
+  @media (max-width: 719px) { main, .model-grid { grid-template-columns: minmax(0,1fr); } .model-view { border-right: 0; border-bottom: 1px solid var(--line); } .model-rates { grid-template-columns: repeat(2,minmax(0,1fr)); } .coordinate { border-bottom: 1px solid var(--line); } .coordinate:nth-child(even) { border-right: 0; } }
+  @media (max-width: 539px) { header { flex-wrap: wrap; } .motor-grid { grid-template-columns: minmax(0,1fr); } .motor-view:first-child { border-right: 0; } .view-controls span { flex-basis: 100%; } .view-controls button:last-child { flex: 1 1 100px; } #solve label { flex-basis: 100%; } }
 </style>
 <body data-state="offline">
 <header><h1>ТЕЛЕСКОП / ОРИЕНТАЦИЯ</h1><p id="mode">LINK —</p></header>
@@ -81,7 +85,7 @@
 <section id="telescope-model" class="full">
   <div class="panel-title"><h2>01 / ОРИЕНТАЦИЯ И ДВИЖЕНИЕ</h2><div class="model-source"><label for="model-source">ИСТОЧНИК</label><select id="model-source"><option value="sensor">ДАТЧИК</option><option value="mount">МОНТИРОВКА</option></select><span data-model-status>НЕТ РЕШЕНИЯ ДАТЧИКА</span></div></div>
   <div class="view-controls" aria-label="Управление камерой">
-    <span>ВИД / ПЕРЕТАЩИТЬ МЫШЬЮ ИЛИ ПАЛЬЦЕМ · СЕТКА RA/DEC · УЗЛЫ СХЕМАТИЧНЫЕ</span>
+    <span>ВИД / МЫШЬ: ПЕРЕТАЩИТЬ · ПАЛЕЦ: ВЛЕВО/ВПРАВО · СЕТКА RA/DEC</span>
     <button data-view-action="left" aria-label="Повернуть вид влево">←</button><button data-view-action="right" aria-label="Повернуть вид вправо">→</button>
     <button data-view-action="up" aria-label="Повернуть вид вверх">↑</button><button data-view-action="down" aria-label="Повернуть вид вниз">↓</button>
     <button data-view-action="in" aria-label="Приблизить вид">+</button><button data-view-action="out" aria-label="Отдалить вид">−</button><button data-view-action="reset">Сброс вида</button>
@@ -90,11 +94,10 @@
     <div class="model-view"><h3>ГОРИЗОНТ / AZ + ALT</h3><svg data-model-view viewBox="0 0 440 300" role="img" aria-label="Цилиндрическая труба, узлы RA и DEC, небесная сфера, направление на Полярную и векторы AZ и ALT"></svg></div>
     <div class="model-view"><h3>ЭКВАТОР / RA + DEC</h3><svg data-model-view viewBox="0 0 440 300" role="img" aria-label="Цилиндрическая труба, узлы RA и DEC, небесная сфера, направление на Полярную и векторы RA и DEC"></svg></div>
     <div class="model-rates">
-      <table aria-label="Координаты, скорости и направления движения"><thead><tr><th>ПОЗИЦИЯ / ХОД</th><th class="lon-color">AZ · °</th><th class="lat-color">ALT · °</th><th class="lon-color">RA · ч:м:с</th><th class="lat-color">DEC · °</th></tr></thead><tbody>
-        <tr><th>УГОЛ</th><td data-angle="az">—</td><td data-angle="alt">—</td><td data-angle="ra">—</td><td data-angle="dec">—</td></tr>
-        <tr><th>СКОРОСТЬ · ″/s</th><td data-rate="az">—</td><td data-rate="alt">—</td><td data-rate="ra">—</td><td data-rate="dec">—</td></tr>
-        <tr><th>НАПРАВЛЕНИЕ</th><td data-direction="az">НЕИЗВ.</td><td data-direction="alt">НЕИЗВ.</td><td data-direction="ra">НЕИЗВ.</td><td data-direction="dec">НЕИЗВ.</td></tr>
-      </tbody></table>
+      <div class="coordinate"><h3 class="lon-color">AZ · °</h3><dl><div><dt>УГОЛ</dt><dd data-angle="az">—</dd></div><div><dt>″/s</dt><dd data-rate="az">—</dd></div><div><dt>ХОД</dt><dd data-direction="az">НЕИЗВ.</dd></div></dl></div>
+      <div class="coordinate"><h3 class="lat-color">ALT · °</h3><dl><div><dt>УГОЛ</dt><dd data-angle="alt">—</dd></div><div><dt>″/s</dt><dd data-rate="alt">—</dd></div><div><dt>ХОД</dt><dd data-direction="alt">НЕИЗВ.</dd></div></dl></div>
+      <div class="coordinate"><h3 class="lon-color">RA · ч:м:с</h3><dl><div><dt>УГОЛ</dt><dd data-angle="ra">—</dd></div><div><dt>″/s</dt><dd data-rate="ra">—</dd></div><div><dt>ХОД</dt><dd data-direction="ra">НЕИЗВ.</dd></div></dl></div>
+      <div class="coordinate"><h3 class="lat-color">DEC · °</h3><dl><div><dt>УГОЛ</dt><dd data-angle="dec">—</dd></div><div><dt>″/s</dt><dd data-rate="dec">—</dd></div><div><dt>ХОД</dt><dd data-direction="dec">НЕИЗВ.</dd></div></dl></div>
     </div>
   </div>
   <p class="model-legend"><span class="los-color">LOS = ВЕКТОР НАПРАВЛЕНИЯ</span> · <span class="lon-color">AZ / RA = ПРОЕКЦИЯ НА ПЛОСКОСТЬ</span> · <span class="lat-color">ALT / DEC = ПЕРПЕНДИКУЛЯРНАЯ СОСТАВЛЯЮЩАЯ</span></p>
