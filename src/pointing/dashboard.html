@@ -4,29 +4,81 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ориентация телескопа</title>
 <style>
-  :root { color-scheme: dark; font: 16px/1.5 system-ui, sans-serif; background: #101720; color: #e4edf6; }
-  body { max-width: 1000px; margin: auto; padding: 24px; }
-  h1 { font-size: 28px; margin-bottom: 4px; } h2 { font-size: 18px; margin-top: 0; }
-  p { color: #a9bbce; } section { background: #1a2533; padding: 20px; border: 1px solid #314153; border-radius: 12px; margin: 16px 0; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 16px; }
-  .grid section { margin: 0; } label { display: inline-flex; flex-direction: column; gap: 4px; margin: 6px 10px 6px 0; }
-  input { background: #101720; color: inherit; border: 1px solid #62788f; border-radius: 6px; padding: 9px; width: 140px; font: inherit; }
-  button { background: #345b83; color: white; border: 1px solid #6a91b9; border-radius: 6px; padding: 10px 14px; font: inherit; margin: 6px 4px 6px 0; cursor: pointer; }
-  button:disabled { opacity: .5; cursor: wait; } .danger { background: #64343d; border-color: #ba7480; }
-  output { font-size: 22px; font-weight: 600; } pre { white-space: pre-wrap; word-break: break-word; font-size: 13px; }
-  #message { white-space: pre-wrap; color: #f5c37e; } [hidden] { display: none !important; }
+  :root { color-scheme: dark; font: 12px/1.35 ui-monospace, SFMono-Regular, Consolas, monospace; background: #090d0c; color: #b5c6ba; --line: #34483c; --signal: #9aeab0; --muted: #82948a; --amber: #ffc16b; }
+  * { box-sizing: border-box; }
+  body { max-width: 1060px; margin: auto; padding: 12px; }
+  header, .strip, .panel-title, .capture-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  header { min-height: 36px; border-bottom: 2px solid var(--line); margin-bottom: 8px; }
+  h1, h2, p { margin: 0; } h1 { font-size: 14px; letter-spacing: .08em; } h2 { font-size: 11px; font-weight: 500; letter-spacing: .08em; }
+  #mode { font-size: 11px; text-align: right; color: var(--amber); }
+  main { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  section { border: 1px solid var(--line); background: #101612; min-width: 0; }
+  .panel-title { padding: 6px 8px; border-bottom: 1px solid var(--line); color: var(--muted); }
+  .panel-title span { font-size: 10px; } .full { grid-column: 1 / -1; }
+  .strip { padding: 7px 8px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  #status { color: var(--amber); font-size: 13px; font-weight: 700; }
+  body[data-state="ready"] #status, body[data-state="calibrating"] #status { color: var(--signal); }
+  body[data-state="calibration_drift"] #status, body[data-state="transport_error"] #status, body[data-state="offline"] #status { color: #ff8c84; }
+  #summary { font-size: 11px; font-variant-numeric: tabular-nums; }
+  .instruments { display: grid; grid-template-columns: 230px 1fr; }
+  .plot { border-right: 1px solid var(--line); padding: 8px; }
+  svg { width: 100%; height: 160px; display: block; color: var(--signal); }
+  svg text { font: 10px ui-monospace, monospace; fill: var(--muted); }
+  .plot-grid { stroke: var(--line); fill: none; stroke-width: 1; }
+  .needle { stroke: var(--signal); fill: none; stroke-width: 2; }
+  #plot-caption { text-align: center; font-size: 10px; color: var(--muted); margin-top: 3px; }
+  .readouts { display: grid; grid-template-columns: 1fr 1fr; }
+  .readout { padding: 10px 12px; border-bottom: 1px solid var(--line); min-width: 0; }
+  .readout:nth-child(odd) { border-right: 1px solid var(--line); } .readout:nth-last-child(-n+2) { border-bottom: 0; }
+  .readout label { display: block; color: var(--muted); font-size: 10px; letter-spacing: .12em; }
+  .readout output { display: block; font-size: clamp(22px, 4vw, 34px); line-height: 1.45; color: var(--signal); font-variant-numeric: tabular-nums; }
+  .readout small { color: var(--muted); font-size: 10px; }
+  form, .controls { display: flex; align-items: end; flex-wrap: wrap; gap: 6px; padding: 8px; }
+  form label { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 85px; color: var(--muted); font-size: 10px; }
+  input { width: 100%; min-width: 0; height: 30px; background: #080e0a; color: var(--signal); border: 1px solid #526557; border-radius: 0; padding: 4px 6px; font: inherit; font-size: 13px; }
+  button { min-height: 30px; padding: 5px 9px; background: #1b2a20; color: #d5ebda; border: 1px solid #526557; border-radius: 0; font: inherit; font-size: 11px; cursor: pointer; }
+  button:hover { background: #2d4233; border-color: var(--signal); } button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+  button:disabled { opacity: .45; cursor: wait; } .danger { color: #ffb5a7; border-color: #86504a; background: #2c1917; }
+  .hint { color: var(--muted); font-size: 10px; padding: 0 8px 7px; }
+  .capture-row { padding: 8px 8px 0; justify-content: flex-start; flex-wrap: wrap; }
+  #captured { color: var(--amber); font-size: 10px; overflow-wrap: anywhere; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
+  th, td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--line); font-weight: 400; }
+  th { color: var(--muted); font-size: 10px; } th:first-child, td:first-child { text-align: left; width: 100px; }
+  td { color: var(--signal); } .telemetry { padding: 6px 8px; color: var(--muted); font-size: 10px; }
+  #message { margin-top: 6px; border-left: 2px solid var(--amber); padding: 6px 8px; background: #171b13; color: var(--amber); overflow-wrap: anywhere; }
+  #message:empty { display: none; } details { margin-top: 6px; border: 1px solid var(--line); } summary { cursor: pointer; padding: 6px 8px; color: var(--muted); font-size: 10px; }
+  pre { margin: 0; padding: 8px; border-top: 1px solid var(--line); white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: 10px; }
+  [hidden] { display: none !important; }
+  @media (max-width: 600px) { body { padding: 6px; } main { grid-template-columns: 1fr; } .instruments { grid-template-columns: 150px 1fr; } .plot { padding: 4px; } svg { height: 138px; } .readout { padding: 8px; } .readout output { font-size: 22px; } header { align-items: start; padding: 4px 0; } h1 { font-size: 12px; } #mode { font-size: 10px; } }
+  @media (max-width: 400px) { .instruments { grid-template-columns: 130px 1fr; } .readout output { font-size: clamp(14px,4.4vw,18px); } }
 </style>
-<body>
-<h1>Ориентация телескопа</h1>
-<p id="mode">Подключение…</p>
-<section aria-live="polite">
-  <output id="status">Нет данных</output>
-  <p id="summary"></p>
-  <div class="grid"><div><h2>Горизонтальные координаты</h2><div id="altaz">—</div></div><div><h2>Экваториальные координаты</h2><div id="equatorial">—</div></div></div>
+<body data-state="offline">
+<header><h1>ТЕЛЕСКОП / ОРИЕНТАЦИЯ</h1><p id="mode">LINK —</p></header>
+<main>
+<section class="full" aria-live="polite">
+  <div class="strip"><output id="status">НЕТ СВЯЗИ</output><p id="summary">PTS — / CAL — / Δ —</p></div>
+  <div class="instruments">
+    <div class="plot">
+      <svg viewBox="0 0 210 160" role="img" aria-label="Схема азимута и высоты">
+        <g class="plot-grid"><circle cx="75" cy="80" r="52"/><circle cx="75" cy="80" r="32"/><path d="M75 20V140 M15 80H135 M38 43L112 117 M38 117L112 43 M164 25V135 M160 25H174 M160 52.5H170 M160 80H174 M160 107.5H170 M160 135H174"/></g>
+        <text x="75" y="15" text-anchor="middle">N / 000</text><text x="138" y="83">E</text><text x="75" y="155" text-anchor="middle">180</text><text x="0" y="83">W</text>
+        <text x="179" y="29">+90</text><text x="179" y="84">0</text><text x="179" y="139">−90</text>
+        <g id="az-needle" hidden class="needle"><path d="M75 80V31 M70 38L75 31L80 38"/><circle cx="75" cy="80" r="3"/></g>
+        <path id="alt-needle" hidden class="needle" d="M149 80H160 M153 76L160 80L153 84"/>
+      </svg>
+      <p id="plot-caption">AZ / ALT — НЕТ РЕШЕНИЯ</p>
+    </div>
+    <div class="readouts">
+      <div class="readout"><label for="alt-value">ALT / ВЫСОТА</label><output id="alt-value">—</output><small>DEG</small></div>
+      <div class="readout"><label for="az-value">AZ / АЗИМУТ</label><output id="az-value">—</output><small>DEG · N → E</small></div>
+      <div class="readout"><label for="ra-value">RA / ПРЯМОЕ ВОСХ.</label><output id="ra-value">—</output><small>HOURS</small></div>
+      <div class="readout"><label for="dec-value">DEC / СКЛОНЕНИЕ</label><output id="dec-value">—</output><small>DEG</small></div>
+    </div>
+  </div>
 </section>
-<div class="grid">
 <section>
-  <h2>Место наблюдения</h2>
+  <div class="panel-title"><h2>01 / МЕСТО</h2><span>LAT / LON</span></div>
   <form id="site">
     <label>Широта, °<input name="latitude_deg" type="number" step="any" min="-90" max="90" required></label>
     <label>Долгота на восток, °<input name="longitude_deg" type="number" step="any" min="-180" max="180" required></label>
@@ -34,39 +86,44 @@
   </form>
 </section>
 <section>
-  <h2>Калибровка по plate solve</h2>
-  <p>Включите сбор точек и выполните SYNC в разных направлениях. После остановки новые SYNC проверяют расхождение.</p>
-  <button data-action="start">Начать / продолжить</button>
-  <button data-action="stop">Закончить сбор</button>
-  <button data-action="reset" class="danger">Сбросить точки</button>
+  <div class="panel-title"><h2>02 / КАЛИБРОВКА</h2><span id="cal-mode">OFF</span></div>
+  <div class="controls"><button data-action="start">Сбор: ВКЛ</button><button data-action="stop">Сбор: ВЫКЛ</button><button data-action="reset" class="danger">Сброс</button></div>
+  <p class="hint">СБОР → SYNC ДОБАВЛЯЕТ ТОЧКУ / ВЫКЛ → SYNC ПРОВЕРЯЕТ</p>
 </section>
-</div>
-<section id="simulation" hidden>
-  <h2>Положение датчика в симуляторе</h2>
-  <p>Показания задаются отдельно от координат монтировки. SYNC не меняет положение датчика.</p>
+<section id="simulation" class="full" hidden>
+  <div class="panel-title"><h2>03 / ПОЗА ДАТЧИКА</h2><span>SIM ONLY</span></div>
   <form id="pose">
     <label>Высота, °<input name="alt_deg" type="number" step="any" min="-90" max="90" value="45" required></label>
     <label>Азимут, °<input name="az_deg" type="number" step="any" min="0" max="359.999" value="0" required></label>
-    <label>Угол крепления, °<input name="mounting_deg" type="number" step="any" value="17" required></label>
-    <button>Задать положение</button>
+    <label>Крепление, °<input name="mounting_deg" type="number" step="any" value="17" required></label>
+    <button>Задать позу</button>
   </form>
 </section>
 <section>
-  <h2>Результат plate solve → SYNC</h2>
-  <p>Зафиксируйте показания во время снимка. Введите RA и DEC результата этого снимка, затем отправьте SYNC. Время измерения сохранится вместе с точкой.</p>
-  <button id="capture">Зафиксировать измерение</button><span id="captured">Измерение не выбрано</span>
+  <div class="panel-title"><h2>04 / PLATE SOLVE → SYNC</h2><span>КАДР → ЗАХВАТ → SOLVE</span></div>
+  <div class="capture-row"><button id="capture" aria-label="Зафиксировать измерение">Захват кадра</button><span id="captured">НЕТ КАДРА</span></div>
   <form id="solve">
     <label>RA, часы<input name="ra_hours" type="number" step="any" min="0" max="23.999999" required></label>
     <label>DEC, °<input name="dec_deg" type="number" step="any" min="-90" max="90" required></label>
-    <button>Отправить SYNC</button>
+    <button>SYNC</button>
   </form>
 </section>
+<section>
+  <div class="panel-title"><h2>05 / СЫРЫЕ ВЕКТОРЫ</h2><span id="sensor-state">—</span></div>
+  <table aria-label="Сырые показания датчика"><thead><tr><th>ДАТЧИК</th><th>X</th><th>Y</th><th>Z</th></tr></thead><tbody>
+    <tr><th>G · м/с²</th><td id="gx">—</td><td id="gy">—</td><td id="gz">—</td></tr>
+    <tr><th>B · мкТл</th><td id="mx">—</td><td id="my">—</td><td id="mz">—</td></tr>
+  </tbody></table>
+  <p id="telemetry" class="telemetry">SEQ — / AGE —</p>
+</section>
+</main>
 <p id="message" role="status"></p>
-<details><summary>Сырые показания и последняя проверка</summary><pre id="raw"></pre></details>
+<details><summary>ДИАГНОСТИКА / JSON</summary><pre id="raw"></pre></details>
 <script>
   const byId = id => document.getElementById(id);
   let measurement = null, initializedSite = false;
-  const names = {ready:'Откалибровано',calibrating:'Сбор калибровочных точек',uncalibrated:'Не откалибровано',device_not_found:'Датчик не найден',not_connected:'DEC не подключён',unsupported:'Прошивка не поддерживает датчик',no_data:'Нет измерений',stale_data:'Измерение устарело',heading_unavailable:'Нет магнитного направления',invalid_data:'Некорректные показания',transport_error:'Ошибка связи',out_of_coverage:'Вне области калибровки',calibration_inconsistent:'Точки калибровки противоречат друг другу',calibration_drift:'Калибровка сбилась'};
+  const names = {ready:'ГОТОВ',calibrating:'КАЛИБРОВКА',uncalibrated:'НЕ ОТКАЛИБРОВАН',device_not_found:'ДАТЧИК НЕ НАЙДЕН',not_connected:'DEC НЕ ПОДКЛЮЧЁН',unsupported:'ДАТЧИК НЕ ПОДДЕРЖИВАЕТСЯ',no_data:'НЕТ ДАННЫХ',stale_data:'УСТАРЕВШИЕ ДАННЫЕ',heading_unavailable:'НЕТ МАГНИТНОГО КУРСА',invalid_data:'ОШИБКА ДАННЫХ',transport_error:'ОШИБКА СВЯЗИ',out_of_coverage:'ВНЕ КАЛИБРОВКИ',calibration_inconsistent:'КОНФЛИКТ ТОЧЕК',calibration_drift:'КАЛИБРОВКА СБИЛАСЬ'};
+  const number = (value, digits) => value == null ? '—' : value.toFixed(digits);
   async function api(path, data) {
     const response = await fetch(path, data === undefined ? {} : {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
     const result = await response.json();
@@ -75,25 +132,50 @@
   }
   async function refresh() {
     try {
-      const data = await api('/v1/status'), cal = data.calibration;
+      const data = await api('/v1/status'), cal = data.calibration, sensor = data.sensor;
+      document.body.dataset.state = data.status;
       byId('status').textContent = names[data.status] || data.status;
-      byId('mode').textContent = `${data.simulated ? 'Симулятор' : 'Реальное оборудование'} · монтировка ${data.mount_connected ? 'подключена' : 'не подключена'}`;
+      byId('mode').textContent = `${data.simulated ? 'SIM' : 'LIVE'} / LINK ${data.mount_connected ? 'ON' : 'OFF'}`;
       byId('simulation').hidden = !data.simulated;
       const residual = cal.latest_sync?.residual_deg;
-      byId('summary').textContent = `Точек: ${cal.point_count} · сбор ${cal.mode ? 'включён' : 'выключен'} · последняя ошибка: ${residual == null ? 'не измерена' : residual.toFixed(3) + '°'}`;
-      byId('altaz').textContent = data.altaz ? `Высота ${data.altaz.alt_deg.toFixed(3)}° · азимут ${data.altaz.az_deg.toFixed(3)}°` : 'Нет достоверных координат';
-      byId('equatorial').textContent = data.equatorial ? `RA ${data.equatorial.ra_hours.toFixed(6)} ч · DEC ${data.equatorial.dec_deg.toFixed(4)}°` : 'Нет достоверных координат';
-      byId('raw').textContent = JSON.stringify({sensor:data.sensor,calibration:cal}, null, 2);
+      byId('summary').textContent = `PTS ${String(cal.point_count).padStart(3,'0')} / CAL ${cal.mode ? 'ON' : 'OFF'} / Δ ${number(residual,3)}°`;
+      byId('cal-mode').textContent = cal.mode ? 'RECORD' : 'VERIFY';
+      byId('alt-value').textContent = number(data.altaz?.alt_deg,3);
+      byId('az-value').textContent = number(data.altaz?.az_deg,3);
+      byId('ra-value').textContent = number(data.equatorial?.ra_hours,6);
+      byId('dec-value').textContent = number(data.equatorial?.dec_deg,4);
+      byId('az-needle').toggleAttribute('hidden', !data.altaz);
+      byId('alt-needle').toggleAttribute('hidden', !data.altaz);
+      if (data.altaz) {
+        byId('az-needle').setAttribute('transform', `rotate(${data.altaz.az_deg} 75 80)`);
+        byId('alt-needle').setAttribute('transform', `translate(0 ${-data.altaz.alt_deg * 55 / 90})`);
+      }
+      byId('plot-caption').textContent = data.altaz ? 'AZ / ALT · РЕШЕНИЕ' : 'AZ / ALT — НЕТ РЕШЕНИЯ';
+      for (const [prefix,vector] of [['g',sensor.gravity_m_s2],['m',sensor.magnetic_uT]]) {
+        for (const axis of ['x','y','z']) byId(prefix+axis).textContent = number(vector?.[axis], prefix === 'g' ? 3 : 2);
+      }
+      byId('sensor-state').textContent = sensor.state.toUpperCase();
+      byId('telemetry').textContent = `SEQ ${sensor.sequence ?? '—'} / AGE ${sensor.age_ms ?? '—'} ms`;
+      byId('raw').textContent = JSON.stringify({sensor,calibration:cal}, null, 2);
       if (!initializedSite && cal.site) {
         for (const [key,value] of Object.entries(cal.site)) byId('site').elements[key].value = value;
         initializedSite = true;
       }
-    } catch(error) { byId('status').textContent = 'API недоступен'; byId('message').textContent = error.message; }
+    } catch(error) {
+      document.body.dataset.state = 'offline';
+      byId('status').textContent = 'НЕТ СВЯЗИ';
+      byId('mode').textContent = 'LINK OFF';
+      for (const id of ['alt-value','az-value','ra-value','dec-value','gx','gy','gz','mx','my','mz']) byId(id).textContent = '—';
+      byId('az-needle').setAttribute('hidden',''); byId('alt-needle').setAttribute('hidden','');
+      byId('plot-caption').textContent = 'AZ / ALT — НЕТ РЕШЕНИЯ';
+      byId('sensor-state').textContent = '—'; byId('telemetry').textContent = 'SEQ — / AGE —';
+      byId('message').textContent = error.message;
+    }
   }
   async function action(work) {
     const buttons = [...document.querySelectorAll('button')];
     buttons.forEach(button => button.disabled = true);
-    try { const result = await work(); byId('message').textContent = result?.mount_synced ? `SYNC: ${result.status}, точка ${result.sample_added ? 'добавлена' : 'не добавлена'}` : 'Сохранено'; await refresh(); }
+    try { const result = await work(); byId('message').textContent = result?.mount_synced ? `SYNC / ${result.status.toUpperCase()} / ТОЧКА ${result.sample_added ? 'ДОБАВЛЕНА' : 'НЕ ДОБАВЛЕНА'}` : 'OK'; await refresh(); }
     catch(error) { byId('message').textContent = error.message; }
     finally { buttons.forEach(button => button.disabled = false); }
   }
@@ -102,7 +184,7 @@
       event.preventDefault();
       const data = Object.fromEntries([...new FormData(event.target)].map(([key,value]) => [key,Number(value)]));
       if (id === 'solve') {
-        if (!measurement) { byId('message').textContent = 'Сначала зафиксируйте измерение во время снимка'; return; }
+        if (!measurement) { byId('message').textContent = 'НЕТ КАДРА / ЗАХВАТИТЕ ИЗМЕРЕНИЕ'; return; }
         data.measurement_id = measurement.measurement_id; data.timestamp = measurement.timestamp;
       }
       action(() => api(path,data));
