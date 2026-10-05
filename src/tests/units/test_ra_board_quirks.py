@@ -271,7 +271,7 @@ def test_a_sync_only_shifts_the_frame_and_the_axis_keeps_moving_in_it() -> None:
 
     travelled = sim.position
     assert travelled > 0
-    assert motor.status().steps == pytest.approx(1000 + travelled, abs=speed_sps * 0.3)
+    assert motor.status().steps == pytest.approx(1000 + travelled, abs=float(speed_sps) * 0.3)
 
 
 def test_set_steps_leaves_a_healthy_board_alone() -> None:
