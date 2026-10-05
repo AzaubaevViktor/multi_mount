@@ -130,8 +130,8 @@
 <section id="telescope-model" class="full">
   <div class="panel-title"><h2>06 / КИНЕМАТИКА</h2><span data-model-status>НЕТ РЕШЕНИЯ ДАТЧИКА</span></div>
   <div class="model-grid">
-    <div class="model-view"><h3>ГОРИЗОНТ / AZ + ALT</h3><svg data-model-view viewBox="0 0 440 300" role="img" aria-label="Модель азимута и высоты с направлениями вращения и векторами скорости"></svg></div>
-    <div class="model-view"><h3>ЭКВАТОР / RA + DEC</h3><svg data-model-view viewBox="0 0 440 300" role="img" aria-label="Экваториальная модель с полярной осью и векторами скорости RA и DEC"></svg></div>
+    <div class="model-view"><h3>ГОРИЗОНТ / AZ + ALT</h3><svg data-model-view viewBox="0 0 440 300" role="img" aria-label="Векторы положения AZ и ALT, направления вращения и векторы скорости"></svg></div>
+    <div class="model-view"><h3>ЭКВАТОР / RA + DEC</h3><svg data-model-view viewBox="0 0 440 300" role="img" aria-label="Векторы положения RA и DEC, полярная ось и векторы скорости"></svg></div>
     <div class="model-rates">
       <table aria-label="Координаты, скорости и направления движения"><thead><tr><th>ОСЬ</th><th>УГОЛ</th><th>″/s</th><th>ХОД</th></tr></thead><tbody>
         <tr><th class="lon-color">AZ</th><td data-angle="az">—</td><td data-rate="az">—</td><td data-direction="az">НЕИЗВ.</td></tr>
@@ -142,7 +142,8 @@
       <p class="telemetry">УГЛЫ: RA · h / ОСТАЛЬНЫЕ · °<br>СКОРОСТЬ: УГЛОВЫЕ СЕКУНДЫ / s</p>
     </div>
   </div>
-  <p class="model-legend"><span class="los-color">ТРУБА / LOS</span> · <span class="lon-color">AZ / RA</span> · <span class="lat-color">ALT / DEC</span> · ДУГИ: ЗНАК ВРАЩЕНИЯ · СТРЕЛКИ v: КОМПОНЕНТЫ СКОРОСТИ НАПРАВЛЕНИЯ, МАСШТАБ УСИЛЕН</p>
+  <p class="model-legend"><span class="los-color">LOS = ВЕКТОР НАПРАВЛЕНИЯ</span> · <span class="lon-color">AZ / RA = ПРОЕКЦИЯ НА ПЛОСКОСТЬ</span> · <span class="lat-color">ALT / DEC = ПЕРПЕНДИКУЛЯРНАЯ СОСТАВЛЯЮЩАЯ</span></p>
+  <p class="hint">ВЕКТОРЫ ПОЛОЖЕНИЯ СКЛАДЫВАЮТСЯ В LOS. ДУГИ: ЗНАК ВРАЩЕНИЯ. СТРЕЛКИ v: СКОРОСТЬ НАПРАВЛЕНИЯ, МАСШТАБ УСИЛЕН.</p>
   <p class="hint">ПО ДАТЧИКУ, НЕ СКОРОСТЬ МОТОРОВ. RA ВКЛЮЧАЕТ ХОД ЗВЁЗДНОГО ВРЕМЕНИ. «—» = НЕТ ОЦЕНКИ.</p>
 </section>
 </main>

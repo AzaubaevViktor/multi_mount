@@ -78,7 +78,8 @@ function label(svg, position, text, color='#82948a') {
 function arrow(svg, start, end, color, text='') {
   path(svg,[start,end],color,2);
   const [x,y] = project(end), [sx,sy] = project(start), angle = Math.atan2(y-sy,x-sx);
-  element(svg,'path',{d:`M${x-8*Math.cos(angle-.45)},${y-8*Math.sin(angle-.45)} L${x},${y} L${x-8*Math.cos(angle+.45)},${y-8*Math.sin(angle+.45)}`,fill:'none',stroke:color,'stroke-width':2});
+  const head = Math.min(8,Math.hypot(x-sx,y-sy)/3);
+  element(svg,'path',{d:`M${x-head*Math.cos(angle-.45)},${y-head*Math.sin(angle-.45)} L${x},${y} L${x-head*Math.cos(angle+.45)},${y-head*Math.sin(angle+.45)}`,fill:'none',stroke:color,'stroke-width':2});
   if (text) label(svg,end,text,color);
 }
 
@@ -116,14 +117,19 @@ export class TelescopeModel {
       label(svg,frame.basis[0],index === 0 ? 'AZ 0°' : 'RA 0h');
       if (!sample) continue;
       const tip = direction(frame.basis,frame.lon,frame.lat);
+      const planar = scale(direction(frame.basis,frame.lon,0),Math.cos(frame.lat*rad));
+      const axial = scale(frame.basis[2],Math.sin(frame.lat*rad));
       const transverse = add(scale(frame.basis[0],-Math.sin(frame.lon*rad)),scale(frame.basis[1],Math.cos(frame.lon*rad)));
       arrow(svg,scale(transverse,-.4),scale(transverse,index === 0 ? .8 : -.8),'#526557',index === 0 ? 'ALT' : 'DEC');
-      path(svg,[[0,0,0],direction(frame.basis,frame.lon,0),tip],'#526557',1,'3 3');
+      // The pointing vector is the sum of its plane and normal components.
+      // Keep these position vectors visible even when the telescope is still.
+      if (norm(planar) > 1e-6) arrow(svg,[0,0,0],planar,colors[0]);
+      if (norm(axial) > 1e-6) arrow(svg,planar,tip,colors[1]);
       const lonArc = Array.from({length:49},(_,i)=>direction(frame.basis,frame.lon*i/48,0));
       const latArc = Array.from({length:25},(_,i)=>direction(frame.basis,frame.lon,frame.lat*i/24));
       path(svg,lonArc,colors[0]); path(svg,latArc,colors[1]);
-      label(svg,direction(frame.basis,frame.lon*.5,0),`${frame.keys[0].toUpperCase()} ${index === 0 ? frame.lon.toFixed(1)+'°' : (frame.lon/15).toFixed(2)+'h'}`,colors[0]);
-      label(svg,direction(frame.basis,frame.lon,frame.lat*.55),`${frame.keys[1].toUpperCase()} ${frame.lat.toFixed(1)}°`,colors[1]);
+      label(svg,scale(planar,.65),`${frame.keys[0].toUpperCase()} ${index === 0 ? frame.lon.toFixed(1)+'°' : (frame.lon/15).toFixed(2)+'h'}`,colors[0]);
+      label(svg,add(planar,scale(axial,.55)),`${frame.keys[1].toUpperCase()} ${frame.lat.toFixed(1)}°`,colors[1]);
       // Wireframe tube, with its open end on the pointing side.
       const cross = scale(transverse,.075);
       const side = scale(add(scale(direction(frame.basis,frame.lon,0),-Math.sin(frame.lat*rad)),scale(frame.basis[2],Math.cos(frame.lat*rad))),.055);
