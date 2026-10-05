@@ -19,7 +19,7 @@ APK не устанавливался, железо не трогалось.
 
 | Параметр | Значение |
 |---|---|
-| Файл | `/Users/v-korovin/Downloads/apps/synscanpro_2610_b.apk`, 49 131 899 байт |
+| Файл | `synscanpro_2610_b.apk`, 49 131 899 байт |
 | Пакет | `com.skywatcher.synscanapppro` |
 | `versionName` | **2.6.10** (`AndroidManifest.xml`, строковый пул) |
 | Архитектура | только `arm64-v8a` |

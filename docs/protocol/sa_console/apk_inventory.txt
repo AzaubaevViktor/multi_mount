@@ -1,4 +1,4 @@
-APK: /Users/v-korovin/Downloads/apps/sa_console_264.apk
+APK: sa_console_264.apk
 size: 22877521
 
 == AndroidManifest ==

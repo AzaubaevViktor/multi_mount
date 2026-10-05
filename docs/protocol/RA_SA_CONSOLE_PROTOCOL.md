@@ -57,7 +57,7 @@ V   = 604 / 100.0 = 6.04 В
 
 | Параметр | Значение |
 |---|---|
-| Файл | `/Users/v-korovin/Downloads/apps/sa_console_264.apk`, 22 877 521 байт |
+| Файл | `sa_console_264.apk`, 22 877 521 байт |
 | Пакет | `com.skywatcher.samini` (`AndroidManifest.xml`) |
 | `versionName` | **2.6.4** |
 | Архитектура | только `arm64-v8a` |
