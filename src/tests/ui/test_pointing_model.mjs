@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {MotionSamples, direction, frames, norm, velocities} from '../../pointing/model.mjs';
+import {MotionSamples, OrbitView, TelescopeModel, direction, frames, norm, velocities} from '../../pointing/model.mjs';
 
 function sample(seconds, {az=0,alt=30,ra=6,dec=20,revision=0,sequence=seconds+1,latitude=43}={}) {
   return {altaz:{az_deg:az,alt_deg:alt}, equatorial:{ra_hours:ra,dec_deg:dec}, calibration:{revision,site:{latitude_deg:latitude}}, sensor:{timestamp:new Date(Date.UTC(2026,9,6,0,0,seconds)).toISOString(),sequence}};
@@ -93,4 +93,71 @@ test('longitude velocity narrows with latitude, without faking pole motion',()=>
   close(norm(velocities(frame,{az:3600,alt:0})[0]),Math.PI/360);
   frame.lat=90;
   close(norm(velocities(frame,{az:3600,alt:0})[0]),0);
+});
+
+test('camera rotation changes the view, preserving the 3D direction and radius',()=>{
+  const view=new OrbitView(), point=[.3,.4,.5], original=[...point];
+  for (const yaw of [0,35,90,180,270]) for (const elevation of [-85,0,25,85]) {
+    view.yaw=yaw; view.elevation=elevation;
+    const [x,y,depth]=view.project(point);
+    close(((x-220)/94)**2+((150-y)/94)**2+depth**2,norm(point)**2);
+    assert.deepEqual(point,original);
+  }
+  view.yaw=0; view.elevation=0;
+  assert.deepEqual(view.project([1,0,0]),[314,150,0]);
+  assert.deepEqual(view.project([0,1,0]),[220,150,1]);
+  assert.deepEqual(view.project([0,0,1]),[220,56,0]);
+  view.yaw=90;
+  close(view.project([1,0,0])[0],220);
+  close(view.project([1,0,0])[2],1);
+  close(view.project([0,1,0])[0],126);
+});
+
+test('camera zoom changes only screen distances; opposite hemispheres stay opposite',()=>{
+  const view=new OrbitView(), direction=[0,Math.cos(43*Math.PI/180),Math.sin(43*Math.PI/180)];
+  const initial=view.project(direction);
+  view.zoom=1.6;
+  const enlarged=view.project(direction), opposite=view.project(direction.map(v=>-v));
+  close(enlarged[0]-220,(initial[0]-220)*1.6);
+  close(enlarged[1]-150,(initial[1]-150)*1.6);
+  close(enlarged[2],initial[2]);
+  close(enlarged[0]+opposite[0],440);
+  close(enlarged[1]+opposite[1],300);
+  close(enlarged[2]+opposite[2],0);
+});
+
+test('drag capture, cancellation and view reset preserve the telemetry baseline',()=>{
+  const targets=[{},{},{viewAction:'reset'}].map(dataset=>({
+    dataset, listeners:new Map(), captured:null,
+    addEventListener(type,callback) {this.listeners.set(type,callback);},
+    setPointerCapture(id) {this.captured=id;},
+    releasePointerCapture() {this.captured=null; this.listeners.get('lostpointercapture')();},
+  }));
+  const model=new TelescopeModel({querySelectorAll:selector=>selector==='[data-model-view]'?targets.slice(0,2):targets.slice(2)});
+  let paints=0;
+  model.render=()=>{paints++;};
+  model.samples.update(sample(0));
+  model.motion=model.samples.update(sample(2,{az:.01}));
+  const baseline=model.samples.previous, motion=model.motion;
+  const event={pointerId:4,button:0,clientX:100,clientY:100,preventDefault() {}};
+  targets[0].listeners.get('pointerdown')(event);
+  assert.equal(targets[0].captured,4);
+  targets[0].listeners.get('pointermove')({...event,pointerId:9,clientX:180});
+  assert.equal(paints,0);
+  targets[0].listeners.get('pointermove')({...event,clientX:180,clientY:150});
+  close(model.view.yaw,67); close(model.view.elevation,5);
+  assert.equal(paints,1);
+  targets[0].listeners.get('pointercancel')(event);
+  assert.equal(targets[0].captured,null);
+  targets[0].listeners.get('pointermove')({...event,clientX:300});
+  assert.equal(paints,1);
+  targets[1].listeners.get('pointerdown')({...event,pointerId:5});
+  targets[1].listeners.get('lostpointercapture')();
+  targets[1].listeners.get('pointermove')({...event,pointerId:5,clientX:300});
+  assert.equal(paints,1);
+  targets[2].listeners.get('click')();
+  close(model.view.yaw,35); close(model.view.elevation,25); close(model.view.zoom,1);
+  assert.equal(model.samples.previous,baseline);
+  assert.equal(model.motion,motion);
+  close(model.motion.rates.az,18);
 });

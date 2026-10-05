@@ -41,8 +41,12 @@
   .model-grid { display: grid; grid-template-columns: 1fr 1fr; }
   .model-view { min-width: 0; border-right: 1px solid var(--line); }
   .model-view h3 { margin: 0; padding: 6px 8px; font-size: 10px; font-weight: 400; color: var(--muted); }
-  .model-view svg { height: 330px; }
+  .model-view svg { height: 380px; touch-action: none; cursor: grab; }
+  .model-view svg:active { cursor: grabbing; }
   .model-view svg text { font-size: 12px; }
+  .view-controls { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; padding: 5px 8px; border-bottom: 1px solid var(--line); }
+  .view-controls span { font-size: 10px; color: var(--muted); margin-right: auto; }
+  .view-controls button { min-height: 25px; padding: 3px 8px; }
   .model-rates { grid-column: 1 / -1; border-top: 1px solid var(--line); }
   .model-rates th:first-child, .model-rates td:first-child { width: 100px; }
   .model-rates td { font-size: 11px; padding: 3px 6px; }
@@ -76,9 +80,15 @@
 </section>
 <section id="telescope-model" class="full">
   <div class="panel-title"><h2>01 / ОРИЕНТАЦИЯ И ДВИЖЕНИЕ</h2><div class="model-source"><label for="model-source">ИСТОЧНИК</label><select id="model-source"><option value="sensor">ДАТЧИК</option><option value="mount">МОНТИРОВКА</option></select><span data-model-status>НЕТ РЕШЕНИЯ ДАТЧИКА</span></div></div>
+  <div class="view-controls" aria-label="Управление камерой">
+    <span>ВИД / ПЕРЕТАЩИТЬ МЫШЬЮ ИЛИ ПАЛЬЦЕМ · СЕТКА RA/DEC · УЗЛЫ СХЕМАТИЧНЫЕ</span>
+    <button data-view-action="left" aria-label="Повернуть вид влево">←</button><button data-view-action="right" aria-label="Повернуть вид вправо">→</button>
+    <button data-view-action="up" aria-label="Повернуть вид вверх">↑</button><button data-view-action="down" aria-label="Повернуть вид вниз">↓</button>
+    <button data-view-action="in" aria-label="Приблизить вид">+</button><button data-view-action="out" aria-label="Отдалить вид">−</button><button data-view-action="reset">Сброс вида</button>
+  </div>
   <div class="model-grid">
-    <div class="model-view"><h3>ГОРИЗОНТ / AZ + ALT</h3><svg data-model-view viewBox="0 0 440 300" role="img" aria-label="Векторы положения AZ и ALT, направления вращения и векторы скорости"></svg></div>
-    <div class="model-view"><h3>ЭКВАТОР / RA + DEC</h3><svg data-model-view viewBox="0 0 440 300" role="img" aria-label="Векторы положения RA и DEC, полярная ось и векторы скорости"></svg></div>
+    <div class="model-view"><h3>ГОРИЗОНТ / AZ + ALT</h3><svg data-model-view viewBox="0 0 440 300" role="img" aria-label="Цилиндрическая труба, узлы RA и DEC, небесная сфера, направление на Полярную и векторы AZ и ALT"></svg></div>
+    <div class="model-view"><h3>ЭКВАТОР / RA + DEC</h3><svg data-model-view viewBox="0 0 440 300" role="img" aria-label="Цилиндрическая труба, узлы RA и DEC, небесная сфера, направление на Полярную и векторы RA и DEC"></svg></div>
     <div class="model-rates">
       <table aria-label="Координаты, скорости и направления движения"><thead><tr><th>ПОЗИЦИЯ / ХОД</th><th class="lon-color">AZ · °</th><th class="lat-color">ALT · °</th><th class="lon-color">RA · h</th><th class="lat-color">DEC · °</th></tr></thead><tbody>
         <tr><th>УГОЛ</th><td data-angle="az">—</td><td data-angle="alt">—</td><td data-angle="ra">—</td><td data-angle="dec">—</td></tr>
@@ -89,6 +99,7 @@
   </div>
   <p class="model-legend"><span class="los-color">LOS = ВЕКТОР НАПРАВЛЕНИЯ</span> · <span class="lon-color">AZ / RA = ПРОЕКЦИЯ НА ПЛОСКОСТЬ</span> · <span class="lat-color">ALT / DEC = ПЕРПЕНДИКУЛЯРНАЯ СОСТАВЛЯЮЩАЯ</span></p>
   <p class="hint">ВЕКТОРЫ ПОЛОЖЕНИЯ СКЛАДЫВАЮТСЯ В LOS. ДУГИ: ЗНАК ВРАЩЕНИЯ. СТРЕЛКИ v: СКОРОСТЬ НАПРАВЛЕНИЯ, МАСШТАБ УСИЛЕН.</p>
+  <p class="hint">NCP — СЕВЕРНЫЙ НЕБЕСНЫЙ ПОЛЮС. ПОЛЯРНАЯ ≈ — НАПРАВЛЕНИЕ ПО КАТАЛОГУ J2000; НЕ РЕШЕНИЕ ПОЛЯРНОГО ВЫРАВНИВАНИЯ.</p>
   <p id="model-source-hint" class="hint">ПО ДАТЧИКУ. RA ВКЛЮЧАЕТ ХОД ЗВЁЗДНОГО ВРЕМЕНИ. «—» = НЕТ ОЦЕНКИ.</p>
 </section>
 <section id="mount-telemetry" class="full">
