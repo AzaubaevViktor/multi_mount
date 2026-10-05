@@ -49,9 +49,20 @@
   #message { margin-top: 6px; border-left: 2px solid var(--amber); padding: 6px 8px; background: #171b13; color: var(--amber); overflow-wrap: anywhere; }
   #message:empty { display: none; } details { margin-top: 6px; border: 1px solid var(--line); } summary { cursor: pointer; padding: 6px 8px; color: var(--muted); font-size: 10px; }
   pre { margin: 0; padding: 8px; border-top: 1px solid var(--line); white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: 10px; }
+  .model-grid { display: grid; grid-template-columns: 1fr 1fr 240px; }
+  .model-view { min-width: 0; border-right: 1px solid var(--line); }
+  .model-view h3 { margin: 0; padding: 6px 8px; font-size: 10px; font-weight: 400; color: var(--muted); }
+  .model-view svg { height: 250px; }
+  .model-rates th:first-child, .model-rates td:first-child { width: 34px; }
+  .model-rates th:nth-child(3) { width: 76px; }
+  .model-rates td { font-size: 11px; padding: 7px 4px; }
+  .model-rates th { padding: 7px 4px; } .model-rates td:last-child { font-size: 10px; color: var(--muted); }
+  .model-legend { padding: 7px 8px; font-size: 10px; color: var(--muted); border-top: 1px solid var(--line); }
+  .lon-color { color: #72cced; } .lat-color { color: var(--amber); } .los-color { color: var(--signal); }
   [hidden] { display: none !important; }
   @media (max-width: 600px) { body { padding: 6px; } main { grid-template-columns: 1fr; } .instruments { grid-template-columns: 150px 1fr; } .plot { padding: 4px; } svg { height: 138px; } .readout { padding: 8px; } .readout output { font-size: 22px; } header { align-items: start; padding: 4px 0; } h1 { font-size: 12px; } #mode { font-size: 10px; } }
   @media (max-width: 400px) { .instruments { grid-template-columns: 130px 1fr; } .readout output { font-size: clamp(14px,4.4vw,18px); } }
+  @media (max-width: 800px) { .model-grid { grid-template-columns: 1fr 1fr; } .model-rates { grid-column: 1 / -1; border-top: 1px solid var(--line); } .model-view:last-of-type { border-right: 0; } .model-view svg { height: auto; aspect-ratio: 440 / 300; } }
 </style>
 <body data-state="offline">
 <header><h1>ТЕЛЕСКОП / ОРИЕНТАЦИЯ</h1><p id="mode">LINK —</p></header>
@@ -116,23 +127,46 @@
   </tbody></table>
   <p id="telemetry" class="telemetry">SEQ — / AGE —</p>
 </section>
+<section id="telescope-model" class="full">
+  <div class="panel-title"><h2>06 / КИНЕМАТИКА</h2><span data-model-status>НЕТ РЕШЕНИЯ ДАТЧИКА</span></div>
+  <div class="model-grid">
+    <div class="model-view"><h3>ГОРИЗОНТ / AZ + ALT</h3><svg data-model-view viewBox="0 0 440 300" role="img" aria-label="Модель азимута и высоты с направлениями вращения и векторами скорости"></svg></div>
+    <div class="model-view"><h3>ЭКВАТОР / RA + DEC</h3><svg data-model-view viewBox="0 0 440 300" role="img" aria-label="Экваториальная модель с полярной осью и векторами скорости RA и DEC"></svg></div>
+    <div class="model-rates">
+      <table aria-label="Координаты, скорости и направления движения"><thead><tr><th>ОСЬ</th><th>УГОЛ</th><th>″/s</th><th>ХОД</th></tr></thead><tbody>
+        <tr><th class="lon-color">AZ</th><td data-angle="az">—</td><td data-rate="az">—</td><td data-direction="az">НЕИЗВ.</td></tr>
+        <tr><th class="lat-color">ALT</th><td data-angle="alt">—</td><td data-rate="alt">—</td><td data-direction="alt">НЕИЗВ.</td></tr>
+        <tr><th class="lon-color">RA</th><td data-angle="ra">—</td><td data-rate="ra">—</td><td data-direction="ra">НЕИЗВ.</td></tr>
+        <tr><th class="lat-color">DEC</th><td data-angle="dec">—</td><td data-rate="dec">—</td><td data-direction="dec">НЕИЗВ.</td></tr>
+      </tbody></table>
+      <p class="telemetry">УГЛЫ: RA · h / ОСТАЛЬНЫЕ · °<br>СКОРОСТЬ: УГЛОВЫЕ СЕКУНДЫ / s</p>
+    </div>
+  </div>
+  <p class="model-legend"><span class="los-color">ТРУБА / LOS</span> · <span class="lon-color">AZ / RA</span> · <span class="lat-color">ALT / DEC</span> · ДУГИ: ЗНАК ВРАЩЕНИЯ · СТРЕЛКИ v: КОМПОНЕНТЫ СКОРОСТИ НАПРАВЛЕНИЯ, МАСШТАБ УСИЛЕН</p>
+  <p class="hint">ПО ДАТЧИКУ, НЕ СКОРОСТЬ МОТОРОВ. RA ВКЛЮЧАЕТ ХОД ЗВЁЗДНОГО ВРЕМЕНИ. «—» = НЕТ ОЦЕНКИ.</p>
+</section>
 </main>
 <p id="message" role="status"></p>
 <details><summary>ДИАГНОСТИКА / JSON</summary><pre id="raw"></pre></details>
-<script>
+<script type="module">
+  import {TelescopeModel} from '/model.mjs';
   const byId = id => document.getElementById(id);
-  let measurement = null, initializedSite = false;
+  const model = new TelescopeModel(byId('telescope-model'));
+  let measurement = null, initializedSite = false, refreshing = false;
   const names = {ready:'ГОТОВ',calibrating:'КАЛИБРОВКА',uncalibrated:'НЕ ОТКАЛИБРОВАН',device_not_found:'ДАТЧИК НЕ НАЙДЕН',not_connected:'DEC НЕ ПОДКЛЮЧЁН',unsupported:'ДАТЧИК НЕ ПОДДЕРЖИВАЕТСЯ',no_data:'НЕТ ДАННЫХ',stale_data:'УСТАРЕВШИЕ ДАННЫЕ',heading_unavailable:'НЕТ МАГНИТНОГО КУРСА',invalid_data:'ОШИБКА ДАННЫХ',transport_error:'ОШИБКА СВЯЗИ',out_of_coverage:'ВНЕ КАЛИБРОВКИ',calibration_inconsistent:'КОНФЛИКТ ТОЧЕК',calibration_drift:'КАЛИБРОВКА СБИЛАСЬ'};
   const number = (value, digits) => value == null ? '—' : value.toFixed(digits);
   async function api(path, data) {
-    const response = await fetch(path, data === undefined ? {} : {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    const response = await fetch(path, {signal:AbortSignal.timeout(5000), ...(data === undefined ? {} : {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})});
     const result = await response.json();
     if (!response.ok) throw Error(result.error || response.statusText);
     return result;
   }
   async function refresh() {
+    if (refreshing) return;
+    refreshing = true;
     try {
       const data = await api('/v1/status'), cal = data.calibration, sensor = data.sensor;
+      model.update(data);
       document.body.dataset.state = data.status;
       byId('status').textContent = names[data.status] || data.status;
       byId('mode').textContent = `${data.simulated ? 'SIM' : 'LIVE'} / LINK ${data.mount_connected ? 'ON' : 'OFF'}`;
@@ -162,6 +196,7 @@
         initializedSite = true;
       }
     } catch(error) {
+      model.update(null);
       document.body.dataset.state = 'offline';
       byId('status').textContent = 'НЕТ СВЯЗИ';
       byId('mode').textContent = 'LINK OFF';
@@ -170,6 +205,8 @@
       byId('plot-caption').textContent = 'AZ / ALT — НЕТ РЕШЕНИЯ';
       byId('sensor-state').textContent = '—'; byId('telemetry').textContent = 'SEQ — / AGE —';
       byId('message').textContent = error.message;
+    } finally {
+      refreshing = false;
     }
   }
   async function action(work) {

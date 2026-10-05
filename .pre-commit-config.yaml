@@ -30,6 +30,12 @@ repos:
 
   - repo: local
     hooks:
+      - id: pointing-model
+        name: pointing model scenarios
+        entry: node --test src/tests/ui/test_pointing_model.mjs
+        language: system
+        pass_filenames: false
+        files: '^(src/pointing/(model\.mjs|dashboard\.html|service\.py|api\.py)|src/tests/ui/.*\.mjs)$'
       # Local, not the mirrors-mypy repo: mypy must see the project's own dependency
       # set (pyserial) and the incremental cache in .mypy_cache, which is what keeps
       # this at ~0.1 s. An isolated hook env would reinstall and re-analyse every time.

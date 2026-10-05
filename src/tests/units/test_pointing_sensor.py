@@ -346,7 +346,12 @@ def test_live_http_and_lx200_sync_share_the_calibration_service(tmp_path):
 
     try:
         with urlopen(f"http://{host}:{port}/", timeout=5) as response:
-            assert "Зафиксировать измерение" in response.read().decode()
+            page = response.read().decode()
+            assert "Зафиксировать измерение" in page
+            assert 'id="telescope-model"' in page and '/model.mjs' in page
+        with urlopen(f"http://{host}:{port}/model.mjs", timeout=5) as response:
+            assert response.headers.get_content_type() == "text/javascript"
+            assert "export class TelescopeModel" in response.read().decode()
         assert request("/v1/status")["status"] == "uncalibrated"
         request("/v1/site", {"latitude_deg": 43, "longitude_deg": 77})
         request("/v1/calibration/start", {})
@@ -366,8 +371,12 @@ def test_live_http_and_lx200_sync_share_the_calibration_service(tmp_path):
         assert stack.sky_lx200.handle("CM") == "OK"
         assert stack.orientation_sensor.read_orientation_sensor().gravity == raw_before
         assert request("/v1/calibration")["point_count"] == 2
+        revision = request("/v1/status")["calibration"]["revision"]
+        assert request("/v1/status")["calibration"]["revision"] == revision
         request("/v1/calibration/stop", {})
-        assert request("/v1/status")["status"] == "ready"
+        status = request("/v1/status")
+        assert status["status"] == "ready"
+        assert status["calibration"]["revision"] > revision
         with pytest.raises(HTTPError) as error:
             request("/v1/sync", {"ra_hours": True, "dec_deg": 0})
         assert error.value.code == 400

@@ -378,6 +378,7 @@ class PointingService:
         measurement = self.capture()
         with self._lock:
             calibration, calibrating = self._calibration, self._calibrating
+            revision = self._generation
             storage_error = self._storage_error
         reading = measurement.reading
         state = self._reading_state(reading)
@@ -411,6 +412,7 @@ class PointingService:
             },
             "calibration": {
                 "mode": calibrating,
+                "revision": revision,
                 "point_count": len(calibration.points),
                 "drift": calibration.drift,
                 "site": asdict(calibration.site) if calibration.site else None,

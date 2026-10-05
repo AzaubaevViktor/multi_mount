@@ -115,10 +115,12 @@ class AgentAPIServer:
                 self.respond("POST")
 
             def respond(self, method: str) -> None:
-                if method == "GET" and self.path == "/":
-                    data = Path(__file__).with_name("dashboard.html").read_bytes()
+                assets = {"/": ("dashboard.html", "text/html"), "/model.mjs": ("model.mjs", "text/javascript")}
+                if method == "GET" and self.path in assets:
+                    filename, content_type = assets[self.path]
+                    data = Path(__file__).with_name(filename).read_bytes()
                     self.send_response(200)
-                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.send_header("Content-Type", f"{content_type}; charset=utf-8")
                     self.send_header("Content-Length", str(len(data)))
                     self.end_headers()
                     self.wfile.write(data)
