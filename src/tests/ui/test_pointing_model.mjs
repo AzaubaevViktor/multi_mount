@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {MotionSamples, OrbitView, TelescopeModel, direction, frames, norm, velocities} from '../../pointing/model.mjs';
+import {MotionSamples, OrbitView, TelescopeModel, direction, formatRA, frames, norm, velocities} from '../../pointing/model.mjs';
 
 function sample(seconds, {az=0,alt=30,ra=6,dec=20,revision=0,sequence=seconds+1,latitude=43}={}) {
   return {altaz:{az_deg:az,alt_deg:alt}, equatorial:{ra_hours:ra,dec_deg:dec}, calibration:{revision,site:{latitude_deg:latitude}}, sensor:{timestamp:new Date(Date.UTC(2026,9,6,0,0,seconds)).toISOString(),sequence}};
@@ -8,6 +8,15 @@ function sample(seconds, {az=0,alt=30,ra=6,dec=20,revision=0,sequence=seconds+1,
 function close(actual, expected, tolerance=1e-8) {
   assert.ok(Math.abs(actual-expected) < tolerance, `${actual} != ${expected}`);
 }
+
+test('RA clock formatting carries seconds and minutes and wraps at 24 hours',()=>{
+  assert.equal(formatRA(2+31/60+49.09456/3600),'02:31:49.09');
+  assert.equal(formatRA((59.996)/3600),'00:01:00.00');
+  assert.equal(formatRA((3599.996)/3600),'01:00:00.00');
+  assert.equal(formatRA(23.999999),'00:00:00.00');
+  assert.equal(formatRA(null),'—');
+  assert.equal(formatRA(undefined),'—');
+});
 
 for (const [name, start, end, expected] of [
   ['stationary',sample(0),sample(2),{az:0,alt:0,ra:0,dec:0}],

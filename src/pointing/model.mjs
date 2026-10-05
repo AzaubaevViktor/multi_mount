@@ -6,6 +6,12 @@ export const norm = a => Math.hypot(...a);
 const dot = (a, b) => a.reduce((sum, v, i) => sum + v * b[i], 0);
 export const wrapDelta = (a, b) => ((a - b + 540) % 360 + 360) % 360 - 180;
 
+export function formatRA(hours) {
+  if (!Number.isFinite(hours)) return '—';
+  const ticks=((Math.round(hours*360000)%8640000)+8640000)%8640000;
+  return `${String(Math.floor(ticks/360000)).padStart(2,'0')}:${String(Math.floor(ticks/6000)%60).padStart(2,'0')}:${((ticks%6000)/100).toFixed(2).padStart(5,'0')}`;
+}
+
 export function direction(basis, longitude, latitude) {
   const a = longitude * rad, b = latitude * rad;
   return add(scale(add(scale(basis[0], Math.cos(a)), scale(basis[1], Math.sin(a))), Math.cos(b)), scale(basis[2], Math.sin(b)));
@@ -155,7 +161,7 @@ export class TelescopeModel {
     status.textContent = sample ? (rates.alt == null ? 'ДАТЧИК / ОЖИДАНИЕ СКОРОСТИ' : 'ДАТЧИК / Δ КООРДИНАТ / Δ t') : 'НЕТ РЕШЕНИЯ ДАТЧИКА';
     for (const key of ['az','alt','ra','dec']) {
       const value = sample ? (key === 'az' || key === 'alt' ? sample.altaz[`${key}_deg`] : sample.equatorial[key === 'ra' ? 'ra_hours' : 'dec_deg']) : null;
-      this.root.querySelector(`[data-angle="${key}"]`).textContent = value == null ? '—' : value.toFixed(key === 'ra' ? 5 : 3);
+      this.root.querySelector(`[data-angle="${key}"]`).textContent = key === 'ra' ? formatRA(value) : value == null ? '—' : value.toFixed(3);
       this.root.querySelector(`[data-rate="${key}"]`).textContent = rates[key] == null ? '—' : `${rates[key] < -.005 ? '−' : rates[key] > .005 ? '+' : ''}${Math.abs(rates[key]).toFixed(2)}`;
       this.root.querySelector(`[data-direction="${key}"]`).textContent = rates[key] == null ? 'НЕИЗВ.' : Math.abs(rates[key]) < .005 ? '0' : (rates[key] > 0 ? {az:'N → E',alt:'ВВЕРХ',ra:'+ RA',dec:'К +90°'} : {az:'N → W',alt:'ВНИЗ',ra:'− RA',dec:'К −90°'})[key];
     }
@@ -210,7 +216,7 @@ export class TelescopeModel {
       const ring = Array.from({length:73},(_,i)=>direction(frame.basis,i*5,0));
       path(svg,ring,'#34483c');
       if (index===0) arrow(svg,[0,0,0],scale(frame.basis[2],1.25),'#526557',frame.pole);
-      label(svg,frame.basis[0],index === 0 ? 'AZ 0°' : 'RA 0h');
+      label(svg,frame.basis[0],index === 0 ? 'AZ 0°' : 'RA 00:00:00');
       if (!sample) continue;
       const tip = direction(frame.basis,frame.lon,frame.lat);
       const planar = scale(direction(frame.basis,frame.lon,0),Math.cos(frame.lat*rad));

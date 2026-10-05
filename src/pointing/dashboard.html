@@ -75,7 +75,7 @@
 <section class="full" aria-live="polite">
   <div class="strip"><output id="status">НЕТ СВЯЗИ</output><p id="summary">PTS — / CAL — / Δ —</p></div>
   <div class="sensor-strip" aria-label="Координаты датчика">
-    <span>ДАТЧИК:</span><span>AZ <output id="az-value">—</output>°</span><span>ALT <output id="alt-value">—</output>°</span><span>RA <output id="ra-value">—</output>h</span><span>DEC <output id="dec-value">—</output>°</span>
+    <span>ДАТЧИК:</span><span>AZ <output id="az-value">—</output>°</span><span>ALT <output id="alt-value">—</output>°</span><span>RA <output id="ra-value">—</output></span><span>DEC <output id="dec-value">—</output>°</span>
   </div>
 </section>
 <section id="telescope-model" class="full">
@@ -90,7 +90,7 @@
     <div class="model-view"><h3>ГОРИЗОНТ / AZ + ALT</h3><svg data-model-view viewBox="0 0 440 300" role="img" aria-label="Цилиндрическая труба, узлы RA и DEC, небесная сфера, направление на Полярную и векторы AZ и ALT"></svg></div>
     <div class="model-view"><h3>ЭКВАТОР / RA + DEC</h3><svg data-model-view viewBox="0 0 440 300" role="img" aria-label="Цилиндрическая труба, узлы RA и DEC, небесная сфера, направление на Полярную и векторы RA и DEC"></svg></div>
     <div class="model-rates">
-      <table aria-label="Координаты, скорости и направления движения"><thead><tr><th>ПОЗИЦИЯ / ХОД</th><th class="lon-color">AZ · °</th><th class="lat-color">ALT · °</th><th class="lon-color">RA · h</th><th class="lat-color">DEC · °</th></tr></thead><tbody>
+      <table aria-label="Координаты, скорости и направления движения"><thead><tr><th>ПОЗИЦИЯ / ХОД</th><th class="lon-color">AZ · °</th><th class="lat-color">ALT · °</th><th class="lon-color">RA · ч:м:с</th><th class="lat-color">DEC · °</th></tr></thead><tbody>
         <tr><th>УГОЛ</th><td data-angle="az">—</td><td data-angle="alt">—</td><td data-angle="ra">—</td><td data-angle="dec">—</td></tr>
         <tr><th>СКОРОСТЬ · ″/s</th><td data-rate="az">—</td><td data-rate="alt">—</td><td data-rate="ra">—</td><td data-rate="dec">—</td></tr>
         <tr><th>НАПРАВЛЕНИЕ</th><td data-direction="az">НЕИЗВ.</td><td data-direction="alt">НЕИЗВ.</td><td data-direction="ra">НЕИЗВ.</td><td data-direction="dec">НЕИЗВ.</td></tr>
@@ -152,7 +152,7 @@
   <div class="panel-title"><h2>06 / PLATE SOLVE → SYNC</h2><span>КАДР → ЗАХВАТ → SOLVE</span></div>
   <div class="capture-row"><button id="capture" aria-label="Зафиксировать измерение">Захват кадра</button><span id="captured">НЕТ КАДРА</span></div>
   <form id="solve">
-    <label>RA, часы<input name="ra_hours" type="number" step="any" min="0" max="23.999999" required></label>
+    <label>RA, чч:мм:сс<input name="ra_hms" type="text" placeholder="00:00:00" pattern="([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]([.][0-9]+)?" title="Часы 00–23, минуты и секунды 00–59; например 02:31:49.09" required></label>
     <label>DEC, °<input name="dec_deg" type="number" step="any" min="-90" max="90" required></label>
     <button>SYNC</button>
   </form>
@@ -163,7 +163,7 @@
 <p id="message" role="status"></p>
 <details><summary>ДИАГНОСТИКА / JSON</summary><pre id="raw"></pre></details>
 <script type="module">
-  import {TelescopeModel} from '/model.mjs';
+  import {TelescopeModel,formatRA} from '/model.mjs';
   import {MountPanel} from '/telemetry.mjs';
   const byId = id => document.getElementById(id);
   const model = new TelescopeModel(byId('telescope-model'));
@@ -206,7 +206,7 @@
       byId('cal-mode').textContent = cal.mode ? 'RECORD' : 'VERIFY';
       byId('alt-value').textContent = number(data.altaz?.alt_deg,3);
       byId('az-value').textContent = number(data.altaz?.az_deg,3);
-      byId('ra-value').textContent = number(data.equatorial?.ra_hours,6);
+      byId('ra-value').textContent = formatRA(data.equatorial?.ra_hours);
       byId('dec-value').textContent = number(data.equatorial?.dec_deg,4);
       for (const [prefix,vector] of [['g',sensor.gravity_m_s2],['m',sensor.magnetic_uT]]) {
         for (const axis of ['x','y','z']) byId(prefix+axis).textContent = number(vector?.[axis], prefix === 'g' ? 3 : 2);
@@ -240,8 +240,12 @@
   for (const [id,path] of [['site','/v1/site'],['pose','/v1/sim/sensor'],['solve','/v1/sync']]) {
     byId(id).addEventListener('submit', event => {
       event.preventDefault();
-      const data = Object.fromEntries([...new FormData(event.target)].map(([key,value]) => [key,Number(value)]));
+      const fields = new FormData(event.target);
+      const data = Object.fromEntries([...fields].filter(([key])=>key!=='ra_hms').map(([key,value]) => [key,Number(value)]));
       if (id === 'solve') {
+        const parts=/^([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9](?:\.[0-9]+)?)$/.exec(String(fields.get('ra_hms')));
+        if (!parts) {byId('message').textContent='RA / ВВЕДИТЕ ЧЧ:ММ:СС'; return;}
+        data.ra_hours=Number(parts[1])+Number(parts[2])/60+Number(parts[3])/3600;
         if (!measurement) { byId('message').textContent = 'НЕТ КАДРА / ЗАХВАТИТЕ ИЗМЕРЕНИЕ'; return; }
         data.measurement_id = measurement.measurement_id; data.timestamp = measurement.timestamp;
       }
