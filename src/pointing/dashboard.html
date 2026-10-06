@@ -214,7 +214,9 @@
       for (const [prefix,vector] of [['g',sensor.gravity_m_s2],['m',sensor.magnetic_uT]]) {
         for (const axis of ['x','y','z']) byId(prefix+axis).textContent = number(vector?.[axis], prefix === 'g' ? 3 : 2);
       }
-      byId('sensor-state').textContent = sensor.state.toUpperCase();
+      byId('sensor-state').textContent = sensor.channels
+        ? `G ${sensor.channels.gravity.toUpperCase()} / M ${sensor.channels.magnetic.toUpperCase()}`
+        : sensor.state.toUpperCase();
       byId('telemetry').textContent = `SEQ ${sensor.sequence ?? '—'} / AGE ${sensor.age_ms ?? '—'} ms`;
       byId('raw').textContent = JSON.stringify(data, null, 2);
       if (!initializedSite && cal.site) {

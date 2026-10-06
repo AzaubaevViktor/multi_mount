@@ -386,6 +386,19 @@ class PointingService:
             storage_error = self._storage_error
         reading = measurement.reading
         state = self._reading_state(reading)
+        data_status = state
+        # These describe available data, not individual chips' physical
+        # presence: the current DEC packet cannot distinguish absence from OVL.
+        gravity_status = magnetic_status = reading.state.value
+        if reading.state is SensorState.AVAILABLE:
+            gravity_status = "invalid_data" if reading.gravity is None or not 5 <= reading.gravity.norm() <= 15 else "available"
+            magnetic_status = "unavailable" if reading.magnetic is None else "available"
+            if state == "stale_data":
+                gravity_status = "stale_data"
+                if reading.magnetic is not None:
+                    magnetic_status = "stale_data"
+            elif state == "invalid_data" and gravity_status == "available":
+                magnetic_status = "invalid_data"
         altaz, nearest, equatorial = None, None, None
         if state == "available":
             altaz, nearest = predict(reading, calibration, self._coverage_deg)
@@ -407,6 +420,8 @@ class PointingService:
             "status": state,
             "sensor": {
                 "state": reading.state.value,
+                "data_status": data_status,
+                "channels": {"gravity": gravity_status, "magnetic": magnetic_status},
                 "measurement_id": measurement.measurement_id,
                 "timestamp": measurement.timestamp.isoformat(),
                 "sequence": reading.sequence,

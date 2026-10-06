@@ -440,3 +440,81 @@ def test_normal_lx200_sync_survives_absent_sensor():
     finally:
         stack.sky_lx200.stop_all()
         stack.sky_lx200.stop()
+
+
+@pytest.mark.parametrize("dialect", [_Dialect.FRAMED, _Dialect.LEGACY])
+def test_mpu_qmc_disconnect_partial_stale_transport_failure_and_recovery(sensor_stack, dialect, tmp_path, monkeypatch):
+    sensor_stack.dec_motor._dialect = dialect
+    sensor = sensor_stack.orientation_sensor
+    service = PointingService(sensor_stack.dec_motor, tmp_path / "sensor.json", now=lambda: TIME)
+    api = AgentAPI(sensor_stack.sky_lx200, service)
+    service.set_site(43, 77)
+    service.start_calibration()
+    add_pose(service, sensor, 45, 0)
+    service.stop_calibration()
+    original = service.status()
+    assert original["status"] == "ready"
+    points = original["calibration"]["point_count"]
+    reading = sensor.read_orientation_sensor()
+
+    for raw, expected, channels in (
+        (SensorReading(SensorState.DEVICE_NOT_FOUND), "device_not_found", {"gravity": "device_not_found", "magnetic": "device_not_found"}),
+        (SensorReading(SensorState.NO_DATA), "no_data", {"gravity": "no_data", "magnetic": "no_data"}),
+        (SensorReading(SensorState.AVAILABLE, 0, 0, reading.gravity), "heading_unavailable", {"gravity": "available", "magnetic": "unavailable"}),
+        (SensorReading(SensorState.AVAILABLE, 0, 2500, reading.gravity, reading.magnetic), "stale_data", {"gravity": "stale_data", "magnetic": "stale_data"}),
+        (SensorReading(SensorState.AVAILABLE, 0, 0, Vec3(0, 0, -1), reading.magnetic), "invalid_data", {"gravity": "invalid_data", "magnetic": "available"}),
+        (SensorReading(SensorState.AVAILABLE, 0, 0, Vec3(0, 0, -9.807), Vec3(0, 0, -40)), "invalid_data", {"gravity": "available", "magnetic": "invalid_data"}),
+    ):
+        sensor.set_raw(raw)
+        code, state = api.handle_request("GET", "/v1/status", {})
+        assert code == 200 and state["status"] == expected
+        assert state["sensor"]["data_status"] == expected
+        assert state["sensor"]["channels"] == channels
+        assert state["altaz"] is None and state["equatorial"] is None
+        assert state["calibration"]["point_count"] == points
+        code, raw_status = api.handle_request("GET", "/v1/sensor", {})
+        assert code == 200 and raw_status["data_status"] == expected
+        assert raw_status["channels"] == channels
+        if raw.state is not SensorState.AVAILABLE:
+            assert raw_status["gravity_m_s2"] is None and raw_status["magnetic_uT"] is None
+        # The motion protocol stays live when orientation is unavailable.
+        sensor_stack.dec_motor.status()
+        service.start_calibration()
+        result = service.record_sync(0, 0)
+        assert result["status"] == expected and not result["sample_added"]
+        assert service.status()["calibration"]["point_count"] == points
+        service.stop_calibration()
+
+    # An actual wire error is a status, never a cached coordinate or zero vector.
+    with monkeypatch.context() as patch:
+        patch.setattr(sensor_stack.dec_motor, "_exchange", lambda *_: (_ for _ in ()).throw(TMC2209MotorProtocolError("truncated sensor response")))
+        code, raw_status = api.handle_request("GET", "/v1/sensor", {})
+        assert code == 200 and raw_status["data_status"] == "transport_error"
+        assert raw_status["channels"] == {"gravity": "transport_error", "magnetic": "transport_error"}
+        assert raw_status["gravity_m_s2"] is None and raw_status["magnetic_uT"] is None
+
+    sensor.set_raw(reading)
+    recovered = service.status()
+    assert recovered["status"] == "ready"
+    assert recovered["sensor"]["channels"] == {"gravity": "available", "magnetic": "available"}
+    assert recovered["calibration"]["point_count"] == points
+    assert recovered["altaz"] == original["altaz"]
+    assert PointingService(sensor_stack.dec_motor, tmp_path / "sensor.json", now=lambda: TIME).status()["status"] == "ready"
+
+
+@pytest.mark.parametrize("field,value", [
+    ("sample", "-1"), ("sample", "4294967296"),
+    ("age_ms", "-1"), ("age_ms", "65536"),
+    ("gx", "32768"), ("gx", "-32769"),
+    ("my", "32768"), ("my", "-32769"),
+])
+def test_legacy_sensor_rejects_values_outside_binary_wire_bounds(sensor_stack, monkeypatch, field, value):
+    from tmc2209.protocol import Response
+
+    values = {"sensor_flags": "7", "sample": "42", "age_ms": "0", "gx": "0", "gy": "0", "gz": "-9807", "mx": "0", "my": "2000", "mz": "-4000"}
+    values[field] = value
+    monkeypatch.setattr(sensor_stack.dec_motor, "_exchange", lambda *_: Response(True, values, None))
+    with pytest.raises(TMC2209MotorProtocolError, match="invalid raw sensor response"):
+        sensor_stack.dec_motor.read_orientation_sensor()
+    state = PointingService(sensor_stack.dec_motor, now=lambda: TIME).status()
+    assert state["status"] == "transport_error" and state["altaz"] is None

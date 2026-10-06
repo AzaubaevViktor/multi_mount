@@ -505,12 +505,23 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
                 raise ValueError("inconsistent sensor flags")
             if flags < 3:
                 return SensorReading(SensorState.DEVICE_NOT_FOUND if flags == 0 else SensorState.NO_DATA)
+            sequence, age_ms = int(values["sample"]), int(values["age_ms"])
+            keys = ("gx", "gy", "gz", "mx", "my", "mz") if flags & 4 else ("gx", "gy", "gz")
+            components = tuple(int(values[key]) for key in keys)
+            # The legacy text reply must obey the same bounds as the v3 binary
+            # fields; corrupt text must not become an apparently valid vector.
+            if (
+                not 0 <= sequence <= 0xFFFFFFFF
+                or not 0 <= age_ms <= 65535
+                or any(not -32768 <= v <= 32767 for v in components)
+            ):
+                raise ValueError("raw sensor value exceeds wire range")
             return SensorReading(
                 SensorState.AVAILABLE,
-                int(values["sample"]),
-                int(values["age_ms"]),
-                Vec3(*(int(values[key]) / 1000 for key in ("gx", "gy", "gz"))),
-                Vec3(*(int(values[key]) / 100 for key in ("mx", "my", "mz"))) if flags & 4 else None,
+                sequence,
+                age_ms,
+                Vec3(*(v / 1000 for v in components[:3])),
+                Vec3(*(v / 100 for v in components[3:])) if flags & 4 else None,
             )
         except (ValueError, KeyError) as error:
             raise TMC2209MotorProtocolError("invalid raw sensor response") from error
