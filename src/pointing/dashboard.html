@@ -72,14 +72,55 @@
   @media (max-width: 1100px) { .telemetry-columns { grid-template-columns: minmax(0,1fr); } .telemetry-columns > table { border-right: 0; } }
   @media (max-width: 719px) { main, .model-grid { grid-template-columns: minmax(0,1fr); } .model-view { border-right: 0; border-bottom: 1px solid var(--line); } .model-rates { grid-template-columns: repeat(2,minmax(0,1fr)); } .coordinate { border-bottom: 1px solid var(--line); } .coordinate:nth-child(even) { border-right: 0; } }
   @media (max-width: 539px) { header { flex-wrap: wrap; } .motor-grid { grid-template-columns: minmax(0,1fr); } .motor-view:first-child { border-right: 0; } .view-controls span { flex-basis: 100%; } .view-controls button:last-child { flex: 1 1 100px; } #solve label { flex-basis: 100%; } }
+  .essential-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 6px; padding: 6px; align-items: start; }
+  .essential-grid > * { min-width: 0; }
+  .essential-grid .model-rates { grid-column: auto; grid-template-columns: repeat(2,minmax(0,1fr)); border: 1px solid var(--line); }
+  .essential-grid .coordinate { border-bottom: 1px solid var(--line); }
+  .essential-grid .coordinate:nth-child(even) { border-right: 0; }
+  .essential-grid .motor-view svg { height: clamp(72px,7vw,110px); }
+  .essential-grid .motor-view output { display: block; padding: 0 5px 4px; color: var(--signal); font-size: .8rem; overflow-wrap: anywhere; }
+  #raw-sensor th, #raw-sensor td { padding: 4px 5px; font-size: .85rem; white-space: nowrap; }
+  #raw-sensor th:first-child { width: 28%; }
+  .essential-grid .mount-strip { gap: 3px 12px; font-size: .8rem; }
+  .essential-grid .panel-title { padding: 4px 6px; }
+  .essential-grid .panel-title h2 { font-size: .8rem; }
+  .essential-grid .telemetry { margin: 0; padding: 4px 6px; }
+  @media (min-width: 1400px) { .essential-grid .model-rates { grid-template-columns: repeat(4,minmax(0,1fr)); } }
+  @media (max-height: 450px) and (min-width: 720px) { .essential-grid .motor-view svg { height: 60px; } }
+  @media (max-width: 719px) { .essential-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .essential-grid .model-rates { grid-column: 1 / -1; grid-template-columns: repeat(4,minmax(0,1fr)); } }
+  @media (max-width: 539px) { .essential-grid { grid-template-columns: minmax(0,1fr); } .essential-grid .model-rates { grid-template-columns: repeat(2,minmax(0,1fr)); } .essential-grid .motor-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 </style>
 <body data-state="offline">
 <header><h1>ТЕЛЕСКОП / ОРИЕНТАЦИЯ</h1><p id="mode">LINK —</p></header>
 <main>
-<section class="full" aria-live="polite">
+<section id="flight-deck" class="full" aria-live="polite">
   <div class="strip"><output id="status">НЕТ СВЯЗИ</output><p id="summary">PTS — / CAL — / Δ —</p></div>
   <div class="sensor-strip" aria-label="Координаты датчика">
     <span>ДАТЧИК:</span><span>AZ <output id="az-value">—</output>°</span><span>ALT <output id="alt-value">—</output>°</span><span>RA <output id="ra-value">—</output></span><span>DEC <output id="dec-value">—</output>°</span>
+  </div>
+  <div class="essential-grid" aria-label="Основные приборы">
+    <div class="model-rates">
+      <div class="coordinate"><h3 class="lon-color">AZ · °</h3><dl><div><dt>УГОЛ</dt><dd data-angle="az">—</dd></div><div><dt>″/s</dt><dd data-rate="az">—</dd></div><div><dt>ХОД</dt><dd data-direction="az">НЕИЗВ.</dd></div></dl></div>
+      <div class="coordinate"><h3 class="lat-color">ALT · °</h3><dl><div><dt>УГОЛ</dt><dd data-angle="alt">—</dd></div><div><dt>″/s</dt><dd data-rate="alt">—</dd></div><div><dt>ХОД</dt><dd data-direction="alt">НЕИЗВ.</dd></div></dl></div>
+      <div class="coordinate"><h3 class="lon-color">RA · ч:м:с</h3><dl><div><dt>УГОЛ</dt><dd data-angle="ra">—</dd></div><div><dt>″/s</dt><dd data-rate="ra">—</dd></div><div><dt>ХОД</dt><dd data-direction="ra">НЕИЗВ.</dd></div></dl></div>
+      <div class="coordinate"><h3 class="lat-color">DEC · °</h3><dl><div><dt>УГОЛ</dt><dd data-angle="dec">—</dd></div><div><dt>″/s</dt><dd data-rate="dec">—</dd></div><div><dt>ХОД</dt><dd data-direction="dec">НЕИЗВ.</dd></div></dl></div>
+    </div>
+<section id="raw-sensor">
+  <div class="panel-title"><h2>RAW / СЫРЫЕ ВЕКТОРЫ</h2><span id="sensor-state">—</span></div>
+  <table aria-label="Сырые показания датчика"><thead><tr><th>ДАТЧИК</th><th>X</th><th>Y</th><th>Z</th></tr></thead><tbody>
+    <tr><th>G · м/с²</th><td id="gx">—</td><td id="gy">—</td><td id="gz">—</td></tr>
+    <tr><th>B · мкТл</th><td id="mx">—</td><td id="my">—</td><td id="mz">—</td></tr>
+  </tbody></table>
+  <p id="telemetry" class="telemetry">SEQ — / AGE —</p>
+</section>
+<section id="mount-summary">
+  <div class="panel-title"><h2>МОТОРЫ / СВЯЗЬ</h2><span data-mount-state>НЕТ ДАННЫХ</span></div>
+  <div class="mount-strip"><span data-mount-clock>—</span><span data-mount-guide>GUIDE —</span><span data-mount-polar>POLAR —</span><span data-lx200-server>TCP —</span></div>
+  <div class="motor-grid">
+    <div class="motor-view"><svg data-motor-view="ra" viewBox="0 0 220 90" role="img" aria-label="Вектор вращения мотора RA"></svg><output data-motor-vitals="ra">—</output></div>
+    <div class="motor-view"><svg data-motor-view="dec" viewBox="0 0 220 90" role="img" aria-label="Вектор вращения мотора DEC"></svg><output data-motor-vitals="dec">—</output></div>
+  </div>
+</section>
   </div>
 </section>
 <section id="telescope-model" class="full">
@@ -93,12 +134,7 @@
   <div class="model-grid">
     <div class="model-view"><h3>ГОРИЗОНТ / AZ + ALT</h3><svg data-model-view viewBox="0 0 440 300" role="img" aria-label="Цилиндрическая труба, узлы RA и DEC, небесная сфера, направление на Полярную и векторы AZ и ALT"></svg></div>
     <div class="model-view"><h3>ЭКВАТОР / RA + DEC</h3><svg data-model-view viewBox="0 0 440 300" role="img" aria-label="Цилиндрическая труба, узлы RA и DEC, небесная сфера, направление на Полярную и векторы RA и DEC"></svg></div>
-    <div class="model-rates">
-      <div class="coordinate"><h3 class="lon-color">AZ · °</h3><dl><div><dt>УГОЛ</dt><dd data-angle="az">—</dd></div><div><dt>″/s</dt><dd data-rate="az">—</dd></div><div><dt>ХОД</dt><dd data-direction="az">НЕИЗВ.</dd></div></dl></div>
-      <div class="coordinate"><h3 class="lat-color">ALT · °</h3><dl><div><dt>УГОЛ</dt><dd data-angle="alt">—</dd></div><div><dt>″/s</dt><dd data-rate="alt">—</dd></div><div><dt>ХОД</dt><dd data-direction="alt">НЕИЗВ.</dd></div></dl></div>
-      <div class="coordinate"><h3 class="lon-color">RA · ч:м:с</h3><dl><div><dt>УГОЛ</dt><dd data-angle="ra">—</dd></div><div><dt>″/s</dt><dd data-rate="ra">—</dd></div><div><dt>ХОД</dt><dd data-direction="ra">НЕИЗВ.</dd></div></dl></div>
-      <div class="coordinate"><h3 class="lat-color">DEC · °</h3><dl><div><dt>УГОЛ</dt><dd data-angle="dec">—</dd></div><div><dt>″/s</dt><dd data-rate="dec">—</dd></div><div><dt>ХОД</dt><dd data-direction="dec">НЕИЗВ.</dd></div></dl></div>
-    </div>
+
   </div>
   <p class="model-legend"><span class="los-color">LOS = ВЕКТОР НАПРАВЛЕНИЯ</span> · <span class="lon-color">AZ / RA = ПРОЕКЦИЯ НА ПЛОСКОСТЬ</span> · <span class="lat-color">ALT / DEC = ПЕРПЕНДИКУЛЯРНАЯ СОСТАВЛЯЮЩАЯ</span></p>
   <p class="hint">ВЕКТОРЫ ПОЛОЖЕНИЯ СКЛАДЫВАЮТСЯ В LOS. ДУГИ: ЗНАК ВРАЩЕНИЯ. СТРЕЛКИ v: СКОРОСТЬ НАПРАВЛЕНИЯ, МАСШТАБ УСИЛЕН.</p>
@@ -106,26 +142,14 @@
   <p id="model-source-hint" class="hint">ПО ДАТЧИКУ. RA ВКЛЮЧАЕТ ХОД ЗВЁЗДНОГО ВРЕМЕНИ. «—» = НЕТ ОЦЕНКИ.</p>
 </section>
 <section id="mount-telemetry" class="full">
-  <div class="panel-title"><h2>02 / МОНТИРОВКА И КОНТРОЛЛЕРЫ</h2><span data-mount-state>НЕТ ДАННЫХ</span></div>
-  <div class="mount-strip"><span data-mount-clock>—</span><span data-mount-guide>GUIDE —</span><span data-mount-polar>POLAR —</span><span data-lx200-server>TCP —</span></div>
-  <div class="motor-grid">
-    <div class="motor-view"><svg data-motor-view="ra" viewBox="0 0 220 90" role="img" aria-label="Вектор вращения мотора RA"></svg></div>
-    <div class="motor-view"><svg data-motor-view="dec" viewBox="0 0 220 90" role="img" aria-label="Вектор вращения мотора DEC"></svg></div>
-  </div>
+  <div class="panel-title"><h2>02 / ТЕЛЕМЕТРИЯ КОНТРОЛЛЕРОВ</h2></div>
   <div class="telemetry-columns">
     <table data-axis-table aria-label="Состояние осей RA и DEC"></table>
     <div class="polar-traffic">
       <table data-polar-table aria-label="Полярное сопровождение"></table>
       <div class="panel-title"><h2>LX200 / КОМАНДЫ</h2><span data-lx200-count>—</span></div>
       <table data-lx200-table aria-label="Статистика команд LX200"></table>
-      <section>
-  <div class="panel-title"><h2>RAW / СЫРЫЕ ВЕКТОРЫ</h2><span id="sensor-state">—</span></div>
-  <table aria-label="Сырые показания датчика"><thead><tr><th>ДАТЧИК</th><th>X</th><th>Y</th><th>Z</th></tr></thead><tbody>
-    <tr><th>G · м/с²</th><td id="gx">—</td><td id="gy">—</td><td id="gz">—</td></tr>
-    <tr><th>B · мкТл</th><td id="mx">—</td><td id="my">—</td><td id="mz">—</td></tr>
-  </tbody></table>
-  <p id="telemetry" class="telemetry">SEQ — / AGE —</p>
-</section>
+
     </div>
   </div>
 </section>
@@ -169,8 +193,9 @@
   import {TelescopeModel,formatRA} from '/model.mjs';
   import {MountPanel} from '/telemetry.mjs';
   const byId = id => document.getElementById(id);
-  const model = new TelescopeModel(byId('telescope-model'));
-  const mountPanel = new MountPanel(byId('mount-telemetry'));
+  const instrumentsRoot = document.querySelector('main');
+  const model = new TelescopeModel(instrumentsRoot);
+  const mountPanel = new MountPanel(instrumentsRoot);
   let latestData = null;
   byId('model-source').addEventListener('change', () => {model.update(null); renderModel(latestData);});
   function renderModel(data) {

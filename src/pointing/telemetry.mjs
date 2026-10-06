@@ -77,6 +77,7 @@ export class MountPanel {
     table(this.root.querySelector('[data-lx200-table]'),['КОМАНДА','КОЛИЧЕСТВО','ДАВНОСТЬ','АРГУМЕНТ'],stats.length ? stats.map(s=>[s.command,s.count,age(s.age_s),s.argument || '—']) : [['НЕТ КОМАНД','—','—','—']]);
     for (const [index,name] of ['ra','dec'].entries()) {
       const axis=snapshots[index], motor=axis?.motor;
+      this.root.querySelector(`[data-motor-vitals="${name}"]`).textContent = `${name.toUpperCase()} ${motor?.direction.toUpperCase() ?? '—'} / ${number(motor?.power_v)}V`;
       const svg=this.root.querySelector(`[data-motor-view="${name}"]`); svg.replaceChildren();
       const color=motor ? (index ? '#ffc16b' : '#72cced') : '#82948a';
       svgNode(svg,'circle',{cx:45,cy:45,r:27,fill:'none',stroke:'#34483c'});
