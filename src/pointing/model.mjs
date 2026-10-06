@@ -78,17 +78,35 @@ export class OrbitView {
 }
 const views = new WeakMap();
 const ns = 'http://www.w3.org/2000/svg';
+const farOpacity = .38, farWidth = .55;
 function element(svg, tag, attrs) {
   const item = document.createElementNS(ns, tag);
   for (const [key,value] of Object.entries(attrs)) item.setAttribute(key,value);
   svg.append(item);
   return item;
 }
-function path(svg, points, color, width=1, dash='') {
-  return element(svg,'path',{d:points.map((p,i)=>`${i?'L':'M'}${views.get(svg).project(p).slice(0,2).join(',')}`).join(' '),fill:'none',stroke:color,'stroke-width':width,'stroke-dasharray':dash});
+function path(svg, points, color, width=1, dash='', backDash=dash) {
+  const projected=points.map(point=>views.get(svg).project(point)), segments=['',''];
+  for (let i=1;i<projected.length;i++) {
+    const a=projected[i-1], b=projected[i];
+    const pieces=[];
+    if ((a[2]<0)!==(b[2]<0)) {
+      // Clip exactly at the camera-facing plane through the model centre.
+      // A crossing line keeps its bright foreground half as the view rotates.
+      const t=a[2]/(a[2]-b[2]), crossing=[a[0]+t*(b[0]-a[0]),a[1]+t*(b[1]-a[1]),0];
+      pieces.push([a,crossing],[crossing,b]);
+    } else pieces.push([a,b]);
+    for (const [start,end] of pieces) {
+      const side=(start[2]+end[2])>=0?1:0;
+      segments[side]+=`M${start[0]},${start[1]} L${end[0]},${end[1]} `;
+    }
+  }
+  for (const [side,d] of segments.entries()) {
+    if (d) element(svg,'path',{d,fill:'none',stroke:color,'stroke-width':width*(side?1:farWidth),'stroke-opacity':side?1:farOpacity,'stroke-dasharray':side?dash:backDash,'data-depth':side?'near':'far'});
+  }
 }
 function label(svg, position, text, color='#82948a') {
-  const [x,y] = views.get(svg).project(position);
+  const [x,y,depth] = views.get(svg).project(position);
   const fontSize=Number(svg.dataset.fontSize), gap=fontSize*1.35;
   const width = text.length * fontSize*.6, left = Math.max(8,Math.min(432-width,x+5));
   const occupied = [...svg.querySelectorAll('text')].map(item => ({x:Number(item.getAttribute('x')),y:Number(item.getAttribute('y')),width:item.textContent.length*fontSize*.6}));
@@ -97,14 +115,14 @@ function label(svg, position, text, color='#82948a') {
     const candidate = Math.max(16,Math.min(284,y-5+offset));
     if (!occupied.some(item => Math.abs(item.y-candidate)<gap && left<item.x+item.width+4 && left+width+4>item.x)) {top=candidate; break;}
   }
-  if (Math.abs(top-(y-5))>8 || Math.abs(left-(x+5))>8) element(svg,'path',{d:`M${x},${y} L${left-2},${top-4}`,fill:'none',stroke:color,'stroke-width':.6});
+  if (Math.abs(top-(y-5))>8 || Math.abs(left-(x+5))>8) element(svg,'path',{d:`M${x},${y} L${left-2},${top-4}`,fill:'none',stroke:color,'stroke-width':.6*(depth<0?farWidth:1),'stroke-opacity':depth<0?farOpacity:1});
   element(svg,'text',{x:left,y:top,style:`fill:${color}`}).textContent = text;
 }
 function arrow(svg, start, end, color, text='') {
   path(svg,[start,end],color,2);
-  const [x,y] = views.get(svg).project(end), [sx,sy] = views.get(svg).project(start), angle = Math.atan2(y-sy,x-sx);
+  const [x,y,depth] = views.get(svg).project(end), [sx,sy] = views.get(svg).project(start), angle = Math.atan2(y-sy,x-sx);
   const head = Math.min(8,Math.hypot(x-sx,y-sy)/3);
-  element(svg,'path',{d:`M${x-head*Math.cos(angle-.45)},${y-head*Math.sin(angle-.45)} L${x},${y} L${x-head*Math.cos(angle+.45)},${y-head*Math.sin(angle+.45)}`,fill:'none',stroke:color,'stroke-width':2});
+  element(svg,'path',{d:`M${x-head*Math.cos(angle-.45)},${y-head*Math.sin(angle-.45)} L${x},${y} L${x-head*Math.cos(angle+.45)},${y-head*Math.sin(angle+.45)}`,fill:'none',stroke:color,'stroke-width':2*(depth<0?farWidth:1),'stroke-opacity':depth<0?farOpacity:1});
   if (text) label(svg,end,text,color);
 }
 
@@ -201,14 +219,7 @@ export class TelescopeModel {
       for (const latitude of [-60,-30,0,30,60]) grid.push(Array.from({length:73},(_,i)=>scale(direction(sphereBasis,i*5,latitude),1.35)));
       for (const longitude of [0,30,60,90,120,150]) grid.push(Array.from({length:73},(_,i)=>add(scale(direction(sphereBasis,longitude,0),1.35*Math.cos(i*5*rad)),scale(sphereBasis[2],1.35*Math.sin(i*5*rad)))));
       element(svg,'circle',{cx:220,cy:150,r:1.35*94*this.view.zoom,fill:'none',stroke:'#34483c','stroke-width':.7});
-      for (const points of grid) {
-        const segments=['',''];
-        for (let i=1;i<points.length;i++) {
-          const a=this.view.project(points[i-1]), b=this.view.project(points[i]), side=(a[2]+b[2])>=0?1:0;
-          segments[side]+=`M${a[0]},${a[1]} L${b[0]},${b[1]} `;
-        }
-        for (const [side,d] of segments.entries()) element(svg,'path',{d,fill:'none',stroke:side?'#34483c':'#26372e','stroke-width':.65,'stroke-dasharray':side?'':'3 4'});
-      }
+      for (const points of grid) path(svg,points,'#34483c',.65,'','3 4');
       element(svg,'text',{x:8,y:290,style:'font-size:.85em'}).textContent=equatorial.basis ? 'СФЕРА / СЕТКА RA·DEC' : 'СЕТКА ENU / НЕТ ОРИЕНТАЦИИ RA·DEC';
       // ENU ground, pedestal and tripod remain visible when no trustworthy pose exists.
       for (const axis of [[1.35,0,0],[0,1.35,0],[0,0,1.35]]) arrow(svg,[0,0,0],axis,'#34483c');
