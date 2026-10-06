@@ -123,6 +123,12 @@ jobs:
             -o "$RUNNER_TEMP/frame_v3_selftest" telescope_dec/test/frame_v3_selftest.cpp
           "$RUNNER_TEMP/frame_v3_selftest"
 
+      - name: Sensor acquisition and I2C failure scenarios
+        run: |
+          c++ -std=c++11 -O1 -Wall -Wextra -Werror -fsanitize=address,undefined \
+            -o "$RUNNER_TEMP/orientation_sensors_selftest" telescope_dec/test/orientation_sensors_selftest.cpp
+          "$RUNNER_TEMP/orientation_sensors_selftest"
+
       - name: Install tested PlatformIO version
         run: python -m pip install platformio==6.1.19
 

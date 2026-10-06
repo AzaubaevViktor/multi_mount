@@ -18,7 +18,7 @@
 #include <stdint.h>
 
 static const uint8_t FRAME_PROTOCOL_VERSION_V3 = 3;
-static const uint8_t FRAME_FIRMWARE_BUILD_V3 = 3;
+static const uint8_t FRAME_FIRMWARE_BUILD_V3 = 4;
 
 // LEN + OP + SEQ, then the payload, then two bytes of CRC.
 static const uint8_t FRAME_HEADER_V3 = 3;

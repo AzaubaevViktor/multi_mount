@@ -24,9 +24,11 @@ driver faults, safety state, active microstep resolution and safety events.
 
 The Python app also provides a gravity/magnetic sensor calibration screen and
 agent HTTP API at `http://127.0.0.1:8080/`. Run `python -m src --sim` to use the
-independent sensor simulator. Calibration points and verification live in Python;
-the real DEC firmware currently reports that no sensor is configured.
-See [sensor workflow and API](docs/POINTING_SENSOR.md).
+independent sensor simulator. Calibration points and verification live in Python.
+The DEC firmware reads MPU6050 + QMC5883L and remains operational without sensors.
+See [sensor workflow and API](docs/POINTING_SENSOR.md) and
+[sensor wiring and power levels](docs/DEC_SENSOR_WIRING.md) (A4/A5 I²C;
+the mode LED's blue wire moves to A0).
 
 ## Scheme
 ```text

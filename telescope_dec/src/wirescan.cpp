@@ -48,7 +48,7 @@ static const uint8_t LED_A_G = 5;
 static const uint8_t LED_A_B = 3;
 static const uint8_t LED_B_R = A3;   // the mode LED
 static const uint8_t LED_B_G = A2;
-static const uint8_t LED_B_B = A5;
+static const uint8_t LED_B_B = A0; // keep A4/A5 free for the sensor bus
 static const uint8_t LED_ALIVE = 11; // power LED, toggled every round
 
 // Motor supply sense, same divider the main firmware uses. A driver with no power

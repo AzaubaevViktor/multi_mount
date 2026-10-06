@@ -14,6 +14,23 @@
 #include <math.h>
 
 #include "frame_v3.h"
+#include "sensor_i2c.h"
+#include "orientation_sensors.h"
+
+// Hardware TWI on A4/A5; polling never waits for a bus event. External pull-ups
+// and a 3.3V/5V level shifter are required, so internal 5V pull-ups stay OFF.
+struct SensorTwiPort {
+  static void reset() { TWCR = 0; TWCR = _BV(TWEN); }
+  static void start() { TWCR = _BV(TWINT) | _BV(TWEN) | _BV(TWSTA); }
+  static void stop() { TWCR = _BV(TWINT) | _BV(TWEN) | _BV(TWSTO); }
+  static bool stopping() { return TWCR & _BV(TWSTO); }
+  static bool ready() { return TWCR & _BV(TWINT); }
+  static uint8_t status() { return TWSR & 0xF8; }
+  static uint8_t data() { return TWDR; }
+  static void send(uint8_t value) { TWDR = value; TWCR = _BV(TWINT) | _BV(TWEN); }
+  static void receive(bool ack) { TWCR = _BV(TWINT) | _BV(TWEN) | (ack ? _BV(TWEA) : 0); }
+};
+static OrientationSensors<SensorI2c<SensorTwiPort>> orientationSensors;
 
 // ---------- Pins ----------
 static const uint8_t STEP_PIN = 7;
@@ -30,7 +47,7 @@ static const uint8_t STEP_RGB_BLUE_PIN = 3;
 
 static const uint8_t MODE_LED_RED_PIN = A3;
 static const uint8_t MODE_LED_GREEN_PIN = A2;
-static const uint8_t MODE_LED_BLUE_PIN = A5;
+static const uint8_t MODE_LED_BLUE_PIN = A0; // A5 is now I2C SCL
 
 static const uint8_t TMC_RX_PIN = 8;
 static const uint8_t TMC_TX_PIN = 9;
@@ -202,7 +219,9 @@ static void samplePowerVoltageV2(uint32_t nowMs);
 static const uint8_t HEX_WIDTH = 8;
 
 // ---------- Simple line parser ----------
-static char lineBufV2[256];
+// Largest supported v3 request is 20 characters (4-byte argument); legacy
+// commands also fit comfortably. Keep recovery room without spending 256B SRAM.
+static char lineBufV2[128];
 static uint8_t lineLenV2 = 0;
 
 // ---------- Fast TX ring buffer ----------
@@ -492,6 +511,14 @@ void setup() {
   Serial.begin(115200);
   Serial.setTimeout(0);
   while (!Serial) {}
+
+  pinMode(A4, INPUT);
+  pinMode(A5, INPUT);
+  digitalWrite(A4, LOW);
+  digitalWrite(A5, LOW);
+  TWSR = 0;
+  TWBR = (F_CPU / 100000UL - 16) / 2; // I2C standard mode, 100kHz
+  SensorTwiPort::reset();
 
   pinMode(STEP_PIN, OUTPUT);
   pinMode(DIR_PIN, OUTPUT);
@@ -1280,9 +1307,21 @@ static void handleLineV2(char* s) {
 
   if (!strcmp(cmd, "sensor")) {
     if (strtok(NULL, " \t")) { respondErrorV2("bad_value"); return; }
-    // No physical sensor driver is configured yet. Never fabricate measurements.
+    const RawSensorV3 sensor = orientationSensors.snapshot(millis());
     respondStartV2(true);
-    respondKeyValueLongV2(F("sensor_flags"), 0);
+    respondKeyValueLongV2(F("sensor_flags"), sensor.flags);
+    if (sensor.flags & 2) {
+      respondKeyValueU32V2(F("sample"), sensor.sequence);
+      respondKeyValueLongV2(F("age_ms"), sensor.ageMs);
+      respondKeyValueLongV2(F("gx"), sensor.gravity[0]);
+      respondKeyValueLongV2(F("gy"), sensor.gravity[1]);
+      respondKeyValueLongV2(F("gz"), sensor.gravity[2]);
+      if (sensor.flags & 4) {
+        respondKeyValueLongV2(F("mx"), sensor.magnetic[0]);
+        respondKeyValueLongV2(F("my"), sensor.magnetic[1]);
+        respondKeyValueLongV2(F("mz"), sensor.magnetic[2]);
+      }
+    }
     respondEndV2();
     return;
   }
@@ -1538,8 +1577,7 @@ static void handleFrameV3(char* s, uint8_t len) {
   switch (op) {
     case OP_SENSOR_V3: {
       if (frame.len != 0) { respondFrameErrorV3(seq, ERR_BAD_VALUE_V3); return; }
-      // flags=0: absent device. Remaining reserved fields are not measurements.
-      const RawSensorV3 sensor = {};
+      const RawSensorV3 sensor = orientationSensors.snapshot(millis());
       outLineStartV2 = outWriteV2;
       outLineFailedV2 = false;
       frameWriteSensorV3(frameWriterV3, seq, sensor);
@@ -1908,6 +1946,9 @@ void loop() {
   profiler.stepper /= 2.;
 
   const uint32_t nowMs = millis();
+  // One TWI transition per loop. Skip STEP HIGH to preserve pulse width.
+  if (!runV2.stepHigh) orientationSensors.tick(nowMs);
+
   const bool stallEligible =
       runV2.enabled && runV2.running && !runV2.stopRequested &&
       (safetyStateV2 == SAFETY_NORMAL_V2 || safetyStateV2 == SAFETY_DERATED_V2) &&
