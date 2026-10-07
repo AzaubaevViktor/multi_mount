@@ -32,7 +32,10 @@ export class MountPanel {
     this.root.querySelector('[data-mount-guide]').textContent = `GUIDE ${age(mount?.polar?.guide_age_s)}`;
     this.root.querySelector('[data-mount-polar]').textContent = `POLAR ${mount?.polar?.status.toUpperCase() ?? '—'}`;
     const server=mount?.lx200?.server;
-    this.root.querySelector('[data-lx200-server]').textContent = server ? `TCP ${server.listening?'ON':'OFF'} / ${server.host}:${server.port} / CLIENT ${server.client_connected?'ON':'OFF'} / REFUSED ${server.refused_clients}${server.error ? ' / '+server.error : ''}` : 'TCP —';
+    this.root.querySelector('[data-lx200-server]').textContent = server ? `TCP ${server.listening?'ON':'OFF'} / ${server.host}:${server.port} / REFUSED ${server.refused_clients}${server.error ? ' / '+server.error : ''}` : 'TCP —';
+    const client=this.root.querySelector('[data-lx200-client]'), peer=server?.client_address;
+    client.dataset.health=server?.client_connected == null ? 'unknown' : server.client_connected ? 'online' : 'offline';
+    client.textContent=`КЛИЕНТ LX200: ${server?.client_connected == null ? '—' : server.client_connected ? 'ПОДКЛ.'+(peer ? ` / ${peer.host}:${peer.port}` : ' / АДРЕС —') : 'НЕТ'}`;
     const snapshots = ['ra','dec'].map(name=>mount?.[name]);
     const rows = [
       ['ОСЬ / ПОЗИЦИЯ',...snapshots.map(axis=>axis?.mount_position_text)],

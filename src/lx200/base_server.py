@@ -36,6 +36,7 @@ class LX200SimpleServer:
         # target and halt each other's axes. A second client is refused, loudly,
         # instead of being let in to corrupt the first one's session.
         self._client_slot = threading.Lock()
+        self._client_address: tuple[str, int] | None = None
         self.refused_clients = 0
         
     def serve_forever(self) -> None:
@@ -116,9 +117,11 @@ class LX200SimpleServer:
             running, listening = self._running, self._running and self._socket is not None
             error, refused = self.last_error, self.refused_clients
             client_connected = self._client_slot.locked()
+            client_address = self._client_address
         return {
             "running": running, "listening": listening, "host": self.host, "port": self.port,
             "client_connected": client_connected, "refused_clients": refused,
+            "client_address": {"host": client_address[0], "port": client_address[1]} if client_address is not None else None,
             "error": f"{type(error).__name__}: {error}" if error is not None else None,
         }
     
@@ -131,9 +134,16 @@ class LX200SimpleServer:
                 return
 
             try:
+                try:
+                    peer = conn.getpeername()
+                except OSError:
+                    peer = None
+                address = (peer[0], peer[1]) if isinstance(peer, tuple) and len(peer) >= 2 else None
+
                 with self._state_lock:
                     self._connection_id += 1
                     connection_id = self._connection_id
+                    self._client_address = address
 
                 log = logging.getLogger(f"{self.log.name}.{connection_id}")
                 log.info("Connected: %r", conn)
@@ -141,7 +151,9 @@ class LX200SimpleServer:
 
                 self._serve_connection(conn, log)
             finally:
-                self._client_slot.release()
+                with self._state_lock:
+                    self._client_address = None
+                    self._client_slot.release()
                 self.log.info("Client %s disconnected", connection_id)
 
     def _serve_connection(self, conn: socket.socket, log: logging.Logger) -> None:

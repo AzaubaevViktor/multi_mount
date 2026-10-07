@@ -82,3 +82,26 @@ test('axis failure and HTTP loss clear stale hardware readings independently',()
   assert.equal(root.querySelector('[data-sensor-device="gravity"]').textContent,'MPU6050 / НЕИЗВ.');
   assert.match(root.querySelector('[data-sensor-poll]').textContent,/SENSOR —/);
 });
+
+test('LX200 client indicator distinguishes connected, disconnected and unknown',()=>{
+  const root=new Element(), mount=snapshot(), panel=new MountPanel(root);
+  mount.lx200={server:{listening:true,host:'0.0.0.0',port:7624,client_connected:true,client_address:{host:'192.0.2.8',port:51000},refused_clients:1}};
+  panel.update(mount);
+  const client=root.querySelector('[data-lx200-client]');
+  assert.equal(client.dataset.health,'online');
+  assert.equal(client.textContent,'КЛИЕНТ LX200: ПОДКЛ. / 192.0.2.8:51000');
+  assert.match(root.querySelector('[data-lx200-server]').textContent,/REFUSED 1/);
+  mount.lx200.server.client_address=null;
+  panel.update(mount);
+  assert.equal(client.textContent,'КЛИЕНТ LX200: ПОДКЛ. / АДРЕС —');
+  mount.lx200.server.client_connected=false;
+  panel.update(mount);
+  assert.equal(client.dataset.health,'offline');
+  assert.equal(client.textContent,'КЛИЕНТ LX200: НЕТ');
+  mount.lx200.server=null;
+  panel.update(mount);
+  assert.equal(client.dataset.health,'unknown');
+  assert.equal(client.textContent,'КЛИЕНТ LX200: —');
+  panel.update(null);
+  assert.equal(client.textContent,'КЛИЕНТ LX200: —');
+});

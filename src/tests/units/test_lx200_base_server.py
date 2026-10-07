@@ -294,6 +294,41 @@ def test_the_slot_is_released_so_the_next_client_gets_in() -> None:
     assert server.refused_clients == 0
 
 
+def test_monitor_reports_tcp_peer_and_clears_it_on_disconnect() -> None:
+    server = LX200SimpleServer(_RecordingLX200())
+    assert server.monitor()["client_connected"] is False
+    assert server.monitor()["client_address"] is None
+
+    with socket_module.socket(socket_module.AF_INET, socket_module.SOCK_STREAM) as listener:
+        listener.bind(("127.0.0.1", 0))
+        listener.listen()
+        listener.settimeout(2.0)
+        for _ in range(2):
+            with socket_module.create_connection(listener.getsockname(), timeout=2.0) as client:
+                accepted, peer = listener.accept()
+                thread = threading_module.Thread(target=server._handle_client, args=(accepted,), daemon=True)
+                thread.start()
+                try:
+                    _send(client, ":GR#")
+                    assert _read(client, 9) == b"00:00:00#"
+                    snapshot = server.monitor()
+                    assert snapshot["client_connected"] is True
+                    assert snapshot["client_address"] == {"host": peer[0], "port": peer[1]}
+
+                    with _client_of(server) as (second, second_thread):
+                        second_thread.join(2.0)
+                        assert not second_thread.is_alive()
+                        assert second.recv(16) == b""
+                    assert server.monitor()["client_address"] == snapshot["client_address"]
+                finally:
+                    client.shutdown(socket_module.SHUT_RDWR)
+                    thread.join(2.0)
+                    assert not thread.is_alive()
+
+            assert server.monitor()["client_connected"] is False
+            assert server.monitor()["client_address"] is None
+
+
 def test_a_new_client_does_not_inherit_the_previous_client_target() -> None:
     handler = _RecordingLX200()
     server = LX200SimpleServer(handler)

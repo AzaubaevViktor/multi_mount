@@ -88,6 +88,7 @@
   .essential-grid .coordinate dd { margin-left: auto; }
   #mount-summary { grid-column: span 2; }
   #flight-deck > .mount-strip { padding: 3px 8px; gap: 3px 12px; font-size: .8rem; border-bottom: 1px solid var(--line); }
+  [data-lx200-client][data-health="online"] { color: var(--signal); }
   .device-title { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 3px; padding: 4px 6px; border-bottom: 1px solid var(--line); }
   .device-title h3 { margin: 0; font-size: .8rem; font-weight: 400; }
   .device-title output, .device-info, .sensor-devices { font-size: .8rem; line-height: 1.25; }
@@ -127,7 +128,7 @@
   <div class="sensor-strip" aria-label="Координаты датчика">
     <span>ДАТЧИК:</span><span>AZ <output id="az-value">—</output>°</span><span>ALT <output id="alt-value">—</output>°</span><span>RA <output id="ra-value">—</output></span><span>DEC <output id="dec-value">—</output>°</span>
   </div>
-  <div class="mount-strip"><span data-mount-state>НЕТ ДАННЫХ</span><span data-mount-clock>—</span><span data-mount-guide>GUIDE —</span><span data-mount-polar>POLAR —</span><span data-lx200-server>TCP —</span></div>
+  <div class="mount-strip"><span data-mount-state>НЕТ ДАННЫХ</span><span data-mount-clock>—</span><span data-mount-guide>GUIDE —</span><span data-mount-polar>POLAR —</span><span data-lx200-server>TCP —</span><output data-lx200-client>КЛИЕНТ LX200: —</output></div>
   <div class="essential-grid" aria-label="Основные приборы">
     <div class="model-rates">
       <div class="coordinate"><h3 class="lon-color">AZ · °</h3><dl><div><dt>УГОЛ</dt><dd data-angle="az">—</dd></div><div><dt>″/s</dt><dd data-rate="az">—</dd></div><div><dt>ХОД</dt><dd data-direction="az">НЕИЗВ.</dd></div></dl></div>
