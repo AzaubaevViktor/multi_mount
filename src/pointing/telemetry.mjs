@@ -26,7 +26,7 @@ function svgNode(svg,tag,attrs,text='') {
 
 export class MountPanel {
   constructor(root) {this.root=root;}
-  update(mount) {
+  update(mount,sensor=null) {
     this.root.querySelector('[data-mount-state]').textContent = mount ? `MODE ${mount.state.toUpperCase()} / RA ${mount.ra.available?'ON':'?'} / DEC ${mount.dec.available?'ON':'?'}` : 'НЕТ ДАННЫХ';
     this.root.querySelector('[data-mount-clock]').textContent = mount?.clock ?? '—';
     this.root.querySelector('[data-mount-guide]').textContent = `GUIDE ${age(mount?.polar?.guide_age_s)}`;
@@ -77,6 +77,23 @@ export class MountPanel {
     table(this.root.querySelector('[data-lx200-table]'),['КОМАНДА','КОЛИЧЕСТВО','ДАВНОСТЬ','АРГУМЕНТ'],stats.length ? stats.map(s=>[s.command,s.count,age(s.age_s),s.argument || '—']) : [['НЕТ КОМАНД','—','—','—']]);
     for (const [index,name] of ['ra','dec'].entries()) {
       const axis=snapshots[index], motor=axis?.motor;
+      const device=this.root.querySelector(`[data-device="${name}"]`), protocol=motor?.protocol, last=axis?.processed?.at(-1);
+      device.dataset.health=!axis ? 'unknown' : axis.error ? 'error' : axis.available ? 'online' : 'offline';
+      device.querySelector('[data-device-link]').textContent=!axis ? 'НЕИЗВ.' : axis.error ? 'ОШИБКА' : axis.available ? 'ПОДКЛ.' : 'НЕТ СВЯЗИ';
+      device.querySelector('[data-device-mode]').textContent=motor ? `${value(axis.mode).toUpperCase()} / ${value(motor.motion_mode).toUpperCase()} / ${value(motor.direction).toUpperCase()}` : 'СОСТОЯНИЕ —';
+      device.querySelector('[data-device-power]').textContent=`PWR ${number(motor?.power_v)} V`;
+      device.querySelector('[data-device-battery]').textContent=index ? 'ЗАРЯД —' : `BAT ${value(protocol?.battery_v)} V / USB ${value(protocol?.usb_v)} V / ЗАРЯД —`;
+      device.querySelector('[data-device-driver]').textContent=index
+        ? `TMC2209 / UART ${protocol?.driver_uart_connected == null ? '—' : protocol.driver_uart_connected ? 'OK' : 'ОШИБКА'} / ${value(protocol?.safety).toUpperCase()} / EN ${flag(protocol?.enabled)} / INIT ${flag(motor?.initialized)}`
+        : `INIT ${value(protocol?.initialized)} / REBOOT ${value(protocol?.reboots)}`;
+      device.querySelector('[data-device-driver]').dataset.health=index && (protocol?.driver_uart_connected===false || protocol?.safety==='shutdown') ? 'error' : index && protocol?.driver_flags ? 'warning' : 'unknown';
+      const flags=protocol?.driver_flags;
+      device.querySelector('[data-device-diagnostic]').textContent=index
+        ? `FW ${value(protocol?.firmware)} / V${value(protocol?.protocol)} / FLAGS ${flags == null ? '—' : '0x'+flags.toString(16).padStart(2,'0').toUpperCase()} / EVENTS ${value(protocol?.safety_events)} / TX LOST ${value(protocol?.tx_overflow)}`
+        : `SPEED ${value(protocol?.speed_mode)} / RATIO ${value(protocol?.highspeed_ratio)}`;
+      device.querySelector('[data-device-command]').textContent=`CMD ${last ? last.command.split(' ').slice(0,2).join(' ').toUpperCase()+' / '+age(last.age_s) : '—'} ▾`;
+      device.querySelector('[data-device-command-full]').textContent=last?.command ?? 'НЕТ ОБРАБОТАННЫХ КОМАНД ОСИ';
+      device.querySelector('[data-device-error]').textContent=axis?.error ?? '';
       this.root.querySelector(`[data-motor-vitals="${name}"]`).textContent = `${name.toUpperCase()} ${motor?.direction.toUpperCase() ?? '—'} / ${number(motor?.power_v)}V`;
       const svg=this.root.querySelector(`[data-motor-view="${name}"]`); svg.replaceChildren();
       const color=motor ? (index ? '#ffc16b' : '#72cced') : '#82948a';
@@ -96,5 +113,12 @@ export class MountPanel {
       svgNode(svg,'text',{x:92,y:45},`${axis?.mode?.toUpperCase() ?? '—'} / ${motor?.motion_mode.toUpperCase() ?? '—'}`);
       svgNode(svg,'text',{x:92,y:62},`SET ${number(motor?.speed_sps,0)}sps / ${number(motor?.power_v)}V`);
     }
+    for (const [channel,label] of [['gravity','MPU6050'],['magnetic','QMC5883L']]) {
+      const target=this.root.querySelector(`[data-sensor-device="${channel}"]`), state=sensor?.channels?.[channel];
+      const states={available:'ДАННЫЕ ЕСТЬ',stale_data:'УСТАРЕЛИ',invalid_data:'ОШИБКА ДАННЫХ',not_connected:'DEC НЕ ПОДКЛ.',transport_error:'ОШИБКА СВЯЗИ',device_not_found:'НЕ НАЙДЕНО',unsupported:'НЕ ПОДДЕРЖ.',no_data:'НЕТ ДАННЫХ',unavailable:'НЕТ ДАННЫХ'};
+      target.dataset.health=state==='available' ? 'online' : !states[state] ? 'unknown' : ['invalid_data','transport_error','stale_data'].includes(state) ? 'error' : 'offline';
+      target.textContent=`${label} / ${states[state] ?? 'НЕИЗВ.'}`;
+    }
+    this.root.querySelector('[data-sensor-poll]').textContent=sensor ? `ОПРОС DEC / SENSOR / ${value(sensor.timestamp)} / PWR G/B —` : 'ОПРОС DEC / SENSOR — / PWR G/B —';
   }
 }

@@ -50,6 +50,22 @@ def test_status_without_tx_overflow_key_still_parses() -> None:
     assert status.power_v == pytest.approx(12.34)
 
 
+def test_legacy_monitor_keeps_missing_driver_diagnostics_unknown() -> None:
+    class _Line:
+        def query(self, payload: str, **kwargs: object) -> str:
+            assert payload == "status\n"
+            return _LEGACY_STATUS
+
+    motor = TMC2209Motor(_Line(), dialect=_Dialect.LEGACY)  # type: ignore[arg-type]
+    motor._is_connected = True
+    assert motor.status().initialized is True
+    diagnostics = motor.protocol_monitor()
+    assert diagnostics["protocol"] == 2
+    assert diagnostics["enabled"] is True
+    for key in ("driver_uart_connected", "driver_flags", "safety", "safety_events", "tx_overflow", "firmware"):
+        assert diagnostics[key] is None
+
+
 def test_status_with_tx_overflow_key_parses_the_counter() -> None:
     status = _Status.from_response(_Response.from_line(_NEW_STATUS))
 

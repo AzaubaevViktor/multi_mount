@@ -169,6 +169,8 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         self._last_safety: _Safety | None = None
         self._last_safety_events: int | None = None
         self._last_active_microsteps: int | None = None
+        self._last_status: _Status | None = None
+        self._hello: dict[str, str] = {}
         self._dialect = dialect
         self._seq = 0
 
@@ -219,6 +221,7 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
                 self._logger.info("Protocol probe attempt failed, retrying: %s", error)
                 continue
             self._dialect = _Dialect.FRAMED
+            self._hello = dict(hello.values)
             self._logger.info("DEC controller speaks framed protocol v%s", hello.values.get("protocol"))
             return
 
@@ -232,6 +235,8 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         self._last_safety = None
         self._last_safety_events = None
         self._last_active_microsteps = None
+        self._last_status = None
+        self._hello.clear()
         self._serial.close()
         return True
 
@@ -263,7 +268,25 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
             target=status.target if status.target_set else None,
             microsteps=self._microsteps,
             power_v=None,
+            initialized=status.initialised,
         )
+
+    def protocol_monitor(self) -> dict[str, object]:
+        """Cached controller diagnostics; monitoring never adds serial requests."""
+        status = self._last_status if self._is_connected else None
+        flags = status.driver_flags if status is not None else None
+        return {
+            "protocol": (3 if self._dialect is _Dialect.FRAMED else 2) if status is not None else None,
+            "firmware": self._hello.get("firmware") if self._is_connected else None,
+            "enabled": status.enabled if status is not None else None,
+            "driver_flags": flags,
+            "driver_uart_connected": None if flags is None else not bool(flags & 0x80),
+            "safety": status.safety.value if status is not None and status.safety is not None else None,
+            "safety_events": status.safety_events if status is not None else None,
+            "tx_overflow": status.tx_overflow if status is not None else None,
+            "active_microsteps": status.active_microsteps if status is not None else None,
+            "speed_limit_sps": status.speed_limit_sps if status is not None else None,
+        }
 
     def get_power_v(self) -> float | None:
         if self._is_connected and not self._power_v.is_fresh():
@@ -471,6 +494,7 @@ class TMC2209Motor(Motor[Dec, DecPerSecond]):
         self._last_safety = status.safety
         self._last_safety_events = status.safety_events
         self._last_active_microsteps = status.active_microsteps
+        self._last_status = status
         return status
 
     def _exchange(self, command: str, args: list[str] | None) -> _Response:

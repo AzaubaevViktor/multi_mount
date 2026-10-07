@@ -181,3 +181,33 @@ def test_reconnection_marks_a_discontinuity_even_if_polling_missed_the_offline_i
         assert axis.monitor()["position_revision"] > revision
     finally:
         axis.disconnect()
+
+
+def test_dec_diagnostics_are_cached_and_cleared_on_disconnect(monitor_stack, monkeypatch):
+    snapshot = monitor_stack.axis_dec.monitor()
+    protocol = snapshot["motor"]["protocol"]
+    assert snapshot["motor"]["initialized"] is True
+    assert protocol["protocol"] == 3
+    assert protocol["firmware"] is not None
+    assert protocol["driver_uart_connected"] is True
+    assert protocol["driver_flags"] == 0
+    assert protocol["safety"] == "normal"
+    assert protocol["enabled"] is False
+    monkeypatch.setattr(monitor_stack.dec_line, "query", lambda *a, **kw: pytest.fail("cached diagnostics sent a serial query"))
+    assert monitor_stack.dec_motor.protocol_monitor() == protocol
+    monitor_stack.dec_motor.disconnect()
+    offline = monitor_stack.dec_motor.protocol_monitor()
+    assert offline["driver_uart_connected"] is None
+    assert offline["driver_flags"] is None
+    assert offline["safety"] is None
+    assert offline["firmware"] is None
+
+
+def test_dec_uart_fault_is_independent_of_arduino_connection(monitor_stack):
+    monitor_stack.dec_sim.driver_flags = 0x80
+    code, mount = AgentAPI(monitor_stack.sky_lx200, monitor_stack.pointing).handle_request("GET", "/v1/mount", {})
+    assert code == 200
+    assert mount["dec"]["available"]
+    assert mount["dec"]["motor"]["protocol"]["driver_uart_connected"] is False
+    assert mount["dec"]["motor"]["protocol"]["driver_flags"] == 0x80
+    assert mount["ra"]["available"]

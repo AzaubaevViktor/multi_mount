@@ -79,13 +79,35 @@
   @media (max-width: 1100px) { .telemetry-columns { grid-template-columns: minmax(0,1fr); } .telemetry-columns > table { border-right: 0; } }
   @media (max-width: 719px) { main, .model-grid { grid-template-columns: minmax(0,1fr); } .model-view { border-right: 0; border-bottom: 1px solid var(--line); } .model-rates { grid-template-columns: repeat(2,minmax(0,1fr)); } .coordinate { border-bottom: 1px solid var(--line); } .coordinate:nth-child(even) { border-right: 0; } }
   @media (max-width: 539px) { header { flex-wrap: wrap; } .motor-grid { grid-template-columns: minmax(0,1fr); } .motor-view:first-child { border-right: 0; } .view-controls span { flex-basis: 100%; } .view-controls button:last-child { flex: 1 1 100px; } #solve label { flex-basis: 100%; } }
-  .essential-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 6px; padding: 6px; align-items: start; }
+  .essential-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 6px; padding: 6px; align-items: start; }
   .essential-grid > * { min-width: 0; }
   .essential-grid .model-rates { grid-column: auto; grid-template-columns: repeat(2,minmax(0,1fr)); border: 1px solid var(--line); }
   .essential-grid .coordinate { border-bottom: 1px solid var(--line); }
   .essential-grid .coordinate:nth-child(even) { border-right: 0; }
+  .essential-grid .coordinate dl > div { flex-wrap: wrap; }
+  .essential-grid .coordinate dd { margin-left: auto; }
+  #mount-summary { grid-column: span 2; }
+  #flight-deck > .mount-strip { padding: 3px 8px; gap: 3px 12px; font-size: .8rem; border-bottom: 1px solid var(--line); }
+  .device-title { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 3px; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+  .device-title h3 { margin: 0; font-size: .8rem; font-weight: 400; }
+  .device-title output, .device-info, .sensor-devices { font-size: .8rem; line-height: 1.25; }
+  .device-info { padding: 3px 6px; overflow-wrap: anywhere; }
+  .device-info p { margin: 0 0 3px; }
+  .device-info [data-device-power] { color: var(--signal); }
+  .device-info details { margin: 0; border: 0; }
+  .device-info summary { min-height: 44px; padding: 2px 0; display: flex; align-items: center; font-size: inherit; }
+  .device-info [data-device-command-full] { padding-top: 4px; color: var(--signal); }
+  [data-device-error]:empty { display: none; }
+  [data-device-error] { color: #ff8c84; }
+  .device-info [data-health="error"] { color: #ff8c84; }
+  .device-info [data-health="warning"] { color: var(--amber); }
+  [data-health="online"] [data-device-link], .sensor-devices [data-health="online"] { color: var(--signal); }
+  [data-health="error"] [data-device-link], .sensor-devices [data-health="error"] { color: #ff8c84; }
+  [data-health="offline"] [data-device-link], .sensor-devices [data-health="offline"] { color: var(--amber); }
+  .sensor-devices { padding: 3px 6px; display: grid; gap: 3px; border-top: 1px solid var(--line); }
+  [data-sensor-poll] { padding: 0 6px 4px; font-size: .75rem; color: var(--muted); overflow-wrap: anywhere; }
   .essential-grid .motor-view svg { height: clamp(72px,7vw,110px); }
-  .essential-grid .motor-view output { display: block; padding: 0 5px 4px; color: var(--signal); font-size: .8rem; overflow-wrap: anywhere; }
+  .essential-grid .motor-view [data-motor-vitals] { display: block; padding: 0 5px 4px; color: var(--signal); font-size: .8rem; overflow-wrap: anywhere; }
   #raw-sensor th, #raw-sensor td { padding: 4px 5px; font-size: .85rem; white-space: nowrap; }
   #raw-sensor th:first-child { width: 28%; }
   .essential-grid .mount-strip { gap: 3px 12px; font-size: .8rem; }
@@ -93,9 +115,9 @@
   .essential-grid .panel-title h2 { font-size: .8rem; }
   .essential-grid .telemetry { margin: 0; padding: 4px 6px; }
   @media (min-width: 1400px) { .essential-grid .model-rates { grid-template-columns: repeat(4,minmax(0,1fr)); } }
-  @media (max-height: 450px) and (min-width: 720px) { .essential-grid .motor-view svg { height: 60px; } }
+  @media (max-height: 450px) and (min-width: 720px) { .essential-grid .motor-view svg { height: 44px; } .device-info { font-size: .75rem; } .device-info p { margin-bottom: 2px; } }
   @media (max-width: 719px) { .essential-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .essential-grid .model-rates { grid-column: 1 / -1; grid-template-columns: repeat(4,minmax(0,1fr)); } }
-  @media (max-width: 539px) { .essential-grid { grid-template-columns: minmax(0,1fr); } .essential-grid .model-rates { grid-template-columns: repeat(2,minmax(0,1fr)); } .essential-grid .motor-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+  @media (max-width: 539px) { .essential-grid { grid-template-columns: minmax(0,1fr); } .essential-grid .model-rates { grid-template-columns: repeat(2,minmax(0,1fr)); } .essential-grid .motor-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } #mount-summary { grid-column: auto; } }
 </style>
 <body data-state="offline">
 <header><h1>ТЕЛЕСКОП / ОРИЕНТАЦИЯ</h1><p id="mode">LINK —</p></header>
@@ -105,6 +127,7 @@
   <div class="sensor-strip" aria-label="Координаты датчика">
     <span>ДАТЧИК:</span><span>AZ <output id="az-value">—</output>°</span><span>ALT <output id="alt-value">—</output>°</span><span>RA <output id="ra-value">—</output></span><span>DEC <output id="dec-value">—</output>°</span>
   </div>
+  <div class="mount-strip"><span data-mount-state>НЕТ ДАННЫХ</span><span data-mount-clock>—</span><span data-mount-guide>GUIDE —</span><span data-mount-polar>POLAR —</span><span data-lx200-server>TCP —</span></div>
   <div class="essential-grid" aria-label="Основные приборы">
     <div class="model-rates">
       <div class="coordinate"><h3 class="lon-color">AZ · °</h3><dl><div><dt>УГОЛ</dt><dd data-angle="az">—</dd></div><div><dt>″/s</dt><dd data-rate="az">—</dd></div><div><dt>ХОД</dt><dd data-direction="az">НЕИЗВ.</dd></div></dl></div>
@@ -119,13 +142,21 @@
     <tr><th>B · мкТл</th><td id="mx">—</td><td id="my">—</td><td id="mz">—</td></tr>
   </tbody></table>
   <p id="telemetry" class="telemetry">SEQ — / AGE —</p>
+  <div class="sensor-devices" aria-label="Состояние датчиков"><output data-sensor-device="gravity">MPU6050 / НЕИЗВ.</output><output data-sensor-device="magnetic">QMC5883L / НЕИЗВ.</output></div>
+  <p data-sensor-poll>ОПРОС DEC / SENSOR — / PWR G/B —</p>
 </section>
-<section id="mount-summary">
-  <div class="panel-title"><h2>МОТОРЫ / СВЯЗЬ</h2><span data-mount-state>НЕТ ДАННЫХ</span></div>
-  <div class="mount-strip"><span data-mount-clock>—</span><span data-mount-guide>GUIDE —</span><span data-mount-polar>POLAR —</span><span data-lx200-server>TCP —</span></div>
+<section id="mount-summary" aria-label="Состояние контроллеров">
   <div class="motor-grid">
-    <div class="motor-view"><svg data-motor-view="ra" viewBox="0 0 220 90" role="img" aria-label="Вектор вращения мотора RA"></svg><output data-motor-vitals="ra">—</output></div>
-    <div class="motor-view"><svg data-motor-view="dec" viewBox="0 0 220 90" role="img" aria-label="Вектор вращения мотора DEC"></svg><output data-motor-vitals="dec">—</output></div>
+    <div class="motor-view" data-device="ra">
+      <div class="device-title"><h3>RA / SKYWATCHER</h3><output data-device-link>НЕИЗВ.</output></div>
+      <svg data-motor-view="ra" viewBox="0 0 220 90" role="img" aria-label="Вектор вращения мотора RA"></svg><output data-motor-vitals="ra" hidden>—</output>
+      <div class="device-info"><p data-device-mode>СОСТОЯНИЕ —</p><p data-device-power>PWR — V</p><p data-device-battery>BAT — V / USB — V / ЗАРЯД —</p><p data-device-driver>INIT —</p><details><summary data-device-command>CMD — ▾</summary><p data-device-command-full>НЕТ КОМАНД</p><p data-device-diagnostic>—</p></details><p data-device-error></p></div>
+    </div>
+    <div class="motor-view" data-device="dec">
+      <div class="device-title"><h3>DEC / ARDUINO</h3><output data-device-link>НЕИЗВ.</output></div>
+      <svg data-motor-view="dec" viewBox="0 0 220 90" role="img" aria-label="Вектор вращения мотора DEC"></svg><output data-motor-vitals="dec" hidden>—</output>
+      <div class="device-info"><p data-device-mode>СОСТОЯНИЕ —</p><p data-device-power>PWR — V</p><p data-device-battery>ЗАРЯД —</p><p data-device-driver>TMC2209 / UART —</p><details><summary data-device-command>CMD — ▾</summary><p data-device-command-full>НЕТ КОМАНД</p><p data-device-diagnostic>—</p></details><p data-device-error></p></div>
+    </div>
   </div>
 </section>
   </div>
@@ -258,7 +289,7 @@
     refreshing = true;
     try {
       const data = await api('/v1/status'), cal = data.calibration, sensor = data.sensor;
-      latestData = data; renderModel(data); mountPanel.update(data.mount);
+      latestData = data; renderModel(data); mountPanel.update(data.mount,data.sensor);
       byId('mount-speed').disabled=controlPending>0 || !data.mount_connected;
       if (!controlRequested) byId('mount-result').textContent=data.mount_connected ? 'LINK ON / ВЫБЕРИТЕ НАПРАВЛЕНИЕ ИЛИ GOTO' : 'LINK OFF';
       for (const button of byId('mount-control').querySelectorAll('button')) {
