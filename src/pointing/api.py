@@ -1,6 +1,6 @@
 """Agent HTTP interface using the same SYNC and sensor services as LX200."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import logging
@@ -11,9 +11,10 @@ from typing import Any
 
 from lx200.base_server import LX200SimpleServer
 from pointing.sensor import SensorReading, SensorState
-from pointing.service import PointingService
+from pointing.service import PointingService, validate_solve
 from sim.orientation_sensor import OrientationSensorSim
 from sky.lx200 import SkyLX200
+from sky.physics import Dec, Ha
 from sky.telemetry import MountTelemetry
 from utils.polar_align_lib import ObserverSite, Vec3
 
@@ -53,7 +54,47 @@ class AgentAPI:
         if method != "POST":
             return 404, {"error": "unknown_endpoint"}
         try:
-            if path == "/v1/site":
+            if path == "/v1/mount/control":
+                action = payload.get("action")
+                commands = {
+                    "north": ("Mn",), "south": ("Ms",), "east": ("Me",), "west": ("Mw",),
+                    "northwest": ("Mn", "Mw"), "northeast": ("Mn", "Me"),
+                    "southwest": ("Ms", "Mw"), "southeast": ("Ms", "Me"),
+                }
+                presets = {"guide": "RG", "center": "RC", "find": "RM", "max": "RS"}
+                if action not in ("move", "halt", "stop", "track", "goto", "speed"):
+                    raise ValueError("action must be move, halt, stop, track, goto or speed")
+                direction, preset = payload.get("direction"), payload.get("speed", "guide")
+                if action == "move" and (not isinstance(direction, str) or direction not in commands):
+                    raise ValueError("direction must be north, south, east, west, northwest, northeast, southwest or southeast")
+                if action in ("move", "speed") and (not isinstance(preset, str) or preset not in presets):
+                    raise ValueError("speed must be guide, center, find or max")
+                if action == "goto":
+                    ra, dec = finite_number(payload, "ra_hours"), finite_number(payload, "dec_deg")
+                    validate_solve(ra, dec, datetime.now(UTC))
+                if action not in ("halt", "stop"):
+                    mount = self._sky.monitor()
+                    if action == "move" and direction in ("north", "south"):
+                        axes: tuple[str, ...] = ("dec",)
+                    elif action == "move" and direction in ("east", "west"):
+                        axes = ("ra",)
+                    else:
+                        axes = ("ra", "dec")
+                    if not self._sky.is_connected() or any(not mount[axis]["available"] for axis in axes):
+                        return 503, {"error": "mount_axis_unavailable"}
+                if action in ("move", "speed"):
+                    self._sky.handle(presets[preset])
+                    if action == "move":
+                        for command in commands[str(direction)]:
+                            self._sky.handle(command)
+                elif action in ("halt", "track"):
+                    self._sky.handle("Q")
+                elif action == "stop":
+                    self._sky.stop_all()
+                elif not self._sky.slew_to(Ha(ra * 3600), Dec(dec * 3600)):
+                    return 409, {"error": "mount_refused_slew"}
+                return 200, {"accepted": True, "action": action}
+            elif path == "/v1/site":
                 self._pointing.set_site(finite_number(payload, "latitude_deg"), finite_number(payload, "longitude_deg"))
             elif path == "/v1/calibration/start":
                 self._pointing.start_calibration()
@@ -113,8 +154,11 @@ class AgentAPI:
         except (ValueError, TypeError, OverflowError) as error:
             return 400, {"error": str(error)}
         except OSError:
-            logging.getLogger(__name__).exception("Cannot persist sensor calibration")
-            return 503, {"error": "calibration_storage_unavailable"}
+            logging.getLogger(__name__).exception("Cannot execute API request")
+            return 503, {"error": "mount_transport_unavailable" if path == "/v1/mount/control" else "calibration_storage_unavailable"}
+        except RuntimeError as error:
+            logging.getLogger(__name__).exception("Mount command failed")
+            return 503, {"error": str(error)}
         return 200, self._pointing.status()
 
 

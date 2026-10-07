@@ -42,11 +42,18 @@
   .model-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
   .model-view { min-width: 0; border-right: 1px solid var(--line); }
   .model-view h3 { margin: 0; padding: 6px 8px; font-size: .85rem; font-weight: 400; color: var(--muted); }
-  .model-view svg { height: auto; aspect-ratio: 440 / 300; max-height: 620px; touch-action: pan-y; cursor: grab; }
+  .model-view svg { height: auto; aspect-ratio: 440 / 300; max-height: 620px; touch-action: none; cursor: grab; }
   .model-view svg:active { cursor: grabbing; }
   .model-view svg text { font-size: inherit; paint-order: stroke; stroke: #101612; stroke-width: .1em; stroke-linejoin: round; }
   .view-controls { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; padding: 5px 8px; border-bottom: 1px solid var(--line); }
   .view-controls span { font-size: .85rem; color: var(--muted); flex: 1 1 280px; }
+  .mount-controls { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; padding: 8px; }
+  .mount-pad { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; }
+  .mount-pad button { touch-action: manipulation; }
+  .mount-settings { display: flex; flex-wrap: wrap; align-content: start; gap: 6px; }
+  .mount-settings label { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: .85rem; }
+  #mount-result { display: block; padding: 0 8px 8px; color: var(--amber); overflow-wrap: anywhere; }
+  @media (max-width: 539px) { .mount-controls { grid-template-columns: minmax(0,1fr); } }
   .model-rates { grid-column: 1 / -1; border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); }
   .coordinate { padding: 5px 8px; border-right: 1px solid var(--line); min-width: 0; }
   .coordinate h3 { font-size: .9rem; margin: 0 0 3px; font-weight: 400; }
@@ -123,12 +130,38 @@
 </section>
   </div>
 </section>
+<section id="mount-control" class="full">
+  <div class="panel-title"><h2>УПРАВЛЕНИЕ / МОНТИРОВКА</h2><span>RA · DEC</span></div>
+  <div class="mount-controls">
+    <div class="mount-pad" aria-label="Ручное движение монтировки">
+      <button data-direction="northwest" aria-label="Двигать RA и DEC на северо-запад">↖ N/W</button>
+      <button data-direction="north" aria-label="Двигать DEC на север">DEC ↑ N</button>
+      <button data-direction="northeast" aria-label="Двигать RA и DEC на северо-восток">↗ N/E</button>
+      <button data-direction="west" aria-label="Двигать RA на запад">RA ← W</button><button data-mount-action="halt" class="danger">СТОП</button><button data-direction="east" aria-label="Двигать RA на восток">RA → E</button>
+      <button data-direction="southwest" aria-label="Двигать RA и DEC на юго-запад">↙ S/W</button>
+      <button data-direction="south" aria-label="Двигать DEC на юг">DEC ↓ S</button>
+      <button data-direction="southeast" aria-label="Двигать RA и DEC на юго-восток">↘ S/E</button>
+    </div>
+    <div class="mount-settings">
+      <label>СКОРОСТЬ<select id="mount-speed"><option value="guide">GUIDE / 1</option><option value="center">CENTER / 2</option><option value="find">FIND / 3</option><option value="max">MAX / 4</option></select></label>
+      <button data-mount-action="track">TRACK ВКЛ</button><button data-mount-action="stop" class="danger">ВСЁ ВЫКЛ</button>
+      <p class="hint">НАЖАТЬ → ДВИЖЕНИЕ ДО СТОП. СТОП → ЗВЁЗДНОЕ СОПРОВОЖДЕНИЕ. ВСЁ ВЫКЛ → ОСТАНОВИТЬ И СОПРОВОЖДЕНИЕ.</p>
+    </div>
+  </div>
+  <form id="mount-goto">
+    <label>Цель RA, чч:мм:сс<input name="ra_hms" type="text" placeholder="00:00:00" pattern="([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]([.][0-9]+)?" required></label>
+    <label>Цель DEC, °<input name="dec_deg" type="number" step="any" min="-90" max="90" required></label>
+    <button>GOTO</button>
+  </form>
+  <output id="mount-result" role="status">ОЖИДАНИЕ СВЯЗИ</output>
+</section>
 <section id="telescope-model" class="full">
   <div class="panel-title"><h2>01 / ОРИЕНТАЦИЯ И ДВИЖЕНИЕ</h2><div class="model-source"><label for="model-source">ИСТОЧНИК</label><select id="model-source"><option value="sensor">ДАТЧИК</option><option value="mount">МОНТИРОВКА</option></select><span data-model-status>НЕТ РЕШЕНИЯ ДАТЧИКА</span></div></div>
   <div class="view-controls" aria-label="Управление камерой">
-    <span>ВИД / МЫШЬ: ПЕРЕТАЩИТЬ · ПАЛЕЦ: ВЛЕВО/ВПРАВО · СЕТКА RA/DEC</span>
+    <span>ВИД / СДВИГ: ОБРАТНОЕ ВРАЩЕНИЕ ПО ДВУМ ОСЯМ · ДВА ПАЛЬЦА: КРЕН</span>
     <button data-view-action="left" aria-label="Повернуть вид влево">←</button><button data-view-action="right" aria-label="Повернуть вид вправо">→</button>
     <button data-view-action="up" aria-label="Повернуть вид вверх">↑</button><button data-view-action="down" aria-label="Повернуть вид вниз">↓</button>
+    <button data-view-action="roll-left" aria-label="Крен вида влево">↶</button><button data-view-action="roll-right" aria-label="Крен вида вправо">↷</button>
     <button data-view-action="in" aria-label="Приблизить вид">+</button><button data-view-action="out" aria-label="Отдалить вид">−</button><button data-view-action="reset">Сброс вида</button>
   </div>
   <div class="model-grid">
@@ -197,6 +230,7 @@
   const model = new TelescopeModel(instrumentsRoot);
   const mountPanel = new MountPanel(instrumentsRoot);
   let latestData = null;
+  let controlQueue = Promise.resolve(), controlPending = 0, controlRequested = false;
   byId('model-source').addEventListener('change', () => {model.update(null); renderModel(latestData);});
   function renderModel(data) {
     if (byId('model-source').value === 'mount') {
@@ -225,6 +259,13 @@
     try {
       const data = await api('/v1/status'), cal = data.calibration, sensor = data.sensor;
       latestData = data; renderModel(data); mountPanel.update(data.mount);
+      byId('mount-speed').disabled=controlPending>0 || !data.mount_connected;
+      if (!controlRequested) byId('mount-result').textContent=data.mount_connected ? 'LINK ON / ВЫБЕРИТЕ НАПРАВЛЕНИЕ ИЛИ GOTO' : 'LINK OFF';
+      for (const button of byId('mount-control').querySelectorAll('button')) {
+        const direction=button.dataset.direction, action=button.dataset.mountAction;
+        const ready=data.mount_connected && (direction==='north'||direction==='south' ? data.mount?.dec?.available : direction==='east'||direction==='west' ? data.mount?.ra?.available : data.mount?.ra?.available && data.mount?.dec?.available);
+        button.disabled=action==='halt'||action==='stop' ? false : controlPending>0 || !ready;
+      }
       document.body.dataset.state = data.status;
       byId('status').textContent = names[data.status] || data.status;
       byId('mode').textContent = `${data.simulated ? 'SIM' : 'LIVE'} / LINK ${data.mount_connected ? 'ON' : 'OFF'}`;
@@ -256,17 +297,44 @@
       for (const id of ['alt-value','az-value','ra-value','dec-value','gx','gy','gz','mx','my','mz']) byId(id).textContent = '—';
       byId('sensor-state').textContent = '—'; byId('telemetry').textContent = 'SEQ — / AGE —';
       byId('message').textContent = error.message;
+      for (const button of byId('mount-control').querySelectorAll('button')) button.disabled=!['halt','stop'].includes(button.dataset.mountAction);
+      byId('mount-speed').disabled=true;
     } finally {
       refreshing = false;
     }
   }
   async function action(work) {
-    const buttons = [...document.querySelectorAll('button')];
+    const buttons = [...document.querySelectorAll('button')].filter(button=>!button.closest('#mount-control'));
     buttons.forEach(button => button.disabled = true);
     try { const result = await work(); byId('message').textContent = result?.mount_synced ? `SYNC / ${result.status.toUpperCase()} / ТОЧКА ${result.sample_added ? 'ДОБАВЛЕНА' : 'НЕ ДОБАВЛЕНА'}` : 'OK'; await refresh(); }
     catch(error) { byId('message').textContent = error.message; }
     finally { buttons.forEach(button => button.disabled = false); }
   }
+  function control(payload) {
+    controlRequested=true;
+    controlPending++;
+    for (const button of byId('mount-control').querySelectorAll('button')) button.disabled=!['halt','stop'].includes(button.dataset.mountAction);
+    byId('mount-speed').disabled=true;
+    byId('mount-result').textContent='ОТПРАВКА КОМАНДЫ';
+    controlQueue=controlQueue.then(async()=>{
+      try {
+        await api('/v1/mount/control',payload);
+        const messages={move:`ДВИЖЕНИЕ ${payload.direction?.toUpperCase()} / ДО СТОП`,halt:'СТОП / TRACK ВКЛ',stop:'ВСЕ ДВИЖЕНИЯ И TRACK ВЫКЛ',track:'TRACK ВКЛ',speed:`СКОРОСТЬ ${payload.speed?.toUpperCase()}`,goto:'GOTO / КОМАНДА ПРИНЯТА'};
+        byId('mount-result').textContent=`КОМАНДА ПРИНЯТА / ${messages[payload.action]}`;
+      } catch(error) { byId('mount-result').textContent=`ОШИБКА / ${error.message}`; }
+      finally {controlPending--; await refresh();}
+    });
+  }
+  byId('mount-control').querySelectorAll('[data-direction],[data-mount-action]').forEach(button=>button.addEventListener('click',()=>control(button.dataset.direction
+    ? {action:'move',direction:button.dataset.direction,speed:byId('mount-speed').value}
+    : {action:button.dataset.mountAction})));
+  byId('mount-speed').addEventListener('change',()=>control({action:'speed',speed:byId('mount-speed').value}));
+  byId('mount-goto').addEventListener('submit',event=>{
+    event.preventDefault();
+    const fields=new FormData(event.target), parts=/^([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9](?:\.[0-9]+)?)$/.exec(String(fields.get('ra_hms')));
+    if (!parts) {byId('mount-result').textContent='RA / ВВЕДИТЕ ЧЧ:ММ:СС'; return;}
+    control({action:'goto',ra_hours:Number(parts[1])+Number(parts[2])/60+Number(parts[3])/3600,dec_deg:Number(fields.get('dec_deg'))});
+  });
   for (const [id,path] of [['site','/v1/site'],['pose','/v1/sim/sensor'],['solve','/v1/sync']]) {
     byId(id).addEventListener('submit', event => {
       event.preventDefault();

@@ -106,13 +106,13 @@ test('longitude velocity narrows with latitude, without faking pole motion',()=>
 
 test('camera rotation changes the view, preserving the 3D direction and radius',()=>{
   const view=new OrbitView(), point=[.3,.4,.5], original=[...point];
-  for (const yaw of [0,35,90,180,270]) for (const elevation of [-85,0,25,85]) {
-    view.yaw=yaw; view.elevation=elevation;
+  for (const yaw of [0,35,90,180,270]) for (const elevation of [-85,0,25,85]) for (const roll of [0,45,90,180]) {
+    view.yaw=yaw; view.elevation=elevation; view.roll=roll;
     const [x,y,depth]=view.project(point);
     close(((x-220)/94)**2+((150-y)/94)**2+depth**2,norm(point)**2);
     assert.deepEqual(point,original);
   }
-  view.yaw=0; view.elevation=0;
+  view.yaw=0; view.elevation=0; view.roll=0;
   assert.deepEqual(view.project([1,0,0]),[314,150,0]);
   assert.deepEqual(view.project([0,1,0]),[220,150,1]);
   assert.deepEqual(view.project([0,0,1]),[220,56,0]);
@@ -140,7 +140,7 @@ test('drag capture, cancellation and view reset preserve the telemetry baseline'
     dataset, listeners:new Map(), captured:null,
     addEventListener(type,callback) {this.listeners.set(type,callback);},
     setPointerCapture(id) {this.captured=id;},
-    releasePointerCapture() {this.captured=null; this.listeners.get('lostpointercapture')();},
+    releasePointerCapture(id) {this.captured=null; this.listeners.get('lostpointercapture')({pointerId:id});},
   }));
   const model=new TelescopeModel({querySelectorAll:selector=>selector==='[data-model-view]'?targets.slice(0,2):targets.slice(2)});
   let paints=0;
@@ -154,14 +154,14 @@ test('drag capture, cancellation and view reset preserve the telemetry baseline'
   targets[0].listeners.get('pointermove')({...event,pointerId:9,clientX:180});
   assert.equal(paints,0);
   targets[0].listeners.get('pointermove')({...event,clientX:180,clientY:150});
-  close(model.view.yaw,67); close(model.view.elevation,5);
+  close(model.view.yaw,3); close(model.view.elevation,45);
   assert.equal(paints,1);
   targets[0].listeners.get('pointercancel')(event);
   assert.equal(targets[0].captured,null);
   targets[0].listeners.get('pointermove')({...event,clientX:300});
   assert.equal(paints,1);
   targets[1].listeners.get('pointerdown')({...event,pointerId:5});
-  targets[1].listeners.get('lostpointercapture')();
+  targets[1].listeners.get('lostpointercapture')({pointerId:5});
   targets[1].listeners.get('pointermove')({...event,pointerId:5,clientX:300});
   assert.equal(paints,1);
   targets[2].listeners.get('click')();
@@ -172,13 +172,26 @@ test('drag capture, cancellation and view reset preserve the telemetry baseline'
   const touch={...event,pointerType:'touch',pointerId:6};
   targets[0].listeners.get('pointerdown')(touch);
   targets[0].listeners.get('pointermove')({...touch,clientY:150});
-  close(model.view.yaw,35); close(model.view.elevation,25);
-  assert.equal(targets[0].captured,null);
+  close(model.view.yaw,35); close(model.view.elevation,45);
+  assert.equal(targets[0].captured,6);
+  targets[0].listeners.get('pointerup')(touch);
   targets[1].listeners.get('pointerdown')({...touch,pointerId:7});
   targets[1].listeners.get('pointermove')({...touch,pointerId:7,clientX:180,clientY:110});
-  close(model.view.yaw,67); close(model.view.elevation,25);
+  close(model.view.yaw,3); close(model.view.elevation,49);
   targets[1].listeners.get('pointerup')({...touch,pointerId:7});
   assert.equal(targets[1].captured,null);
   assert.equal(model.samples.previous,baseline);
   assert.equal(model.motion,motion);
+  // Clockwise finger twist produces counterclockwise projected rotation.
+  targets[0].listeners.get('pointerdown')({...touch,pointerId:8,clientX:100,clientY:100});
+  targets[0].listeners.get('pointerdown')({...touch,pointerId:9,clientX:180,clientY:100});
+  const yaw=model.view.yaw, elevation=model.view.elevation;
+  targets[0].listeners.get('pointermove')({...touch,pointerId:9,clientX:100,clientY:180});
+  close(model.view.roll,90); close(model.view.yaw,yaw); close(model.view.elevation,elevation);
+  const right=model.view.project([1,0,0]);
+  model.view.roll=0;
+  const before=model.view.project([1,0,0]);
+  close(right[0]-220,before[1]-150); close(right[1]-150,-(before[0]-220));
+  targets[0].listeners.get('pointercancel')({...touch,pointerId:8});
+  targets[0].listeners.get('pointerup')({...touch,pointerId:9});
 });

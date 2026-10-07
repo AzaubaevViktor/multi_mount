@@ -69,11 +69,13 @@ const colors = ['#72cced','#ffc16b','#9aeab0'];
 export class OrbitView {
   yaw = 35;
   elevation = 25;
+  roll = 0;
   zoom = 1;
   project([e,n,u]) {
     const yaw=this.yaw*rad, elevation=this.elevation*rad, size=94*this.zoom;
     const across=Math.cos(yaw)*e-Math.sin(yaw)*n, toward=Math.sin(yaw)*e+Math.cos(yaw)*n;
-    return [220+size*across,150-size*(Math.cos(elevation)*u-Math.sin(elevation)*toward),Math.cos(elevation)*toward+Math.sin(elevation)*u];
+    const vertical=Math.cos(elevation)*u-Math.sin(elevation)*toward, roll=this.roll*rad;
+    return [220+size*(Math.cos(roll)*across-Math.sin(roll)*vertical),150-size*(Math.sin(roll)*across+Math.cos(roll)*vertical),Math.cos(elevation)*toward+Math.sin(elevation)*u];
   }
 }
 const views = new WeakMap();
@@ -143,35 +145,40 @@ export class TelescopeModel {
   site = null;
   constructor(root) {
     this.root = root;
-    let drag=null;
+    const pointers=new Map();
     for (const svg of root.querySelectorAll('[data-model-view]')) {
       svg.addEventListener('pointerdown',event=>{
-        if (event.button!==0 || drag) return;
-        drag={id:event.pointerId,x:event.clientX,y:event.clientY,touch:event.pointerType==='touch',started:event.pointerType!=='touch'};
+        if (event.button!==0 || pointers.size>=2) return;
+        if (pointers.size && [...pointers.values()][0].svg!==svg) return;
+        pointers.set(event.pointerId,{x:event.clientX,y:event.clientY,svg});
         svg.setPointerCapture(event.pointerId);
-        if (!drag.touch) event.preventDefault();
+        event.preventDefault();
       });
       svg.addEventListener('pointermove',event=>{
-        if (!drag || drag.id!==event.pointerId) return;
-        if (!drag.started) {
-          const dx=event.clientX-drag.x, dy=event.clientY-drag.y;
-          if (Math.hypot(dx,dy)<6) return;
-          if (Math.abs(dy)>Math.abs(dx)) {drag=null; svg.releasePointerCapture(event.pointerId); return;}
-          drag.started=true;
+        const drag=pointers.get(event.pointerId);
+        if (!drag || drag.svg!==svg) return;
+        if (pointers.size===2) {
+          const other=[...pointers.values()].find(point=>point!==drag);
+          const before=Math.atan2(drag.y-other.y,drag.x-other.x), after=Math.atan2(event.clientY-other.y,event.clientX-other.x);
+          const delta=Math.atan2(Math.sin(after-before),Math.cos(after-before))/rad;
+          this.view.roll=(this.view.roll+delta+360)%360;
+        } else {
+          this.view.yaw=((this.view.yaw-(event.clientX-drag.x)*.4)%360+360)%360;
+          this.view.elevation=Math.max(-85,Math.min(85,this.view.elevation+(event.clientY-drag.y)*.4));
         }
-        this.view.yaw=(this.view.yaw+(event.clientX-drag.x)*.4+360)%360;
-        if (!drag.touch) this.view.elevation=Math.max(-85,Math.min(85,this.view.elevation-(event.clientY-drag.y)*.4));
+        event.preventDefault();
         drag.x=event.clientX; drag.y=event.clientY; this.render();
       });
-      svg.addEventListener('lostpointercapture',()=>{drag=null;});
+      svg.addEventListener('lostpointercapture',event=>{pointers.delete(event.pointerId);});
       for (const type of ['pointerup','pointercancel']) svg.addEventListener(type,event=>{
-        if (drag?.id===event.pointerId) {drag=null; svg.releasePointerCapture(event.pointerId);}
+        if (pointers.delete(event.pointerId)) svg.releasePointerCapture(event.pointerId);
       });
     }
     for (const button of root.querySelectorAll('[data-view-action]')) button.addEventListener('click',()=>{
       const action=button.dataset.viewAction;
       if (action==='reset') this.view=new OrbitView();
       else if (action==='in' || action==='out') this.view.zoom=Math.max(.7,Math.min(1.6,this.view.zoom*(action==='in'?1.15:1/1.15)));
+      else if (action==='roll-left' || action==='roll-right') this.view.roll=(this.view.roll+(action==='roll-left'?15:-15)+360)%360;
       else {
         this.view.yaw=(this.view.yaw+(action==='left'?-15:action==='right'?15:0)+360)%360;
         this.view.elevation=Math.max(-85,Math.min(85,this.view.elevation+(action==='up'?15:action==='down'?-15:0)));
