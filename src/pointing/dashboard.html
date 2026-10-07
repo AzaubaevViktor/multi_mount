@@ -53,6 +53,7 @@
   .mount-settings { display: flex; flex-wrap: wrap; align-content: start; gap: 6px; }
   .mount-settings label { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: .85rem; }
   #mount-result { display: block; padding: 0 8px 8px; color: var(--amber); overflow-wrap: anywhere; }
+  body[data-mount-link="off"] #mode, body[data-mount-link="off"] #mount-result { color: #ff8c84; }
   @media (max-width: 539px) { .mount-controls { grid-template-columns: minmax(0,1fr); } }
   .model-rates { grid-column: 1 / -1; border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); }
   .coordinate { padding: 5px 8px; border-right: 1px solid var(--line); min-width: 0; }
@@ -299,6 +300,7 @@
         button.disabled=action==='halt'||action==='stop' ? false : controlPending>0 || !ready;
       }
       document.body.dataset.state = data.status;
+      document.body.dataset.mountLink = data.mount_connected ? 'on' : 'off';
       byId('status').textContent = names[data.status] || data.status;
       byId('mode').textContent = `${data.simulated ? 'SIM' : 'LIVE'} / LINK ${data.mount_connected ? 'ON' : 'OFF'}`;
       byId('simulation').hidden = !data.simulated;
@@ -324,6 +326,7 @@
     } catch(error) {
       latestData = null; renderModel(null); mountPanel.update(null);
       document.body.dataset.state = 'offline';
+      document.body.dataset.mountLink = 'off';
       byId('status').textContent = 'НЕТ СВЯЗИ';
       byId('mode').textContent = 'LINK OFF';
       for (const id of ['alt-value','az-value','ra-value','dec-value','gx','gy','gz','mx','my','mz']) byId(id).textContent = '—';
